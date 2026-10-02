@@ -1,0 +1,101 @@
+/* Text Editor — gaya mengikuti halaman belajar (ramah anak) */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: "Trebuchet MS", "Nunito", Arial, sans-serif; color: #2b3350;
+  background: linear-gradient(180deg, #e8f4ff 0%, #fff8e8 100%); display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+button { font: inherit; cursor: pointer; }
+
+/* ----- header ----- */
+.eh { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 18px; background: #fff; border-bottom: 3px solid #e3e9ff; flex: none; }
+.eh-back { text-decoration: none; background: #eef1ff; color: #5a6bd8; padding: 9px 14px; border-radius: 14px; font-weight: bold; font-size: 14px; }
+.eh-title { font-weight: bold; font-size: 16px; }
+.points-chip { background: #fff4d6; color: #a86a00; padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; white-space: nowrap; }
+
+/* ----- kartu misi ----- */
+.mission { flex: none; margin: 12px 14px 0; background: #fff; border-radius: 22px; padding: 12px 18px; box-shadow: 0 6px 16px rgba(60,80,140,.1); border-left: 10px solid #ff9f1c; }
+.m-top { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.m-tag { font-size: 12px; font-weight: bold; color: #8a93b4; letter-spacing: .4px; }
+.mission h2 { margin: 2px 0 2px; font-size: 19px; }
+.mission p { margin: 0; font-size: 14px; color: #5a6485; line-height: 1.45; }
+.m-info-btn { border: 0; background: #eef1ff; color: #5a6bd8; font-weight: bold; font-size: 13px; padding: 8px 12px; border-radius: 12px; }
+.m-goals { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.m-goals li { display: flex; gap: 6px; align-items: center; background: #f3f5fd; border-radius: 12px; padding: 5px 10px; font-size: 13px; font-weight: bold; color: #55608a; }
+.m-goals li.done { background: #e6f8ee; color: #1e8f52; }
+.m-info { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.m-info[hidden] { display: none; }
+.m-info { max-height: 30vh; overflow: auto; }                       /* langkah panjang tidak menutupi editor */
+.m-box.steps { grid-column: 1 / -1; background: #eef6ff; padding: 8px 14px; }
+.m-box.steps h4 { margin-bottom: 2px; }
+.m-box.steps ol { margin: 0; padding-left: 22px; line-height: 1.45; font-size: 13px; }
+@media (min-width: 900px) { .m-box.steps ol { columns: 2; column-gap: 28px; } .m-box.steps li { break-inside: avoid; } }
+.m-box { background: #f6f8ff; border-radius: 14px; padding: 10px 14px; font-size: 13.5px; line-height: 1.5; }
+.m-box h4 { margin: 0 0 4px; font-size: 13.5px; }
+.m-box ul { margin: 0; padding-left: 18px; }
+.m-box.ok { background: #e6f8ee; color: #1b6f43; }
+.m-box.bad { background: #fff0ee; color: #b23b32; }
+.m-box.tip { background: #fff7e0; }
+.m-done { margin-top: 8px; background: #e6f8ee; color: #1e8f52; border-radius: 12px; padding: 6px 12px; font-size: 13px; font-weight: bold; display: inline-block; }
+
+/* ----- dua panel ----- */
+.split { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 14px 14px; }
+.pane { background: #fff; border-radius: 22px; box-shadow: 0 8px 20px rgba(60,80,140,.12); display: flex; flex-direction: column; overflow: hidden; min-height: 0; min-width: 0; }
+.pane-head { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 3px solid #eef1ff; flex: none; flex-wrap: wrap; }
+.ph-title { font-weight: bold; font-size: 15px; }
+.ph-note { margin-left: auto; font-size: 12px; color: #8a93b4; font-weight: bold; }
+.ph-note.flash { color: #1e8f52; }
+.tabs { display: flex; gap: 6px; margin-left: auto; }
+.tabs button { border: 0; background: #eef1ff; color: #5a6bd8; font-weight: bold; font-size: 13px; padding: 7px 12px; border-radius: 12px; }
+.tabs button.on { background: #6d7eea; color: #fff; }
+
+/* ----- area kode: textarea transparan di atas <pre> berwarna ----- */
+.code-wrap { position: relative; flex: 1; min-height: 0; background: #232846; }
+.hl, .src { position: absolute; inset: 0; margin: 0; width: 100%; height: 100%; padding: 14px 16px; border: 0; border-radius: 0;
+  font: 15.5px/25px Consolas, Menlo, "Courier New", monospace; font-variant-ligatures: none; letter-spacing: 0;
+  white-space: pre; word-wrap: normal; overflow-wrap: normal; tab-size: 2; -moz-tab-size: 2; -webkit-appearance: none; }
+.hl { overflow: hidden; pointer-events: none; color: #e8ecff; }
+.src { overflow: auto; resize: none; outline: none; background: transparent; color: transparent; caret-color: #fff; }
+.src::selection { background: rgba(124,196,255,.4); }
+.tk-tag { color: #ff8fb1; } .tk-attr { color: #ffd166; } .tk-str { color: #7be0a3; }
+.tk-com { color: #8a93b4; font-style: italic; } .tk-doc { color: #b69cff; } .tk-pun { color: #c9cfe4; }
+.tk-sel { color: #7cc4ff; } .tk-prop { color: #ffd166; } .tk-val { color: #ffa8c5; } .tk-num { color: #ffb86b; }
+
+/* ----- tombol ----- */
+.toolbar { display: flex; gap: 10px; padding: 10px 14px; background: #f6f8ff; flex: none; flex-wrap: wrap; }
+.btn { border: 0; border-radius: 16px; padding: 11px 18px; font-weight: bold; font-size: 15px; background: #6d7eea; color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.15); }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.btn.run { background: #34c06f; font-size: 17px; padding: 11px 26px; }
+.btn.ghost { background: #eef1ff; color: #5a6bd8; box-shadow: none; }
+
+/* ----- preview ----- */
+#preview { flex: 1; min-height: 0; width: 100%; border: 0; background: #fff; }
+.prev-foot { flex: none; padding: 7px 14px; font-size: 12px; color: #8a93b4; background: #f6f8ff; }
+
+/* ----- popup (sama gayanya dengan halaman belajar & Scratch) ----- */
+.mission-overlay { position: fixed; inset: 0; background: rgba(30,25,60,.5); display: grid; place-items: center; z-index: 99999; padding: 16px; }
+.mission-popup { background: #fff; border-radius: 26px; padding: 26px 28px; width: min(380px, 100%); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.3); animation: pop .25s ease-out; }
+@keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.mp-emoji { font-size: 58px; }
+.mission-popup h2 { margin: 6px 0 4px; font-size: 26px; color: #2b3350; }
+.mission-popup.fail h2 { color: #e0453a; }
+.mission-popup.info h2 { color: #4c7bd8; }
+.mp-name { margin: 0 0 8px; color: #6b7494; font-size: 14px; }
+.mp-points { font-size: 22px; color: #a86a00; margin: 8px 0; }
+.mp-points b { font-size: 36px; }
+.mp-bonus { background: #fff4d6; color: #a86a00; border-radius: 14px; padding: 8px; font-weight: bold; margin-bottom: 8px; }
+.mp-info { margin: 8px 0; color: #4a5378; font-size: 15px; line-height: 1.5; }
+.mp-unmet { text-align: left; background: #ffecec; border-radius: 14px; padding: 10px 14px 10px 30px; margin: 10px 0; font-size: 14px; color: #b23b32; }
+.mp-actions { display: grid; gap: 10px; margin-top: 14px; }
+.mp-actions button { border: 0; border-radius: 16px; padding: 13px; font-weight: bold; font-size: 15px; }
+.mp-primary { background: #34c06f; color: #fff; }
+.mission-popup.fail .mp-primary { background: #ff7a59; }
+.mission-popup.info .mp-primary { background: #6d7eea; }
+.mp-secondary { background: #eef1ff; color: #5a6bd8; }
+.mp-all { font-weight: bold; color: #1e8f52; }
+
+/* ----- layar kecil: panel ditumpuk ----- */
+@media (max-width: 820px) {
+  body { height: auto; min-height: 100vh; }
+  .eh-title { display: none; }
+  .split { grid-template-columns: 1fr; grid-template-rows: 58vh 48vh; flex: none; }
+  .tabs { margin-left: 0; }
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Editor • Dieng Cyber Coding</title>
+  <link rel="stylesheet" href="editor.css?v=2">
+</head>
+<body>
+  <header class="eh">
+    <a class="eh-back" id="backLink" href="../dashboard.html">← Dashboard</a>
+    <div class="eh-title">💻 Text Editor</div>
+    <div class="points-chip">⭐ <b id="pointsValue">0</b> poin</div>
+  </header>
+
+  <!-- Kartu misi: diisi otomatis oleh editor.js saat membuka sebuah task -->
+  <section class="mission" id="mission" hidden></section>
+
+  <main class="split">
+    <!-- KIRI: kode -->
+    <section class="pane">
+      <div class="pane-head">
+        <span class="ph-title">💻 Code</span>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <div class="code-wrap">
+        <pre class="hl" id="hl" aria-hidden="true"></pre>
+        <textarea class="src" id="src" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" wrap="off" aria-label="Tempat menulis kode"></textarea>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="btn run" id="runBtn">▶ Jalankan</button>
+        <button type="button" class="btn ghost" id="resetBtn">🔄 Reset</button>
+        <button type="button" class="btn ghost" id="clearBtn">🧹 Kosongkan</button>
+      </div>
+    </section>
+
+    <!-- KANAN: preview. sandbox="" = semua izin dimatikan (tanpa JavaScript) supaya aman -->
+    <section class="pane">
+      <div class="pane-head">
+        <span class="ph-title">🌐 Preview</span>
+        <span class="ph-note" id="prevNote">Berubah otomatis saat kamu mengetik</span>
+      </div>
+      <iframe id="preview" title="Preview website" sandbox=""></iframe>
+      <div class="prev-foot">🔗 Tautan di preview tidak bisa diklik di sini. Itu normal, kodenya tetap benar!</div>
+    </section>
+  </main>
+
+  <script src="../jalur-data.js?v=8"></script>
+  <script src="../jalur-belajar.js?v=8"></script>
+  <script src="highlight.js?v=1"></script>
+  <script src="editor.js?v=8"></script>
+</body>
+</html>

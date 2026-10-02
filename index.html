@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk • Dieng Cyber Coding Academy</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
+    .card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 30px; box-shadow: 0 8px 25px rgba(50,70,110,.08); }
+    .brand { text-align: center; margin-bottom: 20px; }
+    .brand-icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 16px; background: #eef2ff; display: grid; place-items: center; font-size: 28px; }
+    h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
+    p { margin: 4px 0 0; color: #8791a5; font-size: 12px; }
+    label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
+    input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
+    input:focus { outline: 2px solid #7181ec; border-color: transparent; }
+    .error { display: none; margin-top: 12px; color: #d33; font-size: 12px; }
+    button { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
+    button:hover { background: #5f70dd; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon">🚀</div>
+      <h1>DIENG CYBER CODING</h1>
+      <p>Masuk untuk mulai belajar coding</p>
+    </div>
+
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
+
+      <div id="loginError" class="error">Username dan Password wajib diisi!</div>
+
+      <button type="submit">Masuk</button>
+    </form>
+  </div>
+
+  <script>
+    // Kalau sudah login, langsung ke dashboard
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      window.location.replace('dashboard.html');
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+
+      // Satu sesi ini dipakai dashboard DAN Scratch (tidak perlu login lagi)
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('username', username);
+      localStorage.setItem('scratch_user', username);
+
+      window.location.replace('dashboard.html');
+    });
+  </script>
+</body>
+</html>

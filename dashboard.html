@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dieng Cyber Coding Academy</title>
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="Assets/logo.png" alt="Logo Dieng Cyber Coding">
+      </div>
+      <div>
+        <h1>DIENG CYBER CODING</h1>
+        <p>E-learning coding untuk anak</p>
+      </div>
+    </div>
+    <div class="profile">
+      <div>
+        <strong id="displayUsername">@anak_coding</strong>
+        <span>Belajar • Bermain • Berkarya</span>
+      </div>
+      <div class="points-chip">⭐ <b id="pointsValue">0</b> poin</div>
+      <button id="logoutBtn" class="logout">Keluar</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="eyebrow">CODING ADVENTURE</span>
+        <h2>Belajar coding sesuai jenjangmu! 🎮</h2>
+        <p>Pilih jenjangmu. Untuk SD, ada Tahap 1 dan Tahap 2 yang seru: animasi, game, dunia 3D, dan website!</p>
+      </div>
+    <div class="hero-badge">
+        <img src="Assets/belajar-bermain.jpg" alt="">
+    </div>    
+    </section>
+
+    <section class="grade-section">
+      <div class="section-title">
+        <div>
+          <span class="eyebrow">PILIH JENJANG</span>
+          <h2>Mulai petualanganmu</h2>
+        </div>
+      </div>
+
+      <div class="grade-tabs">
+        <button class="grade-tab active" data-grade="sd">
+          <span>🎒</span><b>SD</b><small>Visual & cerita</small>
+        </button>
+        <button class="grade-tab" data-grade="smp">
+          <span>🎮</span><b>SMP</b><small>Game & logika</small>
+        </button>
+        <button class="grade-tab" data-grade="smak">
+          <span>💻</span><b>SMA/SMK</b><small>Algoritma & coding</small>
+        </button>
+      </div>
+    </section>
+
+    <div id="tahapArea"></div>
+  </main>
+
+  <script src="jalur-data.js?v=8"></script>
+  <script src="jalur-belajar.js?v=8"></script>
+  <script src="dashboard.js?v=8"></script>
+</body>
+</html>
