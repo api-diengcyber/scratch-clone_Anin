@@ -53,6 +53,8 @@ const pisah = (a) => (a[0] && typeof a[0] === "object" && !Array.isArray(a[0])) 
 const editor = (...a) => { const [o, [title, desc, hint]] = pisah(a);          return Object.assign({ type: "interactive", kind: "editor", title, desc, hint }, o); };
 const kode   = (...a) => { const [o, [title, desc, hint]] = pisah(a);           return Object.assign({ type: "interactive", kind: "code", title, desc, hint }, o); };
 const kuis   = (...a) => { const [o, [title, desc, quiz]] = pisah(a);          return Object.assign({ type: "interactive", kind: "quiz", title, desc, quiz }, o); };
+const model3d = (...a) => { const [o, [title, desc, hint]] = pisah(a); return Object.assign({ type: "interactive", kind: "model3d", title, desc, hint }, o); };
+const bagian = (c) => c.parts.filter((p) => p.shape !== "spawn");   // semua benda selain Tempat Muncul
 const luar   = (...a) => { const [o, [title, desc, steps, checklist]] = pisah(a);  return Object.assign({ type: "external", title, desc, steps, checklist }, o); };
 const proyek = (...a) => { const [o, [title, desc, steps, checklist]] = pisah(a);  return Object.assign({ type: "project", title, desc, steps, checklist }, o); };
 
@@ -110,24 +112,31 @@ window.LP_DATA = {
           id: "p2", emoji: "🖥️", warna: "#4c9aff", judul: "Seni dari Komputer",
           desc: "Berkarya seni memakai perangkat keras dan perangkat lunak komputer.",
           tasks: [
-            kuis({"materi": ["Perangkat keras: yang bisa dipegang", "Perangkat lunak: program atau aplikasi", "Mouse, keyboard, dan layar"]}, "Perangkat Keras & Lunak", "Kenali bagian komputer yang bisa dipegang dan yang berupa program.", [
-              { q: "Mana yang termasuk perangkat KERAS (bisa dipegang)?", options: ["Mouse", "Aplikasi menggambar", "Game"], answer: 0 },
-              { q: "Mana yang termasuk perangkat LUNAK (program)?", options: ["Layar monitor", "Aplikasi menggambar", "Keyboard"], answer: 1 },
-              { q: "Alat apa yang dipakai untuk menggerakkan penunjuk di layar?", options: ["Mouse", "Speaker", "Printer"], answer: 0 }
-            ]),
-            luar({"materi": ["Aplikasi menggambar (Paint)", "Kuas, warna, dan penghapus", "Garis lurus, lengkung, dan lingkaran"]}, "Coba Menggambar", "Buka aplikasi menggambar (misalnya Paint) dan kenalan dengan kuasnya.",
-              ["Minta bantuan orang dewasa untuk membuka aplikasi menggambar.", "Pilih kuas dan satu warna.",
-               "Gambar garis lurus, garis melengkung, dan lingkaran.", "Coba hapus dengan penghapus."],
-              ["Aku sudah membuka aplikasi menggambar", "Aku sudah mencoba kuas dan warna", "Aku sudah menggambar garis dan lingkaran"]),
-            luar({"materi": ["Bentuk dasar: lingkaran, kotak, segitiga", "Menyusun bentuk menjadi gambar", "Menyimpan file gambar"]}, "Gambar Hewan dari Bentuk", "Susun lingkaran, kotak, dan segitiga menjadi hewan lucu.",
-              ["Pilih satu hewan kesukaanmu.", "Gambar badannya memakai lingkaran atau kotak.", "Tambahkan kepala, telinga, dan kaki.", "Simpan gambarmu."],
-              ["Aku memilih satu hewan", "Aku memakai minimal 3 bentuk", "Aku sudah menyimpan gambarku"]),
-            luar({"materi": ["Alat tuang warna", "Memilih warna yang serasi", "Latar belakang dan hiasan"]}, "Warna dan Hiasan", "Beri warna cerah, latar, dan hiasan pada gambarmu.",
-              ["Buka lagi gambar hewanmu.", "Isi warna dengan alat tuang warna.", "Tambahkan latar belakang dan hiasan.", "Simpan sebagai gambar baru."],
-              ["Gambarku sudah diberi warna", "Gambarku punya latar belakang", "Gambarku punya hiasan"]),
-            luar({"materi": ["Menggabungkan gambar dan tulisan", "Tata letak sederhana", "Membuat karya untuk orang lain"]}, "Kartu Ucapan Digital", "Gabungkan gambar, warna, dan tulisan menjadi kartu ucapan.",
-              ["Siapkan satu halaman kosong.", "Masukkan gambar hewanmu.", "Tulis ucapan untuk keluarga atau temanmu.", "Hias pinggiran kartu."],
-              ["Kartuku punya gambar", "Kartuku punya tulisan ucapan", "Kartuku sudah dihias"]),
+            editor({ materi: ["Blok Looks: set color effect", "Blok Control: wait", "Memberi jeda supaya perubahan terlihat"],
+                     sukses: "Ada minimal 2 blok color effect dan 1 blok wait di bawah \"when 🚩 clicked\", lalu bendera hijau diklik.",
+                     gagal: "Blok color effect kurang dari 2, belum ada blok wait, atau belum tersambung di bawah \"when 🚩 clicked\"." },
+              "Warna Ajaib", "Ubah warna karaktermu seperti sulap! Beri jeda supaya kamu sempat melihat tiap warna.",
+              "Pakai \"change color effect by\" atau \"set color effect to\" dari Looks, lalu \"wait 1 seconds\" dari Control. Susun: warna → tunggu → warna."),
+            editor({ materi: ["Blok Control: repeat", "Blok Motion: turn", "Satu lingkaran penuh = 360 derajat"],
+                     sukses: "Ada blok turn di dalam blok repeat, dan jumlah ulangan × sudut putarnya minimal 360, lalu bendera hijau diklik.",
+                     gagal: "Blok turn belum ada di dalam repeat, atau putarannya belum sampai satu lingkaran penuh (360)." },
+              "Putar Satu Lingkaran", "Buat karaktermu berputar satu lingkaran penuh tanpa menyusun blok turn berkali-kali.",
+              "Taruh \"turn 15 degrees\" di DALAM \"repeat\". Ubah angka repeat menjadi 24, karena 24 × 15 = 360 derajat."),
+            editor({ materi: ["Perulangan dengan repeat", "Mengubah color effect di dalam perulangan", "Jeda di dalam perulangan"],
+                     sukses: "Di dalam blok repeat ada blok color effect dan blok wait, lalu bendera hijau diklik.",
+                     gagal: "Blok color effect atau blok wait belum berada di dalam repeat." },
+              "Pelangi Berputar", "Buat warna karaktermu berganti-ganti terus seperti pelangi.",
+              "Di dalam \"repeat 20\", pasang \"change color effect by 25\" lalu \"wait 0.2 seconds\"."),
+            editor({ materi: ["Blok Motion: glide to x y", "Koordinat x dan y di panggung", "Membuat jalur gerak seperti garis lukisan"],
+                     sukses: "Ada minimal 3 blok glide dengan tujuan yang berbeda-beda, lalu bendera hijau diklik.",
+                     gagal: "Blok glide kurang dari 3, atau tujuannya (x dan y) masih sama semua." },
+              "Lukis dengan Gerakan", "Buat karaktermu meluncur ke beberapa tempat dan membentuk jalur seperti lukisan.",
+              "Pakai \"glide 1 secs to x: y:\" tiga kali dengan angka berbeda, misalnya (-100, 80), (100, 80), lalu (0, -80) sehingga membentuk segitiga."),
+            editor({ materi: ["Menggabungkan perulangan, gerak, dan tampilan", "Merencanakan sebuah pertunjukan seni"],
+                     sukses: "Satu rangkaian berisi ganti latar, repeat yang berisi blok Motion dan blok Looks, serta blok bicara, lalu bendera hijau diklik.",
+                     gagal: "Masih ada bagian yang belum dipakai, atau repeat belum berisi blok Motion dan blok Looks." },
+              "Karya Seni Bergerak", "Satukan semuanya: latar baru, perulangan gerak dan warna, lalu karaktermu menyapa penonton.",
+              "Susun: switch backdrop → repeat 12 { turn 30, change color effect by 25 (atau change size), wait 0.2 } → say. Semuanya di bawah \"when 🚩 clicked\".")
           ],
           project: proyek({"jenis": "external", "aplikasi": "aplikasi gambar di komputer", "tujuan": "Membuat satu poster digital yang memakai gambar, warna, dan tulisan buatanmu sendiri.", "kumpul": ["Simpan posternya di komputer", "Foto atau screenshot hasilnya", "Unggah fotonya di halaman ini"], "lencana": "🎨 Lencana Seniman Digital"}, "Poster Seni Digitalku", "Buat satu poster seni dari komputer memakai semua yang sudah kamu pelajari.",
             ["Pilih tema posternya, misalnya hewan, taman, atau kota.", "Gambar dan beri warna.", "Tambahkan judul poster.", "Simpan, lalu foto atau screenshot hasilnya."],
@@ -139,22 +148,31 @@ window.LP_DATA = {
           id: "p3", emoji: "🏺", warna: "#c9843f", judul: "Memahat Tanah Liat",
           desc: "Meremas, menggulung, dan memahat tanah liat menjadi karya.",
           tasks: [
-            kuis({"materi": ["Sifat tanah liat", "Cara menyimpan tanah liat", "Alat pahat yang aman"]}, "Kenalan dengan Tanah Liat", "Pelajari cara menjaga dan memakai tanah liat dengan aman.", [
-              { q: "Supaya tanah liat tidak cepat kering, sebaiknya...", options: ["Ditutup kain basah atau plastik", "Dijemur di matahari", "Dibiarkan terbuka"], answer: 0 },
-              { q: "Alat mana yang aman untuk membuat garis di tanah liat?", options: ["Spatula kecil dari plastik", "Pisau tajam", "Gunting besar"], answer: 0 }
-            ]),
-            luar({"praktik": "physical", "materi": ["Meremas dan melembutkan tanah liat", "Membuat bola", "Membuat gulungan"]}, "Bola dan Gulungan", "Latihan dasar: membuat bola dan gulungan.",
-              ["Ambil segenggam tanah liat.", "Remas sampai lembut.", "Bulatkan di antara dua telapak tangan jadi bola.", "Gulung di meja jadi bentuk panjang."],
-              ["Aku sudah membuat bola", "Aku sudah membuat gulungan", "Aku mencuci tangan setelahnya"]),
-            luar({"praktik": "physical", "materi": ["Menyusun bentuk dasar menjadi hewan", "Menyambung bagian dengan rapi"]}, "Pahat Hewan Kecil", "Ubah bola dan gulungan menjadi hewan kecil.",
-              ["Pilih hewan yang mudah, misalnya kura-kura atau kucing.", "Buat badan dari bola.", "Tempelkan kepala dan kaki.", "Rapikan sambungannya dengan jari."],
-              ["Aku memilih satu hewan", "Badan, kepala, dan kaki sudah menyatu", "Hewanku bisa berdiri"]),
-            luar({"praktik": "physical", "materi": ["Membuat mata, hidung, dan tekstur", "Merapikan permukaan"]}, "Tambah Detail", "Beri mata, hidung, dan tekstur supaya hewanmu lebih hidup.",
-              ["Buat mata dengan bola kecil atau ujung pensil.", "Gores tekstur seperti bulu atau cangkang.", "Rapikan permukaan yang kasar."],
-              ["Hewanku punya mata", "Hewanku punya tekstur", "Permukaannya sudah rapi"]),
-            luar({"praktik": "physical", "materi": ["Membuat alas", "Menata karya dan hiasan", "Menyimpan karya dengan aman"]}, "Diorama Mini", "Letakkan hewanmu di sebuah alas dan beri hiasan sekitar.",
-              ["Buat alas pipih dari tanah liat.", "Letakkan hewanmu di atas alas.", "Tambahkan hiasan kecil: pohon, batu, atau rumput."],
-              ["Hewanku berada di atas alas", "Ada minimal 2 hiasan", "Hasilnya sudah kuletakkan di tempat aman"]),
+            editor({ materi: ["Blok Events: when key pressed", "Karakter bergerak karena tombol", "Menguji dengan bendera hijau dan keyboard"],
+                     sukses: "Ada blok \"when key pressed\" yang tersambung ke blok Motion, lalu bendera hijau diklik.",
+                     gagal: "Belum ada \"when key pressed\", atau belum ada blok Motion yang tersambung di bawahnya." },
+              "Gerak dengan Tombol", "Sekarang karaktermu bergerak karena kamu menekan tombol, bukan hanya bendera hijau!",
+              "Ambil \"when space key pressed\" dari Events, lalu pasang \"change x by 10\" dari Motion di bawahnya. Klik bendera hijau, lalu coba tekan tombolnya."),
+            editor({ materi: ["Beberapa blok event sekaligus", "Memilih tombol yang berbeda", "Gerak ke atas, bawah, kiri, dan kanan"],
+                     sukses: "Ada minimal 4 blok \"when key pressed\" dengan tombol yang berbeda-beda, masing-masing tersambung ke blok Motion, lalu bendera hijau diklik.",
+                     gagal: "Blok \"when key pressed\" kurang dari 4, tombolnya ada yang sama, atau ada yang belum punya blok Motion." },
+              "Pahat ke Empat Arah", "Buat karaktermu bisa digerakkan ke atas, bawah, kiri, dan kanan dengan tombol panah.",
+              "Buat 4 rangkaian. Ganti tombol tiap \"when key pressed\" menjadi panah atas, bawah, kiri, kanan. Pakai \"change y by 10\" untuk atas/bawah (angka negatif untuk bawah) dan \"change x by 10\" untuk kanan/kiri."),
+            editor({ materi: ["Blok Events: when this sprite clicked", "Blok Looks: next costume dan say", "Karakter yang bereaksi saat diklik"],
+                     sukses: "Ada blok \"when this sprite clicked\" yang tersambung ke minimal 2 blok Looks, lalu bendera hijau diklik.",
+                     gagal: "Belum ada \"when this sprite clicked\", atau blok Looks di bawahnya kurang dari 2." },
+              "Sentuh untuk Berubah", "Buat karaktermu berubah bentuk dan berbicara saat diklik.",
+              "Ambil \"when this sprite clicked\" dari Events. Pasang \"next costume\" dan \"say\" dari Looks di bawahnya."),
+            editor({ materi: ["Blok Looks: change size by", "Angka positif membesar, angka negatif mengecil", "Dua tombol berbeda untuk dua aksi"],
+                     sukses: "Ada satu tombol yang membesarkan karakter (angka positif), satu tombol lain yang mengecilkannya (angka negatif), lalu bendera hijau diklik.",
+                     gagal: "Belum ada blok change size dengan angka positif dan negatif di dua tombol yang berbeda." },
+              "Besar dan Kecil", "Seperti memahat: satu tombol untuk membesarkan, satu tombol untuk mengecilkan karakter.",
+              "Buat dua rangkaian \"when key pressed\" dengan tombol berbeda. Yang pertama: \"change size by 10\". Yang kedua: \"change size by -10\"."),
+            editor({ materi: ["Menggabungkan event tombol dan klik", "Menggabungkan gerak, ukuran, dan suara"],
+                     sukses: "Ada minimal 2 tombol berbeda yang menggerakkan karakter, 1 klik sprite yang mengubah tampilan, dan 1 blok Sound di salah satu rangkaian, lalu bendera hijau diklik.",
+                     gagal: "Masih ada bagian yang belum dipakai: tombol gerak, klik sprite, atau blok Sound." },
+              "Studio Pahat", "Gabungkan semuanya menjadi satu studio mini: tombol untuk bergerak, klik untuk berubah, dan suara!",
+              "Buat 2 rangkaian \"when key pressed\" + gerak (tombol berbeda), 1 rangkaian \"when this sprite clicked\" + blok Looks, lalu tambahkan \"start sound\" di salah satunya.")
           ],
           project: proyek({"jenis": "fisik", "tujuan": "Membuat satu patung tanah liat yang bentuknya jelas dan punya detail.", "kumpul": ["Biarkan karyamu mengering di tempat teduh", "Foto karyamu dari depan", "Unggah fotonya di halaman ini"], "lencana": "🏺 Lencana Pemahat Cilik"}, "Patung Tanah Liat Favoritku", "Pahat satu karya tanah liat yang paling kamu suka.",
             ["Pilih benda atau hewan yang ingin kamu buat.", "Bentuk dan beri detail.", "Biarkan mengering di tempat teduh.", "Foto karyamu."],
@@ -166,23 +184,31 @@ window.LP_DATA = {
           id: "p4", emoji: "🏠", warna: "#3fbf7f", judul: "Mendesain Rumah",
           desc: "Rancang rumah impianmu dari atap sampai taman.",
           tasks: [
-            kuis({"materi": ["Atap, dinding, pintu, jendela, lantai", "Fungsi tiap bagian rumah"]}, "Bagian-bagian Rumah", "Kenali bagian rumah dan gunanya.", [
-              { q: "Bagian rumah yang ada di paling atas adalah...", options: ["Atap", "Pintu", "Lantai"], answer: 0 },
-              { q: "Bagian rumah yang membuat cahaya masuk adalah...", options: ["Jendela", "Lantai", "Pagar"], answer: 0 },
-              { q: "Kita masuk ke dalam rumah lewat...", options: ["Pintu", "Atap", "Cerobong"], answer: 0 }
-            ]),
-            luar({"praktik": "physical", "materi": ["Bentuk dasar rumah: kotak dan segitiga"]}, "Gambar Bentuk Rumah", "Mulai dengan bentuk rumah paling sederhana.",
-              ["Siapkan kertas atau aplikasi menggambar.", "Gambar kotak untuk dinding.", "Gambar segitiga untuk atap."],
-              ["Aku menggambar dinding", "Aku menggambar atap", "Bentuk rumahku sudah terlihat"]),
-            luar({"praktik": "physical", "materi": ["Letak pintu dan jendela", "Halaman dan pagar"]}, "Pintu, Jendela, dan Halaman", "Lengkapi rumahmu dengan pintu, jendela, dan halaman.",
-              ["Tambahkan pintu di tengah.", "Tambahkan jendela di kiri dan kanan.", "Gambar pagar dan halaman."],
-              ["Rumahku punya pintu", "Rumahku punya jendela", "Rumahku punya halaman"]),
-            luar({"praktik": "physical", "materi": ["Memilih warna", "Menambahkan taman, langit, dan matahari"]}, "Warna dan Taman", "Beri warna dan tambahkan taman yang indah.",
-              ["Pilih warna dinding dan atap.", "Tambahkan pohon dan bunga.", "Beri langit dan matahari."],
-              ["Rumahku berwarna", "Ada pohon atau bunga", "Ada langit atau matahari"]),
-            luar({"praktik": "physical", "materi": ["Denah: rumah dilihat dari atas", "Membagi ruangan", "Memberi nama ruangan"]}, "Denah Rumah Sederhana", "Lihat rumahmu dari atas dan bagi menjadi beberapa ruangan.",
-              ["Gambar kotak besar sebagai batas rumah.", "Bagi menjadi ruangan: kamar, dapur, ruang tamu.", "Tulis nama setiap ruangan."],
-              ["Denahku punya minimal 3 ruangan", "Setiap ruangan sudah ada namanya", "Aku tahu letak pintunya"]),
+            editor({ materi: ["Variabel: tempat menyimpan angka", "Blok set variable", "Menampilkan isi variabel"],
+                     sukses: "Ada blok \"set variable\" di bawah \"when 🚩 clicked\", dan nilainya ditampilkan (show variable atau say yang memakai variabel), lalu bendera hijau diklik.",
+                     gagal: "Belum ada blok \"set variable\", atau nilainya belum ditampilkan." },
+              "Hitung Jendela", "Rumahmu punya beberapa jendela. Simpan jumlahnya di sebuah variabel, lalu tampilkan.",
+              "Dari Variables, pakai \"set my variable to 4\". Lalu pakai \"show variable\", atau taruh blok variabel \"my variable\" di dalam blok \"say\"."),
+            editor({ materi: ["Blok change variable", "Variabel di dalam perulangan", "Menghitung satu per satu"],
+                     sukses: "Ada \"set variable\", lalu repeat yang berisi \"change variable\", dan hasilnya diucapkan dengan blok say, lalu bendera hijau diklik.",
+                     gagal: "Blok \"change variable\" belum ada di dalam repeat, atau belum ada say yang memakai variabel." },
+              "Tambah Satu-satu", "Hitung jumlah jendela sampai 5 dengan menambah satu demi satu.",
+              "Susun: set my variable to 0 → repeat 5 { change my variable by 1 } → say (taruh blok \"my variable\" di dalam say)."),
+            editor({ materi: ["Percabangan: blok if", "Syarat dengan sensor (key pressed, touching)", "Perulangan yang terus mengecek"],
+                     sukses: "Ada blok if di dalam repeat, memakai syarat dari Sensing, dan di dalamnya ada blok Motion atau Looks, lalu bendera hijau diklik.",
+                     gagal: "Blok if belum ada di dalam repeat, belum memakai syarat dari Sensing, atau masih kosong." },
+              "Pintu Otomatis", "Buat pintu yang hanya terbuka kalau tombol ditekan.",
+              "Susun: repeat 30 { if <key space pressed?> then { say \"Pintu terbuka!\" }, wait 0.1 seconds }. Syarat \"key pressed?\" ada di Sensing. Lalu klik bendera hijau dan tekan spasi."),
+            editor({ materi: ["Blok if-else", "Membandingkan angka (>, <, =)", "Dua pilihan: kalau ya dan kalau tidak"],
+                     sukses: "Ada blok if-else dengan syarat perbandingan, kedua jalurnya berisi blok, dan salah satunya mengganti latar, lalu bendera hijau diklik.",
+                     gagal: "Blok if-else belum punya syarat perbandingan, salah satu jalurnya masih kosong, atau belum ada blok ganti latar." },
+              "Siang atau Malam", "Buat latar berubah jadi malam kalau angkanya besar, dan jadi siang kalau tidak.",
+              "Pakai \"if-else\" dari Control. Syaratnya: <my variable > 5> dari Operators. Di jalur \"if\": switch backdrop ke malam. Di jalur \"else\": switch backdrop ke siang."),
+            editor({ materi: ["Menggabungkan variabel, perulangan, dan percabangan", "Mengambil keputusan dari hasil hitungan"],
+                     sukses: "Ada \"set variable\", repeat yang berisi \"change variable\" dan if/if-else yang membandingkan variabel, serta blok bicara, lalu bendera hijau diklik.",
+                     gagal: "Masih ada bagian yang belum dipakai: variabel, repeat, perbandingan variabel di if, atau blok bicara." },
+              "Rumah Pintar", "Rumahmu menghitung jumlah lampu yang menyala, lalu mengambil keputusan sendiri!",
+              "Susun: set my variable to 0 → repeat 5 { change my variable by 1, if <my variable = 3> then { say \"Separuh lampu menyala!\" } }.")
           ],
           project: proyek({"jenis": "fisik", "tujuan": "Merancang rumah impian lengkap dengan tampak depan, taman, dan denah ruangan.", "kumpul": ["Selesaikan gambar rumah dan denahnya", "Foto atau screenshot hasilnya", "Unggah fotonya di halaman ini"], "lencana": "🏠 Lencana Arsitek Cilik"}, "Rumah Impianku", "Desain rumah impianmu lengkap dengan warna, taman, dan denah ruangan.",
             ["Gambar rumah tampak depan.", "Beri warna dan taman.", "Buat denah sederhana di sampingnya.", "Foto atau screenshot hasilnya."],
@@ -194,21 +220,31 @@ window.LP_DATA = {
           id: "p5", emoji: "🐷", warna: "#ff6fa5", judul: "Animasi ala Peppa Pig",
           desc: "Bikin animasi cerita keluarga hewan lucu memakai ScratchJr.",
           tasks: [
-            luar({"materi": ["Tampilan ScratchJr: panggung, karakter, area kode", "Tombol bendera hijau"]}, "Kenalan dengan ScratchJr", "Buka ScratchJr dan kenali tombol-tombol utamanya.",
-              ["Minta bantuan orang dewasa untuk membuka ScratchJr.", "Lihat karakter kucing dan panggungnya.", "Coba tekan bendera hijau."],
-              ["Aku sudah membuka ScratchJr", "Aku sudah menekan bendera hijau", "Aku tahu di mana karakter dan panggungnya"]),
-            luar({"materi": ["Blok gerak (biru)", "Menjalankan kode dengan bendera hijau"]}, "Gerakkan Karakter", "Buat karakter berjalan dengan blok biru ScratchJr.",
-              ["Tekan karakter, lalu pilih blok gerak (biru).", "Seret blok maju ke area kode.", "Tekan bendera hijau."],
-              ["Karakterku sudah bergerak", "Aku memakai minimal 2 blok gerak", "Aku bisa menjalankan dengan bendera hijau"]),
-            luar({"materi": ["Memilih latar", "Blok Say (ungu)"]}, "Ganti Latar & Percakapan", "Pilih latar baru dan buat karakter berbicara dengan balon kata.",
-              ["Tekan ikon latar dan pilih latar yang kamu suka.", "Pilih blok ungu \"Say\".", "Tulis percakapan sederhana."],
-              ["Aku memilih latar baru", "Karakterku bisa berbicara", "Percakapanku punya minimal 2 kalimat"]),
-            luar({"materi": ["Blok suara (hijau)", "Merekam suara sendiri"]}, "Tambah Suara", "Rekam suaramu atau pilih suara dari ScratchJr.",
-              ["Pilih blok suara (hijau).", "Rekam suaramu atau pilih suara yang ada.", "Pasang di rangkaian kodemu."],
-              ["Animasiku punya suara", "Suaranya muncul di saat yang pas", "Aku sudah mencoba menjalankannya"]),
-            luar({"materi": ["Menambah halaman", "Alur cerita: awal, tengah, akhir"]}, "Cerita Beberapa Halaman", "Satukan semuanya menjadi cerita dengan lebih dari satu halaman.",
-              ["Tambahkan halaman baru dengan tombol +.", "Buat kejadian berbeda di tiap halaman.", "Jalankan dari halaman pertama."],
-              ["Ceritaku punya minimal 2 halaman", "Ada gerakan, percakapan, dan suara", "Ceritanya punya awal dan akhir"]),
+            editor({ materi: ["Blok Events: broadcast", "Blok Events: when I receive", "Dua rangkaian blok saling mengirim pesan"],
+                     sukses: "Ada blok broadcast di bawah \"when 🚩 clicked\", dan ada \"when I receive\" dengan pesan yang sama yang berisi blok say atau think, lalu bendera hijau diklik.",
+                     gagal: "Belum ada broadcast, belum ada \"when I receive\", pesannya berbeda, atau rangkaian penerima belum berisi say/think." },
+              "Kirim Pesan", "Seorang tokoh mengirim pesan, lalu tokoh lain menerimanya dan menjawab.",
+              "Rangkaian 1: when 🚩 clicked → broadcast message1. Rangkaian 2: when I receive message1 → say \"Halo juga!\". Pastikan nama pesannya sama."),
+            editor({ materi: ["Pergantian adegan dengan pesan", "Blok say for seconds dan wait", "Menyusun adegan cerita"],
+                     sukses: "Ada broadcast di bawah \"when 🚩 clicked\", dan \"when I receive\" berisi ganti latar serta say for seconds atau wait, lalu bendera hijau diklik.",
+                     gagal: "Belum ada broadcast, atau rangkaian penerima belum berisi ganti latar dan say for seconds / wait." },
+              "Ganti Adegan", "Pesan yang diterima membuat latar berganti dan tokoh bercerita sebentar.",
+              "Di rangkaian \"when I receive\", pasang \"switch backdrop to\" lalu \"say Selamat datang! for 2 seconds\"."),
+            editor({ materi: ["Blok Sensing: ask and wait", "Blok answer", "Menggabungkan kata dengan blok join"],
+                     sukses: "Ada \"ask and wait\", lalu say yang memakai blok join dan answer (jawaban), lalu bendera hijau diklik dan jawabannya diketik.",
+                     gagal: "Belum ada \"ask and wait\", atau say belum memakai join dan answer." },
+              "Tanya Jawab", "Tokohmu menanyakan nama, lalu menyapa dengan nama itu!",
+              "Susun: ask \"Siapa namamu?\" and wait → say <join \"Halo, \" (answer)>. \"ask\" dan \"answer\" ada di Sensing, \"join\" ada di Operators."),
+            editor({ materi: ["Gerak berulang saat menerima pesan", "Menambah suara pada adegan", "Gabungan broadcast, repeat, dan Sound"],
+                     sukses: "Ada broadcast, dan \"when I receive\" berisi repeat dengan blok Motion di dalamnya serta blok Sound, lalu bendera hijau diklik.",
+                     gagal: "Belum ada broadcast, atau rangkaian penerima belum berisi repeat berisi Motion dan blok Sound." },
+              "Melompat Riang", "Saat pesan diterima, tokohmu melompat-lompat sambil bersuara.",
+              "Di rangkaian \"when I receive\": repeat 5 { change y by 20, wait 0.1 seconds, change y by -20 } lalu tambahkan \"start sound\"."),
+            editor({ materi: ["Beberapa pesan untuk beberapa adegan", "Membuat pesan baru (new message)", "Menggabungkan cerita lengkap"],
+                     sukses: "Ada minimal 2 pesan berbeda yang diterima oleh 2 rangkaian \"when I receive\", ada ganti latar, bicara, suara, dan repeat, lalu bendera hijau diklik.",
+                     gagal: "Pesan belum ada 2 yang berbeda, atau masih ada bagian cerita yang belum dipakai." },
+              "Cerita Keluarga Hewan", "Susun cerita lengkap dengan dua adegan: awal dan akhir cerita.",
+              "Buat pesan baru lewat \"new message\" di blok broadcast. Adegan 1 (pesan1): ganti latar + say + suara. Adegan 2 (pesan2): repeat gerak + say. Kirim keduanya dari \"when 🚩 clicked\".")
           ],
           project: proyek({"jenis": "external", "aplikasi": "ScratchJr", "tujuan": "Membuat animasi cerita keluarga hewan di ScratchJr dengan gerakan, percakapan, dan suara.", "kumpul": ["Jalankan animasimu sampai selesai", "Foto layar saat animasi berjalan", "Unggah fotonya di halaman ini"], "lencana": "🐷 Lencana Sutradara Cilik"}, "Animasi Cerita Keluarga Hewan", "Buat animasi ceritamu sendiri tentang keluarga hewan lucu memakai ScratchJr. Gambar atau pilih karakter hewan kesukaanmu.",
             ["Pikirkan cerita pendek tentang keluarga hewan.", "Susun halaman demi halaman di ScratchJr.", "Tambahkan gerakan, percakapan, dan suara.", "Foto layar saat animasimu berjalan."],
@@ -219,7 +255,7 @@ window.LP_DATA = {
     // ============================================================
     // TAHAP 2 — EXPLORE (usia 10–12). Anak memilih SATU jalur.
     // Setiap jalur memakai struktur yang sama: Task 1–5 → Project Akhir.
-    // Task di tahap ini hanya kuis & kegiatan di luar website (belum ada editor baru).
+    // Task Game (Block Editor) dan Website (Text Editor) dicek otomatis; task 3D dikerjakan di aplikasi luar (Tinkercad, Roblox Studio).
     // ============================================================
     {
       id: "explore", no: 2, emoji: "🌟", nama: "Tahap 2 — Explore", usia: "10–12 tahun", mode: "pilih-jalur",
@@ -231,106 +267,88 @@ window.LP_DATA = {
         {
           id: "g1", emoji: "🎮", warna: "#8f6bff", judul: "Game Development",
           tagline: "Buat game dan belajar bagaimana game bekerja!",
-          desc: "Jalur 2D Game Development: dari alur pembuatan game sampai project game sederhana.",
-          topik: ["Alur pembuatan game", "Animasi sederhana", "Game platformer", "Game ala Flappy Bird", "Game penemuan virus", "Project game"],
+          desc: "Jalur 2D Game Development: dari karakter berjalan, kontrol, skor, dan waktu sampai project game sederhana.",
+          topik: ["Karakter berjalan", "Kontrol tombol", "Skor dan variabel", "Batas waktu", "Game mini lengkap", "Project game"],
           tasks: [
-            kuis({"materi": ["Alur membuat game: ide → buat → uji coba → perbaiki", "Peran programmer", "Mengapa uji coba penting"]}, "Bagaimana Game Dibuat?", "Kenali alur proses membuat game, dari ide sampai bisa dimainkan.", [
-              { q: "Apa langkah pertama saat membuat game?", options: ["Langsung membuat musik", "Menentukan ide, tema, dan tujuan game", "Mengumumkan game ke teman"], answer: 1 },
-              { q: "Memainkan game untuk mencari kesalahan disebut...", options: ["Uji coba (testing)", "Mewarnai", "Menyimpan"], answer: 0 },
-              { q: "Urutan yang paling tepat adalah...", options: ["Uji coba → Ide → Buat → Perbaiki", "Perbaiki → Ide → Uji coba → Buat", "Ide → Buat → Uji coba → Perbaiki"], answer: 2 },
-              { q: "Orang yang menulis kode supaya game bisa berjalan disebut...", options: ["Programmer", "Penyanyi", "Pelukis"], answer: 0 }
-            ]),
-            luar({"praktik": "block", "materi": ["Kostum (costume) sprite", "Blok ulangi (repeat)", "Jeda dengan blok tunggu"]}, "Animasi Sederhana", "Buat karakter terlihat berjalan dengan mengganti kostum berulang-ulang.",
-              ["Buka Scratch bersama orang dewasa, lalu pilih karakter yang punya lebih dari satu kostum.",
-               "Pasang blok “ketika bendera hijau diklik”, lalu blok “ulangi 10 kali”.",
-               "Di dalam blok ulangi, taruh “kostum berikutnya”, “gerak 5 langkah”, dan “tunggu 0,2 detik”.",
-               "Klik bendera hijau dan lihat karaktermu berjalan."],
-              ["Karakterku punya minimal 2 kostum", "Kostum berganti di dalam blok ulangi", "Karakterku terlihat berjalan"]),
-            luar({"praktik": "block", "materi": ["Gerak kiri-kanan", "Variabel kecepatan-y", "Gravitasi dan lompat", "Mendeteksi sentuhan warna"]}, "Game Platformer", "Buat karakter yang bisa berlari ke kiri-kanan dan melompat di atas platform.",
-              ["Pilih latar yang punya lantai, lalu gambar satu atau dua platform berwarna.",
-               "Gerak kiri-kanan: saat tombol panah ditekan, ubah x sebesar 5 atau -5.",
-               "Buat variabel “kecepatan-y”. Saat spasi ditekan, isi kecepatan-y dengan 12.",
-               "Di dalam blok “selamanya”: ubah y sebesar kecepatan-y, lalu kurangi kecepatan-y 1 (ini gravitasinya).",
-               "Jika karakter menyentuh warna platform, hentikan jatuh dan letakkan karakter di atasnya."],
-              ["Karakterku bisa bergerak ke kiri dan kanan", "Karakterku bisa melompat", "Karakterku bisa berdiri di atas platform"]),
-            luar({"praktik": "block", "materi": ["Gravitasi dengan variabel", "Rintangan yang bergerak", "Angka acak", "Skor dan kondisi kalah"]}, "Game ala Flappy Bird", "Buat burung yang jatuh karena gravitasi dan harus melewati pipa.",
-              ["Buat karakter burung di sisi kiri panggung, lalu buat variabel “kecepatan-y”.",
-               "Di blok “selamanya”: ubah y sebesar kecepatan-y, lalu kurangi kecepatan-y sedikit setiap putaran.",
-               "Saat spasi ditekan, isi kecepatan-y dengan angka positif supaya burung naik.",
-               "Buat sprite pipa yang bergerak dari kanan ke kiri, lalu muncul lagi dengan tinggi acak.",
-               "Jika burung menyentuh pipa atau tepi bawah, “hentikan semua”. Tambah variabel “skor” setiap pipa terlewati."],
-              ["Burungku jatuh dan bisa naik saat spasi ditekan", "Pipa bergerak dengan tinggi yang acak", "Game berhenti saat burung menabrak", "Ada skor yang bertambah"]),
-            luar({"praktik": "block", "materi": ["Posisi acak", "Variabel skor dan waktu", "Menghitung mundur", "Menampilkan hasil akhir"]}, "Game Penemuan Virus", "Jadilah peneliti yang mencari dan menemukan virus yang bersembunyi di laboratorium.",
-              ["Tulis ceritanya: kamu peneliti yang harus menemukan virus yang bersembunyi (virus komputer atau virus kuman).",
-               "Buat sprite virus yang lucu, yang berpindah ke tempat acak setiap 1 detik.",
-               "Saat virus diklik, tambah variabel “virus ditemukan” dan mainkan suara.",
-               "Buat variabel “waktu” yang mulai dari 30 dan berkurang tiap detik. Saat waktu habis, tampilkan hasilnya.",
-               "Tantangan tambahan: makin banyak virus ditemukan, virus bergerak makin cepat."],
-              ["Virusku berpindah tempat secara acak", "Ada skor “virus ditemukan”", "Ada batas waktu", "Game menampilkan hasil di akhir"]),
+            editor({"materi": ["Mengganti kostum (costume)", "Blok repeat (ulangi)", "Jeda dengan blok wait"], "sukses": "Di dalam blok repeat ada \"next costume\", \"move\", dan \"wait\", semuanya di bawah \"when 🚩 clicked\", lalu bendera hijau diklik.", "gagal": "Salah satu blok (next costume, move, wait) belum ada di dalam repeat, atau belum di bawah \"when 🚩 clicked\"."}, "Karakter Berjalan", "Buat karaktermu terlihat berjalan dengan mengganti kostum berulang-ulang.",
+              "Susun di bawah \"when 🚩 clicked\": repeat 10 { next costume, move 5 steps, wait 0.2 seconds }. Kalau karaktermu cuma punya satu kostum, pilih sprite lain yang punya lebih dari satu kostum."),
+            editor({"materi": ["Blok when key pressed", "Gerak ke empat arah dengan change x dan change y", "Lompat: naik, tunggu, lalu turun"], "sukses": "Ada 4 tombol berbeda yang menggerakkan karakter, dan satu tombol membuat karakter melompat (naik, wait, lalu turun), lalu bendera hijau diklik.", "gagal": "Tombol yang berbeda kurang dari 4, ada tombol tanpa blok gerak, atau belum ada tombol untuk melompat."}, "Kendalikan Karakter", "Sekarang kamu yang memegang kendali! Gerakkan karakter dengan tombol, dan buat dia bisa melompat.",
+              "Buat 4 rangkaian \"when key pressed\" (panah kiri, kanan, atas, bawah) dengan \"change x by\" atau \"change y by\". Untuk lompat: \"when space key pressed\" → change y by 40 → wait 0.2 seconds → change y by -40."),
+            editor({"materi": ["Variabel: tempat menyimpan skor", "Blok change variable", "Pindah ke posisi acak", "Klik sprite"], "sukses": "Skor diisi 0 saat bendera diklik dan ditampilkan, lalu saat sprite diklik skor bertambah dan sprite pindah ke posisi acak.", "gagal": "Belum ada \"set variable\" di bawah bendera, skor belum ditampilkan, atau rangkaian klik sprite belum menambah skor dan pindah posisi acak."}, "Kumpulkan Bintang", "Buat game klik: setiap kali karakter berhasil diklik, skor bertambah dan karakter pindah tempat!",
+              "Di Variables, tekan \"Make a Variable\" lalu beri nama skor. Rangkaian 1: when 🚩 clicked → set skor to 0 → show variable skor. Rangkaian 2: when this sprite clicked → change skor by 1 → go to random position."),
+            editor({"materi": ["Variabel waktu", "Mengurangi angka (change variable dengan angka negatif)", "Pesan saat game berakhir"], "sukses": "Waktu diisi di awal, berkurang di dalam repeat (change dengan angka negatif) dengan wait, lalu ada say atau stop setelah repeat selesai.", "gagal": "Belum ada \"set variable\", waktu belum berkurang di dalam repeat, belum ada wait, atau belum ada say / stop setelah repeat."}, "Waktu Berjalan Mundur", "Tambahkan batas waktu 10 detik. Saat waktu habis, game selesai!",
+              "Buat variabel waktu. Susun: when 🚩 clicked → set waktu to 10 → repeat 10 { wait 1 seconds, change waktu by -1 } → say \"Waktu habis!\" for 2 seconds."),
+            editor({"materi": ["Menggabungkan skor, waktu, dan klik", "Percabangan: menang atau kalah", "Menguji dan memperbaiki game"], "sukses": "Ada variabel skor dan waktu, waktu berkurang di dalam repeat dengan wait, klik sprite menambah skor dan pindah posisi acak, dan ada if / if-else yang membandingkan skor lalu say, lalu bendera hijau diklik.", "gagal": "Masih ada bagian yang belum dipakai: dua variabel, waktu berkurang, klik menambah skor, atau if yang membandingkan skor."}, "Game Mini Lengkap", "Satukan semuanya: kejar skor sebelum waktu habis, lalu tampilkan menang atau kalah!",
+              "Rangkaian bendera: set skor to 0 → set waktu to 10 → repeat 10 { wait 1, change waktu by -1 } → if-else <skor > 4> { say \"Kamu menang!\" } else { say \"Coba lagi!\" }. Rangkaian klik: when this sprite clicked → change skor by 1 → go to random position.")
           ],
-          project: proyek({"jenis": "external", "aplikasi": "Scratch", "tujuan": "Membuat satu game 2D utuh: ada karakter, aturan menang-kalah, dan skor atau tantangan.", "kumpul": ["Mainkan gamemu sampai selesai", "Screenshot gamemu, atau salin link project-nya", "Unggah foto atau tempel link di halaman ini"], "lencana": "🎮 Lencana Game Developer"}, "Game Sederhanaku", "Rancang dan buat game 2D buatanmu sendiri memakai semua yang sudah kamu pelajari.",
-            ["Tulis ide game: tema, tokoh, tujuan, dan cara menang atau kalah.",
-             "Rancang gambar: karakter, latar, dan rintangan.",
-             "Buat game-nya: gerakan, aturan, dan skor.",
-             "Ajak temanmu mencoba, lalu perbaiki bagian yang membingungkan.",
-             "Ambil foto atau screenshot gamemu, atau tempel link project-mu."],
-            ["Game-ku punya ide dan tema yang jelas", "Ada karakter yang dikendalikan pemain", "Ada aturan menang atau kalah", "Ada skor atau tantangan", "Sudah diuji coba dan diperbaiki", "Aku memakai ide dari Task 1–5"])
+          project: proyek({"jenis": "block", "tujuan": "Membuat satu game Scratch sederhana yang punya karakter, skor, batas waktu, dan pesan menang atau kalah.", "kumpul": ["Mainkan gamemu sampai selesai", "Screenshot gamemu", "Unggah screenshot di halaman ini"], "lencana": "🎮 Lencana Game Developer"}, "Game Sederhanaku", "Buat game buatanmu sendiri memakai semua yang sudah kamu pelajari. Tantangan bonus (boleh dilewati): game platformer atau Flappy Bird di Scratch asli.",
+            ["Tulis ide game: tema, tokoh, dan tujuannya.", "Pilih karakter dan latar belakang.", "Buat gerakan dan kontrol: tombol atau klik.", "Tambahkan skor, batas waktu, dan pesan menang atau kalah.", "Ajak temanmu mencoba, lalu perbaiki bagian yang membingungkan.", "Ambil screenshot gamemu dan unggah di sini."],
+            ["Game-ku punya ide dan tema yang jelas", "Ada karakter yang bisa digerakkan atau diklik", "Ada skor", "Ada batas waktu atau tantangan", "Ada pesan menang atau kalah", "Aku memakai ide dari Task 1–5"])
         },
 
         // ---------------- JALUR 2: 3D & ROBLOX ----------------
         {
           id: "g2", emoji: "🧊", warna: "#1fb5d6", judul: "3D & Roblox",
           tagline: "Bangun dunia dan karya 3D-mu sendiri!",
-          desc: "Jalur 3D Game Development: mengenal Roblox Studio, desain 3D, sampai membuat dunia 3D sederhana.",
-          topik: ["Mengenal Roblox Studio", "Dasar desain 3D", "Membuat objek 3D", "Membuat lingkungan game", "Dasar game 3D", "Project 3D"],
+          desc: "Jalur 3D: membangun benda dan dunia 3D langsung di 3D Editor, dengan istilah seperti di Roblox.",
+          topik: ["Bentuk 3D", "Warna dan ukuran", "Menyusun benda", "Tempat muncul", "Dunia 3D mini", "Project 3D"],
           tasks: [
-            kuis({"materi": ["Fungsi Roblox Studio", "Jendela Viewport, Explorer, Properties"]}, "Kenalan dengan Roblox Studio", "Kenali apa itu Roblox Studio dan jendela-jendela utamanya.", [
-              { q: "Roblox Studio dipakai untuk...", options: ["Menonton video", "Membuat dunia dan game 3D", "Mengetik surat"], answer: 1 },
-              { q: "Jendela besar yang menampilkan dunia 3D-mu bernama...", options: ["Explorer", "Output", "Viewport"], answer: 2 },
-              { q: "Jendela yang berisi daftar semua benda di duniamu bernama...", options: ["Explorer", "Viewport", "Properties"], answer: 0 },
-              { q: "Untuk mengubah warna dan ukuran sebuah benda, kita memakai jendela...", options: ["Output", "Explorer", "Properties"], answer: 2 }
-            ]),
-            kuis({"materi": ["Tiga ukuran: panjang, lebar, tinggi", "Bentuk dasar 3D", "Perbedaan 2D dan 3D"]}, "Dasar Desain 3D", "Pelajari ukuran dan bentuk dasar yang dipakai untuk membuat benda 3D.", [
-              { q: "Benda 3D punya tiga ukuran, yaitu...", options: ["Warna, suara, dan bau", "Panjang, lebar, dan tinggi", "Atas, bawah, dan nol"], answer: 1 },
-              { q: "Bentuk dasar yang seperti kaleng minuman disebut...", options: ["Silinder", "Bola", "Segitiga"], answer: 0 },
-              { q: "Benda 3D berbeda dari gambar 2D karena punya...", options: ["Tulisan", "Warna saja", "Kedalaman"], answer: 2 }
-            ]),
-            luar({"materi": ["Part dan bentuknya", "Mengubah ukuran dan warna", "Group (Ctrl+G)"]}, "Membuat Objek 3D", "Susun bentuk-bentuk dasar menjadi satu benda 3D buatanmu.",
-              ["Minta bantuan orang dewasa untuk membuka Roblox Studio dan memilih template Baseplate.",
-               "Tambahkan sebuah Part (balok), lalu ubah ukuran dan warnanya.",
-               "Coba bentuk lain: bola, silinder, dan wedge.",
-               "Susun beberapa Part menjadi satu benda, misalnya meja, pohon, atau menara kecil.",
-               "Pilih semua Part benda itu, lalu Group (Ctrl+G) supaya tidak tercecer."],
-              ["Aku membuat minimal 3 Part berbeda", "Aku sudah mengubah ukuran dan warna", "Bendaku sudah di-Group"]),
-            luar({"materi": ["Terrain", "Menata benda di lingkungan", "SpawnLocation dan Lighting"]}, "Membuat Lingkungan", "Bangun tempat untuk bendamu: tanah, pohon, dan sekitarnya.",
-              ["Buka tab Terrain, lalu buat tanah, bukit, atau air.",
-               "Letakkan benda buatanmu di lingkungan itu, misalnya rumah, pohon, atau pagar.",
-               "Atur SpawnLocation sebagai tempat pemain pertama kali muncul.",
-               "Opsional: ubah cahaya atau langit lewat Lighting supaya suasananya berbeda."],
-              ["Duniaku punya tanah, air, atau bukit", "Ada minimal 3 benda di lingkunganku", "SpawnLocation sudah kuletakkan"]),
-            luar({"materi": ["Tombol Play dan gerak W A S D", "Anchored", "Menyimpan project"]}, "Uji Coba Dunia 3D", "Mainkan duniamu sendiri dan pahami dasar pengembangan game 3D.",
-              ["Klik Play, lalu jalan di duniamu memakai tombol W, A, S, D dan spasi.",
-               "Cari benda yang melayang atau jatuh. Aktifkan Anchored supaya benda diam di tempatnya.",
-               "Pastikan kamu muncul di tempat yang benar (SpawnLocation).",
-               "Tulis 2 hal yang ingin kamu perbaiki, lalu perbaiki minimal satu.",
-               "Simpan duniamu lewat File → Save."],
-              ["Aku sudah menekan Play dan berjalan di duniaku", "Aku tahu fungsi Anchored", "Aku memperbaiki minimal 1 hal", "Duniaku sudah disimpan"]),
+            model3d({"materi": ["Benda 3D punya lebar, tinggi, dan panjang", "Menambah benda", "Memutar pandangan"], "langkah": ["Klik tombol 🟦 Balok di bagian atas.", "Tahan klik di dunia 3D, lalu geser mouse untuk memutar pandanganmu.", "Putar roda mouse untuk mendekat dan menjauh."], "cek": [
+                { teks: "Ada 1 benda di dunia", uji: (c) => bagian(c).length >= 1 },
+                { teks: "Kamu sudah memutar pandangan", uji: (c) => c.orbited }
+              ]}, "Kenalan dengan 3D", "Tambahkan bendamu yang pertama dan lihat dari berbagai sisi.",
+              "Kalau pandangannya aneh, cukup putar lagi pelan-pelan."),
+            model3d({"materi": ["Empat bentuk dasar", "Alat Geser", "Explorer"], "langkah": ["Klik 🟦 Balok, ⚪ Bola, 🥫 Tabung, dan 🔺 Kerucut.", "Pilih alat ✋ Geser, lalu seret setiap benda ke tempat yang berbeda.", "Lihat daftar bendamu di panel Explorer."], "cek": [
+                { teks: "Ada 4 bentuk yang berbeda", uji: (c) => new Set(bagian(c).map((p) => p.shape)).size >= 4 },
+                { teks: "Benda-bendanya tidak menumpuk di tempat yang sama", uji: (c) => new Set(bagian(c).map((p) => p.pos[0] + "," + p.pos[2])).size >= 4 }
+              ]}, "Empat Bentuk Dasar", "Coba semua bentuk dasar dan letakkan di tempat berbeda.",
+              "Alat ✋ Geser menggeser benda di lantai. Benda baru muncul di tempat berbeda-beda."),
+            model3d({"materi": ["Warna", "Ukuran (Size)", "Properties"], "langkah": ["Klik sebuah benda, lalu pilih warna di panel Properties.", "Beri minimal 3 warna yang berbeda.", "Pilih alat 📏 Ukuran lalu seret benda ke atas, atau ubah angka Size di Properties."], "cek": [
+                { teks: "Ada minimal 3 warna berbeda", uji: (c) => new Set(bagian(c).map((p) => p.color)).size >= 3 },
+                { teks: "Ada benda yang ukurannya sudah diubah", uji: (c) => bagian(c).some((p) => p.size.some((v) => v !== 2)) }
+              ]}, "Warna dan Ukuran", "Beri warna dan ubah ukuran bendamu.",
+              "Size punya 3 angka: lebar, tinggi, dan panjang."),
+            model3d({"materi": ["Menyusun benda", "Position (posisi)", "Memutar benda"], "langkah": ["Tambahkan 🟦 Balok untuk dinding dan 🔺 Kerucut untuk atap.", "Klik atap, lalu di Properties ubah angka Position yang tengah (naik-turun) sampai atap duduk di atas dinding.", "Tambahkan satu benda lagi, misalnya pintu."], "cek": [
+                { teks: "Ada minimal 3 benda", uji: (c) => bagian(c).length >= 3 },
+                { teks: "Ada balok untuk dinding", uji: (c) => bagian(c).some((p) => p.shape === "box") },
+                { teks: "Atap kerucut ada di atas dinding", uji: (c) => { const w = bagian(c).filter((p) => p.shape === "box"); return bagian(c).filter((p) => p.shape === "cone").some((k) => w.some((d) => k.pos[1] - k.size[1] / 2 >= d.pos[1] + d.size[1] / 2 - 0.3)); } }
+              ]}, "Susun Jadi Rumah", "Susun beberapa bentuk menjadi sebuah rumah.",
+              "Dinding tinggi 2 berada di posisi naik-turun 1. Kerucut tinggi 2 dipasang di posisi 3."),
+            model3d({"materi": ["Menyusun ke atas", "Menggandakan benda"], "langkah": ["Tambahkan satu benda, lalu klik 📋 Gandakan.", "Naikkan tiap salinan sampai menara punya 4 tingkat.", "Beri warna yang berbeda untuk tiap tingkat."], "cek": [
+                { teks: "Menara punya minimal 4 tingkat", uji: (c) => new Set(bagian(c).map((p) => Math.round(p.pos[1] * 2))).size >= 4 },
+                { teks: "Ada minimal 3 warna", uji: (c) => new Set(bagian(c).map((p) => p.color)).size >= 3 }
+              ]}, "Menara Tinggi", "Bangun menara yang tinggi dan berwarna-warni.",
+              "Tiap tingkat naik 2 dari tingkat di bawahnya jika ukurannya 2."),
+            model3d({"materi": ["Tempat Muncul (SpawnLocation)", "Tombol Main"], "langkah": ["Klik ⭐ Tempat Muncul.", "Geser ke tempat yang kamu mau.", "Klik ▶ Main dan lihat tokohmu muncul di sana."], "cek": [
+                { teks: "Ada Tempat Muncul", uji: (c) => c.parts.some((p) => p.shape === "spawn") },
+                { teks: "Kamu sudah klik ▶ Main", uji: (c) => c.played }
+              ]}, "Tempat Muncul", "Tentukan di mana pemain pertama kali muncul.",
+              "Klik ⏹ Berhenti untuk kembali membangun."),
+            model3d({"materi": ["Anchored (dipaku)", "Benda jatuh karena gravitasi"], "langkah": ["Tambahkan 2 benda. Pastikan benda pertama tetap Anchored.", "Pilih benda kedua, matikan ⚓ Anchored di Properties, lalu naikkan posisinya sampai melayang.", "Klik ▶ Main dan lihat apa yang terjadi."], "cek": [
+                { teks: "Ada benda yang Anchored", uji: (c) => bagian(c).some((p) => p.anchored) },
+                { teks: "Ada benda tidak Anchored yang melayang", uji: (c) => bagian(c).some((p) => !p.anchored && p.pos[1] - p.size[1] / 2 >= 1) },
+                { teks: "Kamu sudah klik ▶ Main", uji: (c) => c.played }
+              ]}, "Anchored: Dipaku atau Jatuh", "Benda yang tidak Anchored akan jatuh. Coba sendiri!",
+              "Benda Anchored seperti dipaku. Benda tanpa Anchored akan jatuh saat Main."),
+            model3d({"materi": ["Menjelajah dunia 3D", "Berjalan dan melompat"], "langkah": ["Pasang ⭐ Tempat Muncul dan minimal 3 benda.", "Klik ▶ Main.", "Jalan dengan W A S D (atau panah), lalu lompat dengan Spasi."], "cek": [
+                { teks: "Ada Tempat Muncul", uji: (c) => c.parts.some((p) => p.shape === "spawn") },
+                { teks: "Ada minimal 3 benda", uji: (c) => bagian(c).length >= 3 },
+                { teks: "Kamu sudah berjalan", uji: (c) => c.walked },
+                { teks: "Kamu sudah melompat", uji: (c) => c.jumped }
+              ]}, "Jalan-jalan di Duniamu", "Coba jalan dan melompat di dunia buatanmu.",
+              "Tokohmu bisa naik ke benda yang rendah, dan melompat ke benda yang lebih tinggi.")
           ],
-          project: proyek({"jenis": "external", "aplikasi": "Roblox Studio", "tujuan": "Membangun dunia 3D mini dengan benda buatanmu, lingkungan, dan tempat muncul pemain.", "kumpul": ["Uji duniamu dengan tombol Play", "Ambil screenshot duniamu", "Unggah screenshot di halaman ini"], "lencana": "🧊 Lencana Pembangun 3D"}, "Dunia 3D-ku", "Bangun dunia 3D mini buatanmu sendiri dengan benda, lingkungan, dan tempat muncul pemain.",
-            ["Pilih tema duniamu: kota mini, taman, pulau, atau yang lain.",
-             "Bangun minimal 5 benda 3D buatanmu sendiri.",
-             "Tambahkan lingkungan: tanah, pohon, atau air.",
-             "Pasang SpawnLocation, lalu uji dengan tombol Play.",
-             "Ambil screenshot duniamu dan unggah di sini."],
-            ["Duniaku punya tema yang jelas", "Ada minimal 5 benda 3D", "Ada lingkungan (tanah, air, atau pohon)", "Ada SpawnLocation dan sudah diuji dengan Play", "Aku memakai ide dari Task 1–5"])
+          project: proyek({"jenis": "model3d", "tujuan": "Membangun dunia 3D mini dengan minimal 3 bendamu sendiri dan tempat muncul pemain.", "kumpul": ["Uji duniamu dengan tombol Main", "Ambil screenshot duniamu", "Unggah screenshot di halaman ini"], "lencana": "🧊 Lencana Pembangun 3D"}, "Dunia 3D-ku", "Bangun dunia 3D mini buatanmu sendiri.",
+            ["Pilih tema duniamu: kota mini, taman, atau pulau.", "Bangun minimal 3 benda buatanmu.", "Pasang Tempat Muncul, lalu uji dengan ▶ Main.", "Klik 📸 Screenshot, lalu unggah gambarnya di halaman Project."],
+            ["Duniaku punya tema yang jelas", "Ada minimal 3 benda", "Ada Tempat Muncul dan sudah diuji", "Aku memakai ide dari Task 1–8"])
         },
 
         // ---------------- JALUR 3: WEBSITE DEVELOPMENT ----------------
         {
           id: "g3", emoji: "🌐", warna: "#ff9f1c", judul: "Website Development",
           tagline: "Belajar membuat website dengan kode!",
-          desc: "Jalur Website Development: HTML, CSS, PHP, database, sampai project website sederhana.",
-          topik: ["HTML", "CSS", "PHP", "Database", "Website statis", "Project website"],
+          desc: "Jalur Website Development: HTML dan CSS, sampai project website sederhana.",
+          topik: ["HTML", "CSS", "Daftar dan menu", "Website statis", "Project website"],
           tasks: [
             // ---- Task 1–4: satu website yang sama dibangun bertahap di Text Editor (tema bebas: hobi / hal yang disukai) ----
             // Langkah-langkah (`langkah`) tampil di kartu misi Text Editor supaya siswa selalu ingat harus ngapain.
@@ -400,6 +418,8 @@ window.LP_DATA = {
               ]
             }, "Belajar CSS", "Percantik halaman webmu dengan warna, huruf, dan kotak.",
               "Di tab style.css, tulis: body { background-color: lightyellow; }. Untuk class: .kotak { border: 3px solid blue; padding: 10px; }. Lalu di index.html ubah <div> menjadi <div class=\"kotak\">."),
+            kode({"materi": ["Menu <nav> dan tautan ke bagian halaman", "Membagi halaman dengan <section>", "Daftar dengan <ul> dan <li>"], "langkah": ["Lihat kerangkanya: ada menu <nav> di atas dan dua bagian halaman <section>.", "Tulis judul websitemu di dalam <h1>.", "Tulis perkenalan singkat di dalam <p>.", "Di bagian Hobiku, tulis minimal 3 hal. Satu hal = satu <li>.", "Klik ▶ Jalankan, lalu klik menu di Preview. Halamannya akan meluncur ke bagian yang dituju!", "Pindah ke tab style.css. Beri body warna latar (background-color).", "Klik ▶ Jalankan lagi."], "awal": {"html": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Websiteku</title>\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n  <header>\n    <!-- LANGKAH 2: tulis judul websitemu di antara <h1> dan </h1> -->\n    <h1></h1>\n    <nav>\n      <a href=\"#tentang\">Tentang Aku</a>\n      <a href=\"#hobi\">Hobiku</a>\n    </nav>\n  </header>\n\n  <section id=\"tentang\">\n    <h2>Tentang Aku</h2>\n    <!-- LANGKAH 3: tulis perkenalan singkat di dalam <p> -->\n    <p></p>\n  </section>\n\n  <section id=\"hobi\">\n    <h2>Hobiku</h2>\n    <!-- LANGKAH 4: satu hobi = satu <li>. Tambahkan sampai minimal 3 -->\n    <ul>\n      <li></li>\n    </ul>\n  </section>\n</body>\n</html>\n", "css": "/* LANGKAH 6: warna latar halaman */\nbody {\n  \n}\n"}, "cek": [{"teks": "Ada judul <h1> yang ada tulisannya", "tag": "h1", "isi": true}, {"teks": "Ada menu <nav> dengan minimal 2 tautan", "tag": "nav a[href]", "min": 2}, {"teks": "Ada perkenalan <p> yang ada tulisannya", "tag": "p", "isi": true}, {"teks": "Ada minimal 3 hobi di daftar <li>", "tag": "ul li", "isi": true, "min": 3}, {"teks": "body punya warna latar (background-color)", "css": {"pada": "body", "prop": ["background-color"]}}]}, "Daftar dan Menu", "Tambahkan menu dan daftar supaya websitemu seperti website sungguhan.",
+              "Isi bagian yang kosong. Daftar: <li>Bermain bola</li>. Warna latar: background-color: lightyellow;"),
             kode({
               materi: ["Website statis", "Menu dan bagian halaman", "Memakai satu CSS untuk seluruh halaman"],
               langkah: [
@@ -429,12 +449,6 @@ window.LP_DATA = {
               ]
             }, "Membuat Website Statis", "Satukan semuanya: buat website sederhana tentang hobimu dengan HTML dan CSS. Website statis isinya tetap, tidak berubah sendiri.",
               "Ikuti langkah di kartu misi. Kerangka sudah ada: isi tulisannya, tambahkan gambar, lalu atur tampilannya di style.css."),
-            kuis({"materi": ["PHP dan server", "Database, tabel, dan baris", "Website dinamis"]}, "Mengenal PHP & Database", "Kenali PHP dan database, bahan untuk membuat website yang isinya bisa berubah.", [
-              { q: "PHP dijalankan di mana?", options: ["Di dalam keyboard", "Di server (komputer penyedia website)", "Di dalam printer"], answer: 1 },
-              { q: "Database dipakai untuk...", options: ["Mengganti warna layar", "Mengecilkan gambar", "Menyimpan dan mengelola data, misalnya daftar nama"], answer: 2 },
-              { q: "Dalam tabel database, satu baris biasanya berisi...", options: ["Satu warna", "Satu data lengkap, misalnya data satu teman", "Satu gambar"], answer: 1 },
-              { q: "Website yang isinya bisa berubah berdasarkan data disebut...", options: ["Website statis", "Website dinamis", "Website kosong"], answer: 1 }
-            ]),
           ],
           project: proyek({"jenis": "text", "tujuan": "Membuat website pribadi 2 halaman dengan teks, gambar, menu, dan tampilan CSS.", "kumpul": ["Buka websitemu di browser dan cek semua halaman", "Screenshot websitemu, atau tempel link-nya", "Unggah screenshot atau tempel link di halaman ini"], "lencana": "🌐 Lencana Web Developer"}, "Website Sederhanaku", "Buat website pribadi sederhana tentang hobi atau hal yang kamu sukai.",
             ["Pilih tema: hobi, hewan favorit, atau profil dirimu.",

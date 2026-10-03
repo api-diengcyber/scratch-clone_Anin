@@ -19,7 +19,9 @@ const LP = Object.assign({}, window.LP_DATA, {
     editor: { folder: "Scratch",    nama: "Block Editor", icon: "🧩", tombol: "Buka Editor 🚀",
               cara: ["Klik tombol <b>Buka Editor</b>.", "Susun blok sesuai misi.", "Klik bendera hijau 🚩 — misi dicek otomatis!"] },
     code:   { folder: "TextEditor", nama: "Text Editor",  icon: "💻", tombol: "Buka Text Editor 💻",
-              cara: ["Klik tombol <b>Buka Text Editor</b>.", "Tulis kode di sebelah kiri, hasilnya muncul di sebelah kanan.", "Klik ▶ <b>Jalankan</b> — misi dicek otomatis!"] }
+              cara: ["Klik tombol <b>Buka Text Editor</b>.", "Tulis kode di sebelah kiri, hasilnya muncul di sebelah kanan.", "Klik ▶ <b>Jalankan</b> — misi dicek otomatis!"] },
+    model3d: { folder: "Editor3D",   nama: "3D Editor",   icon: "🧊", tombol: "Buka 3D Editor 🧊",
+              cara: ["Klik tombol <b>Buka 3D Editor</b>. Misimu langsung muncul di atas.", "Tambah dan atur benda 3D seperti di Roblox Studio.", "Kalau semua syarat di kartu misi sudah ✅, task selesai otomatis!"] }
   },
   // editor untuk sebuah task (null jika task tidak memakai editor, mis. kuis / external)
   editorOf(task) { return this.EDITOR[task.kind] || null; },
@@ -83,6 +85,9 @@ const LP = Object.assign({}, window.LP_DATA, {
     text:     { icon: "💻", nama: "Text Editor",      info: "Dibuat memakai Text Editor di website ini", folder: "TextEditor",
                 mulai: "Buka Text Editor 💻", file: "image/*", link: true, bukti: ["img", "link", "note"],
                 petunjuk: "Klik tombol di bawah untuk membuka Text Editor. Setelah websitemu selesai, kembali ke halaman ini lalu kumpulkan." },
+    model3d:  { icon: "🧊", nama: "3D Editor",        info: "Dibuat memakai 3D Editor di website ini", folder: "Editor3D",
+                mulai: "Buka 3D Editor 🧊", file: "image/*", link: false, bukti: ["img", "note"],
+                petunjuk: "Klik tombol di bawah untuk membuka 3D Editor. Setelah duniamu selesai, ambil screenshot, kembali ke halaman ini lalu kumpulkan." },
     external: { icon: "🔵", nama: "External",         info: "Dikerjakan di aplikasi luar", folder: null,
                 mulai: "Mulai Project 🚀", file: "image/*", link: true, bukti: ["img", "link"],
                 petunjuk: "Buka aplikasinya, kerjakan project-mu, lalu kembali ke sini untuk mengirim screenshot, foto, atau link hasilnya." },
@@ -163,6 +168,8 @@ const LP = Object.assign({}, window.LP_DATA, {
     if (task.type !== "interactive") return null;
     const standar = task.kind === "quiz"
       ? { sukses: "Semua jawaban benar.", gagal: "Ada jawaban yang salah. Kamu boleh mencoba lagi sebanyak yang kamu mau." }
+      : task.kind === "model3d"
+      ? { sukses: "Semua syarat di kartu misi sudah ✅ (dicek otomatis saat kamu membangun).", gagal: "Masih ada syarat di kartu misi yang belum ✅. Baca lagi langkahnya, lalu lanjutkan membangun." }
       : task.kind === "code"
       ? { sukses: "Semua syarat di kartu misi terpenuhi, lalu kamu klik ▶ Jalankan.", gagal: "Ada syarat yang belum terpenuhi saat ▶ Jalankan diklik. Cek lagi kodemu, lalu coba lagi." }
       : { sukses: "Semua syarat di kartu misi terpenuhi, lalu kamu klik bendera hijau 🚩.", gagal: "Ada syarat yang belum terpenuhi saat bendera hijau diklik. Cek lagi kartu misi, lalu coba lagi." };
@@ -248,6 +255,7 @@ const LP = Object.assign({}, window.LP_DATA, {
         if (t.praktik && !this.PRAKTIK[t.praktik]) masalah.push(where(t) + ": praktik tidak dikenal (pakai block / text / external / physical)");
         if (t.kind === "editor" && t.praktik && t.praktik !== "block") masalah.push(where(t) + ": task editor harus praktik block");
         if (t.kind === "code" && t.praktik && t.praktik !== "text") masalah.push(where(t) + ": task kode harus praktik text");
+        if (t.kind === "model3d" && !(t.cek && t.cek.length)) masalah.push(where(t) + ": syarat cek (cek) kosong");
         if (t.kind === "code") {
           if (!t.awal) masalah.push(where(t) + ": kode awal (awal) kosong");
           if (!(t.cek && t.cek.length)) masalah.push(where(t) + ": syarat cek (cek) kosong");

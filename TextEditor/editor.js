@@ -11,10 +11,13 @@
 // dan kode anak diparse dengan DOMParser (tidak pernah dijalankan di halaman ini).
 // ============================================================
 (function () {
+
   if (localStorage.getItem("isLoggedIn") !== "true") { window.location.replace("../index.html"); return; }
   if (typeof LP === "undefined") { document.body.textContent = "Data jalur belajar belum termuat."; return; }
+
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
   // ---------- TASK atau MODE BEBAS ----------
   const params = new URLSearchParams(window.location.search);
   const taskId = params.get("task");
@@ -25,11 +28,13 @@
     if (!LP.isUnlocked(taskId)) { window.location.replace("../belajar.html?p=" + info.pemb.id); return; }   // belum terbuka → balik
     task = info.task;
   }
+
   const BEBAS = {
     html: '<!DOCTYPE html>\n<html>\n<head>\n  <title>Websiteku</title>\n</head>\n<body>\n  <h1>Halo, Dunia!</h1>\n  <p>Ini percobaan pertamaku.</p>\n</body>\n</html>\n',
     css: "h1 {\n  color: tomato;\n}\n"
   };
   const TABS = { html: "📄 index.html", css: "🎨 style.css" };
+
   const bahasa = (task && task.bahasa) || ["html", "css"];
   const awal = Object.assign({ html: "", css: "" }, task ? task.awal : BEBAS);
   const dari = params.get("dari");               // dibuka lewat 🚀 Mulai Praktik dari sebuah Task → mode bebas, tombol kembali ke Task itu
@@ -39,6 +44,7 @@
   if (bahasa.indexOf("css") < 0) code.css = "";
   let tab = bahasa[0];
   let ranOk = false;
+
   // ---------- elemen ----------
   const ta = $("src"), hl = $("hl"), frame = $("preview"), note = $("prevNote");
   const refreshPoints = () => { $("pointsValue").textContent = LP.points(); };
@@ -47,6 +53,7 @@
   const projectId = params.get("project");      // dibuka dari Project Akhir → kembali ke halaman project-nya
   if (!task && dari && LP.find(dari)) { $("backLink").href = "../belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task"; }
   if (!task && projectId && LP.find(projectId)) { $("backLink").href = "../belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir"; }
+
   // ---------- popup ----------
   function popup(o) {
     const old = document.querySelector(".mission-overlay");

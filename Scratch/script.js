@@ -8960,6 +8960,45 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   const TEXT_BLOCKS = ["say", "say_for_secs", "think", "think_for_secs"];
   const countText = (i) => i.types.filter(t => TEXT_BLOCKS.includes(t)).length;
   const G_FLAG = { text: "Pakai blok \"when 🚩 clicked\"", test: () => flagStacks().length > 0 };
+  // ---------- helper tambahan untuk task Tahap 1 (Pembelajaran 2–5) ----------
+  const EFFECT_BLOCKS = ["change_graphic_effect", "set_graphic_effect"];
+  const SIZE_BLOCKS   = ["change_size", "set_size"];
+  const GLIDE_BLOCKS  = ["glide_xy", "glide_random"];
+  const TURN_BLOCKS   = ["turn_right", "turn_left"];
+  const COSTUME_BLOCKS = ["next_costume", "switch_costume"];
+  const BROADCASTS    = ["broadcast", "broadcast_wait"];
+  const SENSE_COND    = ["key_pressed", "touching", "touching_color", "mouse_down", "color_touching_color"];
+  const COMPARE       = ["op_gt", "op_lt", "op_eq"];
+
+  const hats = (type) => stacksInfo().filter(i => i.hat === type);
+  const countType = (i, list) => i.types.filter(t => list.includes(t)).length;
+  const subBlocks = (b) => flatBlocks([].concat.apply([], b.branches || []));
+  // ada blok jenis `inner` di dalam C-block jenis `outer`?
+  const inside = (i, outer, inner) => i.blocks.some(b => outer.includes(b.type) && subBlocks(b).some(x => inner.includes(x.type)));
+  const nOf = (b) => Number(getBlockInputValue(b));
+  // jenis blok reporter yang ditaruh di slot sebuah blok (termasuk yang bersarang)
+  function slotTypes(el, out) {
+    out = out || [];
+    getOwnInputs(el).forEach(inp => {
+      const r = inp._reporterData;
+      if (r) { out.push(r.type); if (r.element) slotTypes(r.element, out); }
+    });
+    return out;
+  }
+  const slotsOf = (b) => b && b.element ? slotTypes(b.element) : [];
+  const saysWith = (i, reporter) => i.blocks.some(b => TEXT_BLOCKS.includes(b.type) && slotsOf(b).includes(reporter));
+  const hatKey = (i) => getBlockDropdownValue(i.blocks[0]);
+  // pesan broadcast yang dikirim / diterima
+  const sentMessages = () => [].concat.apply([], stacksInfo().map(i => i.blocks.filter(b => BROADCASTS.includes(b.type)).map(getBlockDropdownValue)));
+  const receiveMessages = () => hats("when_receive").map(hatKey);
+  const flagSends = () => someFlag(i => hasAny(i, BROADCASTS));
+  // rangkaian bendera (tingkat paling atas): apakah setelah blok repeat ada blok yang memenuhi fn?
+  const afterRepeat = (fn) => state.stacks
+    .filter(st => st && st.blocks && st.blocks.length && st.blocks[0].type === "when_flag_clicked")
+    .some(st => { const k = st.blocks.findIndex(b => b.type === "repeat"); return k >= 0 && st.blocks.slice(k + 1).some(fn); });
+  // repeat yang mengurangi variabel (change variable bernilai negatif)
+  const countdownIn = (i) => i.blocks.some(b => b.type === "repeat" && subBlocks(b).some(x => x.type === "change_var" && nOf(x) < 0));
+
   const EDITOR_GOALS = {
     "p1-t1": [G_FLAG,
       { text: "Sambungkan blok \"move 10 steps\" di bawahnya", test: () => someFlag(i => i.types.includes("move_steps")) }],
@@ -8975,7 +9014,123 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
       { text: "Ada blok ganti latar", test: () => someFlag(i => hasAny(i, BACKDROP_BLOCKS)) },
       { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) },
       { text: "Ada blok suara (Sound)", test: () => someFlag(i => hasAny(i, SOUND)) },
-      { text: "Semuanya digabung dalam satu rangkaian", test: () => someFlag(i => hasAny(i, MOTION) && hasAny(i, BACKDROP_BLOCKS) && countText(i) >= 1 && hasAny(i, SOUND)) }]
+      { text: "Semuanya digabung dalam satu rangkaian", test: () => someFlag(i => hasAny(i, MOTION) && hasAny(i, BACKDROP_BLOCKS) && countText(i) >= 1 && hasAny(i, SOUND)) }],
+
+    // ===== Pembelajaran 2 — Seni dari Komputer (perulangan, efek, koordinat) =====
+    "p2-t1": [G_FLAG,
+      { text: "Pakai 2 blok color effect atau lebih", test: () => someFlag(i => countType(i, EFFECT_BLOCKS) >= 2) },
+      { text: "Beri jeda dengan blok \"wait\"", test: () => someFlag(i => i.types.includes("wait_secs")) }],
+    "p2-t2": [G_FLAG,
+      { text: "Pakai blok \"repeat\"", test: () => someFlag(i => i.types.includes("repeat")) },
+      { text: "Taruh blok \"turn\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], TURN_BLOCKS)) },
+      { text: "Berputar satu lingkaran penuh (ulangan × sudut = 360)", test: () => someFlag(i => i.blocks.some(b => b.type === "repeat" && subBlocks(b).some(x => TURN_BLOCKS.includes(x.type) && nOf(b) * Math.abs(nOf(x)) >= 360))) }],
+    "p2-t3": [G_FLAG,
+      { text: "Taruh blok color effect di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], EFFECT_BLOCKS)) },
+      { text: "Taruh blok \"wait\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["wait_secs"])) }],
+    "p2-t4": [G_FLAG,
+      { text: "Pakai 3 blok \"glide\" atau lebih", test: () => someFlag(i => countType(i, GLIDE_BLOCKS) >= 3) },
+      { text: "Tujuan x dan y-nya berbeda-beda", test: () => someFlag(i => new Set(i.blocks.filter(b => b.type === "glide_xy").map(b => getOwnInputs(b.element).map(x => x.value).join(","))).size >= 3) }],
+    "p2-t5": [G_FLAG,
+      { text: "Ada blok ganti latar", test: () => someFlag(i => hasAny(i, BACKDROP_BLOCKS)) },
+      { text: "\"repeat\" berisi blok Motion", test: () => someFlag(i => inside(i, ["repeat"], MOTION)) },
+      { text: "\"repeat\" berisi blok Looks (warna, ukuran, atau kostum)", test: () => someFlag(i => inside(i, ["repeat"], EFFECT_BLOCKS.concat(SIZE_BLOCKS, COSTUME_BLOCKS))) },
+      { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) }],
+
+    // ===== Pembelajaran 3 — Memahat Tanah Liat (event tombol & klik) =====
+    "p3-t1": [
+      { text: "Pakai blok \"when key pressed\"", test: () => hats("when_key_pressed").length > 0 },
+      { text: "Sambungkan blok Motion di bawahnya", test: () => hats("when_key_pressed").some(i => hasAny(i, MOTION)) }],
+    "p3-t2": [
+      { text: "Pakai 4 blok \"when key pressed\"", test: () => hats("when_key_pressed").length >= 4 },
+      { text: "Tombolnya berbeda-beda semua", test: () => new Set(hats("when_key_pressed").map(hatKey)).size >= 4 },
+      { text: "Setiap tombol punya blok Motion", test: () => hats("when_key_pressed").filter(i => hasAny(i, MOTION)).length >= 4 }],
+    "p3-t3": [
+      { text: "Pakai blok \"when this sprite clicked\"", test: () => hats("when_sprite_clicked").length > 0 },
+      { text: "Sambungkan 2 blok Looks atau lebih di bawahnya", test: () => hats("when_sprite_clicked").some(i => countType(i, LOOKS) >= 2) }],
+    "p3-t4": [
+      { text: "Satu tombol: \"change size\" dengan angka positif (membesar)", test: () => hats("when_key_pressed").some(i => i.blocks.some(b => b.type === "change_size" && nOf(b) > 0)) },
+      { text: "Satu tombol lain: \"change size\" dengan angka negatif (mengecil)", test: () => {
+          const big = hats("when_key_pressed").filter(i => i.blocks.some(b => b.type === "change_size" && nOf(b) > 0)).map(hatKey);
+          const small = hats("when_key_pressed").filter(i => i.blocks.some(b => b.type === "change_size" && nOf(b) < 0)).map(hatKey);
+          return big.length > 0 && small.length > 0 && big.some(k => small.some(s => s !== k));
+        } }],
+    "p3-t5": [
+      { text: "Ada 2 tombol berbeda yang menggerakkan karakter", test: () => new Set(hats("when_key_pressed").filter(i => hasAny(i, MOTION)).map(hatKey)).size >= 2 },
+      { text: "Ada \"when this sprite clicked\" yang mengubah tampilan (Looks)", test: () => hats("when_sprite_clicked").some(i => hasAny(i, LOOKS)) },
+      { text: "Ada blok Sound di salah satu rangkaian", test: () => stacksInfo().some(i => ["when_key_pressed", "when_sprite_clicked"].includes(i.hat) && hasAny(i, SOUND)) }],
+
+    // ===== Pembelajaran 4 — Mendesain Rumah (variabel & percabangan) =====
+    "p4-t1": [G_FLAG,
+      { text: "Pakai blok \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Tampilkan nilainya (show variable, atau say yang memakai variabel)", test: () => someFlag(i => i.types.includes("show_var") || saysWith(i, "var_reporter")) }],
+    "p4-t2": [G_FLAG,
+      { text: "Pakai blok \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Taruh \"change variable\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["change_var"])) },
+      { text: "Ucapkan hasilnya (say yang memakai variabel)", test: () => someFlag(i => saysWith(i, "var_reporter")) }],
+    "p4-t3": [G_FLAG,
+      { text: "Taruh blok \"if\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["if"])) },
+      { text: "Syarat \"if\" memakai blok dari Sensing", test: () => someFlag(i => i.blocks.some(b => b.type === "if" && slotsOf(b).some(t => SENSE_COND.includes(t)))) },
+      { text: "Di dalam \"if\" ada blok Motion atau Looks", test: () => someFlag(i => inside(i, ["if"], MOTION.concat(LOOKS))) }],
+    "p4-t4": [G_FLAG,
+      { text: "Pakai blok \"if-else\"", test: () => someFlag(i => i.types.includes("if_else")) },
+      { text: "Syaratnya perbandingan (>, <, atau =)", test: () => someFlag(i => i.blocks.some(b => b.type === "if_else" && slotsOf(b).some(t => COMPARE.includes(t)))) },
+      { text: "Kedua jalur (if dan else) berisi blok", test: () => someFlag(i => i.blocks.some(b => b.type === "if_else" && b.branches && b.branches.length >= 2 && b.branches[0].length > 0 && b.branches[1].length > 0)) },
+      { text: "Salah satu jalur mengganti latar", test: () => someFlag(i => inside(i, ["if_else"], BACKDROP_BLOCKS)) }],
+    "p4-t5": [G_FLAG,
+      { text: "Pakai blok \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Taruh \"change variable\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["change_var"])) },
+      { text: "Di dalam \"repeat\" ada if / if-else yang membandingkan variabel", test: () => someFlag(i => i.blocks.some(b => b.type === "repeat" && subBlocks(b).some(x => ["if", "if_else"].includes(x.type) && slotsOf(x).includes("var_reporter") && slotsOf(x).some(t => COMPARE.includes(t))))) },
+      { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) }],
+
+    // ===== Pembelajaran 5 — Animasi ala Peppa Pig (pesan, tanya-jawab, cerita) =====
+    "p5-t1": [G_FLAG,
+      { text: "Kirim pesan dengan blok \"broadcast\"", test: () => flagSends() },
+      { text: "Ada \"when I receive\" yang berisi say / think", test: () => hats("when_receive").some(i => countText(i) >= 1) },
+      { text: "Pesan yang dikirim sama dengan pesan yang diterima", test: () => sentMessages().some(m => receiveMessages().includes(m)) }],
+    "p5-t2": [G_FLAG,
+      { text: "Kirim pesan dengan blok \"broadcast\"", test: () => flagSends() },
+      { text: "\"when I receive\" mengganti latar", test: () => hats("when_receive").some(i => hasAny(i, BACKDROP_BLOCKS)) },
+      { text: "\"when I receive\" berisi \"say for seconds\" atau \"wait\"", test: () => hats("when_receive").some(i => i.types.includes("say_for_secs") || i.types.includes("think_for_secs") || i.types.includes("wait_secs")) }],
+    "p5-t3": [G_FLAG,
+      { text: "Pakai blok \"ask and wait\"", test: () => someFlag(i => i.types.includes("ask_wait")) },
+      { text: "Say memakai blok \"answer\"", test: () => someFlag(i => saysWith(i, "answer")) },
+      { text: "Say menggabungkan kata dengan blok \"join\"", test: () => someFlag(i => i.blocks.some(b => TEXT_BLOCKS.includes(b.type) && slotsOf(b).includes("op_join") && slotsOf(b).includes("answer"))) }],
+    "p5-t4": [G_FLAG,
+      { text: "Kirim pesan dengan blok \"broadcast\"", test: () => flagSends() },
+      { text: "\"when I receive\" berisi \"repeat\" yang berisi blok Motion", test: () => hats("when_receive").some(i => inside(i, ["repeat"], MOTION)) },
+      { text: "\"when I receive\" juga berisi blok Sound", test: () => hats("when_receive").some(i => hasAny(i, SOUND)) }],
+    "p5-t5": [G_FLAG,
+      { text: "Ada 2 pesan berbeda yang diterima 2 blok \"when I receive\"", test: () => new Set(receiveMessages()).size >= 2 },
+      { text: "Pesan-pesan itu dikirim dengan \"broadcast\"", test: () => new Set(sentMessages().filter(m => receiveMessages().includes(m))).size >= 2 },
+      { text: "Ada blok ganti latar", test: () => stacksInfo().some(i => hasAny(i, BACKDROP_BLOCKS)) },
+      { text: "Ada blok bicara (say / think)", test: () => stacksInfo().some(i => countText(i) >= 1) },
+      { text: "Ada blok suara (Sound)", test: () => stacksInfo().some(i => hasAny(i, SOUND)) },
+      { text: "Ada \"repeat\"", test: () => stacksInfo().some(i => i.types.includes("repeat")) }],
+
+    // ===== Tahap 2 • Game Development (karakter, kontrol, skor, waktu) =====
+    "g1-t1": [G_FLAG,
+      { text: "Taruh \"next costume\" (atau switch costume) di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], COSTUME_BLOCKS)) },
+      { text: "Taruh \"move\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["move_steps"])) },
+      { text: "Taruh \"wait\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["wait_secs"])) }],
+    "g1-t2": [
+      { text: "Pakai 4 tombol berbeda yang menggerakkan karakter", test: () => new Set(hats("when_key_pressed").filter(i => hasAny(i, MOTION)).map(hatKey)).size >= 4 },
+      { text: "Satu tombol membuat karakter melompat (change y naik, wait, lalu turun)", test: () => hats("when_key_pressed").some(i => countType(i, ["change_y"]) >= 2 && i.types.includes("wait_secs")) }],
+    "g1-t3": [G_FLAG,
+      { text: "Isi skor di awal dengan \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Tampilkan skor (show variable, atau say yang memakai variabel)", test: () => someFlag(i => i.types.includes("show_var") || saysWith(i, "var_reporter")) },
+      { text: "\"when this sprite clicked\" menambah skor (change variable)", test: () => hats("when_sprite_clicked").some(i => i.types.includes("change_var")) },
+      { text: "\"when this sprite clicked\" memindahkan sprite (go to random position)", test: () => hats("when_sprite_clicked").some(i => hasAny(i, ["goto_random", "goto_xy"])) }],
+    "g1-t4": [G_FLAG,
+      { text: "Isi waktu di awal dengan \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Waktu berkurang di dalam \"repeat\" (change variable dengan angka negatif)", test: () => someFlag(countdownIn) },
+      { text: "Ada \"wait\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["wait_secs"])) },
+      { text: "Setelah repeat selesai ada say / think atau stop", test: () => afterRepeat(b => TEXT_BLOCKS.includes(b.type) || b.type === "stop") }],
+    "g1-t5": [G_FLAG,
+      { text: "Ada 2 variabel berbeda yang diisi dengan \"set variable\" (skor dan waktu)", test: () => someFlag(i => new Set(i.blocks.filter(b => b.type === "set_var").map(getBlockDropdownValue)).size >= 2) },
+      { text: "Waktu berkurang di dalam \"repeat\" bersama \"wait\"", test: () => someFlag(i => countdownIn(i) && inside(i, ["repeat"], ["wait_secs"])) },
+      { text: "\"when this sprite clicked\" menambah skor dan memindahkan sprite", test: () => hats("when_sprite_clicked").some(i => i.types.includes("change_var") && hasAny(i, ["goto_random", "goto_xy"])) },
+      { text: "Ada \"if\" atau \"if-else\" yang membandingkan skor", test: () => someFlag(i => i.blocks.some(b => ["if", "if_else"].includes(b.type) && slotsOf(b).includes("var_reporter") && slotsOf(b).some(t => COMPARE.includes(t)))) },
+      { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) }]
   };
 
   // ---------- PARAMETER URL ----------

@@ -4,8 +4,8 @@ button { font: inherit; }
 .header { min-height: 72px; padding: 12px 5%; background: #fff; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e8edf7; }
 .brand, .profile, .section-title, .learning-head { display: flex; align-items: center; }
 .brand { gap: 12px; }
-.brand-icon {width: 44px;height: 44px;border-radius: 14px;background: #eef2ff;display: grid;place-items: center;overflow: hidden;}
-.brand-icon img {width: 100%;height: 100%;object-fit: contain}
+.brand-icon { width: 44px; height: 44px; border-radius: 14px; background: #fff; display: grid; place-items: center; font-size: 24px; overflow: hidden; }
+.brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .brand h1 { margin: 0; font-size: 17px; letter-spacing: .5px; }
 .brand p, .profile span { margin: 3px 0 0; color: #8791a5; font-size: 11px; }
 .profile { gap: 16px; text-align: right; }
@@ -61,11 +61,13 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 @media (max-width: 700px) { .header, .learning-head { align-items: flex-start; } .profile { gap: 8px; } .profile div { display: none; } .hero { padding: 23px; } .hero h2 { font-size: 22px; } .hero-badge { width: 75px; height: 75px; } .grade-tabs { grid-template-columns: 1fr; } .learning-head { flex-direction: column; } .progress-box { width: 100%; } .level-card { grid-template-columns: 42px 1fr; } .level-btn { grid-column: 2; justify-self: start; } }
 .points-chip { background: #fff4d6; color: #a86a00; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; white-space: nowrap; }
 .points-chip b { font-size: 15px; }
+
 /* ---------- Ringkasan progres level ---------- */
 .progress-box { width: 100%; display: block; padding: 12px 16px; background: #f4f6ff; border-radius: 14px; }
 .pb-text { display: flex; align-items: baseline; gap: 6px; }
 .pb-text strong { font-size: 16px; color: #4c5bd0; }
 .pb-text span { font-size: 12px; color: #7a859c; }
+
 /* ---------- Tahap 1 (ramah anak) ---------- */
 .tahap-section { margin-top: 38px; font-family: "Trebuchet MS", "Nunito", Arial, sans-serif; }
 .tahap-banner { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 28px 30px; border-radius: 30px; color: #fff; background: linear-gradient(120deg, #3fcf8e 0%, #3db8f5 60%, #7c8cff 100%); box-shadow: 0 14px 30px rgba(61, 184, 245, .32); }
@@ -87,6 +89,7 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 .tb-btn { position: relative; flex: none; text-decoration: none; background: #ffd23f; color: #4a3500; font-weight: bold; font-size: 17px; padding: 16px 26px; border-radius: 20px; box-shadow: 0 6px 0 #d9a900; transition: .15s; }
 .tb-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #d9a900; }
 .tb-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d9a900; }
+
 .tahap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; margin-top: 24px; }
 .tg-card { position: relative; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #2b3350; background: #fff; border: 3px solid transparent; border-radius: 26px; padding: 18px 16px 16px; box-shadow: 0 8px 20px rgba(60,80,140,.1); transition: .18s; animation: popin .45s ease backwards; animation-delay: var(--d); }
 @keyframes popin { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
@@ -101,6 +104,7 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 .tg-dots i.trophy.on { filter: none; opacity: 1; }
 .tg-status { font-size: 12px; font-weight: bold; color: var(--c); }
 .tg-card.complete::after { content: "⭐"; position: absolute; top: 10px; right: 12px; font-size: 20px; }
+
 @media (max-width: 700px) {
   .tahap-banner { flex-direction: column; align-items: flex-start; padding: 22px; }
   .tahap-banner h2 { font-size: 25px; }
@@ -108,6 +112,7 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
   .tahap-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 @media (max-width: 380px) { .tahap-grid { grid-template-columns: 1fr; } }
+
 /* ---------- Tahap 2 (Explore) ---------- */
 .tahap-banner.t2 { background: linear-gradient(120deg, #ff9f1c 0%, #ff6b9d 55%, #8f6bff 100%); box-shadow: 0 14px 30px rgba(255, 107, 157, .32); }
 .tahap-grid.cols3 { grid-template-columns: repeat(3, 1fr); }
@@ -119,6 +124,7 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 .tg-chip { position: absolute; top: 14px; right: 14px; background: #fff4d6; color: #a86a00; font-size: 11px; font-weight: bold; padding: 4px 9px; border-radius: 12px; }
 .tahap-section + .tahap-section { margin-top: 44px; }
 @media (max-width: 700px) { .tahap-grid.cols3 { grid-template-columns: 1fr; } }
+
 /* ---------- Jenjang & placeholder ---------- */
 .grade-section { margin-top: 30px; }
 #tahapArea .tahap-section:first-child { margin-top: 28px; }
