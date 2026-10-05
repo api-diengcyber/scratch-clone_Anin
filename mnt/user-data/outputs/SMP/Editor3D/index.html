@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Editor • Dieng Cyber Coding</title>
+  <link rel="stylesheet" href="../TextEditor/editor.css?v=2">
+  <style>
+    .eh-title{display:flex;align-items:center;gap:8px}.eh-title img{width:30px;height:30px;object-fit:contain}
+    .tb{flex:none;display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 14px 0;padding:8px 12px;background:#fff;border-radius:18px;box-shadow:0 4px 12px rgba(60,80,140,.08)}
+    .grp{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.grp b{font-size:11px;color:#8a93b4;margin-right:2px}
+    .tb button{border:0;background:#eef1ff;color:#4a5bc8;font-weight:bold;font-size:13px;padding:8px 10px;border-radius:12px}
+    .tb button:hover{background:#dfe5ff}.tb button.on{background:#6d7eea;color:#fff}.tb button.play{background:#34c06f;color:#fff}.tb button.play.stop{background:#ef5b5b}
+    .work{flex:1;min-height:0;display:flex;gap:10px;margin:10px 14px 14px}
+    #vp{flex:1;position:relative;border-radius:18px;overflow:hidden;background:#cfe8ff;min-width:0}
+    #vp canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+    #tip{position:absolute;left:10px;top:10px;background:#fffd;padding:6px 10px;border-radius:10px;font-size:12px;pointer-events:none}
+    .side{width:260px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+    .panel{background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 4px 12px rgba(60,80,140,.08)}
+    .panel h4{margin:0 0 8px;font-size:13px}.hint{font-size:12px;color:#8a93b4;margin:0}
+    .ex{padding:5px 8px;border-radius:8px;font-size:13px;cursor:pointer}.ex:hover{background:#f3f5fd}.ex.on{background:#6d7eea;color:#fff}
+    #expl{max-height:160px;overflow:auto}
+    .panel label{display:block;font-size:11px;font-weight:bold;color:#8a93b4;margin:8px 0 3px}
+    .panel input[type=text],.panel input[type=number]{width:100%;padding:6px;border:1px solid #d9e0f0;border-radius:8px;font:inherit;font-size:13px}
+    .v3{display:flex;gap:4px}.v3 input{min-width:0}
+    .pal{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.pal span{width:22px;height:22px;border-radius:7px;cursor:pointer;box-shadow:0 0 0 1px #d9e0f0}
+    .pal input{width:30px;height:26px;padding:0;border:0;background:none}
+    @media(max-width:800px){.work{flex-direction:column}.side{width:100%;max-height:40vh}#vp{min-height:260px}}
+  </style>
+</head>
+<body>
+  <header class="eh">
+    <a class="eh-back" id="backLink" href="../dashboard.html">← Dashboard</a>
+    <div class="eh-title"><img src="../Assets/logo.png" alt="Logo Dieng Cyber"> 3D Editor</div>
+    <div class="points-chip">⭐ <b id="pointsValue">0</b> poin</div>
+  </header>
+  <section class="mission" id="mission" hidden></section>
+  <div class="tb">
+    <div class="grp"><b>ALAT</b><button data-tool="select" class="on">👆 Pilih</button><button data-tool="move">✋ Geser</button><button data-tool="scale">📏 Ukuran</button><button data-tool="rotate">🔄 Putar</button></div>
+    <div class="grp"><b>TAMBAH</b><button data-ins="box">🟦 Balok</button><button data-ins="sphere">⚪ Bola</button><button data-ins="cyl">🥫 Tabung</button><button data-ins="cone">🔺 Kerucut</button><button data-ins="spawn">⭐ Tempat Muncul</button></div>
+    <div class="grp"><button data-act="dup">📋 Gandakan</button><button data-act="del">🗑️ Hapus</button><button data-act="undo">↩️</button><button data-act="redo">↪️</button></div>
+    <div class="grp"><button class="play" id="playBtn" data-act="play">▶ Main</button><button data-act="shot">📸 Screenshot</button></div>
+  </div>
+  <main class="work">
+    <div id="vp"><div id="tip"></div></div>
+    <aside class="side">
+      <div class="panel"><h4>📂 Explorer</h4><div id="expl"></div></div>
+      <div class="panel"><h4>🔧 Properties</h4><div id="props"></div></div>
+    </aside>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../jalur-data.js?v=10"></script>
+  <script src="../jalur-belajar.js?v=10"></script>
+  <script src="editor3d.js?v=1"></script>
+  <script src="../smp-taskpanel.js?v=1"></script>
+</body>
+</html>

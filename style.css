@@ -58,7 +58,7 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 .start-btn { width: 100%; border: 0; background: #7181ec; color: #fff; padding: 13px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 17px; }
 .hero-badge {width: 90px; height: 90px;border-radius: 50%;overflow: hidden;      display: flex;align-items: center;justify-content: center;padding: 0; }
 .hero-badge img {width: 100%; height: 100%; object-fit: cover; border-radius: 50%;}
-@media (max-width: 700px) { .header, .learning-head { align-items: flex-start; } .profile { gap: 8px; } .profile div { display: none; } .hero { padding: 23px; } .hero h2 { font-size: 22px; } .hero-badge { width: 75px; height: 75px; } .grade-tabs { grid-template-columns: 1fr; } .learning-head { flex-direction: column; } .progress-box { width: 100%; } .level-card { grid-template-columns: 42px 1fr; } .level-btn { grid-column: 2; justify-self: start; } }
+@media (max-width: 700px) { .header, .learning-head { align-items: flex-start; } .profile { gap: 8px; }  .hero { padding: 23px; } .hero h2 { font-size: 22px; } .hero-badge { width: 75px; height: 75px; } .grade-tabs { grid-template-columns: 1fr; } .learning-head { flex-direction: column; } .progress-box { width: 100%; } .level-card { grid-template-columns: 42px 1fr; } .level-btn { grid-column: 2; justify-self: start; } }
 .points-chip { background: #fff4d6; color: #a86a00; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; white-space: nowrap; }
 .points-chip b { font-size: 15px; }
 
@@ -90,7 +90,7 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 .tb-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #d9a900; }
 .tb-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d9a900; }
 
-.tahap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; margin-top: 24px; }
+.tahap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 24px; }
 .tg-card { position: relative; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #2b3350; background: #fff; border: 3px solid transparent; border-radius: 26px; padding: 18px 16px 16px; box-shadow: 0 8px 20px rgba(60,80,140,.1); transition: .18s; animation: popin .45s ease backwards; animation-delay: var(--d); }
 @keyframes popin { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
 .tg-card:hover { transform: translateY(-6px) rotate(-.6deg); border-color: var(--c); box-shadow: 0 14px 26px rgba(60,80,140,.16); }
@@ -115,15 +115,9 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 
 /* ---------- Tahap 2 (Explore) ---------- */
 .tahap-banner.t2 { background: linear-gradient(120deg, #ff9f1c 0%, #ff6b9d 55%, #8f6bff 100%); box-shadow: 0 14px 30px rgba(255, 107, 157, .32); }
-.tahap-grid.cols3 { grid-template-columns: repeat(3, 1fr); }
-.tahap-grid.cols3 .tg-card { padding: 22px 20px 18px; }
-.tahap-grid.cols3 .tg-emoji { width: 68px; height: 68px; font-size: 38px; border-radius: 22px; }
-.tahap-grid.cols3 .tg-card h3 { font-size: 18px; }
-.tahap-grid.cols3 .tg-card p { font-size: 13.5px; font-style: italic; }
 .tg-card.mine { border-color: var(--c); }
 .tg-chip { position: absolute; top: 14px; right: 14px; background: #fff4d6; color: #a86a00; font-size: 11px; font-weight: bold; padding: 4px 9px; border-radius: 12px; }
 .tahap-section + .tahap-section { margin-top: 44px; }
-@media (max-width: 700px) { .tahap-grid.cols3 { grid-template-columns: 1fr; } }
 
 /* ---------- Jenjang & placeholder ---------- */
 .grade-section { margin-top: 30px; }
@@ -132,3 +126,124 @@ main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
 .cs-emoji { font-size: 52px; }
 .coming-soon h3 { margin: 8px 0 6px; font-size: 20px; color: #2b3350; }
 .coming-soon p { margin: 0 auto; max-width: 420px; color: #6b7494; font-size: 14px; line-height: 1.5; }
+
+/* =====================================================
+   Grid kartu menyesuaikan jumlah (tidak ada kolom kosong)
+   ===================================================== */
+.tahap-grid.fit { grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.tahap-grid.big { gap: 22px; }
+.tahap-grid.big .tg-card { padding: 24px 22px 20px; gap: 8px; }
+.tahap-grid.big .tg-emoji { width: 72px; height: 72px; font-size: 40px; border-radius: 24px; }
+.tahap-grid.big .tg-card h3 { font-size: 19px; }
+.tahap-grid.big .tg-card p { font-size: 14px; }
+.tahap-grid.big .tg-dots i { width: 16px; height: 16px; }
+.tahap-grid.big .tg-status { font-size: 13px; }
+.tg-dots { flex-wrap: wrap; }
+
+/* =====================================================
+   Responsif HP & tablet
+   ===================================================== */
+@media (max-width: 900px) {
+  .tahap-grid.fit.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  main { padding: 18px 14px 40px; }
+
+  /* Hero */
+  .hero { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 20px; }
+  .hero h2 { font-size: 21px; }
+  .hero p { font-size: 13px; }
+  .hero-badge { width: 64px; height: 64px; }
+
+  /* Pilih jenjang: 3 tombol ringkas sebaris */
+  .grade-section { margin-top: 22px; }
+  .grade-tabs { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grade-tab { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 4px; border-radius: 16px; }
+  .grade-tab span { width: 38px; height: 38px; font-size: 20px; }
+  .grade-tab b, .grade-tab small { align-self: center; }
+  .grade-tab span { grid-row: auto; }
+  .grade-tab b { font-size: 13px; }
+  .grade-tab small { font-size: 10px; line-height: 1.25; }
+  .grade-tab.active { transform: none; }
+
+  /* Banner tahap */
+  .tahap-section { margin-top: 28px; }
+  .tahap-banner { gap: 16px; padding: 20px 18px; border-radius: 24px; }
+  .tahap-banner h2 { font-size: 23px; }
+  .tahap-banner p { font-size: 14px; margin-bottom: 12px; }
+  .tb-track { max-width: none; }
+  .tb-btn { font-size: 16px; padding: 14px 20px; border-radius: 18px; }
+
+  /* Kartu: 2 kolom; kartu ganjil terakhir melebar penuh agar tidak ada ruang kosong */
+  .tahap-grid, .tahap-grid.fit, .tahap-grid.fit.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+  .tahap-grid > .tg-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .tahap-grid .tg-card, .tahap-grid.big .tg-card { padding: 16px 14px 14px; border-radius: 22px; }
+  .tahap-grid .tg-emoji, .tahap-grid.big .tg-emoji { width: 52px; height: 52px; font-size: 28px; border-radius: 18px; }
+  .tahap-grid .tg-card h3, .tahap-grid.big .tg-card h3 { font-size: 15px; }
+  .tahap-grid .tg-card p, .tahap-grid.big .tg-card p { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .tahap-grid > .tg-card:last-child:nth-child(odd) p { -webkit-line-clamp: unset; display: block; }
+  .tg-card:hover { transform: none; }
+
+  .coming-soon { padding: 28px 16px; border-radius: 22px; }
+}
+
+@media (max-width: 380px) {
+  .tahap-grid, .tahap-grid.fit, .tahap-grid.fit.n4 { grid-template-columns: 1fr; }
+  .tahap-grid > .tg-card:last-child:nth-child(odd) { grid-column: auto; }
+  .grade-tab small { display: none; }
+  .tahap-banner h2 { font-size: 21px; }
+}
+
+/* =====================================================
+   Kompatibilitas MDB (dimuat sebelum file ini)
+   MDB me-reset body/heading; kembalikan ke tampilan asli.
+   ===================================================== */
+body { line-height: normal; }
+h1, h2, h3, h4, h5, h6 { font-weight: bold; line-height: normal; }
+
+/* =====================================================
+   Header: desktop = menu sebaris, HP = burger MDB
+   ===================================================== */
+.profile-info { text-align: right; }
+.profile-info strong { display: block; font-size: 13px; }
+.profile-info span { display: block; }
+.navbar-toggler { display: none; }                       /* burger hanya di HP */
+@media (min-width: 701px) { #navbarToggleExternalContent { display: none !important; } } /* panel burger hanya di HP */
+
+@media (max-width: 700px) {
+  .desk-only { display: none !important; }
+  .header { flex-wrap: nowrap; gap: 10px; padding: 10px 14px; }
+  .brand { gap: 10px; min-width: 0; flex: 1; }
+  .brand-icon { width: 38px; height: 38px; flex: none; }
+  .brand h1 { font-size: 14px; line-height: 1.2; letter-spacing: .4px; white-space: normal; }
+  .brand h1 .t-line { display: block; }          /* judul 2 baris di HP: tidak pernah menabrak chip poin */
+  .brand > div:last-child { min-width: 0; }
+  .brand p { display: none; }
+  .profile { gap: 8px; flex: none; flex-wrap: nowrap; justify-content: flex-end; }
+  .points-chip { padding: 7px 11px; font-size: 12px; flex: none; }
+
+  /* Tombol burger (kelas MDB .navbar-toggler) */
+  .header .navbar-toggler { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 12px; background: #eef1ff; color: #5a6bd8; font-size: 18px; line-height: 1; cursor: pointer; }
+  .header .navbar-toggler:active { background: #e1e6ff; }
+
+  /* Panel burger (MDB .collapse): MDB yang mengatur buka/tutup */
+  #navbarToggleExternalContent .p-4 { padding: 14px 16px !important; background: #fff; border-bottom: 1px solid #e3e8f3; }
+  .nm-user { display: flex; align-items: center; gap: 12px; padding: 4px 0 14px; }
+  .nm-avatar { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #7181ec, #9a7bea); color: #fff; font-weight: bold; font-size: 18px; }
+  .nm-user strong { display: block; font-size: 14px; word-break: break-all; }
+  .nm-user span { display: block; margin-top: 2px; font-size: 11px; color: #8791a5; }
+  #navbarToggleExternalContent .btn-link { padding: 14px 8px; font-size: 14px; font-weight: bold; text-transform: none; text-align: left; color: #3d4670; letter-spacing: 0; text-decoration: none; }
+  #navbarToggleExternalContent .nm-logout { color: #d33; }
+}
+
+@media (max-width: 360px) {
+  .header { gap: 8px; padding: 10px 10px; }
+  .brand { gap: 8px; }
+  .brand-icon { width: 34px; height: 34px; }
+  .brand h1 { font-size: 12.5px; letter-spacing: .2px; }
+  .profile { gap: 6px; }
+  .points-chip { padding: 6px 9px; font-size: 11px; }
+  .points-chip b { font-size: 13px; }
+  .header .navbar-toggler { width: 36px; height: 36px; font-size: 16px; }
+}

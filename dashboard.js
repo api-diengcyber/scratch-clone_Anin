@@ -8,7 +8,12 @@ const currentUser = localStorage.getItem('username') || localStorage.getItem('sc
 const totalPoints = Number(localStorage.getItem('codingPoints_' + currentUser)) || 0;
 
 const savedUser = localStorage.getItem('username');
-if (savedUser) $('displayUsername').textContent = '@' + savedUser;
+if (savedUser) {
+  $('displayUsername').textContent = '@' + savedUser;
+  $('displayUsernameM').textContent = '@' + savedUser;
+}
+$('avatarLetter').textContent = (savedUser || currentUser || 'A').charAt(0).toUpperCase();
+
 $('pointsValue').textContent = totalPoints;
 
 // ---------- Tahap belajar (banner + kartu) ----------
@@ -28,6 +33,11 @@ function tahapBlock(th) {
     text = `${tp.done} dari ${tp.total} langkah selesai`;
     btn = tp.done === 0 ? 'Mulai Petualangan →' : tp.done === tp.total ? 'Lihat Lagi 🎉' : 'Lanjutkan Belajar →';
   }
+
+  // Grid menyesuaikan jumlah kartu: <=4 kartu memenuhi satu baris (tidak ada kolom kosong),
+  // <=3 kartu dibuat lebih besar. Lebih dari itu pakai grid otomatis.
+  const n = th.pembelajaran.length;
+  const gridClass = n <= 4 ? `fit n${n}${n <= 3 ? ' big' : ''}` : '';
 
   const cards = th.pembelajaran.map((pb, i) => {
     const p = LP.progressOf(pb);
@@ -60,7 +70,7 @@ function tahapBlock(th) {
       </div>
       <a class="tb-btn" href="belajar.html?t=${th.id}">${btn}</a>
     </div>
-    <div class="tahap-grid ${pilih ? 'cols3' : ''}">${cards}</div>
+    <div class="tahap-grid ${gridClass}" style="--n:${n}">${cards}</div>
   </section>`;
 }
 
@@ -71,6 +81,8 @@ function renderGrade(grade) {
   const area = $('tahapArea');
   if (grade === 'sd') {
     area.innerHTML = (typeof LP !== 'undefined') ? LP.tahap.map(tahapBlock).join('') : '';
+  } else if (grade === 'smp' && window.renderSMP) {
+    window.renderSMP(area);          // kurikulum SMP: smp-kurikulum.js
   } else {
     area.innerHTML = `<section class="coming-soon">
       <div class="cs-emoji">🚧</div>
@@ -85,11 +97,27 @@ document.querySelectorAll('.grade-tab').forEach(tab => tab.addEventListener('cli
   tab.classList.add('active');
   renderGrade(tab.dataset.grade);
 }));
-renderGrade('sd');
+// ---------- Batasan jenjang per user ----------
+// Frontend siap: tab jenjang yang tidak diizinkan disembunyikan. Sumber datanya masih placeholder.
+// TODO (temanmu/backend): isi localStorage 'allowedGrades' saat login, mis. ["sd"] untuk anak SD.
+function allowedGrades() {
+  try { const g = JSON.parse(localStorage.getItem('allowedGrades')); if (Array.isArray(g) && g.length) return g; } catch (e) {}
+  return ['sd', 'smp', 'smak'];
+}
+const allowed = allowedGrades();
+document.querySelectorAll('.grade-tab').forEach(t => { if (!allowed.includes(t.dataset.grade)) t.remove(); });
+const tabsLeft = document.querySelectorAll('.grade-tab');
+if (tabsLeft.length < 2) document.querySelector('.grade-section').style.display = 'none';   // 1 jenjang: tidak perlu pemilih
+else document.querySelector('.grade-tabs').style.gridTemplateColumns = 'repeat(' + tabsLeft.length + ', 1fr)';
+if (tabsLeft.length) {
+  document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+  tabsLeft[0].classList.add('active');
+  renderGrade(tabsLeft[0].dataset.grade);
+}
 
-$('logoutBtn').addEventListener('click', () => {
+['logoutBtn', 'logoutBtnM'].forEach(id => $(id).addEventListener('click', () => {
   localStorage.removeItem('isLoggedIn');
   localStorage.removeItem('username');
   localStorage.removeItem('scratch_user');
   window.location.replace('index.html');
-});
+}));

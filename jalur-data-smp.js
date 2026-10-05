@@ -1,0 +1,70 @@
+// DATA JALUR BELAJAR SMP. Tiap track = 36 pertemuan · 90 menit/sesi. Tiap node = satu modul (beberapa pertemuan).
+// Node: id, title, deskripsi, pertemuan, level, ringkasan, teori[], materi[], tasks[{judul, langkah[]}], urlEditor.
+// CTA "Buka Editor" membawa ?smp=<id node>&t=<nomor task> → smp-taskpanel.js menampilkan task di samping editor.
+(function () {
+  const TXT = "TextEditor/index.html", D3 = "Editor3D/index.html";
+  const N = (url, id, title, deskripsi, pertemuan, level, ringkasan, teori, materi, tasks) => ({ id, title, deskripsi, pertemuan, level, ringkasan, teori, materi,
+    tasks: tasks.map((t) => ({ judul: t[0], langkah: t[1] })), urlEditor: url });
+  window.LP_SMP = [
+    { id: "python", em: "🐍", c: "#3d8bf5", nama: "Python Start", meta: "36 Pertemuan · 90 Menit/Sesi",
+      ringkas: "Dari print() pertama sampai game 2D dan Hackathon.", proyek: "Game 2D buatan sendiri + karya tim", nodes: [
+      N(TXT, "py1", "Dasar Python & Variabel", "print, variabel, tipe data, input.", "1–6", "Pemula", "Python membaca kode baris demi baris. Variabel adalah kotak bernama untuk menyimpan nilai.",
+        ["print() menampilkan teks", "Tipe data: int, float, str", "input() selalu menghasilkan teks"], ["print", "variabel", "tipe data", "input"],
+        [["Perkenalan diri", ["Simpan namamu di variabel nama", "Tampilkan dengan print()", "Tambahkan umur lewat input()"]], ["Kalkulator mini", ["Minta dua angka dengan input()", "Ubah ke int()", "Cetak hasil tambah dan kali"]]]),
+      N(TXT, "py2", "Struktur Kontrol", "if/elif/else, for, while.", "7–12", "Pemula", "Struktur kontrol membuat program memilih jalan dan mengulang pekerjaan.",
+        ["if memeriksa kondisi", "for mengulang sejumlah kali", "while mengulang selama kondisi benar"], ["if/elif/else", "for", "while", "and/or"],
+        [["Cek nilai", ["Minta nilai dari pengguna", "Tulis if/elif/else untuk predikat", "Uji dengan 3 nilai berbeda"]], ["Tebak angka", ["Simpan angka rahasia", "Ulangi tebakan dengan while", "Beri petunjuk lebih besar atau kecil"]]]),
+      N(TXT, "py3", "Fungsi & Modul math", "def, parameter, return, math.", "13–18", "Menengah", "Fungsi membungkus langkah yang bisa dipakai berulang. Modul math menyediakan rumus siap pakai.",
+        ["def membuat fungsi", "return mengirim hasil keluar", "import math memberi sqrt, pi"], ["def", "parameter", "return", "math"],
+        [["Fungsi luas", ["Buat luas_lingkaran(r)", "Pakai math.pi", "Panggil dengan 3 jari-jari"]], ["Kalkulator sains", ["Buat fungsi akar dan pangkat", "Pakai math.sqrt", "Tampilkan menu pilihan"]]]),
+      N(TXT, "py4", "OOP: Kelas & Inheritance", "class, object, method, pewarisan.", "19–26", "Menengah", "Class adalah cetakan, object adalah hasil cetakannya. Inheritance membuat class baru dari class lama.",
+        ["class berisi atribut dan method", "__init__ mengisi atribut awal", "Class anak mewarisi class induk"], ["class", "object", "method", "inheritance"],
+        [["Class Karakter", ["Buat class dengan nama dan hp", "Tambah method serang()", "Buat dua object lalu panggil"]], ["Pewarisan", ["Buat class Penyihir dari Karakter", "Tambah method sihir()", "Cetak hp setelah diserang"]]]),
+      N(TXT, "py5", "Game 2D", "game loop, gerak, tabrakan, skor.", "27–32", "Lanjut", "Game berjalan dalam loop: baca input, ubah keadaan, gambar ulang.",
+        ["Game loop berulang tiap frame", "Tabrakan = dua kotak bertumpuk", "Skor dan nyawa adalah variabel"], ["game loop", "gerak", "tabrakan", "skor"],
+        [["Gerakkan pemain", ["Siapkan loop utama", "Ubah posisi dari tombol", "Batasi pemain di layar"]], ["Kumpulkan koin", ["Buat koin di posisi acak", "Deteksi tabrakan", "Tambah skor tiap koin"]]]),
+      N(TXT, "py6", "Hackathon Finale", "Game tim dari rencana sampai presentasi.", "33–36", "Lanjut", "Hackathon: tim membuat game utuh dalam waktu terbatas lalu mempresentasikannya.",
+        ["Bagi tugas sesuai keahlian", "Uji sebelum demo", "Presentasi: masalah, solusi, demo"], ["rencana", "kerja tim", "pengujian", "presentasi"],
+        [["Rencana game", ["Tulis ide dan aturan main", "Bagi tugas anggota", "Tentukan fitur wajib"]], ["Rakit dan uji", ["Gabungkan kode semua anggota", "Cari dan perbaiki bug", "Latih demo 3 menit"]]]) ] },
+    { id: "ai", em: "🤖", c: "#8f6bff", nama: "AI & Creative Tech", meta: "36 Pertemuan · 90 Menit/Sesi",
+      ringkas: "Prompt engineering, 14 tools AI, dan portofolio web.", proyek: "Portofolio website online", nodes: [
+      N(TXT, "ai1", "Prompt Engineering", "Menulis prompt yang jelas dan terarah.", "1–6", "Pemula", "Prompt yang baik punya peran, tugas, konteks, dan format hasil.",
+        ["Beri peran pada AI", "Sebut konteks dan batasan", "Perbaiki prompt bertahap"], ["peran", "konteks", "format", "iterasi"],
+        [["Prompt pertama", ["Tulis tugas yang ingin dibantu AI", "Tambahkan peran dan format hasil", "Simpan prompt di editor"]], ["Perbaiki hasil", ["Bandingkan dua versi prompt", "Catat apa yang berubah", "Pilih prompt terbaik"]]]),
+      N(TXT, "ai2", "Web HTML/CSS via AI", "Dasar HTML/CSS dan memeriksa kode AI.", "7–12", "Pemula", "AI bisa menulis kode web, tapi kamu yang harus memahami dan memeriksanya.",
+        ["HTML menyusun isi halaman", "CSS mengatur tampilan", "Selalu uji kode dari AI"], ["HTML", "CSS", "prompt kode", "review kode"],
+        [["Halaman pertama", ["Minta AI membuat halaman perkenalan", "Tempel kodenya ke editor", "Jalankan dan lihat Preview"]], ["Edit sendiri", ["Ganti warna dan judul", "Tambah satu bagian baru", "Jelaskan 3 baris kode"]]]),
+      N(TXT, "ai3", "14 Tools AI", "Audio, video, dan gambar dengan AI.", "13–20", "Menengah", "Tiap tool AI punya kekuatan berbeda. Memilih tool yang tepat menghemat waktu.",
+        ["Kenali jenis tool: teks, gambar, audio, video", "Bandingkan hasil antar tool", "Etika: sebut sumber, hormati hak cipta"], ["audio", "video", "gambar", "etika AI"],
+        [["Katalog tools", ["Pilih 5 tool yang kamu coba", "Tulis fungsi dan kekurangannya", "Susun jadi halaman katalog"]], ["Uji banding", ["Beri prompt sama ke dua tool", "Bandingkan hasilnya", "Tulis kesimpulan singkat"]]]),
+      N(TXT, "ai4", "Aset Gambar, Audio & Video", "Membuat paket aset kreatif.", "21–26", "Menengah", "Aset kreatif perlu konsisten: gaya, ukuran, dan format yang sama.",
+        ["Tentukan gaya visual dulu", "Beri nama file yang rapi", "Cek ukuran file untuk web"], ["gambar", "musik", "suara", "video pendek"],
+        [["Paket aset", ["Tentukan tema dan gaya", "Buat 3 aset dengan AI", "Beri nama file yang rapi"]], ["Galeri aset", ["Buat halaman galeri", "Tampilkan aset dengan tag img", "Tambah keterangan tiap aset"]]]),
+      N(TXT, "ai5", "Game & Storytelling", "Board game dan cerita bercabang.", "27–32", "Lanjut", "Cerita bercabang memberi pembaca pilihan, tiap pilihan membuka bagian cerita berbeda.",
+        ["Alur: awal, konflik, akhir", "Cabang = pilihan pembaca", "Uji coba bersama teman"], ["aturan main", "cerita bercabang", "playtest"],
+        [["Peta cerita", ["Gambar alur dengan 2 cabang", "Tulis tiap bagian dibantu AI", "Edit supaya gayanya konsisten"]], ["Cerita interaktif", ["Buat halaman tiap bagian", "Hubungkan dengan tautan", "Minta teman mencoba"]]]),
+      N(TXT, "ai6", "Portofolio Web", "Website portofolio online.", "33–36", "Lanjut", "Portofolio menunjukkan karya terbaikmu dengan tampilan rapi dan mudah dibuka.",
+        ["Pilih karya terbaik saja", "Struktur: profil, karya, kontak", "Publikasi agar bisa dibuka siapa saja"], ["struktur halaman", "tampilan", "publikasi"],
+        [["Rangka portofolio", ["Buat bagian profil dan karya", "Isi dengan karya dari modul sebelumnya", "Tambah menu navigasi"]], ["Poles dan publikasi", ["Rapikan warna dan huruf", "Cek di layar kecil", "Publikasikan dan bagikan tautan"]]]) ] },
+    { id: "d3", em: "🧊", c: "#ff9f1c", nama: "Game Dev 3D Lanjutan", meta: "36 Pertemuan · 90 Menit/Sesi",
+      ringkas: "Dunia 3D, kontrol karakter, fisika, dan game utuh.", proyek: "Game 3D untuk Showcase", nodes: [
+      N(D3, "d1", "World Building & Transformasi", "Sumbu X Y Z dan menyusun dunia.", "1–6", "Menengah", "Setiap benda 3D punya posisi, rotasi, dan skala pada sumbu X, Y, Z.",
+        ["X kiri-kanan, Y atas-bawah, Z depan-belakang", "Posisi, rotasi, skala", "Susun dunia dari bentuk dasar"], ["sumbu", "transformasi", "menyusun dunia"],
+        [["Pulau mini", ["Tambah tanah sebagai dasar", "Letakkan 3 benda berbeda", "Atur skala agar proporsional"]], ["Desa kecil", ["Susun 4 bangunan", "Putar agar menghadap jalan", "Beri warna berbeda"]]]),
+      N(D3, "d2", "Kontrol Karakter", "Gerak WASD, kamera, animasi.", "7–12", "Menengah", "Kontrol karakter membaca tombol lalu mengubah posisi tiap frame.",
+        ["WASD menggerakkan karakter", "Kamera mengikuti karakter", "Animasi memberi kesan hidup"], ["WASD", "kamera", "animasi"],
+        [["Karakter bergerak", ["Tambah karakter", "Atur gerak maju dan mundur", "Uji di Mode Main"]], ["Kamera ikut", ["Letakkan kamera di belakang", "Atur jarak dan tinggi", "Coba berjalan keliling dunia"]]]),
+      N(D3, "d3", "Fisika & Raycast", "Gravitasi, bounding box, raycasting.", "13–20", "Lanjut", "Fisika membuat benda jatuh dan bertabrakan. Raycast adalah sinar tak terlihat untuk mendeteksi benda di depan.",
+        ["Gravitasi menarik ke bawah", "Bounding box = kotak pelindung", "Raycast mengecek apa yang terkena sinar"], ["gravitasi", "bounding box", "raycast"],
+        [["Rintangan", ["Tambah dinding dan kotak", "Aktifkan tabrakan", "Uji karakter menabraknya"]], ["Deteksi benda", ["Arahkan raycast ke depan", "Ubah warna benda yang terkena", "Uji dari beberapa sudut"]]]),
+      N(D3, "d4", "Game Loop, Audio & AI Musuh", "Loop game, suara 3D, musuh sederhana.", "21–28", "Lanjut", "Game loop memperbarui dunia berkali-kali per detik. Musuh sederhana mengejar pemain.",
+        ["Loop: input, update, gambar", "Audio 3D makin keras saat dekat", "Musuh menghitung arah ke pemain"], ["game loop", "audio 3D", "AI musuh"],
+        [["Musuh pengejar", ["Tambah musuh", "Gerakkan ke arah pemain", "Beri jarak berhenti"]], ["Suara dan nyawa", ["Pasang suara latar", "Kurangi nyawa saat kena", "Tampilkan game over"]]]),
+      N(D3, "d5", "Optimasi Performa", "Mengurangi beban dan menguji.", "29–32", "Lanjut", "Game yang lancar butuh benda lebih sedikit dan perhitungan lebih hemat.",
+        ["Kurangi jumlah benda", "Gunakan bentuk sederhana", "Uji di banyak perangkat"], ["jumlah objek", "profiling", "uji perangkat"],
+        [["Kurangi beban", ["Hitung jumlah benda di dunia", "Gabungkan atau hapus yang tidak perlu", "Bandingkan kelancaran"]], ["Uji lapangan", ["Jalankan di dua perangkat", "Catat bagian yang lambat", "Perbaiki satu masalah"]]]),
+      N(D3, "d6", "3D Game Showcase", "Finalisasi dan pameran game.", "33–36", "Lanjut", "Showcase adalah demo game utuh: ada tujuan, tantangan, dan akhir.",
+        ["Tentukan tujuan pemain", "Poles detail kecil", "Siapkan demo singkat"], ["finalisasi", "demo", "pameran"],
+        [["Game utuh", ["Tentukan tujuan dan cara menang", "Gabungkan semua fitur", "Cari bug terakhir"]], ["Siap pameran", ["Latih demo 3 menit", "Siapkan penjelasan singkat", "Presentasikan karyamu"]]]) ] }
+  ];
+})();

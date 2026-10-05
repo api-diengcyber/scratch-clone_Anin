@@ -193,10 +193,12 @@
       const btn = !open ? '<button class="btn grey" data-id="' + t.id + '">🔒 Terkunci</button>'
         : done ? '<button class="btn ghost" data-id="' + t.id + '">' + (isProject ? "Lihat Project" : "Ulangi") + "</button>"
         : '<button class="btn ' + (isProject ? "gold" : "green") + '" data-id="' + t.id + '">' + (isProject ? (LP.projectStatus(t.id) === "dikerjakan" ? "Lanjutkan Project 🏆" : "Mulai Project 🏆") : "Mulai →") + "</button>";
+      // tombol materi (opsional): hanya task yang punya `halamanMateri` di jalur-data.js, dan hanya kalau task sudah terbuka
+      const materiBtn = (t.halamanMateri && open) ? '<a class="btn ghost mlink" href="' + esc(t.halamanMateri) + '">📺 Materi</a>' : "";
       return '<div class="' + cls + '"><div class="circle">' + circle + "</div>" +
         '<div class="ncard"><div><div class="nlabel">' + label + (current ? " • 👉 AYO MULAI!" : "") + "</div>" +
         "<h3>" + esc(t.title) + "</h3><p>" + esc(t.desc) + "</p>" +
-        '<span class="badge">' + tipe.icon + " " + tipe.nama + "</span>" + toolChip(t) + statusChip(t) + pointChip(t) + "</div>" + btn + "</div></div>";
+        '<span class="badge">' + tipe.icon + " " + tipe.nama + "</span>" + toolChip(t) + statusChip(t) + pointChip(t) + "</div>" + '<div class="nacts">' + materiBtn + btn + "</div></div></div>";
     }).join("");
 
     app.innerHTML =
@@ -211,7 +213,7 @@
     bindCrumbs(pbId);
     const swap = document.getElementById("swapBtn");
     if (swap) swap.addEventListener("click", showTahap);
-    app.querySelectorAll(".node .btn").forEach((b) => b.addEventListener("click", () => {
+    app.querySelectorAll(".node .btn[data-id]").forEach((b) => b.addEventListener("click", () => {
       const id = b.dataset.id;
       if (!LP.isUnlocked(id)) {
         const f = LP.find(id);
@@ -247,7 +249,11 @@
       ? '<div class="box ok"><h4>✅ Berhasil jika</h4>' + esc(kond.sukses) + "</div>" +
         '<div class="box bad"><h4>❌ Belum berhasil jika</h4>' + esc(kond.gagal) + "</div>"
       : "";
-    const materiBox = listBox("📖 Yang akan kamu pelajari", t.materi, "materi");
+    // Tombol ke halaman materi (opsional): hanya muncul kalau task punya field `halamanMateri` di jalur-data.js
+    const materiLink = t.halamanMateri
+      ? '<a class="materi-link" href="' + esc(t.halamanMateri) + '"><span class="ml-icon">📺</span><span class="ml-text"><b>Lihat Materi</b><small>Belajar dulu sebelum mengerjakan</small></span><span class="ml-go">→</span></a>'
+      : "";
+    const materiBox = listBox("📖 Yang akan kamu pelajari", t.materi, "materi") + materiLink;
 
     const ed = LP.editorOf(t);
     if (ed) {
