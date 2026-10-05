@@ -1,0 +1,14 @@
+# Node
+node_modules/
+
+# SQLite
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
