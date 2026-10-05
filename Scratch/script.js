@@ -9108,6 +9108,11 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
       { text: "Ada \"repeat\"", test: () => stacksInfo().some(i => i.types.includes("repeat")) }],
 
     // ===== Tahap 2 • Game Development (karakter, kontrol, skor, waktu) =====
+    "g1-t6": [G_FLAG,
+      { text: "Ada blok ganti latar (switch / next backdrop)", test: () => someFlag(i => hasAny(i, BACKDROP_BLOCKS)) },
+      { text: "Ada blok ganti kostum (switch / next costume)", test: () => someFlag(i => hasAny(i, COSTUME_BLOCKS)) },
+      { text: "Ada blok ukuran (set size / change size)", test: () => someFlag(i => hasAny(i, ["set_size", "change_size"])) },
+      { text: "Ada \"wait\" supaya perubahan terlihat", test: () => someFlag(i => i.types.includes("wait_secs")) }],
     "g1-t1": [G_FLAG,
       { text: "Taruh \"next costume\" (atau switch costume) di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], COSTUME_BLOCKS)) },
       { text: "Taruh \"move\" di dalam \"repeat\"", test: () => someFlag(i => inside(i, ["repeat"], ["move_steps"])) },

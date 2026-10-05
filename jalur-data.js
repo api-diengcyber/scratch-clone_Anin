@@ -253,14 +253,14 @@ window.LP_DATA = {
       ]
     },
     // ============================================================
-    // TAHAP 2 — EXPLORE (usia 10–12). Anak memilih SATU jalur.
+    // TAHAP 2 — EXPLORE (usia 10–12). Anak mencoba SEMUA jalur (tanpa mode pilih-jalur); laporan membaca kecenderungannya.
     // Setiap jalur memakai struktur yang sama: Task 1–5 → Project Akhir.
     // Task Game (Block Editor) dan Website (Text Editor) dicek otomatis; task 3D dikerjakan di aplikasi luar (Tinkercad, Roblox Studio).
     // ============================================================
     {
-      id: "explore", no: 2, emoji: "🌟", nama: "Tahap 2 — Explore", usia: "10–12 tahun", mode: "pilih-jalur",
-      desc: "Pilih jalur yang paling kamu suka, lalu jelajahi sampai jadi proyek!",
-      slogan: "Pilih jalur favoritmu: buat game, bangun dunia 3D, atau bikin website!",
+      id: "explore", no: 2, emoji: "🌟", nama: "Tahap 2 — Explore", usia: "10–12 tahun",
+      desc: "Coba semua jalur, temukan mana yang paling seru buatmu!",
+      slogan: "Coba semuanya: buat game, bangun dunia 3D, dan bikin website!",
       pembelajaran: [
 
         // ---------------- JALUR 1: GAME DEVELOPMENT (2D) ----------------
@@ -280,6 +280,8 @@ window.LP_DATA = {
               "Buat variabel waktu. Susun: when 🚩 clicked → set waktu to 10 → repeat 10 { wait 1 seconds, change waktu by -1 } → say \"Waktu habis!\" for 2 seconds."),
             editor({"materi": ["Menggabungkan skor, waktu, dan klik", "Percabangan: menang atau kalah", "Menguji dan memperbaiki game"], "sukses": "Ada variabel skor dan waktu, waktu berkurang di dalam repeat dengan wait, klik sprite menambah skor dan pindah posisi acak, dan ada if / if-else yang membandingkan skor lalu say, lalu bendera hijau diklik.", "gagal": "Masih ada bagian yang belum dipakai: dua variabel, waktu berkurang, klik menambah skor, atau if yang membandingkan skor."}, "Game Mini Lengkap", "Satukan semuanya: kejar skor sebelum waktu habis, lalu tampilkan menang atau kalah!",
               "Rangkaian bendera: set skor to 0 → set waktu to 10 → repeat 10 { wait 1, change waktu by -1 } → if-else <skor > 4> { say \"Kamu menang!\" } else { say \"Coba lagi!\" }. Rangkaian klik: when this sprite clicked → change skor by 1 → go to random position.")
+            ,editor({"materi": ["Mengganti latar (backdrop)", "Mengganti kostum dan ukuran karakter", "Jeda dengan blok wait agar perubahan terlihat"], "sukses": "Di bawah \"when 🚩 clicked\" ada blok ganti latar, blok ganti kostum, blok ukuran (set size atau change size), dan wait, lalu bendera hijau diklik.", "gagal": "Salah satu blok (ganti latar, ganti kostum, ukuran, wait) belum ada, atau belum di bawah \"when 🚩 clicked\"."}, "Mendekorasi Panggung Game", "Atur tampilan gamemu: ganti latar, pilih kostum, dan atur ukuran karakter supaya game terlihat menarik.",
+              "Susun di bawah \"when 🚩 clicked\": switch backdrop to backdrop2 → switch costume to costume2 → set size to 150 % → wait 1 seconds → next backdrop.")
           ],
           project: proyek({"jenis": "block", "tujuan": "Membuat satu game Scratch sederhana yang punya karakter, skor, batas waktu, dan pesan menang atau kalah.", "kumpul": ["Mainkan gamemu sampai selesai", "Screenshot gamemu", "Unggah screenshot di halaman ini"], "lencana": "🎮 Lencana Game Developer"}, "Game Sederhanaku", "Buat game buatanmu sendiri memakai semua yang sudah kamu pelajari. Tantangan bonus (boleh dilewati): game platformer atau Flappy Bird di Scratch asli.",
             ["Tulis ide game: tema, tokoh, dan tujuannya.", "Pilih karakter dan latar belakang.", "Buat gerakan dan kontrol: tombol atau klik.", "Tambahkan skor, batas waktu, dan pesan menang atau kalah.", "Ajak temanmu mencoba, lalu perbaiki bagian yang membingungkan.", "Ambil screenshot gamemu dan unggah di sini."],
