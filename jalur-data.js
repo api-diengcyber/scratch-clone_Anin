@@ -266,7 +266,7 @@ window.LP_DATA = {
 
         // ---------------- JALUR 1: GAME DEVELOPMENT (2D) ----------------
         {
-          id: "g1", emoji: "🎮", warna: "#8f6bff", judul: "Game Development",
+          id: "g1", emoji: "🎮", warna: "#7c3aed", judul: "Game Development",
           tagline: "Buat game dan belajar bagaimana game bekerja!",
           desc: "Jalur 2D Game Development: dari karakter berjalan, kontrol, skor, dan waktu sampai project game sederhana.",
           topik: ["Karakter berjalan", "Kontrol tombol", "Skor dan variabel", "Batas waktu", "Game mini lengkap", "Project game"],
@@ -291,7 +291,7 @@ window.LP_DATA = {
 
         // ---------------- JALUR 2: 3D & ROBLOX ----------------
         {
-          id: "g2", emoji: "🧊", warna: "#1fb5d6", judul: "3D & Roblox",
+          id: "g2", emoji: "🧊", warna: "#c026d3", judul: "3D & Roblox",
           tagline: "Bangun dunia dan karya 3D-mu sendiri!",
           desc: "Jalur 3D: membangun benda dan dunia 3D langsung di 3D Editor, dengan istilah seperti di Roblox.",
           topik: ["Bentuk 3D", "Warna dan ukuran", "Menyusun benda", "Tempat muncul", "Dunia 3D mini", "Project 3D"],
@@ -348,7 +348,7 @@ window.LP_DATA = {
 
         // ---------------- JALUR 3: WEBSITE DEVELOPMENT ----------------
         {
-          id: "g3", emoji: "🌐", warna: "#ff9f1c", judul: "Website Development",
+          id: "g3", emoji: "🌐", warna: "#437f08", judul: "Website Development",
           tagline: "Belajar membuat website dengan kode!",
           desc: "Jalur Website Development: HTML dan CSS, sampai project website sederhana.",
           topik: ["HTML", "CSS", "Daftar dan menu", "Website statis", "Project website"],

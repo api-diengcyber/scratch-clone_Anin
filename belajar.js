@@ -62,12 +62,12 @@
     }).join("");
 
     app.innerHTML =
-      '<div class="tahap-hero">' +
+      '<div class="tahap-hero' + (tahap.no === 2 ? ' t2' : '') + '">' +
         "<h1>" + esc(tahap.nama) + "</h1>" +
         "<p>Untuk anak usia " + esc(tahap.usia) + ". " + esc(tahap.desc) + "</p>" +
         '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
         '<div class="bar-text">' + prog.done + " dari " + prog.total + " langkah selesai</div></div>" +
-      '<div class="flow"><b>Tahap 1</b><span>→</span><b>📚 Pilih Pembelajaran</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
+      '<div class="flow"><b>Tahap ' + tahap.no + '</b><span>→</span><b>📚 Pilih Pembelajaran</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
       '<h2 class="sec-title">📚 Pilih pembelajaran</h2><div class="pgrid">' + cards + "</div>";
 
     app.querySelectorAll(".pcard").forEach((c) => c.addEventListener("click", () => showPemb(c.dataset.p)));

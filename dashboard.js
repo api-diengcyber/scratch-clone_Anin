@@ -56,7 +56,7 @@ function tahapBlock(th) {
   }).join('');
 
   return `<section class="tahap-section">
-    <div class="tahap-banner ${pilih ? 't2' : ''}">
+    <div class="tahap-banner ${pilih || th.no === 2 ? 't2' : ''}">
       <div class="tb-bubbles"><i></i><i></i><i></i><i></i></div>
       <div class="tb-left">
         <span class="tb-age">Untuk usia <b>${th.usia}</b></span>
@@ -82,7 +82,9 @@ function renderGrade(grade) {
   if (grade === 'sd') {
     area.innerHTML = (typeof LP !== 'undefined') ? LP.tahap.map(tahapBlock).join('') : '';
   } else if (grade === 'smp' && window.renderSMP) {
-    window.renderSMP(area);          // kurikulum SMP: smp-kurikulum.js
+    window.renderSMP(area);          // khusus SMP: smp-tahap.js
+  } else if (grade === 'smak' && window.renderSMAK) {
+    window.renderSMAK(area);         // khusus SMA/SMK: smak-tahap.js (data: jalur-data-smak.js)
   } else {
     area.innerHTML = `<section class="coming-soon">
       <div class="cs-emoji">🚧</div>
