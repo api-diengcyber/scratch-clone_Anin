@@ -1,6 +1,13 @@
-const express = require("express");
-const cors = require("cors");
 const path = require("path");
+const dotenv = require("dotenv");
+
+dotenv.config({
+    path: path.join(__dirname, ".env")
+});
+
+const express = require("express");
+const { askTutor, hasApiKey } = require("./ai-tutor-api");
+const cors = require("cors");
 
 const db = require("./database");
 const auth = require("./auth");
@@ -360,6 +367,67 @@ app.post("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, 
         total: Math.floor(total)
     });
 });
+// ============================================================
+// AI TUTOR
+// ============================================================
+
+app.post("/api/ai/tutor", async (req, res) => {
+    try {
+        const {
+            message,
+            taskId,
+            taskTitle,
+            taskDescription,
+            taskSteps,
+            taskMaterial,
+            taskHint,
+            editorHtml,
+            editorCss,
+        } = req.body || {};
+
+        if (typeof message !== "string" || !message.trim()) {
+            return res.status(400).json({
+                error: "Pesan tidak boleh kosong.",
+            });
+        }
+
+        if (message.length > 4000) {
+            return res.status(400).json({
+                error: "Pesan terlalu panjang.",
+            });
+        }
+
+        if (!hasApiKey()) {
+            console.error("GROQ_API_KEY belum diatur di backend/.env");
+
+            return res.status(500).json({
+                error: "AI Tutor belum dikonfigurasi.",
+            });
+        }
+
+        const result = await askTutor({
+            message: message.trim(),
+            taskId,
+            taskTitle,
+            taskDescription,
+            taskSteps,
+            taskMaterial,
+            taskHint,
+            editorHtml,
+            editorCss,
+        });
+
+        return res.json(result);
+
+    } catch (error) {
+        console.error("AI Tutor error:", error);
+
+        return res.status(500).json({
+            error: "AI Tutor gagal merespons.",
+        });
+    }
+});
+
 
 // ============================================================
 // 404
@@ -371,6 +439,7 @@ app.use((req, res) => {
         path: req.path
     });
 });
+
 
 // ============================================================
 // START SERVER

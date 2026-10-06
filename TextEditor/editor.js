@@ -298,10 +298,68 @@
       } }, { label: "Batal", cls: "mp-secondary" }] });
   }
 
-  $("runBtn").addEventListener("click", run);
-  $("resetBtn").addEventListener("click", reset);
-  $("clearBtn").addEventListener("click", clearTab);
-  document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); } });   // Ctrl+Enter = Jalankan
+    $("runBtn").addEventListener("click", run);
+    $("resetBtn").addEventListener("click", reset);
+    $("clearBtn").addEventListener("click", clearTab);
 
-  render();
-})();
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        run();
+      }
+    });   // Ctrl+Enter = Jalankan
+
+
+    // ============================================================
+    // AI TUTOR BRIDGE
+    // ============================================================
+    // Membuka akses terbatas agar ai-tutor.js bisa:
+    // 1. membaca kode yang sedang ada di editor
+    // 2. memasukkan kode hasil AI ke editor
+    //
+    // AI tidak bisa mengakses fungsi internal lainnya.
+    // ============================================================
+
+    window.DCCEditor = {
+      getCode() {
+        syncCode();
+
+        return {
+          html: code.html,
+          css: code.css,
+          tab: tab
+        };
+      },
+
+      applyCode(next) {
+        if (!next || typeof next !== "object") return;
+
+        // Terapkan HTML hanya kalau AI mengirim HTML
+        if (typeof next.html === "string") {
+          code.html = next.html;
+        }
+
+        // Terapkan CSS hanya kalau AI mengirim CSS
+        if (typeof next.css === "string") {
+          code.css = next.css;
+        }
+
+        // Sinkronkan kembali dengan textarea
+        ta.value = code[tab] || "";
+
+        // Perbarui editor + preview
+        paint();
+        render();
+
+        // Simpan draft
+        saveDraft();
+
+        // Perbarui checklist task
+        updateGoals();
+      }
+    };
+
+    console.log("✅ DCCEditor siap:", window.DCCEditor);
+
+    render();
+  })();
