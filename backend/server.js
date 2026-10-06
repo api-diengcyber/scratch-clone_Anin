@@ -62,7 +62,7 @@ app.use(
 
 app.get("/", (req, res) => {
     res.sendFile(
-        path.join(PROJECT_ROOT, "index.html")
+        path.join(PROJECT_ROOT, "dashboard.html")
     );
 });
 
