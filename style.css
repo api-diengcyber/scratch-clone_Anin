@@ -247,3 +247,14 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; line-height: normal; }
   .points-chip b { font-size: 13px; }
   .header .navbar-toggler { width: 36px; height: 36px; font-size: 16px; }
 }
+
+/* Kartu modul SMP: kolom dibagi rata (mis. 6 modul = 3 x 2) supaya baris terakhir tidak bolong */
+@media (min-width: 821px) { .tahap-grid.smp-fit { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); } }
+@media (max-width: 820px) {
+  .tahap-grid.smp-fit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tahap-grid.smp-fit > .tg-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+@media (max-width: 380px) {
+  .tahap-grid.smp-fit { grid-template-columns: 1fr; }
+  .tahap-grid.smp-fit > .tg-card:last-child:nth-child(odd) { grid-column: auto; }
+}

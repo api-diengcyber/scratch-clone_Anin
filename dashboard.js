@@ -59,8 +59,8 @@ function tahapBlock(th) {
     <div class="tahap-banner ${pilih ? 't2' : ''}">
       <div class="tb-bubbles"><i></i><i></i><i></i><i></i></div>
       <div class="tb-left">
-        <span class="tb-age">🎈 Untuk usia <b>${th.usia}</b></span>
-        <h2>${th.emoji} ${th.nama}</h2>
+        <span class="tb-age">Untuk usia <b>${th.usia}</b></span>
+        <h2>${th.nama}</h2>
         <p>${th.slogan || th.desc}</p>
         <div class="tb-track">
           <div class="tb-bar"><i style="width:${pct}%"></i></div>
@@ -95,6 +95,7 @@ function renderGrade(grade) {
 document.querySelectorAll('.grade-tab').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('.grade-tab').forEach(item => item.classList.remove('active'));
   tab.classList.add('active');
+  try { localStorage.setItem('lastGrade', tab.dataset.grade); } catch (e) {}
   renderGrade(tab.dataset.grade);
 }));
 // ---------- Batasan jenjang per user ----------
@@ -111,8 +112,10 @@ if (tabsLeft.length < 2) document.querySelector('.grade-section').style.display 
 else document.querySelector('.grade-tabs').style.gridTemplateColumns = 'repeat(' + tabsLeft.length + ', 1fr)';
 if (tabsLeft.length) {
   document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
-  tabsLeft[0].classList.add('active');
-  renderGrade(tabsLeft[0].dataset.grade);
+  const wanted = new URLSearchParams(location.search).get('grade') || localStorage.getItem('lastGrade');
+  const startTab = Array.from(tabsLeft).find(t => t.dataset.grade === wanted) || tabsLeft[0];
+  startTab.classList.add('active');
+  renderGrade(startTab.dataset.grade);
 }
 
 ['logoutBtn', 'logoutBtnM'].forEach(id => $(id).addEventListener('click', () => {

@@ -6,7 +6,7 @@
   const N = (url, id, title, deskripsi, pertemuan, level, ringkasan, teori, materi, tasks) => ({ id, title, deskripsi, pertemuan, level, ringkasan, teori, materi,
     tasks: tasks.map((t) => ({ judul: t[0], langkah: t[1] })), urlEditor: url });
   window.LP_SMP = [
-    { id: "python", em: "🐍", c: "#3d8bf5", nama: "Python Start", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "python", c: "#3d8bf5", nama: "Python Start", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Dari print() pertama sampai game 2D dan Hackathon.", proyek: "Game 2D buatan sendiri + karya tim", nodes: [
       N(TXT, "py1", "Dasar Python & Variabel", "print, variabel, tipe data, input.", "1–6", "Pemula", "Python membaca kode baris demi baris. Variabel adalah kotak bernama untuk menyimpan nilai.",
         ["print() menampilkan teks", "Tipe data: int, float, str", "input() selalu menghasilkan teks"], ["print", "variabel", "tipe data", "input"],
@@ -26,7 +26,7 @@
       N(TXT, "py6", "Hackathon Finale", "Game tim dari rencana sampai presentasi.", "33–36", "Lanjut", "Hackathon: tim membuat game utuh dalam waktu terbatas lalu mempresentasikannya.",
         ["Bagi tugas sesuai keahlian", "Uji sebelum demo", "Presentasi: masalah, solusi, demo"], ["rencana", "kerja tim", "pengujian", "presentasi"],
         [["Rencana game", ["Tulis ide dan aturan main", "Bagi tugas anggota", "Tentukan fitur wajib"]], ["Rakit dan uji", ["Gabungkan kode semua anggota", "Cari dan perbaiki bug", "Latih demo 3 menit"]]]) ] },
-    { id: "ai", em: "🤖", c: "#8f6bff", nama: "AI & Creative Tech", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "ai", c: "#8f6bff", nama: "AI & Creative Tech", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Prompt engineering, 14 tools AI, dan portofolio web.", proyek: "Portofolio website online", nodes: [
       N(TXT, "ai1", "Prompt Engineering", "Menulis prompt yang jelas dan terarah.", "1–6", "Pemula", "Prompt yang baik punya peran, tugas, konteks, dan format hasil.",
         ["Beri peran pada AI", "Sebut konteks dan batasan", "Perbaiki prompt bertahap"], ["peran", "konteks", "format", "iterasi"],
@@ -46,7 +46,7 @@
       N(TXT, "ai6", "Portofolio Web", "Website portofolio online.", "33–36", "Lanjut", "Portofolio menunjukkan karya terbaikmu dengan tampilan rapi dan mudah dibuka.",
         ["Pilih karya terbaik saja", "Struktur: profil, karya, kontak", "Publikasi agar bisa dibuka siapa saja"], ["struktur halaman", "tampilan", "publikasi"],
         [["Rangka portofolio", ["Buat bagian profil dan karya", "Isi dengan karya dari modul sebelumnya", "Tambah menu navigasi"]], ["Poles dan publikasi", ["Rapikan warna dan huruf", "Cek di layar kecil", "Publikasikan dan bagikan tautan"]]]) ] },
-    { id: "d3", em: "🧊", c: "#ff9f1c", nama: "Game Dev 3D Lanjutan", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "d3", c: "#ff9f1c", nama: "Game Dev 3D Lanjutan", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Dunia 3D, kontrol karakter, fisika, dan game utuh.", proyek: "Game 3D untuk Showcase", nodes: [
       N(D3, "d1", "World Building & Transformasi", "Sumbu X Y Z dan menyusun dunia.", "1–6", "Menengah", "Setiap benda 3D punya posisi, rotasi, dan skala pada sumbu X, Y, Z.",
         ["X kiri-kanan, Y atas-bawah, Z depan-belakang", "Posisi, rotasi, skala", "Susun dunia dari bentuk dasar"], ["sumbu", "transformasi", "menyusun dunia"],

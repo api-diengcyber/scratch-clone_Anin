@@ -22,6 +22,7 @@
       else if (b.closest("[data-p]") && ti > 0) { ti--; draw(); } else if (b.closest("[data-n]") && ti < node.tasks.length - 1) { ti++; draw(); } });
     p.addEventListener("change", (e) => { if (!e.target.matches("[data-i]")) return; const c = get(), i = +e.target.dataset.i, j = c.indexOf(i);
       if (e.target.checked && j < 0) c.push(i); else if (!e.target.checked && j > -1) c.splice(j, 1); try { localStorage.setItem(key(), JSON.stringify(c)); } catch (x) {} });
+    const bl = document.getElementById("backLink"); if (bl) { bl.href = "../belajar-smp.html?p=" + nid; bl.textContent = "← Jalur SMP"; }
     draw();
   }
 })();

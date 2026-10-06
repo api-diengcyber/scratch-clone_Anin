@@ -7,9 +7,9 @@
   const crumbs = (a) => '<div class="crumbs">' + a.map((c, i) => (i ? "<span>›</span>" : "") + '<button data-href="' + c[1] + '">' + c[0] + "</button>").join("") + "</div>";
   let lastBtn = null;
   function render() {
-    if (!node) { app.innerHTML = crumbs([["🏠 Dashboard", "dashboard.html"]]) + '<div class="smp-over" id="ov"></div>'; window.renderSMPTahap(document.getElementById("ov"), q.get("t")); return; }
+    if (!node) { app.innerHTML = '<div class="smp-over" id="ov"></div>'; window.renderSMPTahap(document.getElementById("ov"), q.get("t")); return; }
     const m = M[tr.id], idx = tr.nodes.indexOf(node), p = S.prog(node), pct = Math.round(p.done / p.total * 100), cur = node.tasks.findIndex((_, i) => !S.isDone(node.id, i));
-    app.innerHTML = crumbs([["🏠 Dashboard", "dashboard.html"], [m.e + " " + esc(tr.nama), "belajar-smp.html?t=" + tr.id], [m.em[idx] + " " + esc(node.title), "#"]]) +
+    app.innerHTML = crumbs([[esc(tr.nama), "belajar-smp.html?t=" + tr.id], [m.em[idx] + " " + esc(node.title), "#"]]) +
       '<div style="--c:' + tr.c + '"><div class="phead"><div class="pe">' + m.em[idx] + "</div><div><h2>" + esc(node.title) + "</h2><p>" + esc(node.deskripsi) + " Pertemuan " + node.pertemuan + " • " + esc(node.level) + '</p><div class="bar"><i style="width:' + pct + '%"></i></div><div class="bar-text">' + p.done + " dari " + p.total + " task selesai</div></div></div>" +
       '<section class="tcard"><h3>📖 Ringkasan &amp; Teori Singkat</h3><p class="desc">' + esc(node.ringkasan) + "</p><ul>" + node.teori.map((s) => "<li>" + esc(s) + "</li>").join("") + '</ul><div class="chips">' + node.materi.map((s) => '<span class="chip">' + esc(s) + "</span>").join("") + "</div></section>" +
       '<div class="path">' + node.tasks.map((k, i) => { const dn = S.isDone(node.id, i), op = i === 0 || S.isDone(node.id, i - 1), cu = i === cur;

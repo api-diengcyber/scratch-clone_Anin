@@ -62,12 +62,12 @@
     }).join("");
 
     app.innerHTML =
-      '<div class="tahap-hero"><div class="big">' + tahap.emoji + "</div>" +
-        "<h1>" + tahap.emoji + " " + esc(tahap.nama) + "</h1>" +
+      '<div class="tahap-hero">' +
+        "<h1>" + esc(tahap.nama) + "</h1>" +
         "<p>Untuk anak usia " + esc(tahap.usia) + ". " + esc(tahap.desc) + "</p>" +
         '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
         '<div class="bar-text">' + prog.done + " dari " + prog.total + " langkah selesai</div></div>" +
-      '<div class="flow"><b>🌱 Tahap 1</b><span>→</span><b>📚 Pilih Pembelajaran</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
+      '<div class="flow"><b>Tahap 1</b><span>→</span><b>📚 Pilih Pembelajaran</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
       '<h2 class="sec-title">📚 Pilih pembelajaran</h2><div class="pgrid">' + cards + "</div>";
 
     app.querySelectorAll(".pcard").forEach((c) => c.addEventListener("click", () => showPemb(c.dataset.p)));
@@ -93,10 +93,10 @@
     }).join("");
 
     app.innerHTML =
-      '<div class="tahap-hero t2"><div class="big">' + tahap.emoji + "</div>" +
-        "<h1>" + tahap.emoji + " " + esc(tahap.nama) + "</h1>" +
+      '<div class="tahap-hero t2">' +
+        "<h1>" + esc(tahap.nama) + "</h1>" +
         "<p>Untuk anak usia " + esc(tahap.usia) + ". Pilih satu jalur yang paling kamu suka. Kamu boleh ganti jalur kapan saja, progresmu tetap tersimpan!</p></div>" +
-      '<div class="flow"><b>🌟 Tahap 2</b><span>→</span><b>🧭 Pilih Jalur</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
+      '<div class="flow"><b>Tahap 2</b><span>→</span><b>🧭 Pilih Jalur</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
       '<h2 class="sec-title">🧭 Pilih jalurmu</h2><div class="jgrid">' + cards + "</div>";
 
     app.querySelectorAll(".jcard").forEach((c) => c.addEventListener("click", () => showPemb(c.dataset.p)));
@@ -160,7 +160,7 @@
     return null;
   }
   function tahapOf(pb) { return LP.tahap.find((th) => th.pembelajaran.includes(pb)); }
-  function tahapCrumb() { return { go: "tahap", text: tahap.emoji + " Tahap " + tahap.no }; }
+  function tahapCrumb() { return { go: "tahap", text: "Tahap " + tahap.no }; }
 
   function crumbs(parts) {
     return '<div class="crumbs">' + parts.map((p, i) => (i ? "<span>›</span>" : "") +
