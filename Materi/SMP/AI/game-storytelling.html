@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game &amp; Storytelling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 35px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .code-bool { color: #c084fc; font-weight: 600; }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: #e2e8f0;
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .step-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content h4 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .playground {
+      background: #1e1b4b;
+      color: #e0e7ff;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 25px;
+    }
+
+    .playground h3 {
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #a5b4fc;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #4338ca;
+      background: #312e81;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, #f72585, #7209b7);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-run:hover {
+      opacity: 0.9;
+    }
+
+    .output-screen {
+      margin-top: 18px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      color: #38bdf8;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
+<div class="container"><div class="header"><span class="badge">MODUL SMP • AI & CREATIVE TECH</span><h1>Game &amp; Storytelling</h1><p>Merancang cerita bercabang dan permainan yang bisa dimainkan</p></div><div class="content">
+<h2 class="section-title">1. Struktur cerita</h2><div class="card"><div class="table-container"><table><thead><tr><th>Bagian</th><th>Isi</th><th>Pertanyaan pemandu</th></tr></thead><tbody><tr><td>Awal</td><td>Mengenalkan tokoh dan latar</td><td>Siapa dan di mana?</td></tr><tr><td>Konflik</td><td>Masalah yang harus diatasi</td><td>Apa yang menghalangi tokoh?</td></tr><tr><td>Klimaks</td><td>Puncak ketegangan</td><td>Apa keputusan terpenting?</td></tr><tr><td>Akhir</td><td>Penyelesaian</td><td>Apa yang berubah?</td></tr></tbody></table></div></div>
+<h2 class="section-title">2. Cerita bercabang</h2><div class="card"><p style="margin-top:8px;">Pada cerita bercabang, pembaca <strong>memilih</strong> jalan. Setiap pilihan membuka halaman berbeda. Gambar dulu petanya sebelum menulis.</p><div class="code-block">Awal
+├─ Pilihan A → Bagian 2A → Akhir 1 atau Akhir 2
+└─ Pilihan B → Bagian 2B → Akhir 3
+
+&lt;!-- halaman-1.html --&gt;
+&lt;h1&gt;Gerbang Hutan&lt;/h1&gt;
+&lt;p&gt;Kamu melihat dua jalan. Mana yang dipilih?&lt;/p&gt;
+&lt;a href="halaman-2a.html"&gt;Ikuti sungai&lt;/a&gt;
+&lt;a href="halaman-2b.html"&gt;Masuk gua&lt;/a&gt;</div><div class="alert-box">Setiap halaman harus punya jalan keluar: pilihan lanjut atau tulisan "Tamat". Cek agar tidak ada tautan yang mengarah ke halaman yang belum dibuat.</div></div>
+<h2 class="section-title">3. Tokoh dan latar</h2><div class="card"><div class="table-container"><table><thead><tr><th>Unsur</th><th>Pertanyaan</th><th>Contoh</th></tr></thead><tbody><tr><td>Nama</td><td>Siapa tokohnya?</td><td>Rani</td></tr><tr><td>Sifat</td><td>Seperti apa dia?</td><td>Berani tapi ceroboh</td></tr><tr><td>Keinginan</td><td>Apa yang dikejarnya?</td><td>Menemukan permata</td></tr><tr><td>Hambatan</td><td>Apa yang menghalangi?</td><td>Takut gelap</td></tr><tr><td>Latar</td><td>Di mana dan suasananya?</td><td>Hutan lebat saat senja</td></tr></tbody></table></div><p style="margin-top:8px;">Minta AI membantu membuat deskripsi dan gambar, lalu <strong>edit sendiri</strong> supaya gayanya konsisten dari awal sampai akhir.</p></div>
+<h2 class="section-title">4. Aturan permainan</h2><div class="card"><div class="table-container"><table><thead><tr><th>Bagian aturan</th><th>Isi</th></tr></thead><tbody><tr><td>Tujuan</td><td>Satu kalimat: apa yang harus dicapai pemain</td></tr><tr><td>Bahan</td><td>Papan, kartu, dadu, atau halaman</td></tr><tr><td>Giliran</td><td>Siapa jalan dan apa yang boleh dilakukan</td></tr><tr><td>Aksi</td><td>Pilihan yang tersedia di tiap giliran</td></tr><tr><td>Kemenangan</td><td>Kondisi pemain dinyatakan menang</td></tr></tbody></table></div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Maksimal sekitar 5 aturan inti.</li><li>Setiap aturan jelas, singkat, dan adil bagi semua pemain.</li><li>Cek apakah ada kondisi buntu: permainan tidak bisa selesai.</li></ul></div>
+<h2 class="section-title">5. Uji coba (playtest)</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Jangan menjelaskan</h4><p>Biarkan temanmu membaca petunjuk dan bermain sendiri.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Amati dan catat</h4><p>Catat bagian yang membuat mereka bingung atau berhenti.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Tanya</h4><p>Apa yang paling seru? Apa yang paling membingungkan?</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Perbaiki satu hal</h4><p>Pilih masukan terpenting dan perbaiki satu aturan.</p></div></div></div></div>
+<h2 class="section-title">6. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Peta cerita dan Cerita interaktif:</strong> peta cabang dan halaman bertautan.</li><li><strong>Tokoh dan latar:</strong> tabel unsur tokoh.</li><li><strong>Aturan permainan:</strong> tabel bagian aturan.</li><li><strong>Uji coba bersama:</strong> langkah playtest.</li><li><strong>Proyek Board Game atau Cerita Interaktif:</strong> pilih satu, buat bahan, dan tulis petunjuk satu halaman.</li></ul></div>
+</div></div>
+</body></html>

@@ -273,7 +273,7 @@ const LP = Object.assign({}, window.LP_DATA, {
 
 // ---------- beri id, nomor, dan label otomatis ----------
 LP.tahap.forEach(th => th.pembelajaran.forEach(pb => {
-  pb.tasks.forEach((t, i) => { t.id = pb.id + "-t" + (i + 1); t.no = i + 1; t.label = LP.LABEL[i] || ("Task " + (i + 1)); });
+  pb.tasks.forEach((t, i) => { t.id = pb.id + "-t" + (i + 1); if (!t.halamanMateri) t.halamanMateri = "Materi/sd.html?task=" + t.id; t.no = i + 1; t.label = LP.LABEL[i] || ("Task " + (i + 1)); });
   pb.project.id = pb.id + "-project"; pb.project.type = "project"; pb.project.no = pb.tasks.length + 1; pb.project.label = "Project Akhir";
 }));
 

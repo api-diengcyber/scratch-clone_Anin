@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 2: Kalkulator Mini - Python Dasar SMP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --success: #10b981;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: var(--dark); line-height: 1.7; padding: 30px 15px; }
+    .container { max-width: 860px; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid var(--border); }
+    .header { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: #ffffff; padding: 35px; text-align: center; }
+    .badge { display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 6px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .content { padding: 35px; }
+    .section-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin: 28px 0 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .card { background: var(--gray-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .highlight-box { background: var(--primary-light); border-left: 5px solid var(--primary); padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0; margin: 15px 0; }
+    .alert-box { background: #fff0f5; border-left: 5px solid var(--accent); padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0; margin: 15px 0; }
+    .code-block { background: #0f172a; color: #f8fafc; padding: 16px 20px; border-radius: 12px; font-family: 'Fira Code', monospace; font-size: 0.92rem; overflow-x: auto; margin: 14px 0; border: 1px solid #334155; }
+    .code-comment { color: #94a3b8; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .steps-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+    .step-item { display: flex; align-items: flex-start; gap: 14px; background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .step-num { width: 36px; height: 36px; background: var(--primary); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+    .playground { background: #1e1b4b; color: #e0e7ff; border-radius: var(--radius); padding: 22px; margin-top: 25px; }
+    .playground h3 { color: #ffffff; margin-bottom: 12px; }
+    .input-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .input-group { flex: 1; min-width: 140px; }
+    .input-group label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: #a5b4fc; }
+    .input-group input { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #4338ca; background: #312e81; color: #ffffff; font-family: inherit; }
+    .btn-run { background: linear-gradient(135deg, #f72585, #7209b7); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .output-screen { margin-top: 15px; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; font-family: 'Fira Code', monospace; color: #38bdf8; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">TASK 2 • KODING SMP</span>
+      <h1>Kalkulator Mini</h1>
+      <p>Mengubah input teks menjadi angka dan menjumlahkannya dengan Python</p>
+    </div>
+
+    <div class="content">
+      <h2 class="section-title">1. Masalah Utama pada input()</h2>
+      <div class="card">
+        <p>Di modul sebelumnya, kita sudah tahu bahwa fungsi <code>input()</code> <strong>selalu menghasilkan teks (string)</strong>.</p>
+        <p>Jika kita menjumlahkan dua teks tanpa diubah terlebih dahulu, Python tidak menghitungnya, melainkan <strong>menggabungkan teksnya</strong>:</p>
+        <div class="code-block">
+a = <span class="code-str">"10"</span>
+b = <span class="code-str">"5"</span>
+<span class="code-func">print</span>(a + b)  <span class="code-comment"># Hasilnya "105", BUKAN 15!</span>
+        </div>
+        <div class="alert-box">
+          <strong>Solusi Konversi (Type Casting):</strong><br>
+          Gunakan <code>int()</code> untuk mengubah teks angka menjadi bilangan bulat murni agar simbol <code>+</code> berfungsi sebagai operasi matematika.
+        </div>
+      </div>
+
+      <h2 class="section-title">2. Instruksi 3 Langkah Praktik</h2>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div>
+            <h4>Langkah 1: Ambil Angka Pertama</h4>
+            <p>Minta input angka dari pengguna dan bungkus langsung dengan <code>int()</code>.</p>
+            <div class="code-block">angka1 = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Masukkan angka pertama: "</span>))</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div>
+            <h4>Langkah 2: Ambil Angka Kedua</h4>
+            <p>Gunakan cara yang sama untuk menyimpan angka kedua di variabel baru.</p>
+            <div class="code-block">angka2 = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Masukkan angka kedua: "</span>))</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div>
+            <h4>Langkah 3: Hitung dan Cetak Hasil</h4>
+            <p>Jumlahkan kedua variabel lalu tampilkan ke layar dengan fungsi <code>print()</code>.</p>
+            <div class="code-block">hasil = angka1 + angka2
+<span class="code-func">print</span>(<span class="code-str">"Hasil penjumlahan:"</span>, hasil)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playground">
+        <h3>Simulasi Langsung Task 2</h3>
+        <p style="font-size:0.9rem; margin-bottom:12px; color:#c7d2fe;">Bandingkan hasil penjumlahan teks biasa vs angka integer:</p>
+        <div class="input-row">
+          <div class="input-group">
+            <label>Angka 1:</label>
+            <input type="number" id="t2_a" value="12">
+          </div>
+          <div class="input-group">
+            <label>Angka 2:</label>
+            <input type="number" id="t2_b" value="8">
+          </div>
+        </div>
+        <button class="btn-run" onclick="hitungKalkulator()">Jalankan Program</button>
+        <div class="output-screen" id="t2_res">> Klik tombol untuk melihat hasil...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function hitungKalkulator() {
+      const a = document.getElementById('t2_a').value;
+      const b = document.getElementById('t2_b').value;
+      const tanpaInt = a + b;
+      const denganInt = (parseInt(a) || 0) + (parseInt(b) || 0);
+
+      document.getElementById('t2_res').innerHTML =
+        `> Tanpa int() (teks digabung) : "${tanpaInt}"<br>` +
+        `> Dengan int() (dihitung benar): ${denganInt}<br>` +
+        `> [Kesimpulan] Kalkulator mini berhasil menghitung angka!`;
+    }
+  </script>
+</body>
+</html>

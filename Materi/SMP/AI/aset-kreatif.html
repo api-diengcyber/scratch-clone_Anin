@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aset Gambar, Audio &amp; Video</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 35px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .code-bool { color: #c084fc; font-weight: 600; }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: #e2e8f0;
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .step-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content h4 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .playground {
+      background: #1e1b4b;
+      color: #e0e7ff;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 25px;
+    }
+
+    .playground h3 {
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #a5b4fc;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #4338ca;
+      background: #312e81;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, #f72585, #7209b7);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-run:hover {
+      opacity: 0.9;
+    }
+
+    .output-screen {
+      margin-top: 18px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      color: #38bdf8;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
+<div class="container"><div class="header"><span class="badge">MODUL SMP • AI & CREATIVE TECH</span><h1>Aset Gambar, Audio &amp; Video</h1><p>Membuat paket aset kreatif yang konsisten dan siap dipakai di web</p></div><div class="content">
+<h2 class="section-title">1. Konsistensi: kunci paket aset</h2><div class="card"><p style="margin-top:8px;">Paket aset terlihat profesional kalau semua bagiannya <strong>seirama</strong>: gaya gambar, palet warna, suasana musik, dan ukuran file yang sama.</p><div class="table-container"><table><thead><tr><th>Yang disamakan</th><th>Contoh keputusan</th></tr></thead><tbody><tr><td>Tema</td><td>Hutan ajaib</td></tr><tr><td>Gaya visual</td><td>Kartun datar dengan warna cerah</td></tr><tr><td>Palet warna</td><td>Hijau, ungu, kuning</td></tr><tr><td>Suasana audio</td><td>Tenang dan misterius</td></tr><tr><td>Ukuran</td><td>Gambar 1024 x 1024</td></tr></tbody></table></div></div>
+<h2 class="section-title">2. Menulis prompt gambar</h2><div class="card"><div class="table-container"><table><thead><tr><th>Unsur</th><th>Contoh</th></tr></thead><tbody><tr><td>Subjek</td><td>Pohon besar bercahaya</td></tr><tr><td>Gaya</td><td>Ilustrasi kartun datar</td></tr><tr><td>Warna</td><td>Hijau, ungu, kuning</td></tr><tr><td>Suasana</td><td>Tenang dan misterius</td></tr><tr><td>Komposisi</td><td>Tampak depan, latar sederhana</td></tr><tr><td>Hindari</td><td>Tanpa tulisan</td></tr></tbody></table></div><div class="code-block">Pohon besar bercahaya di hutan ajaib, ilustrasi kartun datar,
+warna hijau-ungu-kuning, suasana tenang dan misterius,
+tampak depan, latar sederhana, tanpa tulisan.</div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Buat 2 versi, bandingkan, pilih yang paling sesuai tema.</li><li>Periksa bentuk yang aneh dan teks yang tidak terbaca.</li></ul></div>
+<h2 class="section-title">3. Format file untuk web</h2><div class="card"><div class="table-container"><table><thead><tr><th>Jenis</th><th>Format</th><th>Cocok untuk</th><th>Catatan</th></tr></thead><tbody><tr><td>Gambar</td><td>JPG</td><td>Foto atau gambar penuh warna</td><td>Ukuran kecil, tidak transparan</td></tr><tr><td>Gambar</td><td>PNG</td><td>Logo atau tokoh dengan latar transparan</td><td>Ukuran lebih besar</td></tr><tr><td>Gambar</td><td>SVG</td><td>Ikon dan bentuk sederhana</td><td>Tajam di ukuran apa pun</td></tr><tr><td>Audio</td><td>MP3</td><td>Musik latar dan suara</td><td>Didukung hampir semua perangkat</td></tr><tr><td>Video</td><td>MP4</td><td>Klip pendek</td><td>Pakai durasi singkat</td></tr></tbody></table></div><div class="alert-box">File besar membuat halaman lambat. Kecilkan gambar dan pendekkan klip sebelum dipasang di web.</div></div>
+<h2 class="section-title">4. Musik dan suara</h2><div class="card"><div class="table-container"><table><thead><tr><th>Suasana</th><th>Ciri yang dicari</th></tr></thead><tbody><tr><td>Tenang</td><td>Tempo pelan, nada lembut, sedikit instrumen</td></tr><tr><td>Seru</td><td>Tempo cepat, ritme jelas</td></tr><tr><td>Menegangkan</td><td>Nada rendah, ritme berulang, volume naik pelan</td></tr></tbody></table></div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Cocokkan musik dengan gambarmu dan dengarkan keduanya bersama.</li><li>Atur volume agar tidak mengalahkan suara lain.</li><li>Periksa aturan pakai musik hasil AI sebelum dipublikasikan.</li></ul></div>
+<h2 class="section-title">5. Video pendek 15 detik</h2><div class="card"><div class="table-container"><table><thead><tr><th>Detik</th><th>Isi</th></tr></thead><tbody><tr><td>0-3</td><td>Pembuka yang menarik perhatian</td></tr><tr><td>3-12</td><td>Inti: satu ide jelas</td></tr><tr><td>12-15</td><td>Penutup atau nama judul</td></tr></tbody></table></div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Tulis skenario dulu: apa yang terlihat di tiap bagian.</li><li>Periksa hasil AI: objek yang berubah-ubah, gerakan janggal, atau teks yang rusak.</li><li>Kalau ada bagian aneh, buat ulang dengan prompt yang lebih spesifik.</li></ul></div>
+<h2 class="section-title">6. Penamaan dan galeri</h2><div class="card"><div class="code-block">hutan-ajaib-01-pohon.png
+hutan-ajaib-02-sungai.png
+hutan-ajaib-musik-latar.mp3
+
+&lt;figure&gt;
+  &lt;img src="hutan-ajaib-01-pohon.png" alt="Pohon besar bercahaya di hutan ajaib"&gt;
+  &lt;figcaption&gt;Pohon cahaya, dibuat dengan bantuan AI.&lt;/figcaption&gt;
+&lt;/figure&gt;</div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Pakai huruf kecil, tanda hubung, tanpa spasi.</li><li>Awali dengan tema lalu nomor urut.</li><li>Catat tool dan prompt yang dipakai untuk tiap aset.</li></ul></div>
+<h2 class="section-title">7. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Paket aset dan Galeri aset:</strong> tema, penamaan, dan susunan galeri.</li><li><strong>Prompt gambar:</strong> tabel unsur prompt, dua versi.</li><li><strong>Musik dan suara:</strong> tabel suasana.</li><li><strong>Video pendek:</strong> skenario 15 detik dan pemeriksaan hasil.</li><li><strong>Proyek Paket Aset Bertema:</strong> 3 gambar, 1 audio, 1 video, nama file rapi, dan catatan tools.</li></ul></div>
+</div></div>
+</body></html>

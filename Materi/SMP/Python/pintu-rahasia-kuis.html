@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pintu Rahasia &amp; Proyek Kuis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 35px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .code-bool { color: #c084fc; font-weight: 600; }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: #e2e8f0;
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .step-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content h4 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .playground {
+      background: #1e1b4b;
+      color: #e0e7ff;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 25px;
+    }
+
+    .playground h3 {
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #a5b4fc;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #4338ca;
+      background: #312e81;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, #f72585, #7209b7);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-run:hover {
+      opacity: 0.9;
+    }
+
+    .output-screen {
+      margin-top: 18px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      color: #38bdf8;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
+<div class="container"><div class="header"><span class="badge">MODUL KODING SMP • PYTHON START</span><h1>Pintu Rahasia &amp; Proyek Kuis</h1><p>Perulangan while, batas percobaan, dan merangkai program kuis</p></div><div class="content">
+<h2 class="section-title">1. Kapan memakai while?</h2><div class="card"><p style="margin-top:8px;"><strong>for</strong> dipakai saat jumlah pengulangan sudah diketahui. <strong>while</strong> dipakai saat kita mengulang <em>sampai suatu kondisi terpenuhi</em>, misalnya sampai sandi benar.</p><div class="table-container"><table><thead><tr><th>Perulangan</th><th>Berhenti ketika</th><th>Contoh</th></tr></thead><tbody><tr><td>for</td><td>Daftar atau rentang habis</td><td>Cek 5 soal satu per satu</td></tr><tr><td>while</td><td>Kondisi menjadi False</td><td>Minta sandi sampai benar</td></tr></tbody></table></div><div class="highlight-box">Setiap while butuh <strong>jalan keluar</strong>: sesuatu di dalam loop yang pada akhirnya membuat kondisi False, atau perintah break. Tanpa itu loop berjalan selamanya (infinite loop).</div></div>
+<h2 class="section-title">2. Pola pintu rahasia</h2><div class="card"><div class="code-block">sandi = "lumbung"
+coba = 0
+
+while coba &lt; 3:
+    tebakan = input("Sandi: ")
+    if tebakan == sandi:
+        print("Pintu terbuka!")
+        break
+    coba += 1
+    print("Salah. Sisa percobaan:", 3 - coba)
+else:
+    print("Pintu terkunci.")</div><p style="margin-top:8px;">Blok <code>else</code> pada while hanya jalan bila loop selesai <strong>tanpa</strong> break, yaitu saat percobaan habis. Variabel <code>coba</code> adalah <strong>penghitung</strong>: dibuat di luar loop, bertambah di dalam loop.</p></div>
+<h2 class="section-title">3. Versi dengan operator and</h2><div class="card"><div class="code-block">tebakan = ""
+coba = 0
+while tebakan != sandi and coba &lt; 3:
+    tebakan = input("Sandi: ")
+    coba += 1
+
+if tebakan == sandi:
+    print("Pintu terbuka!")
+else:
+    print("Pintu terkunci.")</div><div class="table-container"><table><thead><tr><th>Operator</th><th>Artinya</th><th>Loop lanjut jika</th></tr></thead><tbody><tr><td>and</td><td>Keduanya benar</td><td>Sandi belum benar DAN percobaan belum habis</td></tr><tr><td>or</td><td>Salah satu benar</td><td>Salah satu syarat masih terpenuhi</td></tr><tr><td>not</td><td>Membalik</td><td>Kebalikan dari kondisi</td></tr></tbody></table></div><div class="alert-box">Kondisi harus bisa dievaluasi sebelum loop pertama. Karena itu tebakan diberi nilai awal <code>""</code>.</div></div>
+<h2 class="section-title">4. Proyek: Kuis Pengetahuan Umum</h2><div class="card"><p style="margin-top:8px;">Rangkai semua yang sudah kamu pelajari: variabel, input, perbandingan, perulangan, dan percabangan.</p><div class="code-block">soal = [("Ibu kota Indonesia?", "jakarta"),
+        ("Hasil 7 x 8?", "56")]
+skor = 0
+for pertanyaan, kunci in soal:
+    jawab = input(pertanyaan + " ").strip().lower()
+    if jawab == kunci:
+        print("Benar!")
+        skor += 1
+    else:
+        print("Salah. Jawabannya:", kunci)
+
+nilai = skor / len(soal) * 100
+print("Nilai akhir:", nilai)</div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><code>.strip().lower()</code> membuat jawaban " Jakarta " tetap dianggap benar.</li><li>Menyimpan soal sebagai daftar membuat menambah soal cukup dengan satu baris.</li></ul></div>
+<h2 class="section-title">5. Predikat dari nilai</h2><div class="card"><div class="code-block">if nilai &gt;= 80:
+    predikat = "Sangat baik"
+elif nilai &gt;= 60:
+    predikat = "Baik"
+else:
+    predikat = "Perlu belajar lagi"
+print(predikat)</div><p style="margin-top:8px;">Urutan elif penting: Python memakai cabang pertama yang benar, jadi mulai dari syarat tertinggi.</p></div>
+<h2 class="section-title">6. Kesalahan yang sering terjadi</h2><div class="card"><div class="table-container"><table><thead><tr><th>Masalah</th><th>Penyebab</th><th>Perbaikan</th></tr></thead><tbody><tr><td>Loop tidak pernah berhenti</td><td>Penghitung tidak bertambah</td><td>Tambah coba += 1 di dalam loop</td></tr><tr><td>Jawaban benar dianggap salah</td><td>Huruf besar/kecil atau spasi berbeda</td><td>Pakai .strip().lower()</td></tr><tr><td>Skor selalu 0</td><td>skor = 0 ada di dalam loop</td><td>Pindahkan ke luar loop</td></tr><tr><td>Nilai salah hitung</td><td>Membagi dengan angka yang salah</td><td>Gunakan len(soal)</td></tr></tbody></table></div></div>
+<h2 class="section-title">7. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pintu rahasia</h4><p>Simpan sandi, ulangi tebakan dengan while, batasi 3 kali dengan and.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Rancang kuis</h4><p>Tulis 5 pertanyaan dan kunci jawaban dalam satu daftar.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Skor dan predikat</h4><p>Hitung skor di dalam for, lalu tampilkan nilai dan predikatnya.</p></div></div></div></div>
+</div></div>
+</body></html>

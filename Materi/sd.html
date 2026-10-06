@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Materi • Dieng Cyber Coding</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);display:flex;flex-direction:column;align-items:center;padding:12px}
+.top{width:min(860px,100%);display:flex;align-items:center;gap:10px;margin-bottom:8px}.top img{width:34px;height:34px;object-fit:contain}.top b{flex:1}
+.top a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:8px 12px;border-radius:12px;font-weight:bold;font-size:13px}
+.player{width:min(860px,100%);flex:1;max-height:560px;min-height:380px;background:#fff;border-radius:24px;box-shadow:0 8px 24px rgba(60,80,140,.15);overflow:hidden;display:flex;flex-direction:column}
+.bar{height:6px;background:#e3e9ff}.bar i{display:block;height:100%;width:0;background:#6d7eea}.bar i.run{animation:fill 8s linear forwards}@keyframes fill{to{width:100%}}
+.scene{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;text-align:center}.scene.on{display:flex}
+h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
+.big{font-size:90px;animation:bob 1.2s infinite alternate}@keyframes bob{to{transform:translateY(-14px) rotate(4deg)}}
+.list{list-style:none;padding:0;margin:0;display:grid;gap:10px;width:min(560px,92%)}
+.list li{background:#fff4d6;color:#8a5a00;font-weight:bold;font-size:clamp(15px,2.4vw,19px);padding:10px 16px;border-radius:16px;opacity:0;transform:scale(.6);text-align:left}
+.scene.on .list li{animation:pop .5s forwards}@keyframes pop{to{opacity:1;transform:scale(1)}}
+.list.g li{background:#e6f8ee;color:#1e8f52}
+.go{display:inline-block;background:#34c06f;color:#fff;font-weight:bold;font-size:18px;text-decoration:none;padding:12px 26px;border-radius:18px;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.cap{padding:12px 20px;background:#f3f5fd;font-size:clamp(15px,2.4vw,19px);min-height:68px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.45}
+.ctl{display:flex;gap:8px;align-items:center;justify-content:center;padding:10px;background:#fff;flex-wrap:wrap}
+.ctl button{border:0;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;padding:9px 14px;border-radius:12px;cursor:pointer}.ctl button.on{background:#6d7eea;color:#fff}
+.dots{display:flex;gap:6px;margin:0 8px}.dots i{width:10px;height:10px;border-radius:50%;background:#d6dcf5}.dots i.on{background:#6d7eea}
+</style></head><body>
+<div class="top"><img src="../Assets/logo.png" alt="Logo" onerror="this.style.display='none'"><b id="ttl">Materi</b><a id="back" href="../dashboard.html">← Kembali</a></div>
+<div class="player" id="pl"><div class="bar"><i id="fill"></i></div><div id="scenes" style="flex:1;display:flex;flex-direction:column"></div><div class="cap" id="cap">Memuat…</div>
+<div class="ctl"><button id="prev">◀</button><button id="play" class="on">⏸ Jeda</button><button id="next">▶</button><span class="dots" id="dots"></span><button id="voice">🔇 Suara</button></div></div>
+<script src="../jalur-data.js"></script><script src="../jalur-belajar.js"></script>
+<script>
+(function(){
+  var id=new URLSearchParams(location.search).get("task"),t,jl,tahap;
+  window.LP.tahap.forEach(function(th){th.pembelajaran.forEach(function(p){p.tasks.forEach(function(x){if(x.id===id){t=x;jl=p;tahap=th}})})});
+  var cap=document.getElementById("cap");
+  if(!t){cap.textContent="Materi tidak ditemukan.";return}
+  document.getElementById("back").href="../belajar.html?task="+id;document.getElementById("ttl").textContent=jl.emoji+" Materi • "+t.title;document.title="Materi: "+t.title;
+  var arr=function(x){return x?[].concat(x).filter(Boolean):[]};
+  var learn=arr(t.materi),steps=arr(t.hint).length?arr(t.hint):arr(t.steps),ok=arr(t.sukses);
+  var sc=[{h:t.title,e:jl.emoji,say:"Halo! Hari ini kita belajar "+t.title+". "+(t.desc||"")},
+    {h:"Yang Akan Kamu Pelajari",l:learn,say:"Ini yang akan kamu pelajari: "+learn.join(". ")+"."}];
+  if(steps.length)sc.push({h:"Cara Mengerjakan",l:steps,say:"Ikuti langkah ini ya. "+steps.join(". ")});
+  if(ok.length)sc.push({h:"Tandanya Berhasil",l:ok,g:1,say:"Kamu berhasil kalau: "+ok.join(". ")});
+  sc.push({h:"Kamu Siap! 🎉",e:"🚀",go:1,say:"Kamu sudah siap! Klik tombol hijau untuk mulai mengerjakan "+t.title+"."});
+  var e=function(x){return String(x).replace(/[&<>"]/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]})};
+  var box=document.getElementById("scenes");
+  box.innerHTML=sc.map(function(s){return'<section class="scene"><h2>'+e(s.h)+'</h2>'+(s.e?'<div class="big">'+s.e+'</div>':"")+(s.l?'<ul class="list'+(s.g?" g":"")+'">'+s.l.map(function(x,i){return'<li style="animation-delay:'+(.6+i*1.4)+'s">'+e(x)+'</li>'}).join("")+'</ul>':"")+(s.go?'<a class="go" href="../belajar.html?task='+e(id)+'">Mulai Task 🚀</a>':"")+'</section>'}).join("");
+  var S=[].slice.call(box.children),fill=document.getElementById("fill"),dots=document.getElementById("dots"),i=0,tm,playing=true,voice=false;
+  S.forEach(function(){dots.appendChild(document.createElement("i"))});
+  function go(n){i=Math.max(0,Math.min(S.length-1,n));
+    S.forEach(function(s,k){s.classList.toggle("on",k===i)});[].forEach.call(dots.children,function(d,k){d.classList.toggle("on",k===i)});
+    cap.textContent=sc[i].say;clearTimeout(tm);fill.classList.remove("run");void fill.offsetWidth;
+    if(playing&&i<S.length-1){fill.classList.add("run");tm=setTimeout(function(){go(i+1)},8000)}
+    if("speechSynthesis" in window){speechSynthesis.cancel();if(voice){var u=new SpeechSynthesisUtterance(sc[i].say);u.lang="id-ID";u.rate=.95;speechSynthesis.speak(u)}}}
+  document.getElementById("prev").onclick=function(){go(i-1)};document.getElementById("next").onclick=function(){go(i+1)};
+  document.getElementById("play").onclick=function(){playing=!playing;this.textContent=playing?"⏸ Jeda":"▶ Putar";this.classList.toggle("on",playing);go(i)};
+  document.getElementById("voice").onclick=function(){voice=!voice;this.textContent=voice?"🔊 Suara":"🔇 Suara";this.classList.toggle("on",voice);go(i)};
+  go(0);
+})();
+</script></body></html>

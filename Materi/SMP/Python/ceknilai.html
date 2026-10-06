@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 1: Cek Nilai - Python Dasar SMP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-light: #ecfdf5;
+      --secondary: #059669;
+      --accent: #f72585;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: var(--dark); line-height: 1.7; padding: 30px 15px; }
+    .container { max-width: 860px; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid var(--border); }
+    .header { background: linear-gradient(135deg, #10b981, #047857); color: #ffffff; padding: 35px; text-align: center; }
+    .badge { display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 6px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .content { padding: 35px; }
+    .section-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin: 28px 0 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .card { background: var(--gray-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .box-info { background: var(--primary-light); border-left: 5px solid var(--primary); padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0; margin: 15px 0; }
+    .code-block { background: #0f172a; color: #f8fafc; padding: 16px 20px; border-radius: 12px; font-family: 'Fira Code', monospace; font-size: 0.92rem; overflow-x: auto; margin: 14px 0; border: 1px solid #334155; }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .steps-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+    .step-item { display: flex; align-items: flex-start; gap: 14px; background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .step-num { width: 36px; height: 36px; background: var(--primary); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+    .playground { background: #064e3b; color: #ecfdf5; border-radius: var(--radius); padding: 22px; margin-top: 25px; }
+    .playground h3 { color: #ffffff; margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; color: #a7f3d0; }
+    .input-group input { width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid #059669; background: #065f46; color: #ffffff; font-family: inherit; margin-bottom: 12px; }
+    .btn-run { background: linear-gradient(135deg, #10b981, #047857); color: #ffffff; border: 1px solid #34d399; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .output-screen { margin-top: 15px; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; font-family: 'Fira Code', monospace; color: #38bdf8; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">TASK 1 • LOGIKA PERCABANGAN</span>
+      <h1>Cek Nilai (if - else)</h1>
+      <p>Mengajarkan komputer mengambil keputusan berdasarkan kondisi benar atau salah</p>
+    </div>
+
+    <div class="content">
+      <h2 class="section-title">1. Apa itu Percabangan (if - else)?</h2>
+      <div class="card">
+        <p>Dalam kehidupan sehari-hari, kita sering membuat keputusan: <em>"Jika hari hujan, bawa payung. Jika tidak, pakai topi."</em></p>
+        <p>Di Python, kata <strong>jika</strong> ditulis sebagai <code>if</code>, dan <strong>jika tidak</strong> ditulis sebagai <code>else</code>.</p>
+        <div class="box-info">
+          <strong>Aturan Wajib (Indentasi):</strong> Baris kode setelah tanda titik dua (<code>:</code>) harus diberi <strong>spasi tab / 4 spasi</strong> agar Python tahu kode itu berada di dalam blok kondisi!
+        </div>
+      </div>
+
+      <h2 class="section-title">2. Instruksi 3 Langkah Praktik</h2>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div>
+            <h4>Langkah 1: Ambil Nilai Siswa</h4>
+            <p>Minta input nilai ujian dan konversi ke bilangan bulat (int).</p>
+            <div class="code-block">nilai = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Masukkan nilai ujianmu: "</span>))</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div>
+            <h4>Langkah 2: Tentukan Batas Kelulusan (if)</h4>
+            <p>Gunakan operator <code>&gt;=</code> (lebih besar atau sama dengan 75) untuk mengecek status lulus.</p>
+            <div class="code-block"><span class="code-keyword">if</span> nilai &gt;= <span class="code-num">75</span>:
+    <span class="code-func">print</span>(<span class="code-str">"Selamat! Kamu dinyatakan LULUS 🎉"</span>)</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div>
+            <h4>Langkah 3: Beri Pesan Jika Belum Lulus (else)</h4>
+            <p>Tambahkan bagian <code>else:</code> sebagai jalur alternatif jika nilainya di bawah 75.</p>
+            <div class="code-block"><span class="code-keyword">else</span>:
+    <span class="code-func">print</span>(<span class="code-str">"Semangat, kamu harus ikut remedial ya! 💪"</span>)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playground">
+        <h3>Simulasi Langsung Task 1</h3>
+        <div class="input-group">
+          <label>Masukkan Nilai Ujian (0 - 100):</label>
+          <input type="number" id="t1_nilai" value="80">
+        </div>
+        <button class="btn-run" onclick="cekNilai()">Uji Logika Program</button>
+        <div class="output-screen" id="t1_output">> Masukkan nilai lalu klik tombol...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function cekNilai() {
+      const n = parseInt(document.getElementById('t1_nilai').value) || 0;
+      let pesan = "";
+      if (n >= 75) {
+        pesan = "Selamat! Kamu dinyatakan LULUS 🎉 (Kondisi 'nilai >= 75' Benar)";
+      } else {
+        pesan = "Semangat, kamu harus ikut remedial ya! 💪 (Kondisi 'nilai >= 75' Salah)";
+      }
+      document.getElementById('t1_output').innerHTML =
+        `> Nilai yang diperiksa: ${n}<br>` +
+        `> Hasil program: ${pesan}`;
+    }
+  </script>
+</body>
+</html>

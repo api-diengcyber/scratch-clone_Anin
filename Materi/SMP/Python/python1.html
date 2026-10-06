@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materi Python Dasar - Variabel, Tipe Data & Input/Output</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 35px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .code-bool { color: #c084fc; font-weight: 600; }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: #e2e8f0;
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .step-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content h4 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .playground {
+      background: #1e1b4b;
+      color: #e0e7ff;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 25px;
+    }
+
+    .playground h3 {
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #a5b4fc;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #4338ca;
+      background: #312e81;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, #f72585, #7209b7);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-run:hover {
+      opacity: 0.9;
+    }
+
+    .output-screen {
+      margin-top: 18px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      color: #38bdf8;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<script>
+  (function () { var k = new URLSearchParams(location.search).get('kembali');
+    if (k && /^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k)) document.getElementById('btnKembali').href = '../../../' + k; })();
+</script>
+  <div class="container">
+    <div class="header">
+      <span class="badge">MODUL KODING SMP • PYTHON DASAR</span>
+      <h1>Dasar Python: Variabel, Tipe Data & I/O</h1>
+      <p>Memahami alur kerja program, penyimpanan memori, dan interaksi pengguna</p>
+    </div>
+
+    <div class="content">
+
+      <!-- Bagian 1: Alur Baca Python -->
+      <h2 class="section-title">1. Cara Python Membaca Kode</h2>
+      <div class="card">
+        <p><strong>Python membaca kode baris demi baris</strong> secara berurutan dari baris paling atas hingga paling bawah (disebut proses <em>sekuensial</em>).</p>
+        <div class="highlight-box">
+          Komputer menjalankan instruksi langkah per langkah. Komputer tidak akan melompat ke baris 2 sebelum tugas di baris 1 benar-benar tuntas dikerjakan.
+        </div>
+      </div>
+
+      <!-- Bagian 2: Variabel & print() -->
+      <h2 class="section-title">2. Variabel & Fungsi print()</h2>
+      <div class="card">
+        <p><strong>Variabel adalah kotak bernama</strong> yang disimpan di dalam memori komputer untuk menyimpan suatu nilai atau informasi.</p>
+        <p style="margin-top: 8px;">Fungsi <code>print()</code> bertugas <strong>menampilkan teks atau isi kotak variabel</strong> ke layar konsol/terminal.</p>
+
+        <div class="code-block">
+<span class="code-comment"># Kotak bernama 'nama' diisi teks</span>
+nama = <span class="code-str">"Anindita"</span>
+
+<span class="code-comment"># Cetak teks dan variabel bersamaan</span>
+<span class="code-func">print</span>(<span class="code-str">"Halo, namaku"</span>, nama)
+        </div>
+      </div>
+
+      <!-- Bagian 3: Tipe Data Lengkap -->
+      <h2 class="section-title">3. Tipe Data Dasar Lengkap</h2>
+      <div class="card">
+        <p>Nilai di dalam variabel memiliki bentuk dan aturan yang berbeda-beda. Berikut tipe data utama di Python:</p>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tipe Data</th>
+                <th>Nama Lengkap</th>
+                <th>Kegunaan</th>
+                <th>Contoh</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="tag">str</span></td>
+                <td>String</td>
+                <td>Teks berupa karakter atau huruf (wajib diapit kutip <code>" "</code> atau <code>' '</code>).</td>
+                <td><code>"Budi"</code>, <code>"Semarang"</code>, <code>"123"</code></td>
+              </tr>
+              <tr>
+                <td><span class="tag">int</span></td>
+                <td>Integer</td>
+                <td>Bilangan bulat tanpa koma (bisa positif atau negatif).</td>
+                <td><code>14</code>, <code>2026</code>, <code>-5</code></td>
+              </tr>
+              <tr>
+                <td><span class="tag">float</span></td>
+                <td>Floating Point</td>
+                <td>Bilangan pecahan atau desimal (menggunakan titik <code>.</code>).</td>
+                <td><code>3.14</code>, <code>95.5</code>, <code>-0.5</code></td>
+              </tr>
+              <tr>
+                <td><span class="tag">bool</span></td>
+                <td>Boolean</td>
+                <td>Nilai logika kebenaran, hanya bernilai benar atau salah.</td>
+                <td><code>True</code>, <code>False</code></td>
+              </tr>
+              <tr>
+                <td><span class="tag">None</span></td>
+                <td>NoneType</td>
+                <td>Menunjukkan nilai kosong atau variabel yang belum terisi apa pun.</td>
+                <td><code>None</code></td>
+              </tr>
+              <tr>
+                <td><span class="tag">[..]</span></td>
+                <td>List</td>
+                <td>Kumpulan data yang berurutan dan dapat diubah isinya (mutable), menggunakan tanda kurung siku [...] .</td>
+                <td><code>['apel', 'mangga', 10]</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-block">
+<span class="code-comment"># Contoh penerapan berbagai tipe data</span>
+judul_game = <span class="code-str">"Petualangan Coding"</span>   <span class="code-comment"># str</span>
+level = <span class="code-num">5</span>                              <span class="code-comment"># int</span>
+kecepatan = <span class="code-num">12.8</span>                       <span class="code-comment"># float</span>
+sudah_menang = <span class="code-bool">False</span>                   <span class="code-comment"># bool</span>
+senjata_rahasia = <span class="code-keyword">None</span>                 <span class="code-comment"># NoneType</span>
+        </div>
+      </div>
+
+      <!-- Bagian 4: input() & Konversi -->
+      <h2 class="section-title">4. Fungsi input() & Konversi Tipe Data</h2>
+      <div class="card">
+        <p>Fungsi <code>input()</code> digunakan untuk menerima data yang diketikkan pengguna melalui keyboard.</p>
+        
+        <div class="alert-box">
+          <strong>Catatan Sangat Penting:</strong><br>
+          Fungsi <code>input()</code> <strong>selalu menghasilkan teks (str)</strong>, sekalipun angka yang dimasukkan pengguna!
+        </div>
+
+        <p>Jika ingin menjumlahkan angka dari pengguna, kita harus mengubah (konversi) tipe datanya terlebih dahulu menggunakan <code>int()</code> atau <code>float()</code>:</p>
+
+        <div class="code-block">
+<span class="code-comment"># Mengambil input (selalu berupa teks/str)</span>
+umur_teks = <span class="code-func">input</span>(<span class="code-str">"Masukkan umurmu: "</span>)
+
+<span class="code-comment"># Mengubah teks menjadi angka bulat agar bisa dihitung</span>
+umur_angka = <span class="code-func">int</span>(umur_teks)
+umur_tahun_depan = umur_angka + <span class="code-num">1</span>
+
+<span class="code-func">print</span>(<span class="code-str">"Tahun depan umurmu:"</span>, umur_tahun_depan)
+        </div>
+      </div>
+
+      <!-- Bagian 5: Instruksi Praktik -->
+      <h2 class="section-title">5. Instruksi Praktik</h2>
+      <div class="steps-container">
+        
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Langkah 1: Simpan Namamu di Variabel</h4>
+            <p>Buat variabel bernama <code>nama</code> lalu simpan nama panggilanmu di dalamnya.</p>
+            <div class="code-block">nama = <span class="code-str">"Nama Kamu"</span></div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Langkah 2: Tampilkan dengan print()</h4>
+            <p>Gunakan fungsi <code>print()</code> untuk menampilkan sapaan beserta isi variabel <code>nama</code>.</p>
+            <div class="code-block"><span class="code-func">print</span>(<span class="code-str">"Halo!"</span>, nama)</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Langkah 3: Tambahkan Umur lewat input()</h4>
+            <p>Minta pengguna mengisi umur via keyboard, lalu cetak rangkuman datanya ke layar.</p>
+            <div class="code-block">umur = <span class="code-func">input</span>(<span class="code-str">"Berapa umurmu? "</span>)
+<span class="code-func">print</span>(nama, <span class="code-str">"berusia"</span>, umur, <span class="code-str">"tahun!"</span>)</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bagian 6: Simulasi Langsung -->
+      <div class="playground">
+        <h3>Simulasi Praktik Langsung</h3>
+        <p style="font-size: 0.9rem; margin-bottom: 15px; color: #c7d2fe;">Uji coba alur program Langkah 1, 2, dan 3 langsung di form ini:</p>
+        
+        <div class="input-group">
+          <label>Langkah 1: Masukkan Nama</label>
+          <input type="text" id="simNama" placeholder="Contoh: Rian">
+        </div>
+
+        <div class="input-group">
+          <label>Langkah 3: Masukkan Umur (input())</label>
+          <input type="number" id="simUmur" placeholder="Contoh: 14">
+        </div>
+
+        <button class="btn-run" onclick="jalankanSimulasi()">Jalankan Program (Run)</button>
+
+        <div class="output-screen" id="simOutput">
+          &gt; Hasil eksekusi print() akan muncul di sini...
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function jalankanSimulasi() {
+      const nama = document.getElementById('simNama').value.trim() || "Anonim";
+      const umur = document.getElementById('simUmur').value.trim() || "0";
+      const output = document.getElementById('simOutput');
+      
+      output.innerHTML = `> Python membaca kode baris demi baris...<br>` +
+                         `> Halo! ${nama}<br>` +
+                         `> ${nama} berusia ${umur} tahun!<br>` +
+                         `> [Tipe Data] Variabel nama: str | input umur dibaca sebagai: str`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fungsi &amp; Modul math</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 35px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .code-bool { color: #c084fc; font-weight: 600; }
+
+    .table-container {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: #e2e8f0;
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .step-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content h4 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .playground {
+      background: #1e1b4b;
+      color: #e0e7ff;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 25px;
+    }
+
+    .playground h3 {
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #a5b4fc;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #4338ca;
+      background: #312e81;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, #f72585, #7209b7);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-run:hover {
+      opacity: 0.9;
+    }
+
+    .output-screen {
+      margin-top: 18px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      color: #38bdf8;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
+<div class="container"><div class="header"><span class="badge">MODUL KODING SMP • PYTHON</span><h1>Fungsi &amp; Modul math</h1><p>Membungkus langkah jadi fungsi yang bisa dipakai berulang</p></div><div class="content">
+<h2 class="section-title">1. Apa itu fungsi dan kenapa perlu?</h2><div class="card"><p style="margin-top:8px;"><strong>Fungsi</strong> adalah potongan kode bernama yang melakukan satu tugas. Kamu menulisnya sekali, lalu memanggilnya sebanyak yang kamu mau. Tanpa fungsi, kode yang sama harus disalin berkali-kali: panjang, mudah salah, dan sulit diperbaiki.</p><div class="code-block">def sapa(nama):
+    print("Halo,", nama)
+
+sapa("Rani")   # Halo, Rani
+sapa("Budi")   # Halo, Budi</div><div class="highlight-box">Urutan penting: fungsi harus <strong>didefinisikan dulu</strong> (def), baru <strong>dipanggil</strong>. Mendefinisikan tidak menjalankan isinya; isinya baru jalan saat dipanggil.</div></div>
+<h2 class="section-title">2. Anatomi fungsi: def, parameter, return</h2><div class="card"><div class="table-container"><table><thead><tr><th>Bagian</th><th>Fungsi</th><th>Contoh</th></tr></thead><tbody><tr><td>def</td><td>Kata kunci untuk membuat fungsi</td><td><code>def luas(p, l):</code></td></tr><tr><td>Parameter</td><td>Nama kotak penerima nilai (di definisi)</td><td><code>p, l</code></td></tr><tr><td>Argumen</td><td>Nilai yang dikirim saat memanggil</td><td><code>luas(4, 5)</code></td></tr><tr><td>Isi (indentasi)</td><td>Baris yang ikut fungsi, menjorok 4 spasi</td><td>    return p * l</td></tr><tr><td>return</td><td>Mengirim hasil keluar dari fungsi</td><td><code>return p * l</code></td></tr></tbody></table></div><div class="code-block">def luas(p, l):
+    return p * l
+
+hasil = luas(4, 5)
+print(hasil)   # 20</div><div class="alert-box"><strong>print vs return:</strong> print hanya menampilkan ke layar, hasilnya hilang. return mengirim nilai agar bisa disimpan di variabel atau dipakai lagi. Fungsi tanpa return menghasilkan None.</div></div>
+<h2 class="section-title">3. Parameter default dan banyak parameter</h2><div class="card"><p style="margin-top:8px;">Parameter boleh punya nilai bawaan. Kalau argumen tidak diberikan, nilai bawaan dipakai.</p><div class="code-block">def diskon(harga, persen=10):
+    return harga - harga * persen / 100
+
+print(diskon(50000))       # 45000.0
+print(diskon(50000, 25))   # 37500.0</div></div>
+<h2 class="section-title">4. Modul math: rumus siap pakai</h2><div class="card"><p style="margin-top:8px;">Modul adalah kumpulan fungsi buatan orang lain. Ambil dengan <code>import math</code>, lalu panggil dengan awalan <code>math.</code>.</p><div class="table-container"><table><thead><tr><th>Pemakaian</th><th>Hasil</th><th>Kegunaan</th></tr></thead><tbody><tr><td><code>math.sqrt(49)</code></td><td>7.0</td><td>Akar kuadrat</td></tr><tr><td><code>math.pow(2, 5)</code></td><td>32.0</td><td>Pangkat</td></tr><tr><td><code>math.pi</code></td><td>3.14159…</td><td>Nilai pi</td></tr><tr><td><code>math.floor(3.7)</code></td><td>3</td><td>Bulatkan ke bawah</td></tr><tr><td><code>math.ceil(3.2)</code></td><td>4</td><td>Bulatkan ke atas</td></tr><tr><td><code>round(3.14159, 2)</code></td><td>3.14</td><td>Bulatkan desimal (bawaan Python)</td></tr></tbody></table></div><div class="code-block">import math
+
+def luas_lingkaran(r):
+    return math.pi * r ** 2
+
+print(round(luas_lingkaran(7), 2))   # 153.94</div></div>
+<h2 class="section-title">5. Kesalahan yang sering terjadi</h2><div class="card"><div class="table-container"><table><thead><tr><th>Pesan error</th><th>Penyebab</th><th>Perbaikan</th></tr></thead><tbody><tr><td>NameError: name 'luas' is not defined</td><td>Memanggil sebelum def, atau salah ketik nama</td><td>Pindahkan def ke atas, cek ejaan</td></tr><tr><td>TypeError: missing 1 required argument</td><td>Argumen kurang dari parameter</td><td>Kirim semua argumen yang diminta</td></tr><tr><td>IndentationError</td><td>Isi fungsi tidak menjorok</td><td>Beri 4 spasi di setiap baris isi</td></tr><tr><td>Hasil tercetak None</td><td>Lupa return</td><td>Ganti print di dalam fungsi dengan return</td></tr></tbody></table></div></div>
+<h2 class="section-title">6. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Buat fungsi</h4><p>Tulis luas_lingkaran(r) dengan return, jangan print di dalamnya.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Pakai modul</h4><p>import math, gunakan math.pi dan math.sqrt untuk fungsi kedua.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji 3 nilai</h4><p>Panggil fungsimu dengan tiga nilai berbeda dan cocokkan dengan hitungan manual.</p></div></div></div></div>
+</div></div>
+</body></html>

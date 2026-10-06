@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materi Python: Hitung Mundur (Loop & Time)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #f59e0b;
+      --primary-light: #fef3c7;
+      --accent: #ef4444;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: var(--dark); line-height: 1.7; padding: 30px 15px; }
+    .container { max-width: 860px; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid var(--border); }
+    .header { background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; padding: 35px; text-align: center; }
+    .badge { display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 6px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .content { padding: 35px; }
+    .section-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin: 28px 0 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .card { background: var(--gray-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .highlight-box { background: var(--primary-light); border-left: 5px solid var(--primary); padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0; margin: 15px 0; }
+    .alert-box { background: #fff0f5; border-left: 5px solid var(--accent); padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0; margin: 15px 0; }
+    .code-block { background: #0f172a; color: #f8fafc; padding: 16px 20px; border-radius: 12px; font-family: 'Fira Code', monospace; font-size: 0.92rem; overflow-x: auto; margin: 14px 0; border: 1px solid #334155; }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .steps-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+    .step-item { display: flex; align-items: flex-start; gap: 14px; background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .step-num { width: 36px; height: 36px; background: #d97706; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+    .playground { background: #451a03; color: #fef3c7; border-radius: var(--radius); padding: 22px; margin-top: 25px; }
+    .playground h3 { color: #ffffff; margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: #fde68a; }
+    .input-group input { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #b45309; background: #78350f; color: #ffffff; font-family: inherit; margin-bottom: 12px; }
+    .btn-run { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .output-screen { margin-top: 15px; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; font-family: 'Fira Code', monospace; color: #38bdf8; font-size: 0.95rem; min-height: 80px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">TASK • KODING SMP</span>
+      <h1>Hitung Mundur (Looping)</h1>
+      <p>Membuat animasi hitung mundur peluncuran roket dengan perulangan for dan time.sleep</p>
+    </div>
+
+    <div class="content">
+      <h2 class="section-title">1. Konsep Hitung Mundur</h2>
+      <div class="card">
+        <p>Daripada menulis <code>print(5)</code>, <code>print(4)</code>, dan seterusnya secara manual, kita bisa meminta Python mengulanginya secara otomatis menggunakan <strong>looping (perulangan)</strong>.</p>
+        
+        <div class="highlight-box">
+          <strong>Peran Fungsi Khusus:</strong>
+          <ul style="margin-left: 20px; margin-top: 6px;">
+            <li><code>range(mulai, berhenti, langkah)</code> : Membuat deret urutan angka. Jika ingin mundur, langkahnya bernilai minus (<code>-1</code>).</li>
+            <li><code>import time</code> : Modul bawaan Python untuk mengatur waktu.</li>
+            <li><code>time.sleep(1)</code> : Menghentikan program sejenak selama 1 detik agar hitungan mundur terlihat berdetak nyata.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="section-title">2. Instruksi 3 Langkah Praktik</h2>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div>
+            <h4>Langkah 1: Siapkan Modul Waktu</h4>
+            <p>Panggil modul waktu Python di baris paling atas program.</p>
+            <div class="code-block"><span class="code-keyword">import</span> time</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div>
+            <h4>Langkah 2: Buat Perulangan Mundur</h4>
+            <p>Gunakan <code>for</code> dan <code>range(5, 0, -1)</code> untuk menghitung dari 5 turun ke 1 dengan jeda 1 detik tiap hitungan.</p>
+            <div class="code-block"><span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-num">5</span>, <span class="code-num">0</span>, -<span class="code-num">1</span>):
+    <span class="code-func">print</span>(f<span class="code-str">"Hitungan: {i}"</span>)
+    time.<span class="code-func">sleep</span>(<span class="code-num">1</span>)</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div>
+            <h4>Langkah 3: Cetak Teks Penutup</h4>
+            <p>Di luar perulangan (tanpa indentasi tab), cetak pesan setelah hitungan selesai.</p>
+            <div class="code-block"><span class="code-func">print</span>(<span class="code-str">"ROKET MELUNCUR! 🚀"</span>)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playground">
+        <h3>Simulasi Langsung: Hitung Mundur</h3>
+        <p style="font-size:0.9rem; margin-bottom:12px; color:#fde68a;">Tentukan detik mulai hitung mundur:</p>
+        <div class="input-group">
+          <label>Mulai dari detik ke- :</label>
+          <input type="number" id="countdown_start" value="5" min="1" max="10">
+        </div>
+        <button class="btn-run" id="btnCount" onclick="jalankanCountdown()">Mulai Hitung Mundur</button>
+        <div class="output-screen" id="countdown_output">> Klik tombol untuk mulai hitung mundur...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function jalankanCountdown() {
+      const start = parseInt(document.getElementById('countdown_start').value) || 5;
+      const screen = document.getElementById('countdown_output');
+      const btn = document.getElementById('btnCount');
+      
+      btn.disabled = true;
+      screen.innerHTML = "> Memulai hitung mundur...<br>";
+      
+      let current = start;
+      const timer = setInterval(() => {
+        if (current > 0) {
+          screen.innerHTML += `> Hitungan: ${current}<br>`;
+          current--;
+        } else {
+          clearInterval(timer);
+          screen.innerHTML += `<strong style="color:#f59e0b;">> ROKET MELUNCUR! 🚀</strong><br>`;
+          btn.disabled = false;
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
