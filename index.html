@@ -1,54 +1,70 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Text Editor • Dieng Cyber Coding</title>
-  <link rel="stylesheet" href="editor.css?v=2">
+  <title>Masuk ΓÇó Dieng Cyber Coding Academy</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
+    .card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 30px; box-shadow: 0 8px 25px rgba(50,70,110,.08); }
+    .brand { text-align: center; margin-bottom: 20px; }
+    .brand-icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 16px; background: #fff; display: grid; place-items: center; font-size: 28px; overflow: hidden; }
+    .brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
+    p { margin: 4px 0 0; color: #8791a5; font-size: 12px; }
+    label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
+    input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
+    input:focus { outline: 2px solid #7181ec; border-color: transparent; }
+    .error { display: none; margin-top: 12px; color: #d33; font-size: 12px; }
+    button { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
+    button:hover { background: #5f70dd; }
+  </style>
 </head>
 <body>
-  <header class="eh">
-    <a class="eh-back" id="backLink" href="../dashboard.html">← Dashboard</a>
-    <div class="eh-title">💻 Text Editor</div>
-    <div class="points-chip">⭐ <b id="pointsValue">0</b> poin</div>
-  </header>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon"><img src="Assets/logo.png" alt="Logo Dieng Cyber"></div>
+      <h1>DIENG CYBER CODING</h1>
+      <p>Masuk untuk mulai belajar coding</p>
+    </div>
 
-  <!-- Kartu misi: diisi otomatis oleh editor.js saat membuka sebuah task -->
-  <section class="mission" id="mission" hidden></section>
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
 
-  <main class="split">
-    <!-- KIRI: kode -->
-    <section class="pane">
-      <div class="pane-head">
-        <span class="ph-title">💻 Code</span>
-        <div class="tabs" id="tabs"></div>
-      </div>
-      <div class="code-wrap">
-        <pre class="hl" id="hl" aria-hidden="true"></pre>
-        <textarea class="src" id="src" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" wrap="off" aria-label="Tempat menulis kode"></textarea>
-      </div>
-      <div class="toolbar">
-        <button type="button" class="btn run" id="runBtn">▶ Jalankan</button>
-        <button type="button" class="btn ghost" id="resetBtn">🔄 Reset</button>
-        <button type="button" class="btn ghost" id="clearBtn">🧹 Kosongkan</button>
-      </div>
-    </section>
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
 
-    <!-- KANAN: preview. sandbox="" = semua izin dimatikan (tanpa JavaScript) supaya aman -->
-    <section class="pane">
-      <div class="pane-head">
-        <span class="ph-title">🌐 Preview</span>
-        <span class="ph-note" id="prevNote">Berubah otomatis saat kamu mengetik</span>
-      </div>
-      <iframe id="preview" title="Preview website" sandbox=""></iframe>
-      <div class="prev-foot">🔗 Tautan di preview tidak bisa diklik di sini. Itu normal, kodenya tetap benar!</div>
-    </section>
-  </main>
+      <div id="loginError" class="error">Username dan Password wajib diisi!</div>
 
-  <script src="../jalur-data.js?v=10"></script>
-  <script src="../jalur-belajar.js?v=10"></script>
-  <script src="highlight.js?v=1"></script>
-  <script src="editor.js?v=8"></script>
-  <script src="../smp-taskpanel.js?v=1"></script>
+      <button type="submit">Masuk</button>
+    </form>
+  </div>
+
+  <script>
+    // Kalau sudah login, langsung ke dashboard
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      window.location.replace('dashboard.html');
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+
+      // Satu sesi ini dipakai dashboard DAN Scratch (tidak perlu login lagi)
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('username', username);
+      localStorage.setItem('scratch_user', username);
+
+      window.location.replace('dashboard.html');
+    });
+  </script>
 </body>
 </html>
