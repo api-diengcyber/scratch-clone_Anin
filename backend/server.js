@@ -389,6 +389,10 @@ app.post("/api/ai/tutor", async (req, res) => {
             editorHtml,
             editorCss,
 
+            // Bahasa aktif (web | python | php) dan kodenya
+            editorLanguage,
+            editorCode,
+
             // Task SMP / SMA-K
             smpTask,
 
@@ -447,6 +451,8 @@ app.post("/api/ai/tutor", async (req, res) => {
             // Editor
             editorHtml,
             editorCss,
+            editorLanguage,
+            editorCode,
 
             // SMP / SMA-K
             smpTask,

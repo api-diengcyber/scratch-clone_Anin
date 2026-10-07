@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Berpikir dengan Data</title>
+  <title>Struktur Data: List, Tuple, Dict &amp; Set</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,16 +285,33 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Berpikir dengan Data</h1><p>Dari pertanyaan, mengumpulkan, merapikan, sampai membaca data</p></div><div class="content">
-<h2 class="section-title">1. Data sebagai bahan keputusan</h2><div class="card"><p style="margin-top:8px;">Data adalah fakta yang dicatat. Data baru berguna jika dijawabkan pada <strong>satu pertanyaan jelas</strong>, misalnya "ekstrakurikuler apa yang paling diminati kelas X?".</p><div class="highlight-box">Mulai selalu dari pertanyaan, bukan dari data. Pertanyaan menentukan data apa yang perlu dikumpulkan.</div></div>
-<h2 class="section-title">2. Jenis data</h2><div class="card"><div class="table-container"><table><thead><tr><th>Jenis</th><th>Penjelasan</th><th>Contoh</th><th>Ringkasan yang cocok</th></tr></thead><tbody><tr><td>Kategorik nominal</td><td>Kelompok tanpa urutan</td><td>Jurusan: RPL, TKJ</td><td>Hitung frekuensi, modus</td></tr><tr><td>Kategorik ordinal</td><td>Kelompok berurutan</td><td>Rendah, sedang, tinggi</td><td>Frekuensi, median</td></tr><tr><td>Numerik diskrit</td><td>Angka hasil menghitung</td><td>Jumlah buku: 3, 5</td><td>Rata-rata, median</td></tr><tr><td>Numerik kontinu</td><td>Angka hasil mengukur</td><td>Tinggi 165,5 cm</td><td>Rata-rata, sebaran</td></tr></tbody></table></div></div>
-<h2 class="section-title">3. Siklus kerja data</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Tentukan pertanyaan</h4><p>Tulis satu pertanyaan yang bisa dijawab dengan data.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Kumpulkan</h4><p>Survei, formulir, atau data yang sudah ada. Catat sumber dan tanggalnya.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Bersihkan</h4><p>Perbaiki penulisan ganda, nilai kosong, dan salah ketik.</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Baca dan ringkas</h4><p>Hitung jumlah, rata-rata, atau persentase.</p></div></div><div class="step-item"><div class="step-num">5</div><div class="step-content"><h4>Simpulkan</h4><p>Jawab pertanyaan awal dan sebutkan batas datamu.</p></div></div></div></div>
-<h2 class="section-title">4. Data berantakan dan cara merapikannya</h2><div class="card"><div class="table-container"><table><thead><tr><th>Masalah</th><th>Contoh</th><th>Perbaikan</th></tr></thead><tbody><tr><td>Penulisan ganda</td><td>"RPL", "rpl", "R.P.L"</td><td>Samakan satu bentuk</td></tr><tr><td>Nilai kosong</td><td>Umur kosong</td><td>Isi, hapus baris, atau catat sebagai tidak diketahui</td></tr><tr><td>Salah ketik</td><td>Tinggi 1650 cm</td><td>Periksa ulang, koreksi satuan</td></tr><tr><td>Duplikat</td><td>Satu orang mengisi dua kali</td><td>Hapus salah satu</td></tr></tbody></table></div><div class="code-block">jurusan = ["RPL", "rpl", "TKJ", "Rpl "]
-bersih = [j.strip().upper() for j in jurusan]
-print(bersih)   # ['RPL', 'RPL', 'TKJ', 'RPL']</div></div>
-<h2 class="section-title">5. Bias dan kejujuran data</h2><div class="card"><div class="alert-box">Hasil hanya sebaik sampelnya. Survei yang hanya diisi satu kelas tidak mewakili seluruh sekolah.</div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Tulis berapa responden dan siapa mereka.</li><li>Jangan menarik kesimpulan besar dari data yang sedikit.</li><li>Korelasi bukan berarti sebab-akibat.</li></ul></div>
-<h2 class="section-title">6. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pilih pertanyaan</h4><p>Tulis satu pertanyaan survei untuk teman sekelas.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Catat data</h4><p>Kumpulkan minimal 15 jawaban dan simpan dalam list.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Rapikan dan hitung</h4><p>Bersihkan penulisan, hitung frekuensi tiap jawaban, tulis satu kalimat kesimpulan.</p></div></div></div></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Struktur Data: List, Tuple, Dict &amp; Set</h1><p>Memilih wadah data yang tepat untuk masalah yang tepat</p></div><div class="content">
+<h2 class="section-title">1. Mengapa struktur data penting?</h2><div class="card"><p style="margin-top:8px;">Program nyata mengelola banyak data: daftar siswa, stok barang, riwayat transaksi. Struktur data menentukan <strong>seberapa mudah dan cepat</strong> data itu disimpan, dicari, dan diubah.</p><div class="highlight-box">Pertanyaan pemilihan: apakah data berurutan? bisa diubah? perlu dicari lewat nama (kunci)? boleh ada duplikat?</div></div>
+<h2 class="section-title">2. Perbandingan empat struktur data</h2><div class="card"><div class="table-container"><table><thead><tr><th>Struktur</th><th>Sintaks</th><th>Urut</th><th>Bisa diubah</th><th>Duplikat</th><th>Cocok untuk</th></tr></thead><tbody><tr><td>list</td><td>[1, 2, 3]</td><td>Ya</td><td>Ya</td><td>Boleh</td><td>Daftar yang berubah</td></tr><tr><td>tuple</td><td>(1, 2)</td><td>Ya</td><td>Tidak</td><td>Boleh</td><td>Data tetap, mis. koordinat</td></tr><tr><td>dict</td><td>{"nama": "Rani"}</td><td>Ya (3.7+)</td><td>Ya</td><td>Kunci unik</td><td>Data dicari lewat kunci</td></tr><tr><td>set</td><td>{1, 2, 3}</td><td>Tidak</td><td>Ya</td><td>Tidak boleh</td><td>Menghapus duplikat, himpunan</td></tr></tbody></table></div></div>
+<h2 class="section-title">3. List dan dict: operasi utama</h2><div class="card"><div class="code-block">nilai = [80, 75, 90]
+nilai.append(85)        # tambah di akhir
+nilai.remove(75)        # hapus nilai 75
+print(len(nilai), nilai[0], nilai[-1])
+
+siswa = {"nama": "Rani", "kelas": "X-RPL"}
+siswa["umur"] = 16      # tambah/ubah kunci
+print(siswa.get("alamat", "-"))   # aman bila kunci tidak ada
+for k, v in siswa.items():
+    print(k, "=", v)</div><div class="alert-box"><strong>KeyError:</strong> siswa["alamat"] error jika kunci tidak ada. Pakai .get() atau cek dengan <code>in</code> dulu.</div></div>
+<h2 class="section-title">4. Set dan tuple: kegunaan nyata</h2><div class="card"><div class="code-block">hadir = ["Ani", "Budi", "Ani", "Citra"]
+unik = set(hadir)
+print(len(unik))            # 3
+
+a = {1, 2, 3}; b = {2, 3, 4}
+print(a &amp; b, a | b, a - b)  # irisan, gabungan, selisih
+
+titik = (3, 5)              # tidak bisa diubah</div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Pengecekan <code>x in set</code> jauh lebih cepat daripada pada list besar.</li><li>Tuple aman dipakai sebagai kunci dict, list tidak bisa.</li></ul></div>
+<h2 class="section-title">5. Pola penting</h2><div class="card"><div class="code-block"># daftar dict: bentuk umum data tabel
+barang = [{"nama": "Pensil", "stok": 20}, {"nama": "Buku", "stok": 5}]
+habis = [b["nama"] for b in barang if b["stok"] &lt; 10]
+print(habis)   # ['Buku']</div><div class="alert-box">Jangan menambah atau menghapus isi list saat sedang di-loop. Buat list baru atau loop pada salinannya.</div></div>
+<h2 class="section-title">6. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pilih struktur</h4><p>Untuk daftar nilai, data profil, dan daftar hadir unik, tentukan struktur yang tepat dan alasannya.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Buat program kecil</h4><p>Simpan data barang sebagai list berisi dict, lalu cetak yang stoknya kurang dari 10.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji kasus tepi</h4><p>Coba kunci yang tidak ada dan list kosong; pastikan programmu tidak error.</p></div></div></div></div>
 </div></div>
 </body></html>

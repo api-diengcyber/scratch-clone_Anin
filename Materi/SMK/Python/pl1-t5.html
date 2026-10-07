@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 5: Dict Bertingkat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .table-container { overflow-x: auto; margin: 18px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • NESTED DICTIONARY</span>
+    <h1>Dict Bertingkat</h1>
+    <p>Menyusun basis data profil siswa lengkap dengan dictionary di dalam dictionary</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Menyusun Data Bertingkat (Hierarkis)</h2>
+    <div class="card">
+      <p>Dalam aplikasi nyata, sebuah data sering kali memiliki cabang rincian. <strong>Nested Dictionary</strong> (dictionary bertingkat) memungkinkan kita menyimpan dictionary atau list lain di dalam satu nilai kunci.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Struktur</th>
+              <th>Contoh Akses</th>
+              <th>Artinya</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tingkat 1 (Kunci Utama)</td>
+              <td><code>data["SISWA01"]</code></td>
+              <td>Mengambil seluruh data milik siswa dengan ID SISWA01.</td>
+            </tr>
+            <tr>
+              <td>Tingkat 2 (Kunci Rincian)</td>
+              <td><code>data["SISWA01"]["nama"]</code></td>
+              <td>Mengambil nama lengkap siswa tersebut.</td>
+            </tr>
+            <tr>
+              <td>Tingkat 3 (Nilai List)</td>
+              <td><code>data["SISWA01"]["nilai"][0]</code></td>
+              <td>Mengambil nilai ujian pertama milik siswa tersebut.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Akses data bertingkat dilakukan dengan menyambungkan kurung siku: <code>kamus[kunci_luar][kunci_dalam]</code>.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Database Mini Siswa</span>
+database_siswa = {
+    <span class="code-str">"101"</span>: {
+        <span class="code-str">"nama"</span>: <span class="code-str">"Rian Hidayat"</span>,
+        <span class="code-str">"kelas"</span>: <span class="code-str">"X-RPL 1"</span>,
+        <span class="code-str">"nilai"</span>: [<span class="code-num">85</span>, <span class="code-num">90</span>, <span class="code-num">88</span>]
+    },
+    <span class="code-str">"102"</span>: {
+        <span class="code-str">"nama"</span>: <span class="code-str">"Sarah Amelia"</span>,
+        <span class="code-str">"kelas"</span>: <span class="code-str">"X-RPL 2"</span>,
+        <span class="code-str">"nilai"</span>: [<span class="code-num">92</span>, <span class="code-num">95</span>, <span class="code-num">90</span>]
+    }
+}
+
+<span class="code-comment"># 1. Mengakses nama siswa 101</span>
+print(<span class="code-str">"Nama:"</span>, database_siswa[<span class="code-str">"101"</span>][<span class="code-str">"nama"</span>])
+
+<span class="code-comment"># 2. Menghitung rata-rata nilai siswa 102</span>
+daftar_nilai = database_siswa[<span class="code-str">"102"</span>][<span class="code-str">"nilai"</span>]
+rata_rata = <span class="code-func">sum</span>(daftar_nilai) / <span class="code-func">len</span>(daftar_nilai)
+print(<span class="code-str">f"Rata-rata Sarah: {rata_rata:.1f}"</span>)
+
+<span class="code-comment"># 3. Menambahkan data siswa baru ke database</span>
+database_siswa[<span class="code-str">"103"</span>] = {
+    <span class="code-str">"nama"</span>: <span class="code-str">"Bayu Aji"</span>,
+    <span class="code-str">"kelas"</span>: <span class="code-str">"X-TKJ"</span>,
+    <span class="code-str">"nilai"</span>: [<span class="code-num">78</span>, <span class="code-num">82</span>, <span class="code-num">80</span>]
+}</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Rancang database bertingkat</h4>
+            <p>Buat dictionary bernama <code>database_siswa</code> dengan kunci berupa nomor induk/ID siswa.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Isi rincian tiap siswa</h4>
+            <p>Di dalam setiap ID, buat dictionary baru yang memuat informasi <code>nama</code>, <code>kelas</code>, dan list <code>nilai</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Panggil data bersarang secara presisi</h4>
+            <p>Cetak nama dan kelas siswa tertentu menggunakan dua kurung siku berturut-turut.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Hitung data nilai dari list bersarang</h4>
+            <p>Ambil list nilai milik siswa pertama dan hitung nilai rata-ratanya menggunakan <code>sum()</code> dan <code>len()</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menuliskan koma di dalam satu kurung siku seperti <code>data["101", "nama"]</code>; penulisan yang benar adalah memisahkannya: <code>data["101"]["nama"]</code>.</li>
+        <li>Salah eja pada kunci bersarang (misal menulis <code>"Nama"</code> dengan huruf kapital padahal kuncinya adalah <code>"nama"</code>).</li>
+        <li>Lupa menutup kurung kurawal pembungkus luar saat menuliskan banyak data siswa.</li>
+      </ul>
+      <div class="alert-box">
+        Susun kode dengan indentasi (tab) yang rapi ke bawah agar kamu tidak bingung membedakan antara dictionary luar dan dictionary bagian dalam.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

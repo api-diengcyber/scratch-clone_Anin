@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 4: Validasi Formulir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .table-container { overflow-x: auto; margin: 18px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb3" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 4 • VALIDASI DATA FORM</span>
+    <h1>Validasi Formulir</h1>
+    <p>Mencegah pengiriman data kosong dan menampilkan pesan peringatan interaktif</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Mencegah Pengiriman Default dengan preventDefault()</h2>
+    <div class="card">
+      <p>Secara default, saat form dikirimkan browser akan me-refresh halaman. Kita harus menghentikan perilaku bawaan ini menggunakan <code>event.preventDefault()</code> agar JavaScript bisa memeriksa kelengkapan data terlebih dahulu.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metode Validasi</th>
+              <th>Fungsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>event.preventDefault()</code></td>
+              <td>Membatalkan reload halaman saat form disubmit.</td>
+            </tr>
+            <tr>
+              <td><code>input.value.trim()</code></td>
+              <td>Menghapus spasi kosong di awal dan akhir teks input.</td>
+            </tr>
+            <tr>
+              <td>Pengkondisian <code>if (...)</code></td>
+              <td>Memeriksa apakah isian kosong atau kurang dari syarat minimal.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Validasi form di sisi browser (client-side) memberikan respons cepat kepada pengguna sebelum data dikirim ke server.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Validasi Form</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-keyword">const</span> form = document.<span class="code-func">querySelector</span>(<span class="code-str">"#formDaftar"</span>);
+<span class="code-keyword">const</span> inputNama = document.<span class="code-func">querySelector</span>(<span class="code-str">"#nama"</span>);
+<span class="code-keyword">const</span> pesanError = document.<span class="code-func">querySelector</span>(<span class="code-str">"#error"</span>);
+
+form.<span class="code-func">addEventListener</span>(<span class="code-str">"submit"</span>, <span class="code-keyword">function</span>(event) {
+  <span class="code-comment">// 1. Cegah reload halaman</span>
+  event.<span class="code-func">preventDefault</span>();
+
+  <span class="code-comment">// 2. Ambil nilai input tanpa spasi kosong</span>
+  <span class="code-keyword">const</span> nama = inputNama.value.<span class="code-func">trim</span>();
+
+  <span class="code-comment">// 3. Cek kondisi validasi</span>
+  <span class="code-keyword">if</span> (nama === <span class="code-str">""</span>) {
+    pesanError.textContent = <span class="code-str">"Nama tidak boleh kosong!"</span>;
+    pesanError.style.color = <span class="code-str">"#f72585"</span>;
+  } <span class="code-keyword">else if</span> (nama.length &lt; <span class="code-num">3</span>) {
+    pesanError.textContent = <span class="code-str">"Nama minimal terdiri dari 3 karakter!"</span>;
+    pesanError.style.color = <span class="code-str">"#f72585"</span>;
+  } <span class="code-keyword">else</span> {
+    pesanError.textContent = <span class="code-str">"Pendaftaran berhasil! Halo, "</span> + nama;
+    pesanError.style.color = <span class="code-str">"#4361ee"</span>;
+    form.<span class="code-func">reset</span>(); <span class="code-comment">// Kosongkan form kembali</span>
+  }
+});</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buat elemen &lt;form&gt; dan tempat pesan error</h4>
+            <p>Sediakan elemen <code>&lt;form id="formDaftar"&gt;</code>, input teks, tombol submit, serta tag <code>&lt;p id="error"&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Pasang listener submit dan preventDefault()</h4>
+            <p>Dengarkan event <code>submit</code> pada form dan hentikan reload otomatis dengan <code>event.preventDefault()</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Periksa teks menggunakan if-else</h4>
+            <p>Gunakan <code>.trim()</code> untuk memeriksa apakah input kosong atau panjang karakternya belum memenuhi syarat.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Tampilkan notifikasi hasil ke pengguna</h4>
+            <p>Isi teks pesan error jika data salah, atau tampilkan pesan sukses jika semua kolom terisi dengan benar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Lupa menulis <code>event.preventDefault()</code> sehingga halaman ter-refresh dan pesan error langsung hilang.</li>
+        <li>Memasang event listener pada tombol dengan event <code>click</code> alih-alih event <code>submit</code> pada elemen <code>&lt;form&gt;</code>.</li>
+        <li>Tidak menggunakan <code>.trim()</code>, sehingga input yang hanya berisi spasi dianggap sah.</li>
+      </ul>
+      <div class="alert-box">
+        Selalu pasang listener pada elemen <code>&lt;form&gt;</code> dengan event <code>submit</code> agar validasi tetap berjalan saat pengguna menekan tombol Enter di keyboard.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simpan data JSON</title>
+  <title>Task 2: Simpan Data JSON</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,118 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Simpan data JSON</h1><p>File, JSON &amp; Penanganan Error • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Simpan data JSON</strong>, bagian dari modul <em>File, JSON & Penanganan Error</em> (pertemuan 19–24).</p><div class="highlight-box">Konsep yang dipakai: <strong>open, with, json, try/except</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Program yang berguna menyimpan data ke file. Error pasti terjadi, jadi program perlu menanganinya dengan tenang.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>with open() menutup file secara otomatis</li><li>JSON menyimpan dict dan list sebagai teks</li><li>try/except menangkap error tanpa program berhenti</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat dict berisi nama, umur, dan hobi</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Simpan ke data.json dengan json.dump</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Baca kembali dengan json.load</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Bungkus pembacaan dengan try/except untuk file yang tidak ada</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 2 • SERIALISASI DATA JSON</span>
+    <h1>Simpan Data JSON</h1>
+    <p>Menyimpan data dictionary dan list kompleks ke format standar pertukaran data JSON</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Mengapa Menggunakan Format JSON?</h2>
+    <div class="card">
+      <p>Jika kita menyimpan dictionary langsung dengan <code>file.write(str(data))</code>, teks tersebut akan sulit dibaca ulang sebagai struktur data. <strong>JSON (JavaScript Object Notation)</strong> adalah format teks standar universal yang digunakan untuk menyimpan dan bertukar data antar bahasa pemrograman.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Fungsi Modul json</th>
+              <th>Operasi</th>
+              <th>Keluaran / Hasil</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>json.dump(data, file)</code></td>
+              <td>Menyimpan struktur data Python langsung <strong>ke dalam file</strong>.</td>
+              <td>File berformat <code>.json</code> tersimpan di disk</td>
+            </tr>
+            <tr>
+              <td><code>json.dumps(data)</code></td>
+              <td>Mengubah struktur data Python menjadi <strong>string teks</strong> di memori.</td>
+              <td>Variabel bertipe string (teks JSON)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Gunakan parameter <code>indent=4</code> pada fungsi <code>json.dump()</code> agar file teks JSON yang dihasilkan memiliki spasi indentasi rapi dan mudah dibaca oleh manusia.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Menyimpan JSON</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-keyword">import</span> json
+
+<span class="code-comment"># Data kompleks: dictionary berisi list dan nested dict</span>
+data_profil = {
+    <span class="code-str">"username"</span>: <span class="code-str">"cyber_ninja"</span>,
+    <span class="code-str">"level"</span>: <span class="code-num">15</span>,
+    <span class="code-str">"status_aktif"</span>: <span class="code-keyword">True</span>,
+    <span class="code-str">"item_inventaris"</span>: [<span class="code-str">"Pedang Kayu"</span>, <span class="code-str">"Ramuan HP"</span>, <span class="code-str">"Kunci Emas"</span>],
+    <span class="code-str">"statistik"</span>: {
+        <span class="code-str">"menang"</span>: <span class="code-num">42</span>,
+        <span class="code-str">"kalah"</span>: <span class="code-num">3</span>
+    }
+}
+
+<span class="code-comment"># Menyimpan data langsung ke file 'pemain.json'</span>
+<span class="code-keyword">with</span> <span class="code-func">open</span>(<span class="code-str">"pemain.json"</span>, <span class="code-str">"w"</span>, encoding=<span class="code-str">"utf-8"</span>) <span class="code-keyword">as</span> file_json:
+    json.<span class="code-func">dump</span>(data_profil, file_json, indent=<span class="code-num">4</span>)
+
+print(<span class="code-str">"Data pemain berhasil disimpan ke format pemain.json!"</span>)</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Import modul json</h4>
+            <p>Tuliskan <code>import json</code> di baris paling atas skrip kodemu.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Rancang struktur data dictionary</h4>
+            <p>Buat dictionary berisi identitas siswa lengkap dengan list hobi dan nilai pelajaran.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Tulis ke file dengan json.dump()</h4>
+            <p>Buka file <code>siswa.json</code> dalam mode <code>"w"</code>, lalu simpan datamu menggunakan <code>json.dump(data, file, indent=4)</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Periksa file hasil di folder</h4>
+            <p>Buka file <code>siswa.json</code> menggunakan text editor dan perhatikan bahwa formatnya tersusun rapi dengan kurung kurawal dan kurung siku.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Tertukar antara <code>json.dump()</code> (untuk file fisik) dan <code>json.dumps()</code> (untuk string di memori).</li>
+        <li>Mencoba menyimpan tipe data yang tidak didukung JSON murni, seperti objek <code>set</code> (ubah set menjadi list terlebih dahulu sebelum disimpan).</li>
+        <li>Nilai boolean Python <code>True</code> / <code>False</code> diubah manual jadi string, padahal <code>json.dump()</code> otomatis mengubahnya ke standar JSON <code>true</code> / <code>false</code>.</li>
+      </ul>
+      <div class="alert-box">
+        JSON hanya mendukung tipe data standar: string, number, boolean, list (array), dict (object), dan None (null).
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

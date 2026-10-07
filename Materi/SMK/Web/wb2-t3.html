@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gambar dan teks responsif</title>
+  <title>Task 3: Gambar dan Teks Responsif</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,123 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Gambar dan teks responsif</h1><p>Responsif &amp; Aksesibilitas • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Gambar dan teks responsif</strong>, bagian dari modul <em>Responsif & Aksesibilitas</em> (pertemuan 7–12).</p><div class="highlight-box">Konsep yang dipakai: <strong>viewport, media query, rem dan %, alt text</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Websitemu dibuka di HP, tablet, dan laptop. Desain responsif menyesuaikan tampilan, aksesibilitas memastikan semua orang bisa memakainya.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>meta viewport wajib agar tampil benar di HP</li><li>Media query mengubah gaya pada lebar tertentu</li><li>Teks alternatif dan kontras warna membantu semua orang</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Atur gambar agar tidak melebihi lebar layar</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Atur ukuran teks dengan satuan relatif seperti rem</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Gunakan clamp() untuk judul yang ukurannya menyesuaikan</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Uji pada lebar 360px, 768px, dan 1200px</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 3 • SATUAN RELATIF</span>
+    <h1>Gambar dan Teks Responsif</h1>
+    <p>Mengatur gambar agar tidak terpotong dan ukuran teks menyesuaikan lebar layar secara luwes</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Satuan Fleksibel (rem, %, dan clamp)</h2>
+    <div class="card">
+      <p>Mengunci ukuran gambar dan font dengan piksel kaku (<code>px</code>) membuat website mudah rusak saat dibuka di layar ponsel. Gunakan satuan relatif dan fluid CSS agar elemen selalu pas.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Satuan / Properti</th>
+              <th>Prinsip Kerja</th>
+              <th>Contoh Penggunaan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>rem</code></td>
+              <td>Relatif terhadap ukuran font akar (html)</td>
+              <td><code>font-size: 1.25rem;</code> (sekitar 20px)</td>
+            </tr>
+            <tr>
+              <td><code>max-width: 100%</code></td>
+              <td>Mencegah gambar melebihi lebar wadahnya</td>
+              <td><code>img { max-width: 100%; height: auto; }</code></td>
+            </tr>
+            <tr>
+              <td><code>clamp(min, val, max)</code></td>
+              <td>Ukuran membesar/mengecil otomatis dengan batas aman</td>
+              <td><code>font-size: clamp(1.5rem, 4vw, 2.5rem);</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Dengan aturan <code>img { max-width: 100%; height: auto; }</code>, gambar sebesar apa pun akan otomatis menyusut saat dibuka di HP tanpa menjadi gepeng.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode CSS Fluida</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment">/* 1. Gambar Fleksibel */</span>
+<span class="code-keyword">img</span> {
+  max-width: <span class="code-num">100%</span>;
+  height: auto;
+  display: block;
+}
+
+<span class="code-comment">/* 2. Judul Responsif Otomatis Tanpa Media Query */</span>
+<span class="code-keyword">h1</span> {
+  <span class="code-comment">/* minimal 1.75rem, ideal 4vw, maksimal 2.75rem */</span>
+  font-size: <span class="code-func">clamp</span>(<span class="code-num">1.75rem</span>, <span class="code-num">4vw</span>, <span class="code-num">2.75rem</span>);
+  line-height: <span class="code-num">1.2</span>;
+}
+
+<span class="code-comment">/* 3. Paragraf dengan Satuan Rem */</span>
+<span class="code-keyword">p</span> {
+  font-size: <span class="code-num">1rem</span>;       <span class="code-comment">/* 16px */</span>
+  line-height: <span class="code-num">1.6</span>;
+}</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Beri aturan global pada gambar</h4>
+            <p>Tambahkan <code>img { max-width: 100%; height: auto; }</code> pada baris awal file CSS-mu.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Ganti font-size piksel ke rem</h4>
+            <p>Ubah ukuran font paragraf dan kartu ke satuan <code>rem</code> agar dapat mengikuti pengaturan teks browser.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Terapkan fungsi clamp() pada judul banner</h4>
+            <p>Gunakan <code>clamp()</code> pada elemen <code>&lt;h1&gt;</code> atau <code>&lt;h2&gt;</code> banner hero agar judul mengecil rapi di ponsel.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Uji kelenturan elemen</h4>
+            <p>Tarik dan perkecil ukuran jendela browser secara perlahan, pastikan teks dan gambar menyesuaikan diri tanpa terpotong.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menentukan lebar gambar dengan <code>width: 100%</code> tanpa <code>max-width</code>, sehingga gambar kecil menjadi pecah saat membesar.</li>
+        <li>Menetapkan tinggi tetap pada gambar (seperti <code>height: 300px;</code>) tanpa <code>object-fit: cover;</code> sehingga gambar terlihat gepeng.</li>
+        <li>Menggunakan satuan <code>px</code> pada semua teks sehingga pengguna tidak bisa memperbesar tulisan dari setelan ponsel mereka.</li>
+      </ul>
+      <div class="alert-box">
+        Tambahkan <code>object-fit: cover;</code> jika kamu ingin gambar kartu memiliki tinggi yang seragam tanpa merusak proporsi aslinya.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

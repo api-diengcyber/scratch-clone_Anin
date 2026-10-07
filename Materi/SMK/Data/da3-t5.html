@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pilih grafik yang tepat</title>
+  <title>Task 5: Pilih Grafik yang Tepat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,159 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Pilih grafik yang tepat</h1><p>Visualisasi &amp; Bercerita dengan Data • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Pilih grafik yang tepat</strong>, bagian dari modul <em>Visualisasi & Bercerita dengan Data</em> (pertemuan 13–18).</p><div class="highlight-box">Konsep yang dipakai: <strong>diagram batang, diagram garis, label, temuan</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Grafik yang baik membuat pola terlihat dalam hitungan detik. Pilih jenis grafik sesuai pertanyaannya.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Diagram batang membandingkan kategori</li><li>Diagram garis menunjukkan perubahan dari waktu ke waktu</li><li>Judul dan label sumbu wajib ada</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Siapkan tiga jenis data berbeda</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Pilih grafik terbaik untuk tiap data</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tulis alasan pilihanmu</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tunjukkan satu contoh grafik yang menyesatkan dan perbaiki</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Catat sumber, tanggal, dan jumlah data di setiap analisis.</li><li>Bersihkan data lebih dulu; angka yang salah ketik merusak seluruh kesimpulan.</li><li>Tulis kesimpulan dengan jujur, termasuk batas dari datamu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=da3" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • PANDUAN KEPUTUSAN</span>
+    <h1>Pilih Grafik yang Tepat</h1>
+    <p>Menentukan jenis visualisasi paling akurat berdasarkan pertanyaan riset dan struktur data</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Panduan Memilih Grafik</h2>
+    <div class="card">
+      <p>Visualisasi yang salah bisa membuat audiens salah paham atau kebingungan. Selalu tentukan jenis grafik berdasarkan <strong>tujuan pertanyaan yang ingin kamu jawab</strong>.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Pertanyaan / Tujuan Riset</th>
+              <th>Grafik Terbaik</th>
+              <th>Hindari Grafik Ini</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Membandingkan jumlah antar-kategori</td>
+              <td><strong>Diagram Batang</strong> (Bar Chart)</td>
+              <td>Diagram Garis (karena kategori bukan urutan waktu)</td>
+            </tr>
+            <tr>
+              <td>Melihat tren kenaikan / penurunan waktu</td>
+              <td><strong>Diagram Garis</strong> (Line Chart)</td>
+              <td>Diagram Lingkaran (karena waktu tidak berputar 100%)</td>
+            </tr>
+            <tr>
+              <td>Melihat pembagian porsi dari total 100%</td>
+              <td><strong>Diagram Lingkaran</strong> (Pie / Donut)</td>
+              <td>Diagram Garis</td>
+            </tr>
+            <tr>
+              <td>Melihat hubungan korelasi 2 angka numerik</td>
+              <td><strong>Scatter Plot</strong> (Diagram Sebar)</td>
+              <td>Diagram Batang Kategori</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        <strong>Uji 5 Detik:</strong> Tunjukkan grafikmu ke teman. Jika dalam waktu 5 detik dia tidak mengerti maksud grafik tersebut, visualisasimu terlalu rumit atau salah memilih jenis diagram.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Anatomi Lengkap Grafik yang Jujur</h2>
+    <div class="card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Unsur Wajib</th>
+              <th>Kriteria yang Benar</th>
+              <th>Bahaya Bila Dihilangkan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Judul Deskriptif</td>
+              <td>Menyampaikan pesan utama grafik</td>
+              <td>Pembaca tidak tahu apa fokus pembahasan</td>
+            </tr>
+            <tr>
+              <td>Label Sumbu X & Y</td>
+              <td>Menuliskan nama variabel dan satuannya (misal: "kg", "menit")</td>
+              <td>Angka menjadi ambigu tanpa satuan</td>
+            </tr>
+            <tr>
+              <td>Titik Dasar 0</td>
+              <td>Sumbu batang dimulai dari angka 0</td>
+              <td>Perbedaan kecil terlihat seperti jurang yang sangat besar</td>
+            </tr>
+            <tr>
+              <td>Sumber Data</td>
+              <td>Mencantumkan nama lembaga/kuesioner dan tanggalnya</td>
+              <td>Grafik diragukan keaslian faktanya</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2 class="section-title">3. Contoh Studi Kasus Pemilihan</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Studi Kasus: "Bagaimana tren penjualan buku coding dari bulan Januari ke April?"</span>
+kasus_1 = {
+    <span class="code-str">"tujuan"</span>: <span class="code-str">"Melihat tren perubahan waktu"</span>,
+    <span class="code-str">"pilihan_tepat"</span>: <span class="code-str">"Diagram Garis (Line Chart)"</span>,
+    <span class="code-str">"alasan"</span>: <span class="code-str">"Bulan Jan - Apr adalah urutan waktu kronologis kontinu."</span>
+}
+
+<span class="code-comment"># Studi Kasus: "Buku tema apa yang paling banyak terjual bulan ini?"</span>
+kasus_2 = {
+    <span class="code-str">"tujuan"</span>: <span class="code-str">"Membandingkan besaran antarkategori"</span>,
+    <span class="code-str">"pilihan_tepat"</span>: <span class="code-str">"Diagram Batang (Bar Chart)"</span>,
+    <span class="code-str">"alasan"</span>: <span class="code-str">"Kategori tema (Python, Web, Game) berdiri sendiri tanpa urutan waktu."</span>
+}</div>
+    </div>
+
+    <h2 class="section-title">4. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Tentukan pertanyaan penelitianmu</h4>
+            <p>Tuliskan satu pertanyaan jelas: apakah kamu ingin membandingkan kategori, melihat perubahan waktu, atau melihat proporsi?</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Periksa tabel panduan grafik</h4>
+            <p>Cocokkan tujuanmu dengan tabel di atas untuk menentukan jenis grafik yang paling sesuai.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Lengkapi seluruh anatomi wajib</h4>
+            <p>Pastikan diagram memiliki: Judul deskriptif, label sumbu mendatar, label sumbu tegak, dan sumber data.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Lakukan Uji 5 Detik</h4>
+            <p>Minta teman di sebelahmu membaca grafik tersebut dalam 5 detik dan ceritakan apa kesimpulannya.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">5. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Memilih jenis grafik hanya karena terlihat "keren" atau penuh warna, bukan karena kesesuaian data.</li>
+        <li>Menghilangkan satuan pada angka (misal angka 20 tidak jelas apakah 20 orang, 20 persen, atau 20 rupiah).</li>
+        <li>Menggunakan grafik garis pada data kategori yang tidak memiliki kesinambungan urutan waktu.</li>
+      </ul>
+      <div class="alert-box">
+        Visualisasi data yang terbaik adalah visualisasi yang paling <strong>sederhana dan paling cepat dipahami</strong> oleh pembaca tanpa perlu berpikir keras.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

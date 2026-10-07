@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kartu dari data</title>
+  <title>Task 2: Kartu dari Data</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,129 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Kartu dari data</h1><p>JavaScript Interaktif &amp; Data • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Kartu dari data</strong>, bagian dari modul <em>JavaScript Interaktif & Data</em> (pertemuan 21–28).</p><div class="highlight-box">Konsep yang dipakai: <strong>event, array, localStorage, filter</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Aplikasi web yang berguna merespons banyak event, mengelola daftar data, dan mengingat datanya walau halaman ditutup.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>addEventListener mendengarkan klik, ketikan, dan submit</li><li>Array dan objek menyimpan daftar data</li><li>localStorage menyimpan teks di browser</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Siapkan array berisi 5 objek data</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Tampilkan tiap objek sebagai kartu dengan forEach</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tambahkan kolom cari yang menyaring kartu</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Urutkan kartu berdasarkan nama</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 2 • STRUKTUR DATA & RENDER</span>
+    <h1>Kartu dari Data</h1>
+    <p>Mengubah susunan array of objects menjadi kumpulan kartu HTML dinamis secara otomatis</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Memisahkan Data dari Tampilan</h2>
+    <div class="card">
+      <p>Daripada menuliskan belasan kartu statis secara manual di HTML, data disimpan di JavaScript dalam bentuk <strong>Array of Objects</strong>. Program kemudian membaca array ini dan mencetak kartu secara teratur.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Struktur</th>
+              <th>Contoh Penulisan</th>
+              <th>Kegunaan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Objek</td>
+              <td><code>{ nama: "Lomba Web", kuota: 20 }</code></td>
+              <td>Menyimpan informasi lengkap dari satu item data.</td>
+            </tr>
+            <tr>
+              <td>Array Objek</td>
+              <td><code>[ { ... }, { ... }, { ... } ]</code></td>
+              <td>Menampung kumpulan data dalam satu daftar terurut.</td>
+            </tr>
+            <tr>
+              <td><code>forEach()</code></td>
+              <td><code>data.forEach(item =&gt; { ... })</code></td>
+              <td>Menjalankan fungsi cetak HTML untuk setiap item dalam daftar.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Gunakan <strong>Template Literals</strong> (tanda backtick <code>` `</code> dan <code>${variabel}</code>) untuk menyisipkan data objek langsung ke dalam struktur tag HTML kartu.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Render Kartu</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment">// 1. Daftar Data (Array of Objects)</span>
+<span class="code-keyword">const</span> dataEvent = [
+  { judul: <span class="code-str">"Desain Web 2026"</span>, kategori: <span class="code-str">"Frontend"</span>, kuota: <span class="code-num">25</span> },
+  { judul: <span class="code-str">"Kuis Logika Dasar"</span>, kategori: <span class="code-str">"Algoritma"</span>, kuota: <span class="code-num">40</span> },
+  { judul: <span class="code-str">"Keamanan Jaringan"</span>, kategori: <span class="code-str">"Cyber"</span>, kuota: <span class="code-num">15</span> }
+];
+
+<span class="code-comment">// 2. Fungsi Cetak ke Halaman</span>
+<span class="code-keyword">const</span> wadahKartu = document.<span class="code-func">querySelector</span>(<span class="code-str">"#wadahKartu"</span>);
+
+<span class="code-keyword">function</span> <span class="code-func">tampilkanKartu</span>(daftar) {
+  wadahKartu.innerHTML = <span class="code-str">""</span>; <span class="code-comment">// Bersihkan wadah terlebih dahulu</span>
+
+  daftar.<span class="code-func">forEach</span>((item) =&gt; {
+    wadahKartu.innerHTML += <span class="code-str">\`
+      &lt;div class="kartu"&gt;
+        &lt;span class="badge"&gt;\${item.kategori}&lt;/span&gt;
+        &lt;h3&gt;\${item.judul}&lt;/h3&gt;
+        &lt;p&gt;Tersedia \${item.kuota} kursi peserta&lt;/p&gt;
+      &lt;/div&gt;
+    \`</span>;
+  });
+}
+
+<span class="code-func">tampilkanKartu</span>(dataEvent);</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Siapkan wadah penampung di HTML</h4>
+            <p>Buat elemen pembungkus kosong di file HTML, misalnya: <code>&lt;div id="wadahKartu"&gt;&lt;/div&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Buat array of objects di JavaScript</h4>
+            <p>Susun array bernama <code>dataEvent</code> yang memuat minimal 3 objek dengan properti yang seragam (misal: <code>judul</code>, <code>kategori</code>, <code>kuota</code>).</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Looping data dengan forEach()</h4>
+            <p>Buat fungsi render yang membaca setiap objek di dalam array dan merangkai tag HTML kartu menggunakan template literals.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Panggil fungsi saat halaman terbuka</h4>
+            <p>Jalankan fungsi render tersebut agar semua kartu muncul rapi secara otomatis saat web pertama kali dimuat.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Lupa mengosongkan <code>wadahKartu.innerHTML = ""</code> sebelum loop, sehingga kartu bertambah ganda saat fungsi dipanggil ulang.</li>
+        <li>Salah menuliskan nama properti objek (misal di array tertulis <code>judul</code>, tetapi saat dicetak memanggil <code>${item.Judul}</code>).</li>
+        <li>Menggunakan tanda petik biasa (<code>'</code> atau <code>"</code>) bukan tanda backtick (<code>`</code>), sehingga sintaks <code>${...}</code> terbaca sebagai teks biasa.</li>
+      </ul>
+      <div class="alert-box">
+        Perhatikan penulisan huruf besar dan kecil (<em>case-sensitive</em>) pada properti objek JavaScript.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

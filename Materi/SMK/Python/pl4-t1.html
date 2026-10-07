@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catatan harian</title>
+  <title>File, JSON &amp; Penanganan Error</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,12 +285,60 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Catatan harian</h1><p>File, JSON &amp; Penanganan Error • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Catatan harian</strong>, bagian dari modul <em>File, JSON & Penanganan Error</em> (pertemuan 19–24).</p><div class="highlight-box">Konsep yang dipakai: <strong>open, with, json, try/except</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Program yang berguna menyimpan data ke file. Error pasti terjadi, jadi program perlu menanganinya dengan tenang.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>with open() menutup file secara otomatis</li><li>JSON menyimpan dict dan list sebagai teks</li><li>try/except menangkap error tanpa program berhenti</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Minta satu kalimat dari pengguna</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Simpan ke catatan.txt dengan mode 'a'</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Baca seluruh isi file dan tampilkan</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Hitung jumlah baris catatan</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>File, JSON &amp; Penanganan Error</h1><p>Menyimpan data permanen dan membuat program yang tidak mudah mogok</p></div><div class="content">
+<h2 class="section-title">1. Membaca dan menulis file</h2><div class="card"><div class="table-container"><table><thead><tr><th>Mode</th><th>Arti</th><th>Perhatian</th></tr></thead><tbody><tr><td>r</td><td>Baca</td><td>Error bila file tidak ada</td></tr><tr><td>w</td><td>Tulis</td><td>Menghapus isi lama</td></tr><tr><td>a</td><td>Tambah di akhir</td><td>Membuat file bila belum ada</td></tr></tbody></table></div><div class="code-block"># menulis (menambah di akhir)
+with open("catatan.txt", "a", encoding="utf-8") as f:
+    f.write(input("Catatan: ") + "\n")
+
+# membaca
+with open("catatan.txt", "r", encoding="utf-8") as f:
+    isi = f.read()
+print(isi)
+
+# baris demi baris
+with open("catatan.txt", encoding="utf-8") as f:
+    for nomor, baris in enumerate(f, start=1):
+        print(nomor, baris.strip())</div><div class="highlight-box"><code>with open(...)</code> menutup file otomatis walau terjadi error. Selalu pakai bentuk ini.</div></div>
+<h2 class="section-title">2. JSON: menyimpan dict dan list</h2><div class="card"><div class="code-block">import json
+
+data = {"nama": "Rani", "umur": 16, "hobi": ["coding", "musik"]}
+with open("data.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+
+with open("data.json", encoding="utf-8") as f:
+    baru = json.load(f)
+print(baru["hobi"][0])   # coding</div><p style="margin-top:8px;">JSON adalah teks dengan format yang sama dengan dict dan list Python. Cocok untuk menyimpan data program yang bisa dibaca manusia dan dipakai bahasa lain.</p></div>
+<h2 class="section-title">3. try / except</h2><div class="card"><div class="code-block">try:
+    a = int(input("Angka 1: "))
+    b = int(input("Angka 2: "))
+    print("Hasil:", a / b)
+except ValueError:
+    print("Masukkan angka yang benar.")
+except ZeroDivisionError:
+    print("Pembagi tidak boleh nol.")</div><div class="table-container"><table><thead><tr><th>Error</th><th>Penyebab umum</th></tr></thead><tbody><tr><td>ValueError</td><td>Teks diubah ke angka, misalnya int("abc")</td></tr><tr><td>ZeroDivisionError</td><td>Membagi dengan nol</td></tr><tr><td>FileNotFoundError</td><td>Nama atau lokasi file salah</td></tr><tr><td>KeyError</td><td>Kunci dict tidak ada</td></tr><tr><td>json.JSONDecodeError</td><td>File JSON kosong atau rusak</td></tr></tbody></table></div><div class="alert-box">Jangan menulis <code>except:</code> kosong. Itu menyembunyikan error yang tidak kamu duga. Tangkap error yang spesifik.</div></div>
+<h2 class="section-title">4. Membuat program tahan error</h2><div class="card"><div class="code-block">import json
+def muat(nama_file):
+    try:
+        with open(nama_file, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []                      # belum ada file: mulai dari kosong
+    except json.JSONDecodeError:
+        print("File rusak, memulai dari kosong.")
+        return []</div><p style="margin-top:8px;">Pola ini membuat program pertama kali dijalankan tetap berjalan, walau file datanya belum ada.</p></div>
+<h2 class="section-title">5. Menghitung kata</h2><div class="card"><div class="code-block">from collections import Counter
+with open("teks.txt", encoding="utf-8") as f:
+    isi = f.read().lower()
+kata = [k.strip(".,!?") for k in isi.split()]
+print(Counter(kata).most_common(5))</div><p style="margin-top:8px;"><code>Counter</code> menghitung kemunculan tiap kata, dan <code>most_common(5)</code> memberi lima yang tersering.</p></div>
+<h2 class="section-title">6. Membaca, mengubah, menyimpan</h2><div class="card"><div class="code-block">data = muat("data.json")
+data["umur"] = 17
+with open("data.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)</div><div class="alert-box">Baca file <strong>dulu sampai selesai</strong>, baru buka dengan mode w. Mode w mengosongkan file saat dibuka; kalau program mati sebelum menulis, datamu hilang.</div></div>
+<h2 class="section-title">7. Kesalahan yang sering terjadi</h2><div class="card"><div class="table-container"><table><thead><tr><th>Masalah</th><th>Penyebab</th><th>Perbaikan</th></tr></thead><tbody><tr><td>FileNotFoundError</td><td>Program dijalankan dari folder lain</td><td>Pakai path yang tepat atau jalankan dari folder proyek</td></tr><tr><td>Isi file hilang</td><td>Memakai mode w</td><td>Pakai a untuk menambah</td></tr><tr><td>JSONDecodeError</td><td>File kosong</td><td>Tangani dengan try/except</td></tr><tr><td>Huruf aneh</td><td>Encoding berbeda</td><td>Tulis encoding="utf-8"</td></tr></tbody></table></div></div>
+<h2 class="section-title">8. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Catatan harian:</strong> mode a, membaca, menghitung baris.</li><li><strong>Simpan data JSON dan Muat dan ubah JSON:</strong> dump, load, try/except.</li><li><strong>Program tahan error:</strong> dua jenis error spesifik.</li><li><strong>Hitung kata:</strong> bagian Counter.</li></ul></div>
+<h2 class="section-title">9. Proyek: Buku Kontak Permanen</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Fitur</h4><p>Tambah, cari, ubah, dan hapus kontak; simpan sebagai list berisi dict.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Penyimpanan</h4><p>Muat file saat program dibuka dan simpan setiap ada perubahan.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji</h4><p>Jalankan, tambah kontak, tutup, buka lagi: datanya harus masih ada. Uji juga file belum ada dan input salah.</p></div></div></div></div>
 </div></div>
 </body></html>

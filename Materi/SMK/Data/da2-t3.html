@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Median dan rentang</title>
+  <title>Task 3: Median dan Rentang</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,124 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Median dan rentang</h1><p>Statistik Dasar dengan Python • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Median dan rentang</strong>, bagian dari modul <em>Statistik Dasar dengan Python</em> (pertemuan 7–12).</p><div class="highlight-box">Konsep yang dipakai: <strong>mean, median, modus, min dan max</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Statistik meringkas banyak angka menjadi sedikit angka yang mudah dipahami.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Mean adalah jumlah dibagi banyak data</li><li>Median adalah nilai tengah setelah diurutkan</li><li>Modus adalah nilai yang paling sering muncul</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Siapkan 11 nilai ujian</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Hitung median dan rentang tanpa modul tambahan</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Bandingkan median dengan rata-rata</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tulis mengapa keduanya bisa berbeda</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Catat sumber, tanggal, dan jumlah data di setiap analisis.</li><li>Bersihkan data lebih dulu; angka yang salah ketik merusak seluruh kesimpulan.</li><li>Tulis kesimpulan dengan jujur, termasuk batas dari datamu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=da2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 3 • NILAI TENGAH & SEBARAN</span>
+    <h1>Median dan Rentang</h1>
+    <p>Menentukan nilai tengah tahan pencilan dan mengukur sebaran rentang data</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Mengapa Median Lebih Tahan Outlier?</h2>
+    <div class="card">
+      <p>Jika satu siswa mendapat uang saku Rp1.000.000 sementara empat temannya hanya Rp10.000, rata-rata (mean) akan melonjak drastis dan tidak realistis. <strong>Median (nilai tengah)</strong> membagi data menjadi dua bagian yang sama besar setelah data <strong>diurutkan</strong> terlebih dahulu.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Kondisi Jumlah Data (n)</th>
+              <th>Posisi Nilai Tengah</th>
+              <th>Cara Menghitung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ganjil (misal n = 5)</td>
+              <td>Tepat satu angka di tengah</td>
+              <td>Ambil indeks <code>n // 2</code></td>
+            </tr>
+            <tr>
+              <td>Genap (misal n = 6)</td>
+              <td>Dua angka berada di tengah</td>
+              <td>Rata-rata dari dua nilai tengah tersebut</td>
+            </tr>
+            <tr>
+              <td>Rentang (Range)</td>
+              <td>Ukuran sebaran data</td>
+              <td><code>nilai_maksimum - nilai_minimum</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        <strong>Syarat mutlak Median:</strong> List wajib diurutkan terlebih dahulu dengan <code>sorted(data)</code> atau <code>data.sort()</code> sebelum mengambil indeks tengah.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-keyword">def</span> <span class="code-func">hitung_median</span>(data):
+    urut = <span class="code-func">sorted</span>(data)  <span class="code-comment"># 1. Wajib urutkan data</span>
+    n = <span class="code-func">len</span>(urut)
+    tengah = n // <span class="code-num">2</span>
+
+    <span class="code-keyword">if</span> n % <span class="code-num">2</span> != <span class="code-num">0</span>:
+        <span class="code-comment"># Data Ganjil: ambil langsung angka tengah</span>
+        <span class="code-keyword">return</span> urut[tengah]
+    <span class="code-keyword">else</span>:
+        <span class="code-comment"># Data Genap: jumlahkan dua angka tengah lalu bagi 2</span>
+        <span class="code-keyword">return</span> (urut[tengah - <span class="code-num">1</span>] + urut[tengah]) / <span class="code-num">2</span>
+
+uang_saku = [<span class="code-num">10000</span>, <span class="code-num">15000</span>, <span class="code-num">12000</span>, <span class="code-num">1000000</span>, <span class="code-num">10000</span>]
+
+med = <span class="code-func">hitung_median</span>(uang_saku)
+rentang = <span class="code-func">max</span>(uang_saku) - <span class="code-func">min</span>(uang_saku)
+
+print(<span class="code-str">"Data setelah diurutkan:"</span>, <span class="code-func">sorted</span>(uang_saku))
+print(<span class="code-str">f"Median Uang Saku : Rp{med:,.0f}"</span>)
+print(<span class="code-str">f"Rentang (Range)  : Rp{rentang:,.0f}"</span>)</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Kumpulkan data dengan pencilan</h4>
+            <p>Buat list angka yang sengaja memuat satu nilai yang jauh lebih besar dari yang lain.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Urutkan data dengan sorted()</h4>
+            <p>Simpan hasil pengurutan ke variabel list baru.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Terapkan logika ganjil/genap</h4>
+            <p>Gunakan operator modulo <code>n % 2</code> untuk menentukan cara pengambilan titik tengah.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Hitung sebaran rentang</h4>
+            <p>Kurangkan nilai maksimum dengan nilai minimum untuk melihat lebar sebaran data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Mengambil nilai tengah tanpa mengurutkan list terlebih dahulu (menghasilkan angka sembarangan).</li>
+        <li>Pada data genap, lupa mengurangi indeks tengah pertama: indeks dua angka tengah adalah <code>tengah - 1</code> dan <code>tengah</code>.</li>
+        <li>Mengira Rentang (Range) adalah fungsi bawaan Python <code>range()</code>; rentang statistik dihitung dengan <code>max() - min()</code>.</li>
+      </ul>
+      <div class="alert-box">
+        Ingat: Python menggunakan zero-indexing (dimulai dari 0). Pada 4 data (indeks 0, 1, 2, 3), dua posisi tengahnya berada di indeks <code>1</code> dan <code>2</code>.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -164,6 +164,7 @@
   //   "idModul"        → berlaku untuk SEMUA task di modul itu
   //   "idModul:nomor"  → hanya satu task (nomor mulai dari 0); menang atas kunci modul
   const MATERI = {
+    d2: "Materi/SMP/3D/kontrol-karakter.html", d3: "Materi/SMP/3D/fisika-raycast.html", d4: "Materi/SMP/3D/game-loop-audio-ai.html", d5: "Materi/SMP/3D/optimasi-performa.html",
     ai2: "Materi/SMP/AI/web-html-css-ai.html", ai3: "Materi/SMP/AI/tools-ai.html", ai4: "Materi/SMP/AI/aset-kreatif.html", ai5: "Materi/SMP/AI/game-storytelling.html",
     py4: "Materi/SMP/Python/oop.html", py5: "Materi/SMP/Python/game-2d.html",
     "py2:4": "Materi/SMP/Python/pintu-rahasia-kuis.html", "py2:5": "Materi/SMP/Python/pintu-rahasia-kuis.html",
@@ -173,30 +174,6 @@
     py3: "Materi/SMP/Python/fungsi-math.html",
     ai1: "Materi/SMP/AI/prompt-engineering.html",
     d1: "Materi/SMP/3D/world-building.html",
-    "d2:0": "Materi/SMP/3D/d2-t1.html",
-    "d2:1": "Materi/SMP/3D/d2-t2.html",
-    "d2:2": "Materi/SMP/3D/d2-t3.html",
-    "d2:3": "Materi/SMP/3D/d2-t4.html",
-    "d2:4": "Materi/SMP/3D/d2-t5.html",
-    "d2:5": "Materi/SMP/3D/d2-t6.html",
-    "d3:0": "Materi/SMP/3D/d3-t1.html",
-    "d3:1": "Materi/SMP/3D/d3-t2.html",
-    "d3:2": "Materi/SMP/3D/d3-t3.html",
-    "d3:3": "Materi/SMP/3D/d3-t4.html",
-    "d3:4": "Materi/SMP/3D/d3-t5.html",
-    "d3:5": "Materi/SMP/3D/d3-t6.html",
-    "d4:0": "Materi/SMP/3D/d4-t1.html",
-    "d4:1": "Materi/SMP/3D/d4-t2.html",
-    "d4:2": "Materi/SMP/3D/d4-t3.html",
-    "d4:3": "Materi/SMP/3D/d4-t4.html",
-    "d4:4": "Materi/SMP/3D/d4-t5.html",
-    "d4:5": "Materi/SMP/3D/d4-t6.html",
-    "d5:0": "Materi/SMP/3D/d5-t1.html",
-    "d5:1": "Materi/SMP/3D/d5-t2.html",
-    "d5:2": "Materi/SMP/3D/d5-t3.html",
-    "d5:3": "Materi/SMP/3D/d5-t4.html",
-    "d5:4": "Materi/SMP/3D/d5-t5.html",
-    "d5:5": "Materi/SMP/3D/d5-t6.html"
   };
   window.LP_SMP.forEach((t) => t.nodes.forEach((n) => n.tasks.forEach((k, i) => { k.halamanMateri = MATERI[n.id + ":" + i] || MATERI[n.id] || ""; })));
 })();

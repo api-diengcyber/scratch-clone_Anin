@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Komposisi</title>
+  <title>Task 5: Komposisi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,133 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Komposisi</h1><p>OOP Lanjutan • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Komposisi</strong>, bagian dari modul <em>OOP Lanjutan</em> (pertemuan 25–32).</p><div class="highlight-box">Konsep yang dipakai: <strong>enkapsulasi, polimorfisme, __str__, inheritance</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">OOP lanjutan menjaga data tetap aman di dalam objek dan membuat class berbeda bisa dipakai dengan cara yang sama.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Enkapsulasi: atribut diakses lewat method</li><li>Polimorfisme: nama method sama, perilaku berbeda</li><li>__str__ menentukan cara objek dicetak</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat class Buku dengan judul dan penulis</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Buat class Perpustakaan yang menyimpan banyak Buku</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tambahkan method tambah_buku dan cari_buku</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Uji dengan lima buku</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • HUBUNGAN ANTAR OBJEK</span>
+    <h1>Komposisi</h1>
+    <p>Membangun sistem terstruktur dengan menggabungkan objek-objek kecil menjadi objek utuh yang fleksibel</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Hubungan "Adalah" vs "Memiliki"</h2>
+    <div class="card">
+      <p>Tidak semua relasi class harus diselesaikan dengan pewarisan (inheritance). Terlalu banyak pewarisan bertingkat membuat kode kaku. Prinsip desain modern menganjurkan: <em>utamakan komposisi di atas pewarisan</em>.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Relasi</th>
+              <th>Istilah Relasi</th>
+              <th>Contoh Masalah</th>
+              <th>Kapan Digunakan?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Pewarisan (Inheritance)</strong></td>
+              <td>"Adalah" (Is-A)</td>
+              <td>Kucing <em>adalah</em> Hewan</td>
+              <td>Saat class anak merupakan jenis khusus dari class induk.</td>
+            </tr>
+            <tr>
+              <td><strong>Komposisi (Composition)</strong></td>
+              <td>"Memiliki" (Has-A)</td>
+              <td>Komputer <em>memiliki</em> Mesin / CPU</td>
+              <td>Saat objek kompleks dirakit dari bagian-bagian komponen independen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Dalam komposisi, sebuah objek memegang objek lain sebagai atributnya. Jika komponen rusak atau diganti, class utama tidak ikut runtuh.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Komposisi</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Komponen Independen 1</span>
+<span class="code-keyword">class</span> <span class="code-func">Processor</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(<span class="code-keyword">self</span>, model, kecepatan_ghz):
+        <span class="code-keyword">self</span>.model = model
+        <span class="code-keyword">self</span>.kecepatan_ghz = kecepatan_ghz
+
+<span class="code-comment"># Komponen Independen 2</span>
+<span class="code-keyword">class</span> <span class="code-func">RAM</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(<span class="code-keyword">self</span>, kapasitas_gb):
+        <span class="code-keyword">self</span>.kapasitas_gb = kapasitas_gb
+
+<span class="code-comment"># Class Utama yang MERAKIT (Memiliki) komponen di atas</span>
+<span class="code-keyword">class</span> <span class="code-func">Komputer</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(<span class="code-keyword">self</span>, merk, obj_processor, obj_ram):
+        <span class="code-keyword">self</span>.merk = merk
+        <span class="code-keyword">self</span>.processor = obj_processor  <span class="code-comment"># Komposisi: menyimpan objek</span>
+        <span class="code-keyword">self</span>.ram = obj_ram              <span class="code-comment"># Komposisi: menyimpan objek</span>
+
+    <span class="code-keyword">def</span> <span class="code-func">spesifikasi</span>(<span class="code-keyword">self</span>):
+        <span class="code-keyword">return</span> (
+            <span class="code-str">f"Komputer {self.merk} | "</span>
+            <span class="code-str">f"CPU: {self.processor.model} ({self.processor.kecepatan_ghz} GHz) | "</span>
+            <span class="code-str">f"RAM: {self.ram.kapasitas_gb} GB"</span>
+        )
+
+<span class="code-comment"># Merakit objek</span>
+cpu = <span class="code-func">Processor</span>(<span class="code-str">"Intel Core i7"</span>, <span class="code-num">3.6</span>)
+memori = <span class="code-func">RAM</span>(<span class="code-num">16</span>)
+laptop_sekolah = <span class="code-func">Komputer</span>(<span class="code-str">"Asus ROG"</span>, cpu, memori)
+
+print(laptop_sekolah.<span class="code-func">spesifikasi</span>())</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buat class komponen kecil</h4>
+            <p>Buat class <code>Baterai</code> dengan atribut <code>daya_persen</code> dan method <code>isi_daya()</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Rancang class utama</h4>
+            <p>Buat class <code>Smartphone</code> yang menerima parameter objek baterai pada constructor <code>__init__</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Delegasikan method ke komponen</h4>
+            <p>Di dalam method <code>Smartphone.charge()</code>, panggil method milik objek baterai: <code>self.baterai.isi_daya()</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Buktikan modularitas</h4>
+            <p>Ganti objek baterai dengan baterai lain tanpa perlu mengubah struktur kode class Smartphone.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Memaksakan pewarisan, contohnya: membuat <code>class Mobil(Mesin):</code> (salah, karena mobil bukan jenis mesin, melainkan mobil memiliki mesin).</li>
+        <li>Lupa mengakses atribut objek bagian lewat titik bertingkat (misal memanggil <code>self.kecepatan_ghz</code> padahal seharusnya <code>self.processor.kecepatan_ghz</code>).</li>
+        <li>Menghapus class komponen sehingga class utama gagal berfungsi saat diinstansiasi.</li>
+      </ul>
+      <div class="alert-box">
+        Gunakan pertanyaan sederhana ini: Apakah hubungannya <strong>"adalah"</strong> (pewarisan) atau <strong>"memiliki"</strong> (komposisi)?
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

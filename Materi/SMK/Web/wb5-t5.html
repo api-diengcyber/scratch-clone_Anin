@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uji dan perbaiki bug</title>
+  <title>Task 5: Uji dan Perbaikan Bug</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,11 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
-    .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +111,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +132,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +146,115 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Uji dan perbaiki bug</h1><p>Web App Mini &amp; Kerapian Kode • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Uji dan perbaiki bug</strong>, bagian dari modul <em>Web App Mini & Kerapian Kode</em> (pertemuan 29–32).</p><div class="highlight-box">Konsep yang dipakai: <strong>struktur file, refactor, README, uji</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Aplikasi web utuh punya tampilan rapi, logika yang teratur, dan siap dibagikan lewat tautan.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Pisahkan tugas HTML, CSS, dan JavaScript</li><li>Beri nama fungsi sesuai tugasnya</li><li>README menjelaskan apa, cara pakai, dan pembuatnya</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat daftar uji minimal 8 skenario</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Jalankan tiap skenario di dua browser berbeda</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Catat semua bug yang kamu temukan</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Perbaiki setidaknya tiga bug</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • TESTING & DEBUGGING</span>
+    <h1>Uji dan Perbaikan Bug</h1>
+    <p>Menemukan error pada panel Console, menguji skenario tak terduga, dan memastikan aplikasi bebas masalah</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Membaca Pesan Error di Tab Console</h2>
+    <div class="card">
+      <p>Bug adalah kesalahan dalam kode yang menyebabkan aplikasi macet atau tidak bekerja sebagaimana mestinya. Tab <strong>Console</strong> pada browser Developer Tools (F12) adalah alat utama untuk melihat pesan kesalahan tersebut.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Pesan Error Umum</th>
+              <th>Penyebab Utama</th>
+              <th>Cara Memperbaiki</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Uncaught TypeError: Cannot read properties of null</code></td>
+              <td>JavaScript mencoba mengakses elemen HTML yang tidak ditemukan id/class-nya</td>
+              <td>Periksa kesamaan ejaan nama <code>id</code> atau <code>class</code> antara HTML dan JavaScript</td>
+            </tr>
+            <tr>
+              <td><code>Uncaught ReferenceError: ... is not defined</code></td>
+              <td>Variabel atau fungsi dipanggil padahal belum pernah dibuat namanya</td>
+              <td>Cek deklarasi variabel atau ejaan huruf besar/kecil fungsi</td>
+            </tr>
+            <tr>
+              <td><code>NaN</code> (Not a Number)</td>
+              <td>Operasi matematika dijalankan pada teks yang bukan angka</td>
+              <td>Pastikan input dibungkus fungsi <code>Number()</code> dan tidak bernilai kosong</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Developer profesional selalu menguji skenario di luar dugaan: apa yang terjadi jika tombol diklik berkali-kali dengan cepat, atau jika kolom isian dibiarkan kosong?
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Menulis Kode Aman (Defensive Code)</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment">// 1. Cek keberadaan elemen sebelum dipasangi listener</span>
+<span class="code-keyword">const</span> btnReset = document.<span class="code-func">querySelector</span>(<span class="code-str">"#btnReset"</span>);
+
+<span class="code-keyword">if</span> (btnReset) {
+  btnReset.<span class="code-func">addEventListener</span>(<span class="code-str">"click"</span>, () =&gt; {
+    totalSkor = <span class="code-num">0</span>;
+    <span class="code-func">perbaruiTampilanSkor</span>(totalSkor);
+  });
+} <span class="code-keyword">else</span> {
+  console.<span class="code-func">warn</span>(<span class="code-str">"Tombol reset tidak ditemukan pada halaman ini."</span>);
+}</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buka Developer Tools Console</h4>
+            <p>Tekan tombol <code>F12</code> atau klik kanan lalu pilih <strong>Inspect</strong>, kemudian buka tab <strong>Console</strong>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Uji coba tombol dan input</h4>
+            <p>Gunakan aplikasi kuis, klik tombol opsi, dan periksa apakah ada teks merah error yang muncul di panel Console.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Uji skenario batas (Edge Cases)</h4>
+            <p>Coba klik tombol beberapa kali berturut-turut untuk memastikan skor tidak terus bertambah secara curang.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Pastikan status 0 Error</h4>
+            <p>Perbaiki baris kode yang memicu error sampai tab Console bersih dan aplikasi berjalan stabil.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Mengabaikan pesan error merah di console selama tampilan website terlihat masih bisa diklik.</li>
+        <li>Hanya menguji skenario sukses (skenario yang berjalan normal) tanpa menguji saat pengguna salah input.</li>
+        <li>Memperbaiki satu baris kode tetapi secara tidak sengaja menghapus kurung kurawal tutup (<code>}</code>) yang memicu SyntaxError baru.</li>
+      </ul>
+      <div class="alert-box">
+        Jika menemukan error di Console, klik tautan nomor baris di sebelah kanan pesan error untuk langsung melompat ke baris kode yang bermasalah.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Proyek: Pengklasifikasi Sederhana</title>
+  <title>Task 6: Projek Pengklasifikasi Sederhana</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,31 +88,7 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
-    .code-block {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 16px 20px;
-      border-radius: 12px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.92rem;
-      overflow-x: auto;
-      margin: 14px 0;
-      border: 1px solid #334155;
-    }
-
-    .code-comment { color: #94a3b8; }
-    .code-keyword { color: #f472b6; font-weight: 600; }
-    .code-func { color: #38bdf8; }
-    .code-str { color: #4ade80; }
-    .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +96,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +117,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +131,117 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Proyek: Pengklasifikasi Sederhana</h1><p>Konsep Machine Learning • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Proyek: Pengklasifikasi Sederhana</strong>, bagian dari modul <em>Konsep Machine Learning</em> (pertemuan 19–26).</p><div class="highlight-box">Konsep yang dipakai: <strong>data latih, data uji, klasifikasi, akurasi</strong>.</div><div class="alert-box"><strong>Ini proyek.</strong> Kerjakan bertahap, simpan karyamu di tiap langkah, dan uji sebelum dikumpulkan.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Machine learning membuat komputer belajar pola dari contoh, bukan dari aturan yang ditulis manusia.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Model belajar dari data latih</li><li>Data uji mengecek model pada data yang baru</li><li>Overfitting: model hafal contoh tapi gagal pada data baru</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Pilih masalah klasifikasi, misalnya jenis buah dari ukuran dan warna</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Kumpulkan minimal 20 data berlabel</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Buat programnya dan ukur akurasinya</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tulis kesalahan yang paling sering terjadi</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Catat sumber, tanggal, dan jumlah data di setiap analisis.</li><li>Bersihkan data lebih dulu; angka yang salah ketik merusak seluruh kesimpulan.</li><li>Tulis kesimpulan dengan jujur, termasuk batas dari datamu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=da4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 6 • TUGAS PROYEK AKHIR</span>
+    <h1>Projek: Pengklasifikasi Sederhana</h1>
+    <p>Membangun sistem klasifikasi cerdas utuh dari dataset hingga pengujian akurasi akhir</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Deskripsi Misi Proyek</h2>
+    <div class="card">
+      <p>Kamu diminta membangun aplikasi terminal Python mandiri bernama <strong>Sistem Pengklasifikasi Cerdas</strong>. Program ini harus mampu menerima dataset angka berlabel, membaginya menjadi data latih dan data uji, mencari prediksi menggunakan metode k-NN atau ambang batas otomatis, lalu mencetak persentase skor akurasi akhirnya.</p>
+      <div class="highlight-box">
+        Misi ini memadukan seluruh alur dasar Machine Learning: <strong>Persiapan Data &rarr; Train-Test Split &rarr; Training / Pencarian Jarak &rarr; Prediksi &rarr; Evaluasi Akurasi</strong>.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Kebutuhan Fitur Aplikasi</h2>
+    <div class="card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Fitur Program</th>
+              <th>Persyaratan Teknis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. Dataset Terpadu</td>
+              <td>Menyediakan minimal 15 baris data contoh yang terdiri dari 1 fitur numerik dan 1 label target (misal: suhu air dan label 'Dingin' / 'Panas').</td>
+            </tr>
+            <tr>
+              <td>2. Train-Test Split Otomatis</td>
+              <td>Membagi dataset secara terprogram menjadi 80% data latih dan 20% data uji menggunakan teknik list slicing.</td>
+            </tr>
+            <tr>
+              <td>3. Model Prediksi (k-NN / Jarak)</td>
+              <td>Membuat fungsi prediksi yang menghitung jarak terdekat data uji terhadap data latih untuk menentukan labelnya.</td>
+            </tr>
+            <tr>
+              <td>4. Laporan Akurasi Akhir</td>
+              <td>Membandingkan hasil prediksi dengan label asli data uji, lalu mencetak persentase akurasi di layar terminal.</td>
+            </tr>
+            <tr>
+              <td>5. Fitur Tebak Data Pengguna</td>
+              <td>Meminta input nilai fitur baru dari pengguna terminal, lalu mencetak hasil tebakan kategorinya secara langsung.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Pengerjaan Bertahap</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Susun dataset awal</h4>
+            <p>Tentukan topik masalah dan buat list data berpasangan <code>(nilai, label)</code> sebanyak minimal 15 baris.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Bagi data menjadi latih dan uji</h4>
+            <p>Potong list data dengan slicing: 80% pertama disimpan ke <code>data_latih</code> dan 20% sisanya ke <code>data_uji</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Bangun fungsi klasifikasi jarak terdekat</h4>
+            <p>Buat fungsi yang menerima satu nilai fitur baru, menghitung selisih <code>abs()</code> terhadap setiap elemen <code>data_latih</code>, lalu mengembalikan label dengan jarak terpendek.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Uji dan hitung akurasi pada data uji</h4>
+            <p>Tebak seluruh elemen pada <code>data_uji</code>, hitung berapa tebakan yang cocok dengan kunci aslinya, lalu hitung persentase akurasi.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <h4>Buat antarmuka terminal interaktif</h4>
+            <p>Tambahkan perintah <code>input()</code> agar pengguna bisa memasukkan angka baru dan melihat hasil tebakan kategorinya.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kriteria Keberhasilan & Checklist</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>[ ] Dataset memiliki minimal 15 baris data berlabel.</li>
+        <li>[ ] Model dilatih dan mencari tetangga HANYA dari <code>data_latih</code>, tanpa mengintip <code>data_uji</code>.</li>
+        <li>[ ] Program berhasil menghitung dan menampilkan skor persentase akurasi di atas data uji.</li>
+        <li>[ ] Program memiliki fitur input interaktif untuk mengetes data baru dari ketikan pengguna.</li>
+        <li>[ ] Kode bersih, terbagi ke dalam fungsi-fungsi teratur, dan bebas dari error eksekusi.</li>
+      </ul>
+      <div class="alert-box">
+        <strong>Tantangan Tambahan (Bonus):</strong> Terapkan konsep k=3 (melihat 3 tetangga terdekat lalu mengambil suara terbanyak / voting) untuk membuat tebakan model semakin kokoh terhadap data pencilan!
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

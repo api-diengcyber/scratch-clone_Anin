@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rapikan dan dokumentasi</title>
+  <title>Task 4: Rapikan dan Dokumentasi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,11 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
-    .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +111,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +132,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +146,120 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Rapikan dan dokumentasi</h1><p>Web App Mini &amp; Kerapian Kode • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Rapikan dan dokumentasi</strong>, bagian dari modul <em>Web App Mini & Kerapian Kode</em> (pertemuan 29–32).</p><div class="highlight-box">Konsep yang dipakai: <strong>struktur file, refactor, README, uji</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Aplikasi web utuh punya tampilan rapi, logika yang teratur, dan siap dibagikan lewat tautan.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Pisahkan tugas HTML, CSS, dan JavaScript</li><li>Beri nama fungsi sesuai tugasnya</li><li>README menjelaskan apa, cara pakai, dan pembuatnya</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Rapikan indentasi dan nama variabel</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Tambahkan komentar pada bagian yang rumit</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tulis README berisi cara memakai aplikasimu</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Minta temanmu membaca dan menjalankannya</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 4 • CLEAN CODE & README</span>
+    <h1>Rapikan dan Dokumentasi</h1>
+    <p>Merapikan indentasi baris kode dan menulis dokumen README yang menjelaskan karyamu</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Mengapa Dokumentasi Sangat Penting?</h2>
+    <div class="card">
+      <p>Developer hebat dinilai bukan hanya dari berjalannya aplikasi, melainkan seberapa bersih kodenya dan seberapa jelas panduannya agar orang lain bisa menggunakannya.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Bagian README</th>
+              <th>Informasi yang Ditulis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Judul & Deskripsi</td>
+              <td>Nama web app dan penjelasan singkat tentang apa fungsinya.</td>
+            </tr>
+            <tr>
+              <td>Fitur Utama</td>
+              <td>Daftar kemampuan kuis (misal: skor instan, pilihan ganda, tombol reset).</td>
+            </tr>
+            <tr>
+              <td>Cara Menjalankan</td>
+              <td>Petunjuk membuka website (cukup buka <code>index.html</code> di browser).</td>
+            </tr>
+            <tr>
+              <td>Pembuat</td>
+              <td>Nama lengkap pembuat dan asal sekolah.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        File <strong>README.md</strong> adalah buku panduan pertama yang dibaca saat orang lain membuka repositori kodinganmu.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh File README.md Sederhana</h2>
+    <div class="card">
+      <div class="code-block"># Kuis Cerdas Web Development
+Aplikasi web kuis interaktif seputar HTML, CSS, dan JavaScript untuk siswa SMA/SMK.
+
+## Fitur:
+- Kuis interaktif dengan skor real-time
+- Tata letak responsif di layar ponsel dan desktop
+- Peringatan warna untuk jawaban benar dan salah
+
+## Cara Menggunakan:
+1. Buka file `index.html` menggunakan browser Google Chrome atau Firefox.
+2. Pilih salah satu jawaban dari pertanyaan yang tampil di layar.
+3. Nilai akhir akan muncul di bagian bawah kuis.
+
+## Dibuat Oleh:
+- Nama: [Nama Siswa]
+- Kelas: [Kelas / Sekolah]</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Rapikan indentasi file HTML, CSS, dan JS</h4>
+            <p>Gunakan fitur format otomatis di code editor (Shift + Alt + F di VS Code) agar spasi dan tab tersusun lurus.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Hapus sisa kode uji coba</h4>
+            <p>Bersihkan baris <code>console.log()</code> yang tidak lagi dibutuhkan dan buang potongan kode yang tidak terpakai.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Beri komentar penjelas</h4>
+            <p>Tambahkan 1–2 baris komentar di atas fungsi penting untuk menjelaskan fungsinya secara singkat.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Buat file README.md</h4>
+            <p>Tuliskan nama kuis, tujuan, fitur utama, dan namamu sebagai pembuat karya di folder proyek.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menulis kode zig-zag tanpa indentasi spasi yang konsisten, sehingga sulit dibaca saat ada baris penutup yang kurang.</li>
+        <li>Menyimpan puluhan komentar dari kode gagal lama yang membuat file menjadi penuh dan membingungkan.</li>
+        <li>Tidak mencantumkan identitas dan penjelasan fitur pada file proyek.</li>
+      </ul>
+      <div class="alert-box">
+        Kode yang bersih (<em>Clean Code</em>) mencerminkan ketelitian dan profesionalisme seorang programmer.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
