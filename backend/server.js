@@ -373,19 +373,35 @@ app.post("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, 
 
 app.post("/api/ai/tutor", async (req, res) => {
     try {
+
         const {
             message,
+
+            // Task dari Learning Path biasa
             taskId,
             taskTitle,
             taskDescription,
             taskSteps,
             taskMaterial,
             taskHint,
+
+            // Isi editor HTML/CSS
             editorHtml,
             editorCss,
+
+            // Task SMP / SMA-K
+            smpTask,
+
         } = req.body || {};
 
-        if (typeof message !== "string" || !message.trim()) {
+        // --------------------------------------------------------
+        // VALIDASI PESAN
+        // --------------------------------------------------------
+
+        if (
+            typeof message !== "string" ||
+            !message.trim()
+        ) {
             return res.status(400).json({
                 error: "Pesan tidak boleh kosong.",
             });
@@ -397,37 +413,64 @@ app.post("/api/ai/tutor", async (req, res) => {
             });
         }
 
+        // --------------------------------------------------------
+        // API KEY
+        // --------------------------------------------------------
+
         if (!hasApiKey()) {
-            console.error("GROQ_API_KEY belum diatur di backend/.env");
+
+            console.error(
+                "GROQ_API_KEY belum diatur di backend/.env"
+            );
 
             return res.status(500).json({
                 error: "AI Tutor belum dikonfigurasi.",
             });
         }
 
+        // --------------------------------------------------------
+        // AI
+        // --------------------------------------------------------
+
         const result = await askTutor({
+
             message: message.trim(),
+
+            // Learning Path biasa
             taskId,
             taskTitle,
             taskDescription,
             taskSteps,
             taskMaterial,
             taskHint,
+
+            // Editor
             editorHtml,
             editorCss,
+
+            // SMP / SMA-K
+            smpTask,
+
         });
+
+        // --------------------------------------------------------
+        // RESPONSE
+        // --------------------------------------------------------
 
         return res.json(result);
 
     } catch (error) {
-        console.error("AI Tutor error:", error);
+
+        console.error(
+            "AI Tutor error:",
+            error
+        );
 
         return res.status(500).json({
             error: "AI Tutor gagal merespons.",
         });
     }
 });
-
 
 // ============================================================
 // 404
