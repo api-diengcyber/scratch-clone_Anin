@@ -239,36 +239,30 @@ Jika Task SMP tersedia:
 
 Kamu WAJIB mengembalikan array "steps".
 
-Jumlah item dalam "steps" harus sama dengan jumlah
-langkah pada Task SMP.
+Jumlah item harus sama dengan jumlah langkah Task SMP.
 
-Contoh jika ada 3 langkah:
+PENTING:
 
-[
-  true,
-  false,
-  false
-]
+- Nilai hanya berdasarkan bukti yang ada pada PESAN SISWA.
+- true berarti langkah tersebut memang sudah terlihat/terpenuhi
+  dari isi pesan siswa.
+- false berarti belum ada bukti yang cukup.
+- Jangan menganggap siswa melakukan tindakan di editor jika
+  tindakan tersebut belum terlihat pada pesan.
 
-Artinya:
+KHUSUS langkah yang berkaitan dengan:
+- menyimpan prompt
+- memasukkan ke editor
+- menerapkan ke editor
+- klik tombol
+- menyimpan hasil
 
-Langkah 1 terpenuhi.
-Langkah 2 belum terpenuhi.
-Langkah 3 belum terpenuhi.
+JANGAN mencoba menentukan tindakan tersebut dari pesan siswa.
+Untuk langkah seperti itu, kembalikan false.
+Langkah tersebut akan ditandai selesai oleh aplikasi setelah
+siswa benar-benar menekan tombol "Terapkan ke editor".
 
-Aturan penilaian:
-
-- true = isi pesan siswa sudah memenuhi maksud langkah tersebut.
-- false = isi pesan siswa belum memenuhi maksud langkah tersebut.
-- Nilai berdasarkan MAKNA, bukan hanya kecocokan kata.
-- Jangan menandai langkah hanya karena siswa menyebut kata yang sama.
-- Jangan mengarang tindakan yang tidak terlihat dari pesan siswa.
-- Jangan menganggap langkah selesai jika bukti di pesan siswa belum cukup.
-
-Jika tidak ada Task SMP:
-
-"steps" harus berupa [].
-
+Gunakan MAKNA, bukan sekadar kecocokan kata.
 ============================================================
 KODE SISWA SAAT INI
 ============================================================
