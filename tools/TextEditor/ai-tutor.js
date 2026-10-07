@@ -300,8 +300,6 @@
       "📋 Task SMP yang dikirim:",
       smpTask
     );
-
-<<<<<<< HEAD
     const response =
       await fetch(
         "/api/ai/tutor",
@@ -328,6 +326,15 @@
 
               editorCss:
                 editorCode.css,
+              editorLanguage:
+                editorCode.mode || "web",
+
+              editorCode:
+                editorCode.mode === "python"
+                  ? editorCode.python
+                  : editorCode.mode === "php"
+                    ? editorCode.php
+                    : "",
 
               smpTask:
                 smpTask
@@ -360,23 +367,6 @@
     // ----------------------------------------------------------
     // PARSE RESPONSE
     // ----------------------------------------------------------
-=======
-        ...context,
-        editorHtml: editorCode.html,
-        editorCss: editorCode.css,
-
-        // Python / PHP: Tutor AI perlu tahu bahasa dan kode yang sedang dibuka
-        editorLanguage: editorCode.mode || "web",
-        editorCode:
-          editorCode.mode === "python"
-            ? editorCode.python
-            : editorCode.mode === "php"
-              ? editorCode.php
-              : "",
-      }),
-    });
->>>>>>> 6345b81a2e3c33d8bed049078cd550d8dc628429
-
     let data = null;
 
     try {
