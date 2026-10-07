@@ -10,10 +10,48 @@
 // Keamanan: preview memakai <iframe sandbox=""> (tanpa JavaScript) + CSP,
 // dan kode anak diparse dengan DOMParser (tidak pernah dijalankan di halaman ini).
 // ============================================================
-(function () {
+(async function () {
 
-  if (localStorage.getItem("isLoggedIn") !== "true") { window.location.replace("../index.html"); return; }
-  if (typeof LP === "undefined") { document.body.textContent = "Data jalur belajar belum termuat."; return; }
+  const authToken = localStorage.getItem("authToken");
+
+  if (!authToken) {
+    window.location.replace("../index.html");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/me", {
+      headers: {
+        Authorization: "Bearer " + authToken
+      }
+    });
+
+    if (!response.ok) {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("username");
+      localStorage.removeItem("scratch_user");
+      localStorage.removeItem("authToken");
+
+      window.location.replace("../index.html");
+      return;
+    }
+
+    const user = await response.json();
+
+    localStorage.setItem("username", user.username);
+    localStorage.setItem("scratch_user", user.username);
+    localStorage.setItem("isLoggedIn", "true");
+
+  } catch (error) {
+    console.error("Gagal memeriksa sesi:", error);
+    window.location.replace("../index.html");
+    return;
+  }
+
+  if (typeof LP === "undefined") {
+    document.body.textContent = "Data jalur belajar belum termuat.";
+    return;
+  }
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

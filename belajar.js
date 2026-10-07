@@ -1,10 +1,37 @@
-// ============================================================
-// HALAMAN BELAJAR — Peta Tahap → Pilih Pembelajaran → Task 1–5 → Project Akhir
-// Data & penyimpanan ada di jalur-belajar.js (objek LP)
-// ============================================================
-(function () {
+(async function () {
 
-  if (localStorage.getItem("isLoggedIn") !== "true") {
+  const authToken = localStorage.getItem("authToken");
+
+  if (!authToken) {
+    window.location.replace("index.html");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/me", {
+      headers: {
+        Authorization: "Bearer " + authToken
+      }
+    });
+
+    if (!response.ok) {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("username");
+      localStorage.removeItem("scratch_user");
+      localStorage.removeItem("authToken");
+
+      window.location.replace("index.html");
+      return;
+    }
+
+    const user = await response.json();
+
+    localStorage.setItem("username", user.username);
+    localStorage.setItem("scratch_user", user.username);
+    localStorage.setItem("isLoggedIn", "true");
+
+  } catch (error) {
+    console.error("Gagal memeriksa sesi:", error);
     window.location.replace("index.html");
     return;
   }

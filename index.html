@@ -44,27 +44,62 @@
 
   <script>
     // Kalau sudah login, langsung ke dashboard
-    if (localStorage.getItem('isLoggedIn') === 'true') {
-      window.location.replace('dashboard.html');
-    }
+      const loginForm = document.getElementById('loginForm');
+      const loginError = document.getElementById('loginError');
 
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var username = document.getElementById('username').value.trim();
-      var password = document.getElementById('password').value.trim();
+      loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-      if (!username || !password) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
-      }
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
 
-      // Satu sesi ini dipakai dashboard DAN Scratch (tidak perlu login lagi)
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('username', username);
-      localStorage.setItem('scratch_user', username);
+        loginError.style.display = 'none';
 
-      window.location.replace('dashboard.html');
-    });
+        if (!username || !password) {
+          loginError.textContent = 'Username dan password wajib diisi!';
+          loginError.style.display = 'block';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              username,
+              password
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            loginError.textContent = data.message || 'Login gagal.';
+            loginError.style.display = 'block';
+            return;
+          }
+
+          // Login berhasil
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('username', data.username);
+          localStorage.setItem('scratch_user', data.username);
+
+          // Token dari backend
+          localStorage.setItem('authToken', data.token);
+
+          window.location.replace('dashboard.html');
+
+        } catch (error) {
+          console.error('Login error:', error);
+
+          loginError.textContent =
+            'Backend tidak dapat dihubungi.';
+          loginError.style.display = 'block';
+        }
+      });
+</script>
   </script>
 </body>
 </html>

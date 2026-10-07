@@ -144,7 +144,7 @@ const audioCtx =
     : null;
 
 
-function playMeowSound(duration = 0.3) {
+async function playMeowSound(duration = 0.3) {
 
   if (!audioCtx) {
     return;
@@ -242,20 +242,41 @@ const logoutBtn =
 
 
 function checkAuth() {
+const authToken = localStorage.getItem("authToken");
 
-  // Sesi dibuat oleh halaman login (../index.html)
-  const isLoggedIn =
-    localStorage.getItem("isLoggedIn") === "true";
+if (!authToken) {
+  window.location.replace("../index.html");
+  return;
+}
 
-  const savedUser =
-    localStorage.getItem("username") ||
-    localStorage.getItem("scratch_user");
+try {
+  const response = await fetch("/api/auth/me", {
+    headers: {
+      Authorization: "Bearer " + authToken
+    }
+  });
 
-  if (!isLoggedIn || !savedUser) {
-    // Belum login -> kembali ke halaman login
+  if (!response.ok) {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+    localStorage.removeItem("scratch_user");
+    localStorage.removeItem("authToken");
+
     window.location.replace("../index.html");
     return;
   }
+
+  const user = await response.json();
+
+  localStorage.setItem("username", user.username);
+  localStorage.setItem("scratch_user", user.username);
+  localStorage.setItem("isLoggedIn", "true");
+
+} catch (error) {
+  console.error("Gagal memeriksa sesi:", error);
+  window.location.replace("../index.html");
+  return;
+}
 
   state.currentUser = savedUser;
 

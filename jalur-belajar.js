@@ -115,17 +115,208 @@ const LP = Object.assign({}, window.LP_DATA, {
   // PENYIMPANAN (per username) — kunci localStorage SAMA dengan versi sebelumnya,
   // jadi progres & poin anak yang sudah ada tidak hilang.
   // ============================================================
-  user() { return localStorage.getItem("username") || localStorage.getItem("scratch_user") || "tamu"; },
-  _get(name, def) { try { return JSON.parse(localStorage.getItem(name + "_" + this.user())) || def; } catch (e) { return def; } },
-  _set(name, val) { localStorage.setItem(name + "_" + this.user(), JSON.stringify(val)); },
+    user() {
+    return localStorage.getItem("username")
+      || localStorage.getItem("scratch_user")
+      || "tamu";
+  },
 
-  progress() { return this._get("codingCompleted", {}); },
-  isDone(id) { return !!this.progress()[id]; },
-  points() { return Number(localStorage.getItem("codingPoints_" + this.user())) || 0; },
-  attempts(id) { return this._get("codingAttempts", {})[id] || 0; },
-  addAttempt(id) { const a = this._get("codingAttempts", {}); a[id] = (a[id] || 0) + 1; this._set("codingAttempts", a); return a[id]; },
-  upload(id) { return this._get("codingUploads", {})[id] || {}; },
-  saveUpload(id, data) { const u = this._get("codingUploads", {}); u[id] = Object.assign(u[id] || {}, data); this._set("codingUploads", u); },
+  _get(name, def) {
+    try {
+      return JSON.parse(
+        localStorage.getItem(name + "_" + this.user())
+      ) || def;
+    } catch (e) {
+      return def;
+    }
+  },
+
+  _set(name, val) {
+    localStorage.setItem(
+      name + "_" + this.user(),
+      JSON.stringify(val)
+    );
+  },
+
+  // ============================================================
+  // DATABASE SYNC
+  // ============================================================
+
+  authHeaders() {
+    const token = localStorage.getItem("authToken");
+
+    return token
+      ? {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json"
+        }
+      : {
+          "Content-Type": "application/json"
+        };
+  },
+
+  async loadFromServer() {
+    const username = this.user();
+    const token = localStorage.getItem("authToken");
+
+    if (!token || username === "tamu") {
+      return false;
+    }
+
+    try {
+      const [progressRes, pointsRes] = await Promise.all([
+        fetch("/api/progress/" + encodeURIComponent(username), {
+          headers: this.authHeaders()
+        }),
+
+        fetch("/api/points/" + encodeURIComponent(username), {
+          headers: this.authHeaders()
+        })
+      ]);
+
+      if (!progressRes.ok || !pointsRes.ok) {
+        throw new Error("Gagal mengambil data progress dari server.");
+      }
+
+      const progressRows = await progressRes.json();
+      const pointsData = await pointsRes.json();
+
+      const completed = {};
+
+      progressRows.forEach((row) => {
+        if (row.completed) {
+          completed[row.task_id] = true;
+        }
+      });
+
+      this._set("codingCompleted", completed);
+
+      localStorage.setItem(
+        "codingPoints_" + username,
+        String(Number(pointsData.total) || 0)
+      );
+
+      return true;
+
+    } catch (error) {
+      console.error(
+        "Gagal sinkronisasi progress dari database:",
+        error
+      );
+
+      return false;
+    }
+  },
+
+  async saveProgressToServer(id, completed) {
+    const username = this.user();
+    const token = localStorage.getItem("authToken");
+
+    if (!token || username === "tamu") {
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/progress/" + encodeURIComponent(username),
+        {
+          method: "POST",
+          headers: this.authHeaders(),
+          body: JSON.stringify({
+            taskId: id,
+            completed: completed === true
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Gagal menyimpan progress.");
+      }
+
+      return true;
+
+    } catch (error) {
+      console.error(
+        "Gagal menyimpan progress ke database:",
+        error
+      );
+
+      return false;
+    }
+  },
+
+  async savePointsToServer(total) {
+    const username = this.user();
+    const token = localStorage.getItem("authToken");
+
+    if (!token || username === "tamu") {
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/points/" + encodeURIComponent(username),
+        {
+          method: "POST",
+          headers: this.authHeaders(),
+          body: JSON.stringify({
+            total: Math.floor(Number(total) || 0)
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Gagal menyimpan points.");
+      }
+
+      return true;
+
+    } catch (error) {
+      console.error(
+        "Gagal menyimpan points ke database:",
+        error
+      );
+
+      return false;
+    }
+  },
+
+  progress() {
+    return this._get("codingCompleted", {});
+  },
+
+  isDone(id) {
+    return !!this.progress()[id];
+  },
+
+  points() {
+    return Number(
+      localStorage.getItem(
+        "codingPoints_" + this.user()
+      )
+    ) || 0;
+  },
+
+  attempts(id) {
+    return this._get("codingAttempts", {})[id] || 0;
+  },
+
+  addAttempt(id) {
+    const a = this._get("codingAttempts", {});
+    a[id] = (a[id] || 0) + 1;
+    this._set("codingAttempts", a);
+    return a[id];
+  },
+
+  upload(id) {
+    return this._get("codingUploads", {})[id] || {};
+  },
+
+  saveUpload(id, data) {
+    const u = this._get("codingUploads", {});
+    u[id] = Object.assign(u[id] || {}, data);
+    this._set("codingUploads", u);
+  },
 
   // ============================================================
   // BANTUAN STRUKTUR
@@ -217,16 +408,54 @@ const LP = Object.assign({}, window.LP_DATA, {
   },
 
   // tandai selesai + beri poin (hanya sekali). Mengembalikan { already, earned, bonus, total }
-  complete(id, firstTry) {
+   complete(id, firstTry) {
     const f = this.find(id);
+
     if (!f) return null;
-    if (this.isDone(id)) return { already: true, earned: 0, bonus: 0, total: this.points() };
+
+    if (this.isDone(id)) {
+      return {
+        already: true,
+        earned: 0,
+        bonus: 0,
+        total: this.points()
+      };
+    }
+
     const earned = this.poinOf(f.task);
-    const bonus = (firstTry && f.task.type === "interactive") ? this.BONUS_PERTAMA : 0;
-    const done = this.progress(); done[id] = true; this._set("codingCompleted", done);
-    const total = this.points() + earned + bonus;
-    localStorage.setItem("codingPoints_" + this.user(), String(total));
-    return { already: false, earned, bonus, total };
+
+    const bonus =
+      (firstTry && f.task.type === "interactive")
+        ? this.BONUS_PERTAMA
+        : 0;
+
+    const done = this.progress();
+
+    done[id] = true;
+
+    this._set("codingCompleted", done);
+
+    const total =
+      this.points() + earned + bonus;
+
+    localStorage.setItem(
+      "codingPoints_" + this.user(),
+      String(total)
+    );
+
+    // ==========================================================
+    // SIMPAN KE DATABASE
+    // ==========================================================
+
+    this.saveProgressToServer(id, true);
+    this.savePointsToServer(total);
+
+    return {
+      already: false,
+      earned,
+      bonus,
+      total
+    };
   },
 
   // ============================================================

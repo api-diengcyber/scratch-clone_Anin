@@ -1,7 +1,45 @@
 // Halaman kurikulum SMP. Data di TRACKS; ganti nilai `href` editor sesuai kebutuhan.
-if (localStorage.getItem('isLoggedIn') !== 'true') location.replace('index.html');
+// Halaman kurikulum SMP. Data di TRACKS; ganti nilai `href` editor sesuai kebutuhan.
+(async function () {
 
-const EDITOR = { text: 'TextEditor/index.html', d3: 'Editor3D/index.html' }; // placeholder CTA
+  const authToken = localStorage.getItem("authToken");
+
+  if (!authToken) {
+    window.location.replace("index.html");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/me", {
+      headers: {
+        Authorization: "Bearer " + authToken
+      }
+    });
+
+    if (!response.ok) {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("username");
+      localStorage.removeItem("scratch_user");
+      localStorage.removeItem("authToken");
+
+      window.location.replace("index.html");
+      return;
+    }
+
+    const user = await response.json();
+
+    localStorage.setItem("username", user.username);
+    localStorage.setItem("scratch_user", user.username);
+    localStorage.setItem("isLoggedIn", "true");
+
+  } catch (error) {
+    console.error("Gagal memeriksa sesi:", error);
+    window.location.replace("index.html");
+    return;
+  }
+
+  const EDITOR = {
+text: 'TextEditor/index.html', d3: 'Editor3D/index.html' }; // placeholder CTA
 const TRACKS = [
   { id: 'python', em: '🐍', c: '#4cc9f0', nama: 'Python Start', tag: 'Dasar sampai game 2D',
     ringkas: 'Belajar Python dari nol: dari print() pertama sampai membuat game 2D dan tampil di Hackathon.',
@@ -82,3 +120,4 @@ $('#showcase').innerHTML = SHOW.map((s) => { const t = TRACKS.find((x) => x.id =
   return `<button class="work" data-id="${s[0]}" style="--c:${t.c}"><div class="prev">${s[1]}</div><div class="b"><b>${s[2]}</b><small>${s[3]}</small></div></button>`; }).join('');
 $('#showcase').addEventListener('click', (e) => { const b = e.target.closest('.work'); if (b) { select(b.dataset.id); scrollTo({ top: $('#tabs').offsetTop - 10, behavior: 'smooth' }); } });
 renderTabs(); renderPanel();
+})();

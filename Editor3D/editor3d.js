@@ -5,8 +5,44 @@
 //  (tanpa)       → mode bebas
 // Data task ada di ../jalur-data.js (task berjenis model3d(...)).
 // ============================================================
-(function () {
-  if (localStorage.getItem("isLoggedIn") !== "true") { location.replace("../index.html"); return; }
+(async function () {
+
+  const authToken = localStorage.getItem("authToken");
+
+  if (!authToken) {
+    window.location.replace("../index.html");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/me", {
+      headers: {
+        Authorization: "Bearer " + authToken
+      }
+    });
+
+    if (!response.ok) {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("username");
+      localStorage.removeItem("scratch_user");
+      localStorage.removeItem("authToken");
+
+      window.location.replace("../index.html");
+      return;
+    }
+
+    const user = await response.json();
+
+    localStorage.setItem("username", user.username);
+    localStorage.setItem("scratch_user", user.username);
+    localStorage.setItem("isLoggedIn", "true");
+
+  } catch (error) {
+    console.error("Gagal memeriksa sesi:", error);
+    window.location.replace("../index.html");
+    return;
+  }
+
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   if (typeof LP === "undefined") { document.body.textContent = "Data jalur belajar belum termuat."; return; }

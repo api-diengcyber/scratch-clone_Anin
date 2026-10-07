@@ -1,7 +1,50 @@
-// Wajib login untuk membuka dashboard
-if (localStorage.getItem('isLoggedIn') !== 'true') {
-  window.location.replace('index.html');
-}
+(async function () {
+
+  const authToken = localStorage.getItem('authToken');
+
+  if (!authToken) {
+    window.location.replace('index.html');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/auth/me', {
+      headers: {
+        Authorization: 'Bearer ' + authToken
+      }
+    });
+
+    if (!response.ok) {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('scratch_user');
+      localStorage.removeItem('authToken');
+
+      window.location.replace('index.html');
+      return;
+    }
+
+    const user = await response.json();
+
+    // Sinkronkan username dari server
+    localStorage.setItem('username', user.username);
+    localStorage.setItem('scratch_user', user.username);
+    localStorage.setItem('isLoggedIn', 'true');
+    
+    if (typeof LP !== "undefined" && typeof LP.loadFromServer === "function") {
+      await LP.loadFromServer();
+    }
+
+  } catch (error) {
+    console.error('Gagal memeriksa sesi:', error);
+
+    window.location.replace('index.html');
+    return;
+  }
+
+  // ============================================================
+  // KODE DASHBOARD LAMA MULAI DARI SINI
+  // ============================================================
 
 const $ = id => document.getElementById(id);
 const currentUser = localStorage.getItem('username') || localStorage.getItem('scratch_user') || 'tamu';
@@ -120,9 +163,30 @@ if (tabsLeft.length) {
   renderGrade(startTab.dataset.grade);
 }
 
-['logoutBtn', 'logoutBtnM'].forEach(id => $(id).addEventListener('click', () => {
-  localStorage.removeItem('isLoggedIn');
-  localStorage.removeItem('username');
-  localStorage.removeItem('scratch_user');
-  window.location.replace('index.html');
-}));
+['logoutBtn', 'logoutBtnM'].forEach(id => {
+  $(id).addEventListener('click', async () => {
+
+    const token = localStorage.getItem('authToken');
+
+    try {
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + token
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('username');
+    localStorage.removeItem('scratch_user');
+    localStorage.removeItem('authToken');
+
+    window.location.replace('index.html');
+  });
+});
+})();

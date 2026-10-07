@@ -3,37 +3,73 @@
 // ============================================================
 
 (function () {
-  const $ = (id) => document.getElementById(id);
 
-  const form = $("aiTutorForm");
-  const input = $("aiTutorInput");
-  const messages = $("aiTutorMessages");
-  const sendBtn = $("aiTutorSend");
-  const tutor = $("aiTutor");
-  const minBtn = $("aiTutorMin");
+  const $ = (id) =>
+    document.getElementById(id);
 
-  if (!form || !input || !messages) return;
+  const form =
+    $("aiTutorForm");
+
+  const input =
+    $("aiTutorInput");
+
+  const messages =
+    $("aiTutorMessages");
+
+  const sendBtn =
+    $("aiTutorSend");
+
+  const tutor =
+    $("aiTutor");
+
+  const minBtn =
+    $("aiTutorMin");
+
+  if (
+    !form ||
+    !input ||
+    !messages
+  ) {
+    return;
+  }
 
   // ------------------------------------------------------------
-  // TASK CONTEXT
+  // TASK CONTEXT — LEARNING PATH BIASA
   // ------------------------------------------------------------
 
-  const params = new URLSearchParams(window.location.search);
-  const taskId = params.get("task");
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const taskId =
+    params.get("task");
 
   let task = null;
 
   /*
-   * Untuk sementara task masih berasal dari jalur-data.js.
-   * Nanti saat curriculum sudah dipindah ke API,
-   * bagian ini tinggal diganti menjadi fetch API.
+   * Untuk sementara task biasa masih berasal
+   * dari jalur-data.js.
    */
-  if (taskId && typeof LP !== "undefined") {
-    const info = LP.find(taskId);
 
-    if (info && info.task) {
-      task = info.task;
+  if (
+    taskId &&
+    typeof LP !== "undefined"
+  ) {
+
+    const info =
+      LP.find(taskId);
+
+    if (
+      info &&
+      info.task
+    ) {
+
+      task =
+        info.task;
+
     }
+
   }
 
   // ------------------------------------------------------------
@@ -41,294 +77,860 @@
   // ------------------------------------------------------------
 
   function escapeHtml(text) {
+
     return String(text)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      );
+
   }
 
-  function addMessage(type, text) {
-    const el = document.createElement("div");
+  function addMessage(
+    type,
+    text
+  ) {
+
+    const el =
+      document.createElement("div");
 
     el.className =
       "ai-message " +
-      (type === "user"
-        ? "ai-message-user"
-        : "ai-message-bot");
+      (
+        type === "user"
+          ? "ai-message-user"
+          : "ai-message-bot"
+      );
 
-    const label = document.createElement("div");
-    label.className = "ai-message-label";
+    const label =
+      document.createElement("div");
+
+    label.className =
+      "ai-message-label";
+
     label.textContent =
-      type === "user" ? "Kamu" : "Tutor AI";
+      type === "user"
+        ? "Kamu"
+        : "Tutor AI";
 
-    const content = document.createElement("div");
+    const content =
+      document.createElement("div");
 
-    // Text biasa dulu. Jangan render HTML dari AI.
-    content.textContent = text;
+    // Jangan render HTML dari AI.
+    content.textContent =
+      text;
 
     el.appendChild(label);
     el.appendChild(content);
 
     messages.appendChild(el);
-    messages.scrollTop = messages.scrollHeight;
+
+    messages.scrollTop =
+      messages.scrollHeight;
 
     return el;
   }
 
   function addThinking() {
-    const el = document.createElement("div");
+
+    const el =
+      document.createElement("div");
 
     el.className =
       "ai-message ai-message-bot ai-tutor-thinking";
 
-    el.textContent = "Tutor AI sedang berpikir...";
+    el.textContent =
+      "Tutor AI sedang berpikir...";
 
     messages.appendChild(el);
-    messages.scrollTop = messages.scrollHeight;
+
+    messages.scrollTop =
+      messages.scrollHeight;
 
     return el;
   }
 
   // ------------------------------------------------------------
-  // CONTEXT
+  // TASK CONTEXT — LEARNING PATH BIASA
   // ------------------------------------------------------------
 
   function getTaskContext() {
+
     if (!task) {
+
       return {
-        taskId: taskId || null,
-        taskTitle: null,
-        taskDescription: null,
-        taskSteps: [],
-        taskMaterial: [],
-        taskHint: null,
+
+        taskId:
+          taskId || null,
+
+        taskTitle:
+          null,
+
+        taskDescription:
+          null,
+
+        taskSteps:
+          [],
+
+        taskMaterial:
+          [],
+
+        taskHint:
+          null,
+
       };
+
     }
 
     return {
-      taskId: taskId || null,
-      taskTitle: task.title || null,
-      taskDescription: task.desc || null,
-      taskSteps: Array.isArray(task.langkah)
-        ? task.langkah
-        : [],
-      taskMaterial: Array.isArray(task.materi)
-        ? task.materi
-        : [],
-      taskHint: task.hint || null,
+
+      taskId:
+        taskId || null,
+
+      taskTitle:
+        task.title || null,
+
+      taskDescription:
+        task.desc || null,
+
+      taskSteps:
+        Array.isArray(task.langkah)
+          ? task.langkah
+          : [],
+
+      taskMaterial:
+        Array.isArray(task.materi)
+          ? task.materi
+          : [],
+
+      taskHint:
+        task.hint || null,
+
     };
+
   }
 
   // ------------------------------------------------------------
-  // SEND
+  // SMP TASK
+  // ------------------------------------------------------------
+
+  function getSmpTask() {
+
+    if (
+      !window.SMPTaskPanel ||
+      typeof window.SMPTaskPanel.getTask !== "function"
+    ) {
+
+      return null;
+
+    }
+
+    const result =
+      window.SMPTaskPanel.getTask();
+
+    if (
+      !result ||
+      !result.task
+    ) {
+
+      return null;
+
+    }
+
+    return result;
+
+  }
+
+  // ------------------------------------------------------------
+  // EDITOR CODE
+  // ------------------------------------------------------------
+
+  function getEditorCode() {
+
+    if (
+      window.DCCEditor &&
+      typeof window.DCCEditor.getCode === "function"
+    ) {
+
+      return window.DCCEditor.getCode();
+
+    }
+
+    return {
+
+      html: "",
+      css: "",
+
+    };
+
+  }
+
+  // ------------------------------------------------------------
+  // SEND TO BACKEND
   // ------------------------------------------------------------
 
   async function askTutor(message) {
-    const context = getTaskContext();
+
+    const context =
+      getTaskContext();
 
     const editorCode =
-      window.DCCEditor && typeof window.DCCEditor.getCode === "function"
-        ? window.DCCEditor.getCode()
-        : {
-            html: "",
-            css: "",
-          };
+      getEditorCode();
 
-    const response = await fetch("/api/ai/tutor", {
-      method: "POST",
+    const smpTask =
+      getSmpTask();
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+    // ----------------------------------------------------------
+    // DEBUG DATA SEBELUM REQUEST
+    // ----------------------------------------------------------
 
-      body: JSON.stringify({
-        message,
+    console.log(
+      "📋 Task SMP yang dikirim:",
+      smpTask
+    );
 
-        ...context,
-        editorHtml: editorCode.html,
-        editorCss: editorCode.css,
-      }),
-    });
+    const response =
+      await fetch(
+        "/api/ai/tutor",
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+          },
+
+          body:
+            JSON.stringify({
+
+              message,
+
+              ...context,
+
+              editorHtml:
+                editorCode.html,
+
+              editorCss:
+                editorCode.css,
+
+              smpTask:
+                smpTask
+                  ? {
+
+                      nodeId:
+                        smpTask.nodeId,
+
+                      taskIndex:
+                        smpTask.taskIndex,
+
+                      judul:
+                        smpTask.task.judul,
+
+                      langkah:
+                        Array.isArray(
+                          smpTask.task.langkah
+                        )
+                          ? smpTask.task.langkah
+                          : [],
+
+                    }
+                  : null,
+
+            }),
+
+        }
+      );
+
+    // ----------------------------------------------------------
+    // PARSE RESPONSE
+    // ----------------------------------------------------------
 
     let data = null;
 
     try {
-      data = await response.json();
+
+      data =
+        await response.json();
+
     } catch (error) {
-      throw new Error("Respons server tidak valid.");
+
+      throw new Error(
+        "Respons server tidak valid."
+      );
+
     }
 
+    // ----------------------------------------------------------
+    // SERVER ERROR
+    // ----------------------------------------------------------
+
     if (!response.ok) {
+
       throw new Error(
-        data && data.error
+
+        data &&
+        data.error
+
           ? data.error
+
           : "AI Tutor gagal merespons."
+
       );
+
     }
 
     return data;
+
+  }
+
+  // ------------------------------------------------------------
+  // CEK APAKAH SEBUAH LANGKAH MEMBUTUHKAN TINDAKAN DI EDITOR
+  // ------------------------------------------------------------
+
+  function isEditorStep(
+    langkahText
+  ) {
+
+    const text =
+      String(
+        langkahText || ""
+      )
+        .toLowerCase()
+        .trim();
+
+    return (
+      text.includes("editor") ||
+      text.includes("simpan prompt") ||
+      (
+        text.includes("simpan") &&
+        text.includes("prompt")
+      ) ||
+      (
+        text.includes("masukkan") &&
+        text.includes("editor")
+      ) ||
+      (
+        text.includes("terapkan") &&
+        text.includes("editor")
+      )
+    );
+
+  }
+
+  // ------------------------------------------------------------
+  // EVALUASI CHECKLIST PROMPT
+  // ------------------------------------------------------------
+  //
+  // Backend/AI tetap menjadi sumber utama untuk semua langkah.
+  // Untuk Task "Prompt pertama", langkah 1 dan 2 juga diperiksa
+  // secara lokal supaya checklist tidak bergantung pada apakah
+  // model mengembalikan steps:[true,false,...] dengan tepat.
+  //
+  // Langkah editor TIDAK boleh dianggap selesai hanya karena AI
+  // menjawab. Langkah editor baru dipaksa true saat Apply ditekan.
+  // ------------------------------------------------------------
+
+  function promptHasRole(text) {
+
+    const s = String(text || "").toLowerCase();
+
+    return (
+      /\bsebagai\s+[a-z0-9][^,.!?;\n]*/i.test(s) ||
+      /\bberperan\s+sebagai\b/i.test(s) ||
+      /\bbertindak\s+sebagai\b/i.test(s) ||
+      /\bkamu\s+adalah\b/i.test(s) ||
+      /\banda\s+adalah\b/i.test(s) ||
+      /\brole\s*:/i.test(s) ||
+      /\bperan\s*:/i.test(s)
+    );
+
+  }
+
+  function promptHasFormat(text) {
+
+    const s = String(text || "").toLowerCase();
+
+    return (
+      /\bformat\b/i.test(s) ||
+      /\bdalam\s+bentuk\b/i.test(s) ||
+      /\bberikan\s+(?:dalam\s+)?bentuk\b/i.test(s) ||
+      /\btabel\b/i.test(s) ||
+      /\bdaftar\b/i.test(s) ||
+      /\bbullet(?:\s|-)?point\b/i.test(s) ||
+      /\bpoin[- ]poin\b/i.test(s) ||
+      /\bjson\b/i.test(s) ||
+      /\bmarkdown\b/i.test(s) ||
+      /\bparagraf\b/i.test(s) ||
+      /\blangkah[- ]langkah\b/i.test(s) ||
+      /\bmaksimal\s+\d+\s+kata\b/i.test(s)
+    );
+
+  }
+
+  function isTaskOneStep(langkahText) {
+
+    const s = String(langkahText || "").toLowerCase();
+
+    return (
+      s.includes("tulis tugas") ||
+      s.includes("tugas yang ingin dibantu ai")
+    );
+
+  }
+
+  function isRoleFormatStep(langkahText) {
+
+    const s = String(langkahText || "").toLowerCase();
+
+    return (
+      s.includes("peran") &&
+      s.includes("format")
+    );
+
+  }
+
+  function updateSmpChecklist(
+    result,
+    editorApplied = false,
+    studentPrompt = ""
+  ) {
+
+    if (
+      !window.SMPTaskPanel ||
+      typeof window.SMPTaskPanel.setSteps !== "function"
+    ) {
+
+      return;
+
+    }
+
+    if (
+      !result ||
+      !Array.isArray(result.steps)
+    ) {
+
+      return;
+
+    }
+
+    const currentTask =
+      typeof window.SMPTaskPanel.getTask === "function"
+        ? window.SMPTaskPanel.getTask()
+        : null;
+
+    const langkah =
+      currentTask &&
+      currentTask.task &&
+      Array.isArray(currentTask.task.langkah)
+        ? currentTask.task.langkah
+        : [];
+
+    const finalSteps =
+      langkah.map((langkahText, index) => {
+
+        let done =
+          result.steps[index] === true;
+
+        // Langkah 1: kalau siswa sudah mengirim prompt,
+        // berarti dia memang sudah menulis tugas untuk AI.
+        if (isTaskOneStep(langkahText)) {
+          done = done || Boolean(String(studentPrompt || "").trim());
+        }
+
+        // Langkah 2: cek ada PERAN + FORMAT di prompt.
+        if (isRoleFormatStep(langkahText)) {
+          done =
+            done ||
+            (promptHasRole(studentPrompt) &&
+              promptHasFormat(studentPrompt));
+        }
+
+        // Langkah editor hanya selesai setelah Apply.
+        if (editorApplied && isEditorStep(langkahText)) {
+          done = true;
+        }
+
+        return done;
+
+      });
+
+    console.log(
+      "🤖 Steps dari AI:",
+      result.steps
+    );
+
+    console.log(
+      editorApplied
+        ? "📝 Checklist setelah Terapkan ke editor:"
+        : "📋 Checklist setelah evaluasi prompt:",
+      finalSteps
+    );
+
+    window.SMPTaskPanel.setSteps(
+      finalSteps
+    );
+
   }
 
   // ------------------------------------------------------------
   // FORM
   // ------------------------------------------------------------
 
-  form.addEventListener("submit", async function (event) {
-    event.preventDefault();
+  form.addEventListener(
+    "submit",
+    async function (event) {
 
-    const message = input.value.trim();
+      event.preventDefault();
 
-    if (!message) return;
+      const message =
+        input.value.trim();
 
-    if (sendBtn.disabled) return;
-
-    addMessage("user", message);
-
-    /*
-     * PENTING:
-     * Ini adalah prompt asli siswa.
-     *
-     * Nanti evaluator akan menggunakan nilai ini
-     * untuk mengisi checklist.
-     */
-    const studentPrompt = message;
-
-    // Kosongkan input
-    input.value = "";
-
-    sendBtn.disabled = true;
-
-    const thinking = addThinking();
-
-    try {
-      const result = await askTutor(studentPrompt);
-
-      thinking.remove();
-
-      const botMessage = addMessage(
-        "bot",
-        result.reply || "Aku belum bisa memberikan jawaban."
-      );
-
-      const generatedHtml = result.code?.html;
-      const generatedCss = result.code?.css;
-
-      if (
-        (typeof generatedHtml === "string" && generatedHtml.trim()) ||
-        (typeof generatedCss === "string" && generatedCss.trim())
-      ) {
-        const codeBox = document.createElement("div");
-        codeBox.className = "ai-generated-code";
-
-        const title = document.createElement("div");
-        title.className = "ai-generated-code-title";
-        title.textContent = "💻 AI membuat kode untukmu";
-
-        codeBox.appendChild(title);
-
-        if (typeof generatedHtml === "string" && generatedHtml.trim()) {
-          const htmlLabel = document.createElement("div");
-          htmlLabel.textContent = "index.html";
-          htmlLabel.className = "ai-generated-code-label";
-
-          const htmlPre = document.createElement("pre");
-          htmlPre.textContent = generatedHtml;
-
-          codeBox.appendChild(htmlLabel);
-          codeBox.appendChild(htmlPre);
-        }
-
-        if (typeof generatedCss === "string" && generatedCss.trim()) {
-          const cssLabel = document.createElement("div");
-          cssLabel.textContent = "style.css";
-          cssLabel.className = "ai-generated-code-label";
-
-          const cssPre = document.createElement("pre");
-          cssPre.textContent = generatedCss;
-
-          codeBox.appendChild(cssLabel);
-          codeBox.appendChild(cssPre);
-        }
-
-        const applyBtn = document.createElement("button");
-        applyBtn.type = "button";
-        applyBtn.className = "ai-apply-code";
-        applyBtn.textContent = "✨ Terapkan ke editor";
-
-        applyBtn.addEventListener("click", () => {
-          if (
-            !window.DCCEditor ||
-            typeof window.DCCEditor.applyCode !== "function"
-          ) {
-            applyBtn.textContent = "❌ Editor tidak tersedia";
-            return;
-          }
-
-          window.DCCEditor.applyCode({
-            html: generatedHtml,
-            css: generatedCss,
-          });
-
-          applyBtn.textContent = "✅ Kode diterapkan";
-
-          setTimeout(() => {
-            applyBtn.textContent = "✨ Terapkan ke editor";
-          }, 2000);
-        });
-
-        codeBox.appendChild(applyBtn);
-        botMessage.appendChild(codeBox);
-
-        messages.scrollTop = messages.scrollHeight;
+      if (!message) {
+        return;
       }
 
-      /*
-       * Untuk tahap berikutnya:
-       *
-       * evaluatePrompt(studentPrompt, taskId)
-       *
-       * akan dipanggil di sini.
-       *
-       * Belum kita aktifkan sekarang.
-       */
-    } catch (error) {
-      thinking.remove();
+      if (sendBtn.disabled) {
+        return;
+      }
+
+      // --------------------------------------------------------
+      // PESAN SISWA
+      // --------------------------------------------------------
 
       addMessage(
-        "bot",
-        "Maaf, Tutor AI sedang bermasalah.\n\n" +
-        error.message
+        "user",
+        message
       );
 
-      console.error("Tutor AI:", error);
-    } finally {
-      sendBtn.disabled = false;
-      input.focus();
+      /*
+       * Ini adalah prompt asli siswa.
+       */
+      const studentPrompt =
+        message;
+
+      // Kosongkan input
+      input.value = "";
+
+      sendBtn.disabled =
+        true;
+
+      const thinking =
+        addThinking();
+
+      try {
+
+        // ------------------------------------------------------
+        // REQUEST AI
+        // ------------------------------------------------------
+
+        const result =
+          await askTutor(
+            studentPrompt
+          );
+
+        // ------------------------------------------------------
+        // JAWABAN TUTOR
+        // ------------------------------------------------------
+
+        thinking.remove();
+
+        const botMessage =
+          addMessage(
+            "bot",
+            result.reply ||
+              "Aku belum bisa memberikan jawaban."
+          );
+
+        // Evaluasi langkah dari prompt dilakukan saat AI selesai
+        // menjawab. Langkah editor tetap menunggu tombol Apply.
+        updateSmpChecklist(
+          result,
+          false,
+          studentPrompt
+        );
+
+        // ------------------------------------------------------
+        // GENERATED CODE
+        // ------------------------------------------------------
+
+        const generatedHtml =
+          result.code?.html;
+
+        const generatedCss =
+          result.code?.css;
+
+        if (
+          (
+            typeof generatedHtml === "string" &&
+            generatedHtml.trim()
+          ) ||
+          (
+            typeof generatedCss === "string" &&
+            generatedCss.trim()
+          )
+        ) {
+
+          const codeBox =
+            document.createElement("div");
+
+          codeBox.className =
+            "ai-generated-code";
+
+          const title =
+            document.createElement("div");
+
+          title.className =
+            "ai-generated-code-title";
+
+          title.textContent =
+            "💻 AI membuat kode untukmu";
+
+          codeBox.appendChild(
+            title
+          );
+
+          // ----------------------------------------------------
+          // HTML
+          // ----------------------------------------------------
+
+          if (
+            typeof generatedHtml === "string" &&
+            generatedHtml.trim()
+          ) {
+
+            const htmlLabel =
+              document.createElement("div");
+
+            htmlLabel.textContent =
+              "index.html";
+
+            htmlLabel.className =
+              "ai-generated-code-label";
+
+            const htmlPre =
+              document.createElement("pre");
+
+            htmlPre.textContent =
+              generatedHtml;
+
+            codeBox.appendChild(
+              htmlLabel
+            );
+
+            codeBox.appendChild(
+              htmlPre
+            );
+
+          }
+
+          // ----------------------------------------------------
+          // CSS
+          // ----------------------------------------------------
+
+          if (
+            typeof generatedCss === "string" &&
+            generatedCss.trim()
+          ) {
+
+            const cssLabel =
+              document.createElement("div");
+
+            cssLabel.textContent =
+              "style.css";
+
+            cssLabel.className =
+              "ai-generated-code-label";
+
+            const cssPre =
+              document.createElement("pre");
+
+            cssPre.textContent =
+              generatedCss;
+
+            codeBox.appendChild(
+              cssLabel
+            );
+
+            codeBox.appendChild(
+              cssPre
+            );
+
+          }
+
+          // ----------------------------------------------------
+          // APPLY CODE
+          // ----------------------------------------------------
+
+          const applyBtn =
+            document.createElement("button");
+
+          applyBtn.type =
+            "button";
+
+          applyBtn.className =
+            "ai-apply-code";
+
+          applyBtn.textContent =
+            "✨ Terapkan ke editor";
+
+          applyBtn.addEventListener(
+            "click",
+            () => {
+
+              if (
+                !window.DCCEditor ||
+                typeof window.DCCEditor.applyCode !== "function"
+              ) {
+
+                applyBtn.textContent =
+                  "❌ Editor tidak tersedia";
+
+                return;
+
+              }
+
+              // ------------------------------------------------
+              // TERAPKAN KODE
+              // ------------------------------------------------
+
+              window.DCCEditor.applyCode({
+
+                html:
+                  generatedHtml,
+
+                css:
+                  generatedCss,
+
+              });
+
+              // ------------------------------------------------
+              // UPDATE CHECKLIST
+              // ------------------------------------------------
+              //
+              // editorApplied = true:
+              // langkah seperti "Simpan prompt di editor"
+              // otomatis menjadi true.
+              //
+              // Langkah lain tetap mengikuti hasil evaluasi AI.
+              // ------------------------------------------------
+
+              updateSmpChecklist(
+                result,
+                true,
+                studentPrompt
+              );
+
+              applyBtn.textContent =
+                "✅ Kode diterapkan";
+
+              setTimeout(
+                () => {
+
+                  applyBtn.textContent =
+                    "✨ Terapkan ke editor";
+
+                },
+                2000
+              );
+
+            }
+          );
+
+          codeBox.appendChild(
+            applyBtn
+          );
+
+          botMessage.appendChild(
+            codeBox
+          );
+
+          messages.scrollTop =
+            messages.scrollHeight;
+
+        }
+
+      } catch (error) {
+
+        thinking.remove();
+
+        addMessage(
+          "bot",
+          "Maaf, Tutor AI sedang bermasalah.\n\n" +
+          error.message
+        );
+
+        console.error(
+          "Tutor AI:",
+          error
+        );
+
+      } finally {
+
+        sendBtn.disabled =
+          false;
+
+        input.focus();
+
+      }
+
     }
-  });
+  );
 
   // ------------------------------------------------------------
   // ENTER
   // ------------------------------------------------------------
 
-  input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
+  input.addEventListener(
+    "keydown",
+    function (event) {
 
-      form.requestSubmit();
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey
+      ) {
+
+        event.preventDefault();
+
+        form.requestSubmit();
+
+      }
+
     }
-  });
+  );
 
   // ------------------------------------------------------------
   // MINIMIZE
   // ------------------------------------------------------------
 
-  minBtn.addEventListener("click", function () {
-    tutor.classList.toggle("minimized");
+  minBtn.addEventListener(
+    "click",
+    function () {
 
-    minBtn.textContent = tutor.classList.contains("minimized")
-      ? "+"
-      : "−";
-  });
+      tutor.classList.toggle(
+        "minimized"
+      );
+
+      minBtn.textContent =
+        tutor.classList.contains("minimized")
+          ? "+"
+          : "−";
+
+    }
+  );
+
 })();
