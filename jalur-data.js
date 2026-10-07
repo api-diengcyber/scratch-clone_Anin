@@ -22,13 +22,18 @@
 //   poin:    15                         (kalau kosong → POIN_TASK / POIN_PROJECT)
 //   sukses:  "kapan task interactive dianggap berhasil"
 //   gagal:   "kapan task interactive dianggap belum berhasil"
-//   awal:    { html: "...", css: "..." } (khusus kode: isi editor saat dibuka & saat Reset)
+//   awal:    { html: "...", css: "..." } (khusus kode: isi editor saat dibuka & saat Reset; untuk Python/PHP: { python: "..." } / { php: "..." })
 //   bahasa:  ["html"]                   (khusus kode: tab yang tampil; kosong = html dan css)
+//            ["python"] | ["php"]       (Text Editor menjalankan Python/PHP di browser; hasilnya tampil di kotak Output)
 //   langkah: ["langkah 1", ...]         (khusus kode: daftar langkah yang tampil di kartu misi Text Editor, supaya siswa ingat harus ngapain)
-//   cek:     [ { teks, tag | css | uji } ]  (khusus kode: syarat berhasil, lihat contoh di jalur Website)
+//   cek:     [ { teks, tag | css | kode | keluaran | uji } ]  (khusus kode: syarat berhasil, lihat contoh di jalur Website)
 //              tag: "h1", isi: true, min: 1        → ada elemen HTML (isi:true = ada tulisannya)
 //              css: { pada: "body", prop: ["color"] } → ada aturan CSS (atau kelas: true = ada class)
-//              uji: (ctx) => true/false            → syarat bebas (ctx.doc, ctx.rules, ctx.html, ctx.css)
+//              kode: "def "  atau  /for .+ in range/  → tulisan yang harus ada di KODE anak (semua bahasa)
+//              keluaran: "halo"  atau  /\d+/          → tulisan yang harus muncul di OUTPUT program Python/PHP setelah ▶ Jalankan
+//              uji: (ctx) => true/false            → syarat bebas (ctx.doc, ctx.rules, ctx.html, ctx.css, ctx.python, ctx.php, ctx.kode, ctx.output, ctx.error)
+//              Contoh task Python:  kode({ bahasa: ["python"], awal: { python: "# tulis di sini\n" },
+//                                         cek: [ { teks: "Mencetak sapaan", keluaran: /halo/i }, { teks: "Memakai variabel", kode: /\w+\s*=/ } ] }, "Judul", "Deskripsi", "Petunjuk")
 //   praktik: "block" | "text" | "external" | "physical"   (tombol 🚀 Mulai Praktik; boleh dikosongkan)
 //              block    = buka Block Editor (jalur 2D Game)
 //              text     = buka Text Editor (jalur Website: HTML + CSS)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Muat dan ubah JSON</title>
+  <title>Task 5: Muat dan Ubah JSON</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,126 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Muat dan ubah JSON</h1><p>File, JSON &amp; Penanganan Error • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Muat dan ubah JSON</strong>, bagian dari modul <em>File, JSON & Penanganan Error</em> (pertemuan 19–24).</p><div class="highlight-box">Konsep yang dipakai: <strong>open, with, json, try/except</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Program yang berguna menyimpan data ke file. Error pasti terjadi, jadi program perlu menanganinya dengan tenang.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>with open() menutup file secara otomatis</li><li>JSON menyimpan dict dan list sebagai teks</li><li>try/except menangkap error tanpa program berhenti</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Baca kembali file JSON yang kamu simpan sebelumnya</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Ubah satu nilai di dalamnya</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Simpan kembali dengan json.dump</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Pastikan file tidak rusak saat dibuka lagi</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • MANIPULASI DATA JSON</span>
+    <h1>Muat dan Ubah JSON</h1>
+    <p>Membaca file data JSON yang ada, memodifikasinya di memori, dan menyimpannya kembali secara permanen</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Siklus Lengkap: Muat, Ubah, Simpan</h2>
+    <div class="card">
+      <p>Aplikasi seperti game atau pencatat inventaris bekerja dengan siklus: <strong>(1) Muat data lama</strong> dari file ke memori, <strong>(2) Modifikasi nilai</strong> sesuai aksi pengguna, dan <strong>(3) Tulis ulang data baru</strong> ke file agar perubahan tersimpan permanen.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tahap Alur</th>
+              <th>Fungsi Python</th>
+              <th>Aksi yang Terjadi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. Baca Data</td>
+              <td><code>json.load(file)</code></td>
+              <td>Membaca file <code>.json</code> dan mengubahnya langsung menjadi dict/list Python.</td>
+            </tr>
+            <tr>
+              <td>2. Modifikasi</td>
+              <td>Manipulasi Dict / List biasa</td>
+              <td>Menambah kunci baru, memperbarui skor, atau menambahkan item list.</td>
+            </tr>
+            <tr>
+              <td>3. Tulis Ulang</td>
+              <td><code>json.dump(data, file)</code></td>
+              <td>Menimpa file dengan versi data yang sudah diperbarui.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Kombinasikan dengan blok <code>try/except</code> agar program otomatis membuat file JSON baru dengan data kosong jika filenya belum pernah dibuat sebelumnya.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Update Data JSON</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-keyword">import</span> json
+
+nama_file = <span class="code-str">"inventaris.json"</span>
+
+<span class="code-comment"># TAHAP 1: Muat data lama (dengan penanganan jika file belum ada)</span>
+<span class="code-keyword">try</span>:
+    <span class="code-keyword">with</span> <span class="code-func">open</span>(nama_file, <span class="code-str">"r"</span>, encoding=<span class="code-str">"utf-8"</span>) <span class="code-keyword">as</span> f:
+        data_game = json.<span class="code-func">load</span>(f)
+<span class="code-keyword">except</span> (FileNotFoundError, json.JSONDecodeError):
+    <span class="code-comment"># Data default jika file belum dibuat atau kosong</span>
+    data_game = {<span class="code-str">"koin"</span>: <span class="code-num">100</span>, <span class="code-str">"item"</span>: []}
+
+<span class="code-comment"># TAHAP 2: Ubah data di memori Python</span>
+data_game[<span class="code-str">"koin"</span>] += <span class="code-num">50</span>                     <span class="code-comment"># Tambah koin</span>
+data_game[<span class="code-str">"item"</span>].<span class="code-func">append</span>(<span class="code-str">"Tameng Besi"</span>)     <span class="code-comment"># Tambah item baru</span>
+
+<span class="code-comment"># TAHAP 3: Tulis ulang data yang sudah diupdate ke file</span>
+<span class="code-keyword">with</span> <span class="code-func">open</span>(nama_file, <span class="code-str">"w"</span>, encoding=<span class="code-str">"utf-8"</span>) <span class="code-keyword">as</span> f:
+    json.<span class="code-func">dump</span>(data_game, f, indent=<span class="code-num">4</span>)
+
+print(<span class="code-str">"Inventaris berhasil diperbarui!"</span>)
+print(<span class="code-str">f"Koin sekarang: {data_game['koin']}, Total item: {len(data_game['item'])}"</span>)</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buat fungsi muat_data() yang aman</h4>
+            <p>Gunakan <code>try: json.load()</code> dengan penanganan <code>FileNotFoundError</code> untuk mengembalikan dictionary awal jika file belum ada.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Tambahkan data baru lewat program</h4>
+            <p>Tanyakan input nama barang baru dari pengguna dengan <code>input()</code> lalu tambahkan ke list inventaris.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Simpan kembali ke file JSON</h4>
+            <p>Buka kembali file dalam mode <code>"w"</code> dan jalankan <code>json.dump(data, f, indent=4)</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Jalankan program berulang kali</h4>
+            <p>Jalankan skrip 2 sampai 3 kali, dan amati bahwa data lama tidak hilang melainkan terus bertambah di dalam file <code>inventaris.json</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Membuka file dengan mode <code>"w"</code> saat berniat membaca, yang langsung mengosongkan file sebelum sempat dibaca dengan <code>json.load()</code>.</li>
+        <li>File JSON kosong (0 bytes) dibuka dengan <code>json.load()</code> yang memicu error <code>json.decoder.JSONDecodeError</code>.</li>
+        <li>Mengubah dictionary di memori tetapi lupa menuliskan blok <code>json.dump()</code> untuk menyimpannya kembali ke file fisik.</li>
+      </ul>
+      <div class="alert-box">
+        Ingat urutan langkah: buka baca (<code>"r"</code>) terlebih dahulu → ubah variabel di memori → baru kemudian buka tulis (<code>"w"</code>) untuk menyimpan pembaruan.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

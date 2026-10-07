@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Navigasi keyboard</title>
+  <title>Task 5: Navigasi Keyboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,11 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
-    .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +111,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +132,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +146,115 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Navigasi keyboard</h1><p>Responsif &amp; Aksesibilitas • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Navigasi keyboard</strong>, bagian dari modul <em>Responsif & Aksesibilitas</em> (pertemuan 7–12).</p><div class="highlight-box">Konsep yang dipakai: <strong>viewport, media query, rem dan %, alt text</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Websitemu dibuka di HP, tablet, dan laptop. Desain responsif menyesuaikan tampilan, aksesibilitas memastikan semua orang bisa memakainya.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>meta viewport wajib agar tampil benar di HP</li><li>Media query mengubah gaya pada lebar tertentu</li><li>Teks alternatif dan kontras warna membantu semua orang</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Coba pindah antar tautan dengan tombol Tab</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Pastikan fokus tampil jelas dengan outline</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tambahkan tautan lompat ke konten utama</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Perbaiki satu bagian yang sulit dijangkau keyboard</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • NAVIGASI TANPA MOUSE</span>
+    <h1>Navigasi Keyboard</h1>
+    <p>Membuat seluruh menu, tombol, dan form dapat dijelajahi dengan nyaman menggunakan tombol Tab</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Berselancar di Web Menggunakan Tombol Tab</h2>
+    <div class="card">
+      <p>Tidak semua orang memakai mouse saat menggunakan laptop. Sebagian pengguna mengandalkan tombol <strong>Tab</strong> untuk berpindah antar tautan dan tombol, serta tombol <strong>Enter</strong> untuk mengeklik.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tombol Keyboard</th>
+              <th>Aksi di Website</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Tab</code></td>
+              <td>Pindah ke tombol, tautan, atau input formulir berikutnya</td>
+            </tr>
+            <tr>
+              <td><code>Shift + Tab</code></td>
+              <td>Mundur ke elemen interaktif sebelumnya</td>
+            </tr>
+            <tr>
+              <td><code>Enter</code> / <code>Spasi</code></td>
+              <td>Mengaktifkan tombol atau membuka tautan</td>
+            </tr>
+            <tr>
+              <td><code>:focus-visible</code></td>
+              <td>Aturan CSS untuk menampilkan kotak penanda posisi kursor keyboard</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Jangan pernah menghilangkan garis fokus dengan <code>outline: none;</code> tanpa memberi tanda pengganti, karena pengguna keyboard akan tersesat dan tidak tahu posisi tombol yang sedang aktif.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Fokus Aksesibel</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment">/* Memberikan penanda fokus yang tegas saat ditekan Tab */</span>
+<span class="code-keyword">a</span>:focus-visible,
+<span class="code-keyword">button</span>:focus-visible,
+<span class="code-keyword">input</span>:focus-visible {
+  outline: <span class="code-num">3px</span> solid <span class="code-str">#4361ee</span>;   <span class="code-comment">/* Garis biru tegas */</span>
+  outline-offset: <span class="code-num">3px</span>;         <span class="code-comment">/* Beri jarak agar tidak menempel */</span>
+  border-radius: <span class="code-num">6px</span>;
+}
+
+<span class="code-comment">&lt;!-- Tautan lewati navigasi untuk pengguna keyboard --&gt;</span>
+&lt;<span class="code-keyword">a</span> <span class="code-func">href</span>=<span class="code-str">"#konten-utama"</span> <span class="code-func">class</span>=<span class="code-str">"skip-link"</span>&gt;Lompat ke Konten Utama&lt;/<span class="code-keyword">a</span>&gt;</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Periksa tag tombol dan link</h4>
+            <p>Pastikan semua hal yang bisa diklik dibuat memakai tag semantik seperti <code>&lt;a&gt;</code> atau <code>&lt;button&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Beri gaya outline yang kontras</h4>
+            <p>Tambahkan selector <code>:focus-visible</code> di CSS dengan warna outline yang jelas dan tidak bertabrakan dengan warna latar.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Cek urutan formulir</h4>
+            <p>Pastikan setiap kolom input formulir tersusun runtut dari atas ke bawah sesuai urutan membaca.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Uji coba tanpa menyentuh mouse</h4>
+            <p>Lepaskan mouse-mu, lalu tekan tombol <code>Tab</code> berkali-kali untuk memastikan kamu bisa membuka menu dan mengisi form pendaftaran.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menuliskan <code>* { outline: none; }</code> yang menghilangkan garis pembantu fokus untuk seluruh elemen web.</li>
+        <li>Membuat tombol interaktif dari tag <code>&lt;div&gt;</code> yang tidak bisa menerima fokus tombol Tab secara otomatis.</li>
+        <li>Mengatur <code>tabindex</code> dengan angka positif acak yang mengacaukan urutan lompatan tombol keyboard.</li>
+      </ul>
+      <div class="alert-box">
+        Gunakan pseudo-class <code>:focus-visible</code> daripada <code>:focus</code> biasa agar garis penanda hanya muncul saat pengguna menavigasi via keyboard, bukan saat mouse mengeklik.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

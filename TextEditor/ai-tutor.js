@@ -148,6 +148,15 @@
         ...context,
         editorHtml: editorCode.html,
         editorCss: editorCode.css,
+
+        // Python / PHP: Tutor AI perlu tahu bahasa dan kode yang sedang dibuka
+        editorLanguage: editorCode.mode || "web",
+        editorCode:
+          editorCode.mode === "python"
+            ? editorCode.python
+            : editorCode.mode === "php"
+              ? editorCode.php
+              : "",
       }),
     });
 

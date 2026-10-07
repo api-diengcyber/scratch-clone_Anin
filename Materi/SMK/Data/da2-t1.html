@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ringkasan nilai</title>
+  <title>Task 1: Ringkasan Nilai</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,125 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Ringkasan nilai</h1><p>Statistik Dasar dengan Python • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Ringkasan nilai</strong>, bagian dari modul <em>Statistik Dasar dengan Python</em> (pertemuan 7–12).</p><div class="highlight-box">Konsep yang dipakai: <strong>mean, median, modus, min dan max</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Statistik meringkas banyak angka menjadi sedikit angka yang mudah dipahami.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Mean adalah jumlah dibagi banyak data</li><li>Median adalah nilai tengah setelah diurutkan</li><li>Modus adalah nilai yang paling sering muncul</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Simpan 10 nilai ujian dalam list</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Hitung mean dengan sum() dan len()</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Urutkan lalu cari median</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Cetak nilai terkecil, terbesar, dan jangkauannya</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Catat sumber, tanggal, dan jumlah data di setiap analisis.</li><li>Bersihkan data lebih dulu; angka yang salah ketik merusak seluruh kesimpulan.</li><li>Tulis kesimpulan dengan jujur, termasuk batas dari datamu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=da2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 1 • STATISTIK DESKRIPTIF</span>
+    <h1>Ringkasan Nilai</h1>
+    <p>Meringkas puluhan angka menjadi informasi mean, nilai tertinggi, dan nilai terendah</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Memahami Mean (Rata-rata)</h2>
+    <div class="card">
+      <p>Statistik berguna untuk menyederhanakan data yang banyak agar cepat dipahami. <strong>Mean (Rata-rata)</strong> adalah representasi nilai tengah yang diperoleh dari <strong>jumlah seluruh nilai dibagi banyaknya data</strong>.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metrik</th>
+              <th>Fungsi Python</th>
+              <th>Kegunaan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Total Data</td>
+              <td><code>sum(data)</code></td>
+              <td>Menjumlahkan seluruh angka di dalam list</td>
+            </tr>
+            <tr>
+              <td>Banyak Sampel</td>
+              <td><code>len(data)</code></td>
+              <td>Menghitung total elemen yang terkumpul</td>
+            </tr>
+            <tr>
+              <td>Nilai Terendah</td>
+              <td><code>min(data)</code></td>
+              <td>Menemukan skor paling kecil</td>
+            </tr>
+            <tr>
+              <td>Nilai Tertinggi</td>
+              <td><code>max(data)</code></td>
+              <td>Menemukan skor paling besar</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Rumus dasar Mean di Python: <code>rata_rata = sum(data) / len(data)</code>.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Kumpulan nilai ujian siswa</span>
+nilai_ujian = [<span class="code-num">78</span>, <span class="code-num">85</span>, <span class="code-num">90</span>, <span class="code-num">65</span>, <span class="code-num">88</span>, <span class="code-num">92</span>, <span class="code-num">70</span>, <span class="code-num">82</span>]
+
+<span class="code-comment"># Menghitung mean dan batas ekstrem</span>
+total_nilai = <span class="code-func">sum</span>(nilai_ujian)
+jumlah_siswa = <span class="code-func">len</span>(nilai_ujian)
+mean_nilai = total_nilai / jumlah_siswa
+
+skor_tertinggi = <span class="code-func">max</span>(nilai_ujian)
+skor_terendah = <span class="code-func">min</span>(nilai_ujian)
+
+print(<span class="code-str">"=== Ringkasan Nilai Ujian ==="</span>)
+print(<span class="code-str">f"Jumlah Peserta  : {jumlah_siswa} orang"</span>)
+print(<span class="code-str">f"Rata-rata (Mean): {mean_nilai:.2f}"</span>)
+print(<span class="code-str">f"Tertinggi       : {skor_tertinggi}"</span>)
+print(<span class="code-str">f"Terendah        : {skor_terendah}"</span>)</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Siapkan list nilai kelas</h4>
+            <p>Buat variabel <code>nilai_siswa</code> yang menampung minimal 10 angka nilai tugas.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Hitung total dan ukuran data</h4>
+            <p>Gunakan fungsi bawaan <code>sum()</code> dan <code>len()</code> pada list tersebut.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Hitung rata-rata</h4>
+            <p>Bagi total dengan panjang data, lalu gunakan format <code>:.2f</code> untuk membatasi 2 angka di belakang koma.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Cari nilai minimum dan maksimum</h4>
+            <p>Panggil fungsi <code>min()</code> dan <code>max()</code> lalu tampilkan ringkasan hasil secara terstruktur.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menghitung rata-rata dari list kosong yang menyebabkan error <code>ZeroDivisionError: division by zero</code>.</li>
+        <li>Tipe data di dalam list berupa string teks (misal: <code>["80", "90"]</code>) sehingga fungsi <code>sum()</code> memicu <code>TypeError</code>.</li>
+        <li>Mean sangat sensitif terhadap nilai ekstrem (pencilan/outlier); satu nilai 0 yang salah input bisa merusak rata-rata kelas.</li>
+      </ul>
+      <div class="alert-box">
+        Pastikan list memuat minimal satu data numerik sebelum menjalankan rumus pembagian rata-rata.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

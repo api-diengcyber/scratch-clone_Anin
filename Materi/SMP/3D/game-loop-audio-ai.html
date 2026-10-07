@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Validasi formulir</title>
+  <title>Game Loop, Audio 3D &amp; AI Musuh</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,12 +285,46 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Validasi formulir</h1><p>JavaScript Dasar &amp; DOM • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Validasi formulir</strong>, bagian dari modul <em>JavaScript Dasar & DOM</em> (pertemuan 13–20).</p><div class="highlight-box">Konsep yang dipakai: <strong>variabel, fungsi, DOM, querySelector</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">JavaScript membuat halaman bisa bereaksi. DOM adalah pohon elemen halaman yang bisa dibaca dan diubah lewat kode.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>let dan const menyimpan nilai</li><li>document.querySelector memilih elemen</li><li>textContent dan classList mengubah tampilan</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat form dengan nama dan email</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Cegah form terkirim bila ada kolom yang kosong</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tampilkan pesan kesalahan di bawah kolom yang bermasalah</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tampilkan pesan sukses bila semuanya benar</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMP • GAME DEV 3D</span><h1>Game Loop, Audio 3D &amp; AI Musuh</h1><p>Loop permainan, suara berdasarkan jarak, dan musuh yang mengejar atau berpatroli</p></div><div class="content">
+<h2 class="section-title">1. Game loop dan dt</h2><div class="card"><div class="code-block">let waktuLalu = 0;
+function loop(waktuSekarang) {
+  const dt = (waktuSekarang - waktuLalu) / 1000;   // detik
+  waktuLalu = waktuSekarang;
+  bacaInput();
+  update(dt);
+  gambar();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);</div><p style="margin-top:8px;">Setiap putaran: <strong>input → update → gambar</strong>. Semua yang bergerak memakai <code>dt</code> agar kecepatannya stabil.</p></div>
+<h2 class="section-title">2. Penghitung waktu</h2><div class="card"><div class="code-block">let sisa = 60;              // detik
+function update(dt) {
+  if (selesai) return;
+  sisa -= dt;
+  if (sisa &lt;= 0) { sisa = 0; selesai = true; pesan = "Waktu habis!"; }
+}
+// tampil: Math.ceil(sisa) + " detik"</div><p style="margin-top:8px;">Tampilkan sisa waktu supaya pemain bisa merencanakan langkah. Waktu habis adalah salah satu syarat kalah.</p></div>
+<h2 class="section-title">3. Musuh pengejar</h2><div class="card"><div class="code-block">const dx = pemain.x - musuh.x, dz = pemain.z - musuh.z;
+const jarak = Math.sqrt(dx*dx + dz*dz);
+if (jarak &gt; 1.5) {                     // berhenti saat dekat
+  musuh.x += dx / jarak * kecepatanMusuh * dt;
+  musuh.z += dz / jarak * kecepatanMusuh * dt;
+}</div><div class="highlight-box"><code>dx / jarak</code> adalah <strong>arah satuan</strong> menuju pemain. Kalikan dengan kecepatan dan dt untuk jarak langkah per frame.</div><div class="alert-box">Beri musuh kecepatan <strong>sedikit di bawah</strong> kecepatan lari pemain supaya permainan tetap adil.</div></div>
+<h2 class="section-title">4. Musuh patroli dan keadaan</h2><div class="card"><div class="table-container"><table><thead><tr><th>Keadaan</th><th>Syarat</th><th>Perilaku</th></tr></thead><tbody><tr><td>Patroli</td><td>Pemain jauh</td><td>Berjalan bolak-balik di satu jalur</td></tr><tr><td>Kejar</td><td>Jarak pemain kurang dari radius lihat</td><td>Bergerak menuju pemain</td></tr><tr><td>Kembali</td><td>Pemain menjauh</td><td>Kembali ke jalur patroli</td></tr></tbody></table></div><div class="code-block">if (jarak &lt; radiusLihat) keadaan = "kejar"; else keadaan = "patroli";
+if (keadaan === "patroli") {
+  musuh.x += arahPatroli * kecepatan * dt;
+  if (musuh.x &gt; batasKanan || musuh.x &lt; batasKiri) arahPatroli *= -1;
+}</div></div>
+<h2 class="section-title">5. Audio 3D: makin dekat makin keras</h2><div class="card"><div class="code-block">const volume = Math.max(0, Math.min(1, 1 - jarak / jangkauan));
+suara.volume = volume;</div><div class="table-container"><table><thead><tr><th>Jarak (jangkauan 20)</th><th>Volume</th></tr></thead><tbody><tr><td>0</td><td>1,0 (penuh)</td></tr><tr><td>10</td><td>0,5</td></tr><tr><td>20 atau lebih</td><td>0 (tidak terdengar)</td></tr></tbody></table></div></div>
+<h2 class="section-title">6. Nyawa dan game over</h2><div class="card"><div class="code-block">if (bertabrakan(pemain.kotak, musuh.kotak) &amp;&amp; !kebal) {
+  nyawa -= 1;
+  kebal = true;                  // jeda kebal 1 detik
+  setTimeout(() =&gt; kebal = false, 1000);
+}
+if (nyawa &lt;= 0) pesan = "GAME OVER";</div><div class="alert-box">Tanpa jeda kebal, satu sentuhan bisa menghabiskan semua nyawa dalam hitungan frame.</div></div>
+<h2 class="section-title">7. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Musuh pengejar dan Musuh patroli:</strong> bagian chase dan state.</li><li><strong>Suara dan nyawa:</strong> audio dan nyawa.</li><li><strong>Game loop dan waktu:</strong> penghitung waktu.</li><li><strong>Suara berdasarkan jarak:</strong> rumus volume.</li></ul></div>
+<h2 class="section-title">8. Proyek: Game Bertahan Hidup 3D</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Gabungkan</h4><p>Karakter, musuh, nyawa, dan penghitung waktu dalam satu loop.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Syarat menang dan kalah</h4><p>Tulis: menang bila bertahan sampai waktu habis, kalah bila nyawa 0.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji 3 kali</h4><p>Catat bagian yang terlalu sulit, lalu sesuaikan kecepatan musuh atau jumlah nyawa.</p></div></div></div></div>
 </div></div>
 </body></html>

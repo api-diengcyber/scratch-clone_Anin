@@ -4,6 +4,7 @@ html, body { height: 100%; }
 body { margin: 0; font-family: "Trebuchet MS", "Nunito", Arial, sans-serif; color: #2b3350;
   background: linear-gradient(180deg, #e8f4ff 0%, #fff8e8 100%); display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 button { font: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
 
 /* ----- header ----- */
 .eh { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 18px; background: #fff; border-bottom: 3px solid #e3e9ff; flex: none; }
@@ -58,6 +59,7 @@ button { font: inherit; cursor: pointer; }
 .tk-tag { color: #ff8fb1; } .tk-attr { color: #ffd166; } .tk-str { color: #7be0a3; }
 .tk-com { color: #8a93b4; font-style: italic; } .tk-doc { color: #b69cff; } .tk-pun { color: #c9cfe4; }
 .tk-sel { color: #7cc4ff; } .tk-prop { color: #ffd166; } .tk-val { color: #ffa8c5; } .tk-num { color: #ffb86b; }
+.tk-kw { color: #ff8fb1; } .tk-fn { color: #7cc4ff; } .tk-bi { color: #b69cff; } .tk-var { color: #ffd166; } .tk-cn { color: #ffb86b; }   /* Python & PHP */
 
 /* ----- tombol ----- */
 .toolbar { display: flex; gap: 10px; padding: 10px 14px; background: #f6f8ff; flex: none; flex-wrap: wrap; }
@@ -65,6 +67,7 @@ button { font: inherit; cursor: pointer; }
 .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.15); }
 .btn.run { background: #34c06f; font-size: 17px; padding: 11px 26px; }
 .btn.ghost { background: #eef1ff; color: #5a6bd8; box-shadow: none; }
+.btn.stop { background: #ff7a59; }
 
 /* ----- preview ----- */
 #preview { flex: 1; min-height: 0; width: 100%; border: 0; background: #fff; }
@@ -322,3 +325,23 @@ button { font: inherit; cursor: pointer; }
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ============================================================
+   PYTHON & PHP — pilihan bahasa, kotak Output, kotak Input
+   ============================================================ */
+.langs { display: flex; gap: 6px; }
+.langs button { border: 2px solid #eef1ff; background: #fff; color: #5a6bd8; font-weight: bold; font-size: 13px; padding: 5px 10px; border-radius: 12px; }
+.langs button.on { background: #fff4d6; border-color: #ffc94d; color: #a86a00; }
+.pane-head .tabs[hidden] + .ph-note { margin-left: auto; }
+
+.console { flex: 1; min-height: 0; background: #1b1f3b; color: #e8ecff; overflow: auto; }
+.console pre { margin: 0; padding: 14px 16px; min-height: 100%; font: 15px/22px Consolas, Menlo, "Courier New", monospace; white-space: pre-wrap; word-break: break-word; }
+.console .err { color: #ff9b8f; }
+.console .sys { color: #8a93b4; font-style: italic; }
+
+.stdin-box { flex: none; padding: 8px 14px 10px; background: #f6f8ff; border-top: 3px solid #eef1ff; }
+.stdin-box label { display: block; font-size: 13px; font-weight: bold; color: #55608a; margin-bottom: 4px; }
+.stdin-box label span { font-weight: normal; color: #8a93b4; }
+.stdin-box textarea { width: 100%; resize: vertical; min-height: 44px; max-height: 120px; border: 2px solid #dfe5ff; border-radius: 12px; padding: 8px 10px; font: 14px/20px Consolas, Menlo, "Courier New", monospace; color: #2b3350; background: #fff; outline: none; }
+.stdin-box textarea:focus { border-color: #6d7eea; }
+.stdin-box.need textarea { border-color: #ff9b8f; }

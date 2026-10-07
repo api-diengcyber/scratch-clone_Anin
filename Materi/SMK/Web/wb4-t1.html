@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daftar tugas</title>
+  <title>Task 1: Daftar Tugas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,123 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Daftar tugas</h1><p>JavaScript Interaktif &amp; Data • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Daftar tugas</strong>, bagian dari modul <em>JavaScript Interaktif & Data</em> (pertemuan 21–28).</p><div class="highlight-box">Konsep yang dipakai: <strong>event, array, localStorage, filter</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Aplikasi web yang berguna merespons banyak event, mengelola daftar data, dan mengingat datanya walau halaman ditutup.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>addEventListener mendengarkan klik, ketikan, dan submit</li><li>Array dan objek menyimpan daftar data</li><li>localStorage menyimpan teks di browser</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat input dan tombol Tambah</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Simpan tugas dalam array dan tampilkan sebagai li</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tambahkan tombol hapus di tiap tugas</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Simpan array ke localStorage dengan JSON.stringify</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 1 • INTERAKSI & DAFTAR TUGAS</span>
+    <h1>Daftar Tugas</h1>
+    <p>Menambahkan dan mencoret daftar kegiatan secara dinamis dengan event listener</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Membuat Elemen Baru Saat Event Terjadi</h2>
+    <div class="card">
+      <p>Aplikasi daftar tugas (to-do list) bekerja dengan menangkap teks dari formulir, membuat elemen daftar baru menggunakan JavaScript, dan menambahkannya ke halaman secara langsung.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metode DOM</th>
+              <th>Fungsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>event.preventDefault()</code></td>
+              <td>Mencegah formulir memuat ulang (refresh) halaman saat ditekan submit.</td>
+            </tr>
+            <tr>
+              <td><code>document.createElement("li")</code></td>
+              <td>Membuat tag baris daftar baru di memori browser.</td>
+            </tr>
+            <tr>
+              <td><code>wadah.appendChild(elemenBaru)</code></td>
+              <td>Memasukkan elemen baru ke dalam elemen pembungkus (misal ke dalam <code>&lt;ul&gt;</code>).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Setiap item daftar yang dibuat secara dinamis dapat langsung dipasangi event listener klik untuk mencoret teks tugas yang sudah selesai.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Daftar Tugas</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-keyword">const</span> formTugas = document.<span class="code-func">querySelector</span>(<span class="code-str">"#formTugas"</span>);
+<span class="code-keyword">const</span> inputTugas = document.<span class="code-func">querySelector</span>(<span class="code-str">"#inputTugas"</span>);
+<span class="code-keyword">const</span> listTugas = document.<span class="code-func">querySelector</span>(<span class="code-str">"#listTugas"</span>);
+
+formTugas.<span class="code-func">addEventListener</span>(<span class="code-str">"submit"</span>, <span class="code-keyword">function</span>(event) {
+  event.<span class="code-func">preventDefault</span>(); <span class="code-comment">// 1. Cegah reload</span>
+
+  <span class="code-keyword">const</span> teks = inputTugas.value.<span class="code-func">trim</span>();
+  <span class="code-keyword">if</span> (teks === <span class="code-str">""</span>) <span class="code-keyword">return</span>;
+
+  <span class="code-comment">// 2. Buat elemen &lt;li&gt; baru</span>
+  <span class="code-keyword">const</span> liBaru = document.<span class="code-func">createElement</span>(<span class="code-str">"li"</span>);
+  liBaru.textContent = teks;
+
+  <span class="code-comment">// 3. Pasang aksi coret saat diklik</span>
+  liBaru.<span class="code-func">addEventListener</span>(<span class="code-str">"click"</span>, () =&gt; {
+    liBaru.style.textDecoration = liBaru.style.textDecoration === <span class="code-str">"line-through"</span> ? <span class="code-str">"none"</span> : <span class="code-str">"line-through"</span>;
+  });
+
+  <span class="code-comment">// 4. Masukkan ke dalam daftar &lt;ul&gt;</span>
+  listTugas.<span class="code-func">appendChild</span>(liBaru);
+  inputTugas.value = <span class="code-str">""</span>; <span class="code-comment">// Kosongkan kolom input</span>
+});</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Siapkan form dan tag &lt;ul&gt;</h4>
+            <p>Buat elemen form yang memuat satu input teks, satu tombol submit, dan satu wadah kosong <code>&lt;ul id="listTugas"&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Cegah reload halaman</h4>
+            <p>Pasang event listener <code>submit</code> pada form dan panggil <code>event.preventDefault()</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Buat elemen &lt;li&gt; dinamis</h4>
+            <p>Gunakan <code>document.createElement("li")</code> lalu isi properti <code>textContent</code> dengan nilai yang diketik pengguna.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Tambahkan fitur coret tugas</h4>
+            <p>Beri event listener klik pada elemen <code>li</code> baru tersebut untuk mengubah gaya coret garis (<code>line-through</code>).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Lupa menggunakan <code>event.preventDefault()</code> sehingga halaman seketika me-refresh dan item tugas yang baru dibuat langsung hilang.</li>
+        <li>Tidak membersihkan nilai input (<code>inputTugas.value = ""</code>) sesudah item berhasil dimasukkan.</li>
+        <li>Memasang event listener klik hanya pada elemen yang sudah ada di HTML, bukan pada elemen yang baru dibuat lewat JavaScript.</li>
+      </ul>
+      <div class="alert-box">
+        Selalu pasang event listener pada elemen dinamis tepat setelah elemen tersebut dibuat lewat <code>document.createElement()</code>.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

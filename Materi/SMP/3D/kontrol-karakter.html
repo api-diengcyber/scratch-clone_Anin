@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kalkulator tip</title>
+  <title>Kontrol Karakter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,12 +285,40 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Kalkulator tip</h1><p>JavaScript Dasar &amp; DOM • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Kalkulator tip</strong>, bagian dari modul <em>JavaScript Dasar & DOM</em> (pertemuan 13–20).</p><div class="highlight-box">Konsep yang dipakai: <strong>variabel, fungsi, DOM, querySelector</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">JavaScript membuat halaman bisa bereaksi. DOM adalah pohon elemen halaman yang bisa dibaca dan diubah lewat kode.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>let dan const menyimpan nilai</li><li>document.querySelector memilih elemen</li><li>textContent dan classList mengubah tampilan</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat dua input: harga dan persen tip</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Tulis fungsi hitungTip() yang membaca kedua input</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tampilkan hasilnya di sebuah elemen p</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tampilkan pesan jika input kosong</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMP • GAME DEV 3D</span><h1>Kontrol Karakter</h1><p>Gerak, kamera, lompat, dan animasi sederhana</p></div><div class="content">
+<h2 class="section-title">1. Gerak = mengubah posisi tiap frame</h2><div class="card"><p style="margin-top:8px;">Game menggambar ulang puluhan kali per detik. Setiap frame, kita menggeser posisi karakter sedikit: <strong>posisi baru = posisi lama + arah × kecepatan × dt</strong>. <code>dt</code> adalah waktu sejak frame sebelumnya, supaya kecepatan sama di komputer cepat maupun lambat.</p><div class="code-block">const kecepatan = 4;            // satuan per detik
+function update(dt) {
+  let ax = 0, az = 0;
+  if (tombol.W) az -= 1;
+  if (tombol.S) az += 1;
+  if (tombol.A) ax -= 1;
+  if (tombol.D) ax += 1;
+  const panjang = Math.sqrt(ax*ax + az*az);
+  if (panjang &gt; 0) { ax /= panjang; az /= panjang; }   // normalisasi
+  karakter.x += ax * kecepatan * dt;
+  karakter.z += az * kecepatan * dt;
+}</div><div class="table-container"><table><thead><tr><th>Tombol</th><th>Arah</th><th>Sumbu</th></tr></thead><tbody><tr><td>W</td><td>Maju</td><td>Z berkurang (di banyak engine, depan = -Z)</td></tr><tr><td>S</td><td>Mundur</td><td>Z bertambah</td></tr><tr><td>A</td><td>Kiri</td><td>X berkurang</td></tr><tr><td>D</td><td>Kanan</td><td>X bertambah</td></tr></tbody></table></div><div class="alert-box">Tanpa normalisasi, berjalan diagonal (W+D) lebih cepat sekitar 1,4 kali. Arah depan bisa berbeda di tiap engine, jadi cek dengan mencoba.</div><div class="alert-box">Contoh kode memakai <strong>pseudokode mirip JavaScript</strong> agar konsepnya berlaku di engine 3D apa pun. Nama fungsi di editor atau engine yang dipakai kelasmu bisa berbeda; pahami logikanya, lalu cari padanannya.</div></div>
+<h2 class="section-title">2. Kamera yang mengikuti karakter</h2><div class="card"><div class="code-block">const offset = { x: 0, y: 3, z: 6 };     // di belakang dan di atas
+kamera.x = karakter.x + offset.x;
+kamera.y = karakter.y + offset.y;
+kamera.z = karakter.z + offset.z;
+kamera.lihatKe(karakter.x, karakter.y + 1, karakter.z);</div><div class="table-container"><table><thead><tr><th>Pengaturan</th><th>Efek</th></tr></thead><tbody><tr><td>Jarak (z) besar</td><td>Pemandangan luas, karakter tampak kecil</td></tr><tr><td>Tinggi (y) besar</td><td>Pandangan dari atas, mudah melihat rintangan</td></tr><tr><td>Terlalu dekat</td><td>Sulit melihat sekitar, mudah pusing</td></tr></tbody></table></div><p style="margin-top:8px;">Agar kamera tidak kaku, geser pelan menuju target: <code>kamera.x += (target - kamera.x) * 5 * dt</code>.</p></div>
+<h2 class="section-title">3. Lompat</h2><div class="card"><div class="code-block">const gravitasi = -20, kekuatanLompat = 8;
+if (tombol.Spasi &amp;&amp; diTanah) { vy = kekuatanLompat; diTanah = false; }
+vy += gravitasi * dt;
+karakter.y += vy * dt;
+if (karakter.y &lt;= tinggiTanah) { karakter.y = tinggiTanah; vy = 0; diTanah = true; }</div><div class="highlight-box">Tinggi lompatan maksimum kira-kira <strong>kekuatan² ÷ (2 × gravitasi)</strong>. Contoh: 8² ÷ (2 × 20) = <strong>1,6 satuan</strong>. Mengubah kekuatan lompat atau gravitasi langsung mengubah tinggi.</div><div class="alert-box">Syarat <code>diTanah</code> mencegah lompat berkali-kali di udara.</div></div>
+<h2 class="section-title">4. Animasi sederhana: diam vs bergerak</h2><div class="card"><div class="code-block">const bergerak = (ax !== 0 || az !== 0);
+if (bergerak) {
+  waktu += dt;
+  karakter.badan.y = Math.sin(waktu * 10) * 0.05;   // naik-turun saat jalan
+} else {
+  karakter.badan.y = 0;                              // diam
+}</div><p style="margin-top:8px;">Cukup satu perbedaan jelas antara diam dan bergerak (goyang, miring, ukuran) supaya karakter terasa hidup. Lihat dari depan dan samping untuk memeriksa bagian yang masih kaku.</p></div>
+<h2 class="section-title">5. Jalan dan lari</h2><div class="card"><div class="table-container"><table><thead><tr><th>Mode</th><th>Kecepatan (contoh)</th><th>Catatan</th></tr></thead><tbody><tr><td>Jalan</td><td>3 satuan/detik</td><td>Nyaman untuk menjelajah</td></tr><tr><td>Lari</td><td>6 satuan/detik</td><td>Dua kali jalan; cocok untuk dikejar musuh</td></tr></tbody></table></div><p style="margin-top:8px;">Uji dengan jalur lurus 20 langkah. Kalau terlalu lambat membosankan, kalau terlalu cepat karakter sulit dikontrol. Angka di tabel hanya contoh; cari yang paling nyaman.</p></div>
+<h2 class="section-title">6. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Karakter bergerak:</strong> bagian gerak dan normalisasi.</li><li><strong>Kamera ikut:</strong> offset kamera.</li><li><strong>Lompat:</strong> gravitasi dan rumus tinggi lompat.</li><li><strong>Animasi karakter:</strong> perbedaan diam dan bergerak.</li><li><strong>Atur kecepatan:</strong> tabel jalan dan lari.</li></ul></div>
+<h2 class="section-title">7. Proyek: Karakter Penjelajah</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Dunia kecil</h4><p>Buat jalan dan beberapa rintangan dengan jarak yang masuk akal.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Kontrol</h4><p>Pastikan karakter bisa berjalan, berlari, dan melompat.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Kamera</h4><p>Cek kamera selalu mengikuti karakter dan tidak menembus benda.</p></div></div></div></div>
 </div></div>
 </body></html>

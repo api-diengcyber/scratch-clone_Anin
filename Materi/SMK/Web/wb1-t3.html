@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Formulir pendaftaran</title>
+  <title>Task 2: Formulir Pendaftaran</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,121 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Formulir pendaftaran</h1><p>HTML Semantik &amp; Layout CSS • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Formulir pendaftaran</strong>, bagian dari modul <em>HTML Semantik & Layout CSS</em> (pertemuan 1–6).</p><div class="highlight-box">Konsep yang dipakai: <strong>semantik, flexbox, grid, box model</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">HTML semantik memberi arti pada tiap bagian halaman. Flexbox dan grid mengatur tata letak tanpa trik yang rumit.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Tag semantik: header, nav, main, section, footer</li><li>Flexbox mengatur satu baris atau satu kolom</li><li>Grid mengatur baris dan kolom sekaligus</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat form dengan input teks, email, dan pilihan</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Beri label yang terhubung ke tiap input</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tambahkan tombol kirim dan atribut required</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Rapikan tampilannya dengan CSS</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 2 • FORMULIR SEMANTIK</span>
+    <h1>Formulir Pendaftaran</h1>
+    <p>Menyusun form pendaftaran yang aksesibel dan terstruktur dengan label serta input yang terhubung</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Struktur Semantik Formulir</h2>
+    <div class="card">
+      <p>Formulir yang baik tidak hanya tampil rapi, tetapi juga harus menghubungkan setiap label instruksi ke kolom inputnya agar mudah diisi oleh pengguna keyboard maupun pembaca layar.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tag / Atribut</th>
+              <th>Fungsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>&lt;form&gt;</code></td>
+              <td>Wadah utama tempat seluruh kolom isian dan tombol submit berada.</td>
+            </tr>
+            <tr>
+              <td><code>&lt;label for="id-input"&gt;</code></td>
+              <td>Teks keterangan yang wajib ditautkan dengan atribut <code>id</code> milik input.</td>
+            </tr>
+            <tr>
+              <td><code>&lt;input type="..."&gt;</code></td>
+              <td>Bidang tempat pengguna mengetikkan teks, email, atau angka.</td>
+            </tr>
+            <tr>
+              <td><code>&lt;button type="submit"&gt;</code></td>
+              <td>Tombol untuk memicu pengiriman data formulir.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Saat tag <code>&lt;label&gt;</code> diklik dengan mouse, kursor akan otomatis aktif di dalam kolom <code>&lt;input&gt;</code> pasangannya jika atribut <strong>for</strong> dan <strong>id</strong> cocok.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Form Semantik</h2>
+    <div class="card">
+      <div class="code-block">&lt;<span class="code-keyword">section</span> <span class="code-func">id</span>=<span class="code-str">"pendaftaran"</span>&gt;
+  &lt;<span class="code-keyword">h2</span>&gt;Formulir Pendaftaran Siswa&lt;/<span class="code-keyword">h2</span>&gt;
+
+  &lt;<span class="code-keyword">form</span> <span class="code-func">class</span>=<span class="code-str">"form-grup"</span>&gt;
+    &lt;<span class="code-keyword">div</span> <span class="code-func">class</span>=<span class="code-str">"input-item"</span>&gt;
+      &lt;<span class="code-keyword">label</span> <span class="code-func">for</span>=<span class="code-str">"nama-lengkap"</span>&gt;Nama Lengkap:&lt;/<span class="code-keyword">label</span>&gt;
+      &lt;<span class="code-keyword">input</span> <span class="code-func">type</span>=<span class="code-str">"text"</span> <span class="code-func">id</span>=<span class="code-str">"nama-lengkap"</span> <span class="code-func">name</span>=<span class="code-str">"nama"</span> <span class="code-func">required</span>&gt;
+    &lt;/<span class="code-keyword">div</span>&gt;
+
+    &lt;<span class="code-keyword">div</span> <span class="code-func">class</span>=<span class="code-str">"input-item"</span>&gt;
+      &lt;<span class="code-keyword">label</span> <span class="code-func">for</span>=<span class="code-str">"email-siswa"</span>&gt;Email Sekolah:&lt;/<span class="code-keyword">label</span>&gt;
+      &lt;<span class="code-keyword">input</span> <span class="code-func">type</span>=<span class="code-str">"email"</span> <span class="code-func">id</span>=<span class="code-str">"email-siswa"</span> <span class="code-func">name</span>=<span class="code-str">"email"</span> <span class="code-func">required</span>&gt;
+    &lt;/<span class="code-keyword">div</span>&gt;
+
+    &lt;<span class="code-keyword">button</span> <span class="code-func">type</span>=<span class="code-str">"submit"</span>&gt;Daftar Sekarang&lt;/<span class="code-keyword">button</span>&gt;
+  &lt;/<span class="code-keyword">form</span>&gt;
+&lt;/<span class="code-keyword">section</span>&gt;</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Bungkus area formulir ke dalam tag &lt;section&gt;</h4>
+            <p>Buat <code>&lt;section id="pendaftaran"&gt;</code> dan beri judul form menggunakan heading semantik <code>&lt;h2&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Buat elemen &lt;form&gt; dan pasangkan label</h4>
+            <p>Sediakan input Nama, Email, dan Pilihan Kategori. Pastikan setiap <code>&lt;label for="..."&gt;</code> memiliki nilai yang persis sama dengan <code>&lt;input id="..."&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Terapkan tata letak flexbox pada kolom input</h4>
+            <p>Atur <code>.input-item</code> dengan <code>display: flex; flex-direction: column; gap: 0.5rem;</code> agar teks label berada rapi di atas kotak input.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Gunakan tombol submit semantik</h4>
+            <p>Tambahkan <code>&lt;button type="submit"&gt;</code> di akhir form untuk mengirim data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menulis teks label biasa menggunakan tag <code>&lt;span&gt;</code> atau <code>&lt;p&gt;</code> tanpa tag <code>&lt;label&gt;</code>.</li>
+        <li>Nilai atribut <code>for</code> pada label tidak sama dengan atribut <code>id</code> pada input.</li>
+        <li>Hanya mengandalkan atribut <code>placeholder</code> sebagai pengganti label (placeholder akan hilang saat mulai mengetik sehingga membingungkan).</li>
+      </ul>
+      <div class="alert-box">
+        Placeholder bukan pengganti label. Label wajib selalu terlihat agar pengguna tidak lupa kolom apa yang sedang mereka isi.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

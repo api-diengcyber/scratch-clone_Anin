@@ -86,6 +86,8 @@ async function askTutor({
     // Isi Text Editor
     editorHtml,
     editorCss,
+    editorLanguage,
+    editorCode,
 
     // Task SMP / SMA-K
     smpTask,
@@ -172,6 +174,8 @@ Tugas kamu:
 4. Menjelaskan bagian prompt yang masih bisa diperbaiki.
 5. Jika siswa meminta membuat, menulis, atau memperbaiki kode,
    kamu boleh menghasilkan kode HTML/CSS.
+   Jika siswa sedang memakai Python atau PHP, jelaskan atau beri contoh
+   kodenya langsung di dalam "reply", dan biarkan html dan css bernilai null.
 6. Jangan mengarang persyaratan tugas.
 7. Jangan mengubah poin.
 8. Jangan mengklaim task selesai hanya berdasarkan penilaianmu.
@@ -267,11 +271,18 @@ Gunakan MAKNA, bukan sekadar kecocokan kata.
 KODE SISWA SAAT INI
 ============================================================
 
-HTML:
+${
+    editorLanguage === "python" || editorLanguage === "php"
+        ? `Bahasa: ${editorLanguage === "python" ? "Python" : "PHP"}
+
+Kode:
+${editorCode || "(kosong)"}`
+        : `HTML:
 ${editorHtml || "(kosong)"}
 
 CSS:
-${editorCss || "(kosong)"}
+${editorCss || "(kosong)"}`
+}
 
 ============================================================
 PESAN SISWA

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 3: Tuple dan Set</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .table-container { overflow-x: auto; margin: 18px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 3 • IMMUTABLE & UNIQUE DATA</span>
+    <h1>Tuple dan Set</h1>
+    <p>Menjaga keaslian data permanen dengan tuple dan menyaring duplikasi otomatis dengan set</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Mengenal Tuple dan Set</h2>
+    <div class="card">
+      <p>Selain list dan dictionary, Python menyediakan dua struktur data penting lainnya dengan sifat khusus: <strong>Tuple</strong> yang sifatnya terkunci permanen, dan <strong>Set</strong> yang menolak data duplikat.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Struktur Data</th>
+              <th>Simbol</th>
+              <th>Bisa Diubah?</th>
+              <th>Bisa Duplikat?</th>
+              <th>Kapan Memakainya?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Tuple</strong></td>
+              <td><code>( )</code></td>
+              <td>Tidak (Immutable)</td>
+              <td>Bisa</td>
+              <td>Data paten yang tidak boleh dirusak (misal: koordinat GPS, hari seminggu).</td>
+            </tr>
+            <tr>
+              <td><strong>Set</strong></td>
+              <td><code>{ }</code></td>
+              <td>Bisa</td>
+              <td>Tidak (Nilai Unik)</td>
+              <td>Menyaring duplikasi dan mengecek keanggotaan dengan sangat cepat.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Gunakan <code>set()</code> ketika kamu ingin tahu jumlah pengunjung unik tanpa menghitung orang yang sama dua kali.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># 1. Tuple: Data koordinat lokasi (tidak boleh berubah)</span>
+koordinat_sekolah = (-<span class="code-num">7.250445</span>, <span class="code-num">112.768845</span>)
+print(<span class="code-str">"Latitude:"</span>, koordinat_sekolah[<span class="code-num">0</span>])
+
+<span class="code-comment"># 2. Set: Menghapus data duplikat dari list tamu</span>
+daftar_hadir = [<span class="code-str">"Andi"</span>, <span class="code-str">"Budi"</span>, <span class="code-str">"Andi"</span>, <span class="code-str">"Citra"</span>, <span class="code-str">"Budi"</span>]
+tamu_unik = <span class="code-func">set</span>(daftar_hadir)
+
+<span class="code-comment"># Menambah tamu baru ke dalam set</span>
+tamu_unik.<span class="code-func">add</span>(<span class="code-str">"Doni"</span>)
+print(<span class="code-str">"Daftar tamu unik:"</span>, tamu_unik)
+
+<span class="code-comment"># Memeriksa keanggotaan</span>
+print(<span class="code-str">"Apakah Budi hadir?"</span>, <span class="code-str">"Budi"</span> <span class="code-keyword">in</span> tamu_unik)</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buat sebuah tuple</h4>
+            <p>Deklarasikan tuple bernama <code>resolusi_layar = (1920, 1080)</code> dan cetak nilai lebarnya.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Siapkan list dengan data ganda</h4>
+            <p>Buat list nama hobi yang sengaja memuat kata yang sama berkali-kali.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Konversikan list menjadi set</h4>
+            <p>Gunakan fungsi <code>set()</code> untuk membersihkan seluruh data hobi yang terduplikasi.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Lakukan pengecekan dengan operator 'in'</h4>
+            <p>Periksa apakah hobi tertentu ada di dalam set menggunakan perintah <code>"membaca" in set_hobi</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Mencoba mengubah nilai tuple (misal: <code>koordinat[0] = 10</code>) yang akan memicu <code>TypeError: 'tuple' object does not support item assignment</code>.</li>
+        <li>Mencoba mengakses item set dengan indeks angka (misal: <code>tamu_unik[0]</code>), yang akan menghasilkan error karena Set tidak memiliki urutan.</li>
+        <li>Membuat set kosong dengan <code>{}</code>; di Python, <code>{}</code> kosong akan dianggap Dictionary. Gunakan <code>set()</code> untuk membuat set kosong.</li>
+      </ul>
+      <div class="alert-box">
+        Set tidak menjamin urutan data saat dicetak. Jika urutan data sangat penting, gunakanlah <strong>List</strong>!
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

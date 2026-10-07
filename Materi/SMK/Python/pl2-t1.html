@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cari angka</title>
+  <title>Task 1: Linear Search vs Binary Search</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,126 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Cari angka</h1><p>Algoritma Pencarian &amp; Pengurutan • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Cari angka</strong>, bagian dari modul <em>Algoritma Pencarian & Pengurutan</em> (pertemuan 7–12).</p><div class="highlight-box">Konsep yang dipakai: <strong>linear search, binary search, bubble sort, efisiensi</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Algoritma adalah langkah-langkah jelas untuk menyelesaikan masalah. Algoritma dibandingkan dari banyaknya langkah yang dibutuhkan.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Linear search memeriksa data satu per satu</li><li>Binary search membelah data yang sudah urut</li><li>Bubble sort menukar pasangan yang salah urut</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat list angka yang sudah diurutkan</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Tulis linear search dengan for</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tulis binary search dengan while</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Hitung berapa langkah yang dipakai tiap cara</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 1 • ALGORITMA PENCARIAN</span>
+    <h1>Linear Search vs Binary Search</h1>
+    <p>Menemukan data dengan cara mengecek satu per satu versus membelah dua data terurut</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Membandingkan Cara Mencari Data</h2>
+    <div class="card">
+      <p>Algoritma adalah rangkaian instruksi terstruktur untuk menyelesaikan masalah. Kinerja algoritma pencarian diukur dari seberapa banyak langkah pengecekan yang harus dilakukan sampai data ditemukan.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metode</th>
+              <th>Cara Kerja</th>
+              <th>Syarat Data</th>
+              <th>Efisiensi (1.000 Data)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Linear Search</strong></td>
+              <td>Mengecek elemen dari indeks pertama hingga terakhir secara berurutan.</td>
+              <td>Bebas (acak atau urut)</td>
+              <td>Bisa butuh hingga 1.000 langkah</td>
+            </tr>
+            <tr>
+              <td><strong>Binary Search</strong></td>
+              <td>Membelah dua data terurut dan memeriksa nilai tengah secara berulang.</td>
+              <td><strong>Wajib sudah berurutan</strong></td>
+              <td>Maksimal sekitar 10 langkah saja</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Binary search jauh lebih kencang dibanding linear search, namun <strong>hanya bisa bekerja jika data sudah terurut dari kecil ke besar</strong>.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># 1. Linear Search (Cek satu per satu)</span>
+<span class="code-keyword">def</span> <span class="code-func">linear_search</span>(data, target):
+    <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(data)):
+        <span class="code-keyword">if</span> data[i] == target:
+            <span class="code-keyword">return</span> i  <span class="code-comment"># Ketemu di indeks ke-i</span>
+    <span class="code-keyword">return</span> -<span class="code-num">1</span>         <span class="code-comment"># Tidak ditemukan</span>
+
+<span class="code-comment"># 2. Binary Search (Belah dua data terurut)</span>
+<span class="code-keyword">def</span> <span class="code-func">binary_search</span>(data_urut, target):
+    kiri = <span class="code-num">0</span>
+    kanan = <span class="code-func">len</span>(data_urut) - <span class="code-num">1</span>
+
+    <span class="code-keyword">while</span> kiri &lt;= kanan:
+        tengah = (kiri + kanan) // <span class="code-num">2</span>
+        <span class="code-keyword">if</span> data_urut[tengah] == target:
+            <span class="code-keyword">return</span> tengah
+        <span class="code-keyword">elif</span> data_urut[tengah] &lt; target:
+            kiri = tengah + <span class="code-num">1</span>  <span class="code-comment"># Geser cari ke paruh kanan</span>
+        <span class="code-keyword">else</span>:
+            kanan = tengah - <span class="code-num">1</span> <span class="code-comment"># Geser cari ke paruh kiri</span>
+    <span class="code-keyword">return</span> -<span class="code-num">1</span>
+
+angka = [<span class="code-num">12</span>, <span class="code-num">24</span>, <span class="code-num">35</span>, <span class="code-num">47</span>, <span class="code-num">59</span>, <span class="code-num">70</span>, <span class="code-num">88</span>]
+print(<span class="code-str">"Hasil Binary Search:"</span>, <span class="code-func">binary_search</span>(angka, <span class="code-num">47</span>))  <span class="code-comment"># Indeks 3</span></div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Tulis fungsi linear_search</h4>
+            <p>Buat fungsi dengan perulangan <code>for</code> yang membandingkan setiap item dengan angka target.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Tulis fungsi binary_search</h4>
+            <p>Gunakan pointer <code>kiri</code>, <code>kanan</code>, dan titik <code>tengah</code> dalam perulangan <code>while</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Uji kedua fungsi pada list angka terurut</h4>
+            <p>Jalankan kedua fungsi untuk mencari angka yang ada di tengah list dan angka yang tidak terdaftar sama sekali.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Hitung jumlah perbandingannya</h4>
+            <p>Tambahkan variabel penghitung langkah (counter) di dalam loop untuk membuktikan efisiensi Binary Search.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menjalankan <strong>Binary Search</strong> pada data yang masih acak/belum diurutkan, sehingga menghasilkan jawaban tidak ditemukan meski angkanya ada.</li>
+        <li>Lupa memperbarui nilai <code>kiri = tengah + 1</code> atau <code>kanan = tengah - 1</code> sehingga memicu perulangan abadi (infinite loop).</li>
+        <li>Menggunakan pembagian biasa <code>/</code> alih-alih pembagian bulat <code>//</code> untuk menghitung indeks tengah.</li>
+      </ul>
+      <div class="alert-box">
+        Indeks list selalu berupa bilangan bulat. Gunakan tanda <code>//</code> agar hasil pembagian indeks tidak menghasilkan bilangan berkoma (float).
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

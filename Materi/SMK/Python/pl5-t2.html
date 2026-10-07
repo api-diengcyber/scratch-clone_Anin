@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hewan bersuara</title>
+  <title>Task 2: Hewan Bersuara</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,126 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Hewan bersuara</h1><p>OOP Lanjutan • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Hewan bersuara</strong>, bagian dari modul <em>OOP Lanjutan</em> (pertemuan 25–32).</p><div class="highlight-box">Konsep yang dipakai: <strong>enkapsulasi, polimorfisme, __str__, inheritance</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">OOP lanjutan menjaga data tetap aman di dalam objek dan membuat class berbeda bisa dipakai dengan cara yang sama.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Enkapsulasi: atribut diakses lewat method</li><li>Polimorfisme: nama method sama, perilaku berbeda</li><li>__str__ menentukan cara objek dicetak</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat class Hewan dengan method suara()</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Buat Kucing dan Anjing yang menimpa suara()</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Simpan beberapa objek dalam satu list</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Panggil suara() lewat for tanpa mengecek jenisnya</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 2 • METHOD OVERRIDING</span>
+    <h1>Hewan Bersuara</h1>
+    <p>Menimpa method milik class induk untuk memberikan perilaku unik pada tiap class turunan</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Konsep Pewarisan dan Overriding</h2>
+    <div class="card">
+      <p>Class turunan (child class) mewarisi seluruh method dari class induk (parent class). Namun, bila perilaku bawaan induk kurang cocok, class anak bisa menulis ulang method tersebut dengan nama yang persis sama. Konsep ini disebut <strong>Method Overriding</strong>.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Method</th>
+              <th>Perilaku Khusus</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Hewan</code> (Induk)</td>
+              <td><code>bersuara()</code></td>
+              <td>Menghasilkan suara umum hewan</td>
+            </tr>
+            <tr>
+              <td><code>Kucing</code> (Anak)</td>
+              <td><code>bersuara()</code> (Overridden)</td>
+              <td>Menimpa method induk dan berbunyi: "Meong! Meong!"</td>
+            </tr>
+            <tr>
+              <td><code>Anjing</code> (Anak)</td>
+              <td><code>bersuara()</code> (Overridden)</td>
+              <td>Menimpa method induk dan berbunyi: "Guk! Guk!"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Method overriding memungkinkan class induk mendefinisikan aturan umum, sementara detail perilakunya diserahkan pada masing-masing class anak.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Class Induk</span>
+<span class="code-keyword">class</span> <span class="code-func">Hewan</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(<span class="code-keyword">self</span>, nama):
+        <span class="code-keyword">self</span>.nama = nama
+
+    <span class="code-keyword">def</span> <span class="code-func">bersuara</span>(<span class="code-keyword">self</span>):
+        <span class="code-keyword">return</span> <span class="code-str">f"{self.nama} mengeluarkan suara misterius."</span>
+
+<span class="code-comment"># Class Anak 1</span>
+<span class="code-keyword">class</span> <span class="code-func">Kucing</span>(<span class="code-func">Hewan</span>):
+    <span class="code-keyword">def</span> <span class="code-func">bersuara</span>(<span class="code-keyword">self</span>):
+        <span class="code-keyword">return</span> <span class="code-str">f"{self.nama} bersuara: Meong! Meong!"</span>
+
+<span class="code-comment"># Class Anak 2</span>
+<span class="code-keyword">class</span> <span class="code-func">Anjing</span>(<span class="code-func">Hewan</span>):
+    <span class="code-keyword">def</span> <span class="code-func">bersuara</span>(<span class="code-keyword">self</span>):
+        <span class="code-keyword">return</span> <span class="code-str">f"{self.nama} bersuara: Guk! Guk!"</span>
+
+hewan_peliharaan = [<span class="code-func">Kucing</span>(<span class="code-str">"Mimi"</span>), <span class="code-func">Anjing</span>(<span class="code-str">"Blacky"</span>)]
+
+<span class="code-keyword">for</span> h <span class="code-keyword">in</span> hewan_peliharaan:
+    print(h.<span class="code-func">bersuara</span>())</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Rancang class induk Hewan</h4>
+            <p>Buat class <code>Hewan</code> dengan atribut <code>nama</code> dan method dasar <code>bersuara()</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Buat class turunan Kucing dan Anjing</h4>
+            <p>Hubungkan pewarisan dengan tanda kurung: <code>class Kucing(Hewan):</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Tulis ulang method bersuara()</h4>
+            <p>Beri nama method yang sama persis di dalam class anak tetapi ubah nilai kembaliannya menjadi suara spesifik.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Tambahkan class Sapi</h4>
+            <p>Buat class turunan ketiga <code>Sapi</code> yang meng-override suara menjadi "Moooo!" lalu uji panggilannya.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Salah mengeja nama method pada class anak (misal <code>suara()</code> bukan <code>bersuara()</code>), sehingga method baru terbentuk dan bukan menimpa method induk.</li>
+        <li>Lupa menyertakan parameter <code>self</code> pada definisi method di class turunan.</li>
+        <li>Tidak mencantumkan nama class induk di dalam tanda kurung saat membuat class turunan.</li>
+      </ul>
+      <div class="alert-box">
+        Agar method overriding bekerja, <strong>nama method dan jumlah parameternya</strong> pada class anak harus serasi dengan method pada class induk.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

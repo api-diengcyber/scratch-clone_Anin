@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Penghitung karakter</title>
+  <title>Fisika &amp; Raycast</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,12 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Penghitung karakter</h1><p>JavaScript Dasar &amp; DOM • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Penghitung karakter</strong>, bagian dari modul <em>JavaScript Dasar & DOM</em> (pertemuan 13–20).</p><div class="highlight-box">Konsep yang dipakai: <strong>variabel, fungsi, DOM, querySelector</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">JavaScript membuat halaman bisa bereaksi. DOM adalah pohon elemen halaman yang bisa dibaca dan diubah lewat kode.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>let dan const menyimpan nilai</li><li>document.querySelector memilih elemen</li><li>textContent dan classList mengubah tampilan</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat kolom teks dan satu tulisan angka</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Dengarkan event input pada kolom teks</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Perbarui jumlah karakter setiap pengguna mengetik</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Beri peringatan bila melebihi batas 100 karakter</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMP • GAME DEV 3D</span><h1>Fisika &amp; Raycast</h1><p>Gravitasi, tabrakan, dan sinar pendeteksi benda</p></div><div class="content">
+<h2 class="section-title">1. Gravitasi</h2><div class="card"><div class="code-block">vy += gravitasi * dt;      // gravitasi negatif, menarik ke bawah
+benda.y += vy * dt;
+if (benda.y &lt;= tanah) { benda.y = tanah; vy = 0; }</div><p style="margin-top:8px;">Gravitasi menambah kecepatan jatuh sedikit demi sedikit, jadi benda jatuh makin cepat. Waktu jatuh dari ketinggian h kira-kira <code>√(2h ÷ g)</code>.</p><div class="table-container"><table><thead><tr><th>Tinggi awal</th><th>Waktu jatuh (g = 9,8)</th></tr></thead><tbody><tr><td>5 satuan</td><td>sekitar 1,0 detik</td></tr><tr><td>20 satuan</td><td>sekitar 2,0 detik</td></tr></tbody></table></div><div class="highlight-box">Tinggi empat kali lipat hanya membuat waktu jatuh dua kali lipat. Coba buktikan lewat percobaan task Gravitasi.</div></div>
+<h2 class="section-title">2. Bounding box dan tabrakan</h2><div class="card"><p style="margin-top:8px;">Menghitung tabrakan bentuk rumit itu berat. Sebagai gantinya tiap benda diberi <strong>bounding box</strong>: kotak lurus yang membungkusnya.</p><div class="code-block">function bertabrakan(a, b) {
+  return a.minX &lt;= b.maxX &amp;&amp; a.maxX &gt;= b.minX &amp;&amp;
+         a.minY &lt;= b.maxY &amp;&amp; a.maxY &gt;= b.minY &amp;&amp;
+         a.minZ &lt;= b.maxZ &amp;&amp; a.maxZ &gt;= b.minZ;
+}
+if (bertabrakan(pemain.kotak, dinding.kotak)) {
+  pemain.x = pemain.xSebelumnya;   // batalkan gerakan
+  pesan = "Menabrak dinding!";
+}</div><div class="highlight-box">Dua kotak bertabrakan bila mereka <strong>tumpang tindih di sumbu X, Y, dan Z sekaligus</strong>.</div></div>
+<h2 class="section-title">3. Raycast: sinar pendeteksi</h2><div class="card"><p style="margin-top:8px;">Raycast menembakkan sinar tak terlihat dari satu titik ke satu arah, lalu menanyakan: <em>benda pertama apa yang terkena?</em></p><div class="table-container"><table><thead><tr><th>Bagian</th><th>Arti</th></tr></thead><tbody><tr><td>Asal</td><td>Titik awal sinar (mata atau karakter)</td></tr><tr><td>Arah</td><td>Ke mana sinar menuju</td></tr><tr><td>Jarak maksimum</td><td>Sinar berhenti setelah sejauh ini</td></tr><tr><td>Hasil</td><td>Benda pertama yang terkena, atau tidak ada</td></tr></tbody></table></div><div class="code-block">const sinar = { asal: karakter.posisi, arah: arahDepan, jarakMaks: 10 };
+const kena = dunia.raycast(sinar);
+if (kena) {
+  kena.benda.warna = "merah";
+}</div></div>
+<h2 class="section-title">4. Memilih benda dengan klik</h2><div class="card"><p style="margin-top:8px;">Saat kamu mengklik layar, game membuat sinar dari kamera menembus posisi kursor ke dalam dunia. Benda pertama yang terkena sinar itulah yang terpilih.</p><div class="alert-box">Kalau semua benda ikut berubah warna, kemungkinan benda-benda berbagi satu material yang sama. Beri tiap benda material sendiri sebelum mengubah warnanya.</div></div>
+<h2 class="section-title">5. Kesalahan yang sering terjadi</h2><div class="card"><div class="table-container"><table><thead><tr><th>Masalah</th><th>Penyebab</th><th>Perbaikan</th></tr></thead><tbody><tr><td>Karakter menembus dinding</td><td>Gerakan per frame terlalu besar</td><td>Perkecil kecepatan atau cek tabrakan sebelum bergerak</td></tr><tr><td>Benda tenggelam di tanah</td><td>Posisi dikoreksi terlambat</td><td>Set y ke tinggi tanah saat tabrakan</td></tr><tr><td>Raycast tidak mengenai apa pun</td><td>Arah salah atau benda tak punya kotak tabrakan</td><td>Periksa arah dan collider benda</td></tr><tr><td>Tabrakan terdeteksi dari jauh</td><td>Kotak terlalu besar</td><td>Perkecil bounding box</td></tr></tbody></table></div></div>
+<h2 class="section-title">6. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Rintangan dan Tabrakan dua benda:</strong> bounding box.</li><li><strong>Deteksi benda dan Pilih benda dengan klik:</strong> raycast dan material.</li><li><strong>Gravitasi:</strong> rumus waktu jatuh dan tabel.</li></ul></div>
+<h2 class="section-title">7. Proyek: Level Rintangan</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Rancang jalur</h4><p>Susun 5 rintangan dari mudah ke sulit; jarak lompat harus masuk akal.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Titik awal dan finish</h4><p>Tandai keduanya dengan jelas dan beri satu petunjuk arah.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji dengan teman</h4><p>Catat waktu temanmu menyelesaikan level, lalu ubah satu rintangan yang terlalu sulit.</p></div></div></div></div>
 </div></div>
 </body></html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fungsi serbaguna</title>
+  <title>Fungsi Lanjut &amp; Rekursi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,12 +285,60 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl3" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Fungsi serbaguna</h1><p>Fungsi Lanjut &amp; Rekursi • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Fungsi serbaguna</strong>, bagian dari modul <em>Fungsi Lanjut & Rekursi</em> (pertemuan 13–18).</p><div class="highlight-box">Konsep yang dipakai: <strong>parameter default, lambda, comprehension, rekursi</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Fungsi yang baik kecil dan punya satu tugas. Rekursi adalah fungsi yang memanggil dirinya sendiri sampai mencapai kasus dasar.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Parameter default membuat argumen jadi opsional</li><li>List comprehension membuat list dalam satu baris</li><li>Rekursi butuh kasus dasar agar berhenti</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat fungsi sapa(nama, sapaan='Halo')</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Buat list kuadrat 1–10 dengan comprehension</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Urutkan daftar siswa berdasarkan nilai memakai lambda</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Panggil semuanya dan cetak hasilnya</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Fungsi Lanjut &amp; Rekursi</h1><p>Parameter fleksibel, lambda, comprehension, map/filter, dan rekursi</p></div><div class="content">
+<h2 class="section-title">1. Fungsi yang baik</h2><div class="card"><p style="margin-top:8px;">Fungsi yang baik <strong>kecil, bernama jelas, dan punya satu tugas</strong>. Docstring menjelaskan apa yang dilakukan, parameter, dan nilai kembaliannya.</p><div class="code-block">def sapa(nama, sapaan="Halo"):
+    """Mengembalikan kalimat sapaan untuk nama."""
+    return f"{sapaan}, {nama}!"
+
+print(sapa("Rani"))                  # Halo, Rani!
+print(sapa("Rani", sapaan="Selamat pagi"))</div><div class="table-container"><table><thead><tr><th>Bentuk</th><th>Arti</th><th>Contoh</th></tr></thead><tbody><tr><td>Parameter default</td><td>Argumen jadi opsional</td><td><code>def f(x, y=10)</code></td></tr><tr><td>*args</td><td>Menampung argumen posisi sebanyak apa pun (menjadi tuple)</td><td><code>def jumlah(*angka)</code></td></tr><tr><td>**kwargs</td><td>Menampung argumen bernama (menjadi dict)</td><td><code>def profil(**data)</code></td></tr></tbody></table></div><div class="code-block">def jumlah(*angka):
+    return sum(angka)
+
+def profil(**data):
+    for kunci, nilai in data.items():
+        print(kunci, ":", nilai)
+
+print(jumlah(1, 2, 3, 4))       # 10
+profil(nama="Rani", kelas="XI")</div><div class="alert-box"><strong>Jebakan klasik:</strong> <code>def f(x, daftar=[])</code> memakai satu list yang sama di setiap panggilan. Pakai <code>daftar=None</code> lalu buat list baru di dalam fungsi.</div></div>
+<h2 class="section-title">2. Lambda, map, filter, dan sorted</h2><div class="card"><div class="code-block">kuadrat = lambda x: x * x
+print(kuadrat(5))                              # 25
+
+angka = list(range(1, 21))
+print(list(map(lambda x: x * x, angka)))       # semua dikuadratkan
+print(list(filter(lambda x: x % 2 == 0, angka)))  # hanya genap
+
+siswa = [("Ani", 80), ("Budi", 95), ("Citra", 70)]
+print(sorted(siswa, key=lambda s: s[1], reverse=True))</div><p style="margin-top:8px;">Lambda adalah fungsi kecil tanpa nama untuk satu ekspresi. Jangan dipakai untuk logika panjang; buat fungsi biasa agar mudah dibaca.</p></div>
+<h2 class="section-title">3. List comprehension</h2><div class="card"><div class="code-block">kuadrat = [x * x for x in range(1, 11)]
+genap = [x for x in range(1, 21) if x % 2 == 0]
+
+# setara dengan:
+genap2 = []
+for x in range(1, 21):
+    if x % 2 == 0:
+        genap2.append(x)</div><div class="table-container"><table><thead><tr><th>Bentuk</th><th>Arti</th></tr></thead><tbody><tr><td><code>[ekspresi for x in data]</code></td><td>Ubah setiap elemen</td></tr><tr><td><code>[x for x in data if syarat]</code></td><td>Pilih elemen yang memenuhi syarat</td></tr></tbody></table></div><div class="highlight-box">Comprehension biasanya lebih singkat dan setara dengan map atau filter. Jika sudah sulit dibaca, pecah jadi perulangan biasa.</div></div>
+<h2 class="section-title">4. Rekursi</h2><div class="card"><p style="margin-top:8px;">Fungsi rekursif memanggil dirinya sendiri. Ia butuh <strong>kasus dasar</strong> (kapan berhenti) dan <strong>langkah rekursif</strong> (mengecilkan masalah).</p><div class="code-block">def faktorial(n):
+    if n &lt;= 1:                 # kasus dasar
+        return 1
+    return n * faktorial(n - 1)   # langkah rekursif
+
+print(faktorial(5))   # 120
+
+# faktorial(3) → 3 * faktorial(2) → 3 * 2 * faktorial(1) → 3 * 2 * 1 = 6</div><div class="code-block">def fibonacci(n):
+    if n &lt;= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+def fibonacci_loop(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+print([fibonacci(i) for i in range(10)])   # 10 bilangan pertama</div><div class="alert-box">Fibonacci rekursif menghitung hal yang sama berkali-kali: <code>fibonacci(30)</code> memanggil dirinya sekitar 2,7 juta kali, sedangkan versi perulangan hanya 30 putaran. Rekursi lebih mudah dibaca, tetapi belum tentu lebih cepat.</div><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Tanpa kasus dasar, Python berhenti dengan <code>RecursionError</code> (batas kedalaman sekitar 1000).</li><li>Gunakan rekursi untuk masalah yang berbentuk "masalah lebih kecil yang sama": faktorial, pohon, folder.</li></ul></div>
+<h2 class="section-title">5. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Fungsi serbaguna:</strong> parameter default, comprehension, lambda.</li><li><strong>Rekursi pertama dan Deret Fibonacci:</strong> kasus dasar dan perbandingan dengan perulangan.</li><li><strong>Map dan filter:</strong> bagian lambda dan comprehension.</li><li><strong>Fungsi fleksibel:</strong> *args dan **kwargs, plus docstring.</li></ul></div>
+<h2 class="section-title">6. Proyek: Pustaka Fungsi Matematika</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Kumpulkan 6 fungsi</h4><p>Misalnya faktorial, fibonacci, FPB, bilangan prima, rata-rata, dan pangkat.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Dokumentasi</h4><p>Beri docstring dan satu contoh pemakaian pada tiap fungsi.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Menu dan uji</h4><p>Buat menu yang memanggil fungsi-fungsi itu, lalu uji dengan data biasa, nol, dan negatif.</p></div></div></div></div>
 </div></div>
 </body></html>

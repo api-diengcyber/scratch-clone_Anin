@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bersihkan data</title>
+  <title>Task 2: Bersihkan Data</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,136 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Bersihkan data</h1><p>Berpikir dengan Data • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Bersihkan data</strong>, bagian dari modul <em>Berpikir dengan Data</em> (pertemuan 1–6).</p><div class="highlight-box">Konsep yang dipakai: <strong>baris dan kolom, data bersih, survei, tabel</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Data adalah bahan baku keputusan. Data yang berantakan harus dibersihkan dulu sebelum dianalisis.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Data punya baris (kasus) dan kolom (atribut)</li><li>Data kotor: kosong, ganda, atau salah ketik</li><li>Pertanyaan yang jelas menentukan data yang dikumpulkan</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Siapkan list berisi 8 data dengan 2 kosong dan 1 ganda</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Buang data kosong dengan perulangan</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Hapus data ganda dengan set()</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tampilkan jumlah data sebelum dan sesudah dibersihkan</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Catat sumber, tanggal, dan jumlah data di setiap analisis.</li><li>Bersihkan data lebih dulu; angka yang salah ketik merusak seluruh kesimpulan.</li><li>Tulis kesimpulan dengan jujur, termasuk batas dari datamu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=da1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 2 • DATA CLEANING</span>
+    <h1>Bersihkan Data</h1>
+    <p>Menghapus kotoran, merapikan format, dan menangani nilai kosong sebelum analisis</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Prinsip Garbage In, Garbage Out</h2>
+    <div class="card">
+      <p>Data mentah dari survei atau sistem hampir tidak pernah langsung siap pakai. Jika kita menganalisis data kotor, kesimpulan yang diambil juga akan salah. Tahap pembersihan data (data cleaning) memakan sekitar 70% waktu seorang praktisi data.</p>
+      <div class="highlight-box">
+        Aturan baku: Jangan pernah mengubah atau menimpa dataset asli secara langsung. Selalu simpan salinan data bersih di variabel atau file terpisah.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Bentuk-Bentuk Data Kotor & Penanganannya</h2>
+    <div class="card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Masalah Data</th>
+              <th>Penyebab & Contoh</th>
+              <th>Solusi Praktis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Spasi Liar (Whitespace)</td>
+              <td>Pengguna mengetik <code>" RPL "</code> bukan <code>"RPL"</code></td>
+              <td>Gunakan fungsi pemotong spasi seperti <code>strip()</code></td>
+            </tr>
+            <tr>
+              <td>Kapitalisasi Acak</td>
+              <td><code>"tkj"</code>, <code>"TKJ"</code>, <code>"Tkj"</code> dihitung beda</td>
+              <td>Seragamkan menjadi huruf kapital (<code>upper()</code>) atau kecil (<code>lower()</code>)</td>
+            </tr>
+            <tr>
+              <td>Nilai Kosong (Missing Values)</td>
+              <td>Responden melewati kolom usia (kosong/None)</td>
+              <td>Hapus baris tersebut jika sedikit, atau isi nilai rata-rata/tanda khusus</td>
+            </tr>
+            <tr>
+              <td>Duplikasi Data</td>
+              <td>Satu orang menekan tombol submit 2 kali berturut-turut</td>
+              <td>Hapus baris kembar berdasarkan nomor ID atau kombinasi nama</td>
+            </tr>
+            <tr>
+              <td>Data Tidak Masuk Akal (Outlier)</td>
+              <td>Umur tertulis <code>170</code> tahun karena salah ketik nol</td>
+              <td>Pasang filter batas logika wajar (misal: usia SMK 14–20 tahun)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2 class="section-title">3. Contoh Skrip Pembersihan Data</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Data mentah hasil kuesioner jurusan siswa</span>
+data_mentah = [<span class="code-str">" RPL"</span>, <span class="code-str">"tkj"</span>, <span class="code-str">"RPL"</span>, <span class="code-str">""</span>, <span class="code-str">"TKJ "</span>, <span class="code-str">"rpl"</span>, <span class="code-keyword">None</span>, <span class="code-str">"DKV"</span>]
+
+<span class="code-comment"># Langkah 1: Buang data kosong (None atau teks kosong)</span>
+data_terisi = [d <span class="code-keyword">for</span> d <span class="code-keyword">in</span> data_mentah <span class="code-keyword">if</span> d <span class="code-keyword">is not None</span> <span class="code-keyword">and</span> d.strip() != <span class="code-str">""</span>]
+
+<span class="code-comment"># Langkah 2: Rapikan spasi dan seragamkan huruf kapital</span>
+data_bersih = [d.strip().upper() <span class="code-keyword">for</span> d <span class="code-keyword">in</span> data_terisi]
+
+print(<span class="code-str">"Data setelah dibersihkan:"</span>, data_bersih)
+<span class="code-comment"># Hasil: ['RPL', 'TKJ', 'RPL', 'TKJ', 'RPL', 'DKV']</span>
+
+<span class="code-comment"># Langkah 3: Hitung frekuensi data yang sudah valid</span>
+rekap = {}
+<span class="code-keyword">for</span> item <span class="code-keyword">in</span> data_bersih:
+    rekap[item] = rekap.get(item, <span class="code-num">0</span>) + <span class="code-num">1</span>
+print(<span class="code-str">"Rekapitulasi:"</span>, rekap)
+<span class="code-comment"># Hasil: {'RPL': 3, 'TKJ': 2, 'DKV': 1}</span></div>
+    </div>
+
+    <h2 class="section-title">4. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Identifikasi anomali data</h4>
+            <p>Amati daftar data mentah dan catat baris mana saja yang memuat teks salah ketik, spasi liar, atau nilai kosong.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Terapkan filter nilai kosong</h4>
+            <p>Saring list untuk memastikan tidak ada elemen bernilai <code>None</code> atau string kosong yang ikut diproses.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Standarisasi teks</h4>
+            <p>Jalankan fungsi pembersih teks terpadu menggunakan kombinasi method string <code>strip()</code> dan <code>upper()</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Hitung ulang dan bandingkan</h4>
+            <p>Hitung total frekuensi sebelum dan sesudah dibersihkan untuk membuktikan bahwa data tidak lagi terpecah akibat perbedaan penulisan.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">5. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Langsung menghapus baris data yang kosong tanpa mencatat berapa data yang hilang.</li>
+        <li>Mengubah data asli tanpa membuat salinan cadangan (*backup*).</li>
+        <li>Menganggap spasi di awal dan akhir teks tidak berpengaruh pada perbandingan string komputer.</li>
+      </ul>
+      <div class="alert-box">
+        Bagi komputer, <code>"RPL"</code> dan <code>"RPL "</code> adalah dua hal yang berbeda karena jumlah karakternya berlainan.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

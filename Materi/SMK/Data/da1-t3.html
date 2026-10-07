@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jenis data</title>
+  <title>Task 3: Jenis Data</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,136 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • DATA & AI TERAPAN</span><h1>Jenis data</h1><p>Berpikir dengan Data • Level Menengah</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Jenis data</strong>, bagian dari modul <em>Berpikir dengan Data</em> (pertemuan 1–6).</p><div class="highlight-box">Konsep yang dipakai: <strong>baris dan kolom, data bersih, survei, tabel</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Data adalah bahan baku keputusan. Data yang berantakan harus dibersihkan dulu sebelum dianalisis.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Data punya baris (kasus) dan kolom (atribut)</li><li>Data kotor: kosong, ganda, atau salah ketik</li><li>Pertanyaan yang jelas menentukan data yang dikumpulkan</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Siapkan 10 contoh data dari kehidupan sehari-hari</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Kelompokkan menjadi data kategori dan data angka</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tentukan cara menampilkan tiap jenis dengan tepat</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Tulis alasanmu</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Catat sumber, tanggal, dan jumlah data di setiap analisis.</li><li>Bersihkan data lebih dulu; angka yang salah ketik merusak seluruh kesimpulan.</li><li>Tulis kesimpulan dengan jujur, termasuk batas dari datamu.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=da1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 3 • KLASIFIKASI DATA</span>
+    <h1>Jenis Data</h1>
+    <p>Membedakan data kategorik dan numerik agar tidak salah dalam memilih operasi hitung</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Baris (Kasus) vs Kolom (Atribut)</h2>
+    <div class="card">
+      <p>Data terstruktur disimpan dalam bentuk tabel matriks. Setiap <strong>baris</strong> mewakili satu individu atau satu peristiwa (kasus), sedangkan setiap <strong>kolom</strong> mewakili sifat atau karakteristik yang dicatat (atribut/variabel).</p>
+      <div class="highlight-box">
+        Mengetahui jenis data pada kolom menentukan rumus apa yang boleh dan tidak boleh dipakai. Kita tidak bisa mencari nilai rata-rata dari data nama kota atau nomor induk siswa.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Pembagian Kategori dan Karakteristik Data</h2>
+    <div class="card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Kelompok Besar</th>
+              <th>Tipe Spesifik</th>
+              <th>Ciri Utama</th>
+              <th>Contoh Konkret</th>
+              <th>Operasi yang Sah</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="2"><strong>Kategorik (Kualitatif)</strong></td>
+              <td>Nominal</td>
+              <td>Label nama murni, tidak ada tingkatan lebih tinggi</td>
+              <td>Jenis Kelamin, Golongan Darah, Kota Lahir</td>
+              <td>Hitung jumlah (frekuensi), Modus</td>
+            </tr>
+            <tr>
+              <td>Ordinal</td>
+              <td>Kategori yang memiliki peringkat/urutan jelas</td>
+              <td>Tingkat Kepuasan (Puas, Cukup, Kurang), Juara 1/2/3</td>
+              <td>Frekuensi, Urutan peringkat, Median</td>
+            </tr>
+            <tr>
+              <td rowspan="2"><strong>Numerik (Kuantitatif)</strong></td>
+              <td>Diskrit</td>
+              <td>Bilangan bulat hasil dari proses menghitung satuan</td>
+              <td>Jumlah Saudara (2, 3), Jumlah laptop lab</td>
+              <td>Penjumlahan, Rata-rata, Median, Modus</td>
+            </tr>
+            <tr>
+              <td>Kontinu</td>
+              <td>Bilangan pecahan hasil dari alat ukur</td>
+              <td>Tinggi badan (168.4 cm), Suhu ruangan, Berat badan</td>
+              <td>Seluruh perhitungan statistik dan rentang sebaran</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2 class="section-title">3. Contoh Penerapan di Python</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Menyimpan tabel data siswa (List of Dictionaries)</span>
+data_siswa = [
+    {<span class="code-str">"nama"</span>: <span class="code-str">"Ahmad"</span>, <span class="code-str">"jurusan"</span>: <span class="code-str">"RPL"</span>, <span class="code-str">"peringkat"</span>: <span class="code-num">1</span>, <span class="code-str">"buku"</span>: <span class="code-num">4</span>, <span class="code-str">"tinggi"</span>: <span class="code-num">170.5</span>},
+    {<span class="code-str">"nama"</span>: <span class="code-str">"Budi"</span>,  <span class="code-str">"jurusan"</span>: <span class="code-str">"TKJ"</span>, <span class="code-str">"peringkat"</span>: <span class="code-num">2</span>, <span class="code-str">"buku"</span>: <span class="code-num">2</span>, <span class="code-str">"tinggi"</span>: <span class="code-num">165.0</span>},
+    {<span class="code-str">"nama"</span>: <span class="code-str">"Citra"</span>, <span class="code-str">"jurusan"</span>: <span class="code-str">"RPL"</span>, <span class="code-str">"peringkat"</span>: <span class="code-num">3</span>, <span class="code-str">"buku"</span>: <span class="code-num">5</span>, <span class="code-str">"tinggi"</span>: <span class="code-num">158.2</span>}
+]
+
+<span class="code-comment"># 1. Analisis Data Kategorik Nominal (Jurusan) -&gt; Hitung Frekuensi</span>
+total_rpl = sum(<span class="code-num">1</span> <span class="code-keyword">for</span> s <span class="code-keyword">in</span> data_siswa <span class="code-keyword">if</span> s[<span class="code-str">"jurusan"</span>] == <span class="code-str">"RPL"</span>)
+print(<span class="code-str">f"Siswa RPL: {total_rpl} orang"</span>)
+
+<span class="code-comment"># 2. Analisis Data Numerik Kontinu (Tinggi Badan) -&gt; Hitung Rata-Rata</span>
+total_tinggi = sum(s[<span class="code-str">"tinggi"</span>] <span class="code-keyword">for</span> s <span class="code-keyword">in</span> data_siswa)
+rata_tinggi = total_tinggi / len(data_siswa)
+print(<span class="code-str">f"Rata-rata tinggi: {rata_tinggi:.1f} cm"</span>)</div>
+    </div>
+
+    <h2 class="section-title">4. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buat tabel contoh dengan 5 kolom</h4>
+            <p>Rancang tabel yang memuat minimal satu contoh dari nominal, ordinal, diskrit, dan kontinu.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Tentukan jenis kolom</h4>
+            <p>Beri label pada setiap kolom apakah kolom tersebut berupa teks kategori atau angka pengukuran.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Pilih rumus yang tepat</h4>
+            <p>Gunakan rumus penjumlahan dan rata-rata hanya pada kolom numerik, serta gunakan hitungan kemunculan pada kolom kategorik.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Tulis interpretasi satu kalimat</h4>
+            <p>Tuliskan kesimpulan ringkas dari hasil perhitungan tersebut.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">5. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menghitung rata-rata dari angka kode (misal: kode pos atau angka NISN siswa). Angka kode adalah data <strong>nominal</strong>, bukan numerik.</li>
+        <li>Mengira data diskrit bisa bernilai desimal (jumlah orang tidak mungkin bernilai 2,5 orang).</li>
+        <li>Membuat skala ordinal angka (1: Sangat Tidak Puas s/d 5: Sangat Puas) dan memperlakukannya seolah-olah angka murni tanpa kehati-hatian.</li>
+      </ul>
+      <div class="alert-box">
+        Uji sederhana: Jika suatu angka tidak masuk akal untuk dikurangkan atau dijumlahkan (seperti nomor telepon), maka itu adalah data <strong>kategorik</strong>.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

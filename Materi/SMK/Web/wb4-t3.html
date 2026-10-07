@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cari dan saring data</title>
+  <title>Task 3: Cari dan Saring Data</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -20,12 +20,7 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f1f5f9;
@@ -33,7 +28,6 @@
       line-height: 1.7;
       padding: 30px 15px;
     }
-
     .container {
       max-width: 880px;
       margin: 0 auto;
@@ -43,14 +37,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
     }
-
     .header {
       background: linear-gradient(135deg, #4361ee, #3a0ca3);
       color: #ffffff;
       padding: 40px 35px;
       text-align: center;
     }
-
     .badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
@@ -59,25 +51,11 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
       margin-bottom: 15px;
     }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 35px;
-    }
-
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
     .section-title {
       font-size: 1.35rem;
       font-weight: 700;
@@ -87,11 +65,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    .section-title:first-child {
-      margin-top: 0;
-    }
-
+    .section-title:first-child { margin-top: 0; }
     .card {
       background: var(--gray-bg);
       border: 1px solid var(--border);
@@ -99,7 +73,6 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-
     .highlight-box {
       background: var(--primary-light);
       border-left: 5px solid var(--primary);
@@ -108,7 +81,6 @@
       margin: 18px 0;
       font-weight: 500;
     }
-
     .alert-box {
       background: #fff0f5;
       border-left: 5px solid var(--accent);
@@ -116,7 +88,6 @@
       border-radius: 0 var(--radius) var(--radius) 0;
       margin: 18px 0;
     }
-
     .code-block {
       background: #0f172a;
       color: #f8fafc;
@@ -128,19 +99,12 @@
       margin: 14px 0;
       border: 1px solid #334155;
     }
-
     .code-comment { color: #94a3b8; }
     .code-keyword { color: #f472b6; font-weight: 600; }
     .code-func { color: #38bdf8; }
     .code-str { color: #4ade80; }
     .code-num { color: #fbbf24; }
-    .code-bool { color: #c084fc; font-weight: 600; }
-
-    .table-container {
-      overflow-x: auto;
-      margin: 18px 0;
-    }
-
+    .table-container { overflow-x: auto; margin: 18px 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -148,38 +112,19 @@
       overflow: hidden;
       background: #ffffff;
     }
-
     th, td {
       padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       font-size: 0.95rem;
     }
-
-    th {
-      background: #e2e8f0;
-      color: var(--dark);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
     .steps-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
       margin-top: 15px;
     }
-
     .step-item {
       display: flex;
       align-items: flex-start;
@@ -188,14 +133,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: all 0.2s ease;
     }
-
-    .step-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
     .step-num {
       width: 40px;
       height: 40px;
@@ -209,88 +147,119 @@
       flex-shrink: 0;
       font-size: 1.1rem;
     }
-
-    .step-content h4 {
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      color: var(--dark);
-    }
-
-    .playground {
-      background: #1e1b4b;
-      color: #e0e7ff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 25px;
-    }
-
-    .playground h3 {
-      color: #ffffff;
-      margin-bottom: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: #a5b4fc;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #4338ca;
-      background: #312e81;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn-run {
-      background: linear-gradient(135deg, #f72585, #7209b7);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.9;
-    }
-
-    .output-screen {
-      margin-top: 18px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Fira Code', monospace;
-      color: #38bdf8;
-      min-height: 50px;
-    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
-<script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • WEB DEVELOPMENT</span><h1>Cari dan saring data</h1><p>JavaScript Interaktif &amp; Data • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Cari dan saring data</strong>, bagian dari modul <em>JavaScript Interaktif & Data</em> (pertemuan 21–28).</p><div class="highlight-box">Konsep yang dipakai: <strong>event, array, localStorage, filter</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Aplikasi web yang berguna merespons banyak event, mengelola daftar data, dan mengingat datanya walau halaman ditutup.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>addEventListener mendengarkan klik, ketikan, dan submit</li><li>Array dan objek menyimpan daftar data</li><li>localStorage menyimpan teks di browser</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Siapkan array berisi minimal 8 objek data</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Buat kolom pencarian yang memfilter data saat diketik</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tampilkan pesan bila tidak ada data yang cocok</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Uji dengan lima kata kunci</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Muat ulang Preview dan buka di lebar layar yang berbeda setelah mengubah tata letak.</li><li>Gunakan tag semantik dan beri nama class yang menjelaskan fungsinya.</li><li>Pakai konsol browser untuk melihat error JavaScript.</li></ul></div>
-</div></div>
-</body></html>
+<a id="btnKembali" href="../../../belajar-smk.html?p=wb4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 3 • FILTER & PENCARIAN</span>
+    <h1>Cari dan Saring Data</h1>
+    <p>Menyaring daftar data secara instan menggunakan event input dan method array filter()</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Memadukan Event Input dan Method filter()</h2>
+    <div class="card">
+      <p>Fitur pencarian instan (live search) memantau kata yang diketikkan pengguna melalui event <code>input</code>, menyaring daftar data menggunakan method <code>filter()</code>, lalu mencetak ulang hasil yang cocok ke layar.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Operasi</th>
+              <th>Contoh Kode</th>
+              <th>Fungsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>filter()</code></td>
+              <td><code>data.filter(item =&gt; ...)</code></td>
+              <td>Menyaring array dan menghasilkan array baru yang lolos syarat.</td>
+            </tr>
+            <tr>
+              <td><code>includes()</code></td>
+              <td><code>teks.includes(kataKunci)</code></td>
+              <td>Mengecek apakah kata kunci terdapat di dalam teks (true/false).</td>
+            </tr>
+            <tr>
+              <td><code>toLowerCase()</code></td>
+              <td><code>teks.toLowerCase()</code></td>
+              <td>Mengubah teks ke huruf kecil agar pencarian tidak terpengaruh huruf kapital.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Selalu ubah kata kunci pencarian dan data asli ke huruf kecil dengan <code>toLowerCase()</code> agar pencarian kata "web" tetap menemukan data "Web Desain".
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Live Search</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-keyword">const</span> inputCari = document.<span class="code-func">querySelector</span>(<span class="code-str">"#inputCari"</span>);
+
+<span class="code-comment">// Dengarkan setiap ketikan pengguna di kolom pencarian</span>
+inputCari.<span class="code-func">addEventListener</span>(<span class="code-str">"input"</span>, <span class="code-keyword">function</span>() {
+  <span class="code-keyword">const</span> kataKunci = inputCari.value.<span class="code-func">toLowerCase</span>().<span class="code-func">trim</span>();
+
+  <span class="code-comment">// Saring array dataEvent</span>
+  <span class="code-keyword">const</span> hasilSaring = dataEvent.<span class="code-func">filter</span>((item) =&gt; {
+    <span class="code-keyword">const</span> judulKecil = item.judul.<span class="code-func">toLowerCase</span>();
+    <span class="code-keyword">return</span> judulKecil.<span class="code-func">includes</span>(kataKunci);
+  });
+
+  <span class="code-comment">// Render ulang kartu hanya dengan data yang lolos saring</span>
+  <span class="code-func">tampilkanKartu</span>(hasilSaring);
+});</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Tambahkan kolom pencarian di HTML</h4>
+            <p>Buat elemen input dengan atribut <code>type="search"</code> dan beri id, misalnya: <code>id="inputCari"</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Tangkap ketikan dengan event input</h4>
+            <p>Pasang event listener <code>input</code> pada kolom pencarian dan ambil nilainya secara berkala.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Gunakan filter() dan includes()</h4>
+            <p>Saring array utama berdasarkan kesesuaian judul kegiatan dengan kata kunci yang diketik.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Render ulang daftar kartu</h4>
+            <p>Panggil kembali fungsi render kartumu dengan mengirimkan array hasil saringan sebagai argumen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Lupa menyamakan teks ke huruf kecil dengan <code>toLowerCase()</code>, sehingga pencarian huruf kecil tidak menemukan teks berhuruf kapital.</li>
+        <li>Menimpa array data asli secara permanen saat memfilter, sehingga saat kolom pencarian dihapus, data lama tidak bisa kembali.</li>
+        <li>Menggunakan event <code>change</code> alih-alih event <code>input</code>, sehingga hasil pencarian tidak muncul secara instan saat mengetik.</li>
+      </ul>
+      <div class="alert-box">
+        Simpan data sumber pada variabel array asli, dan gunakan variabel terpisah untuk menampung hasil <code>filter()</code> agar data awal tetap utuh.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

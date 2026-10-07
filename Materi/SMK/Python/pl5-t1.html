@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rekening bank</title>
+  <title>OOP Lanjutan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -285,12 +285,67 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Rekening bank</h1><p>OOP Lanjutan • Level Lanjut</p></div><div class="content">
-<h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Rekening bank</strong>, bagian dari modul <em>OOP Lanjutan</em> (pertemuan 25–32).</p><div class="highlight-box">Konsep yang dipakai: <strong>enkapsulasi, polimorfisme, __str__, inheritance</strong>.</div></div>
-<h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">OOP lanjutan menjaga data tetap aman di dalam objek dan membuat class berbeda bisa dipakai dengan cara yang sama.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Enkapsulasi: atribut diakses lewat method</li><li>Polimorfisme: nama method sama, perilaku berbeda</li><li>__str__ menentukan cara objek dicetak</li></ul></div>
-<h2 class="section-title">3. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Buat class Rekening dengan atribut _saldo</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Tambah method setor() dan tarik()</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Tolak penarikan jika saldo kurang</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Langkah 4</h4><p>Cetak saldo dengan method __str__</p></div></div></div></div>
-<h2 class="section-title">4. Tips saat mengerjakan</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Uji fungsi atau program dengan nilai biasa, nilai kosong, dan nilai ekstrem.</li><li>Beri nama variabel dan fungsi yang menjelaskan isinya.</li><li>Baca traceback dari bawah ke atas, lalu perbaiki satu error dalam satu waktu.</li></ul></div>
+<div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>OOP Lanjutan</h1><p>Enkapsulasi, polimorfisme, komposisi, dan merancang class</p></div><div class="content">
+<h2 class="section-title">1. Enkapsulasi: menjaga data tetap aman</h2><div class="card"><p style="margin-top:8px;">Enkapsulasi berarti data object tidak diubah sembarangan dari luar; perubahan lewat method yang bisa memeriksa aturan.</p><div class="code-block">class Rekening:
+    def __init__(self, pemilik, saldo=0):
+        self.pemilik = pemilik
+        self._saldo = saldo          # awalan _ : jangan diubah langsung
+
+    @property
+    def saldo(self):
+        return self._saldo
+
+    def setor(self, jumlah):
+        if jumlah &lt;= 0:
+            raise ValueError("Jumlah harus positif")
+        self._saldo += jumlah
+
+    def tarik(self, jumlah):
+        if jumlah &gt; self._saldo:
+            print("Saldo tidak cukup")
+            return False
+        self._saldo -= jumlah
+        return True
+
+    def __str__(self):
+        return f"{self.pemilik}: Rp{self._saldo:,}"
+
+r = Rekening("Rani", 100000)
+r.setor(50000)
+print(r)           # Rani: Rp150,000
+print(r.saldo)     # 150000 lewat property</div><div class="alert-box">Python tidak benar-benar mencegah akses ke <code>_saldo</code>. Awalan garis bawah adalah <strong>kesepakatan</strong> antar programmer. Aturan seperti saldo tidak boleh negatif ditaruh di method.</div></div>
+<h2 class="section-title">2. Polimorfisme</h2><div class="card"><p style="margin-top:8px;">Polimorfisme: nama method sama, perilaku berbeda tergantung class-nya. Pemanggil tidak perlu mengecek jenis object.</p><div class="code-block">class Bentuk:
+    def luas(self):
+        raise NotImplementedError("Class turunan harus menimpa luas()")
+
+class Persegi(Bentuk):
+    def __init__(self, sisi): self.sisi = sisi
+    def luas(self): return self.sisi ** 2
+
+class Lingkaran(Bentuk):
+    def __init__(self, r): self.r = r
+    def luas(self): return 3.14159 * self.r ** 2
+
+bentuk = [Persegi(4), Lingkaran(3), Persegi(2)]
+print(sum(b.luas() for b in bentuk))   # satu perulangan untuk semua jenis</div><div class="highlight-box">Tambah class <code>Segitiga</code> baru nanti, perulangan di atas <strong>tidak perlu diubah</strong>. Itulah manfaat polimorfisme.</div></div>
+<h2 class="section-title">3. Inheritance atau komposisi?</h2><div class="card"><div class="table-container"><table><thead><tr><th>Hubungan</th><th>Pertanyaan uji</th><th>Contoh</th><th>Cara</th></tr></thead><tbody><tr><td>is-a</td><td>Apakah A adalah sejenis B?</td><td>Kucing adalah Hewan</td><td>Inheritance</td></tr><tr><td>has-a</td><td>Apakah A memiliki B?</td><td>Perpustakaan memiliki Buku</td><td>Komposisi (simpan object sebagai atribut)</td></tr></tbody></table></div><div class="code-block">class Buku:
+    def __init__(self, judul, penulis):
+        self.judul, self.penulis = judul, penulis
+    def __str__(self):
+        return f"{self.judul} oleh {self.penulis}"
+
+class Perpustakaan:
+    def __init__(self):
+        self.koleksi = []                 # berisi object Buku
+    def tambah_buku(self, buku):
+        self.koleksi.append(buku)
+    def cari_buku(self, kata):
+        return [b for b in self.koleksi if kata.lower() in b.judul.lower()]</div></div>
+<h2 class="section-title">4. Merancang class</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Cari kata benda</h4><p>Kata benda dalam soal biasanya jadi class: Barang, Toko.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Cari kata kerja</h4><p>Kata kerja jadi method: tambah_stok, jual.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Tentukan aturan</h4><p>Apa yang tidak boleh terjadi? Stok negatif, harga nol. Taruh di method, bukan di luar.</p></div></div><div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>Uji skenario</h4><p>Tulis skenario lengkap: tambah stok, jual, jual melebihi stok, lihat laporan.</p></div></div></div></div>
+<h2 class="section-title">5. Kesalahan yang sering terjadi</h2><div class="card"><div class="table-container"><table><thead><tr><th>Masalah</th><th>Penyebab</th><th>Perbaikan</th></tr></thead><tbody><tr><td>Semua object berbagi satu list</td><td>def __init__(self, daftar=[])</td><td>Pakai None lalu buat list baru di dalam</td></tr><tr><td>Atribut turunan hilang</td><td>Lupa super().__init__()</td><td>Panggil __init__ induk</td></tr><tr><td>Saldo menjadi negatif</td><td>Ubah atribut langsung dari luar</td><td>Lewat method dengan validasi</td></tr><tr><td>Kode penuh if isinstance</td><td>Tidak memakai polimorfisme</td><td>Pindahkan perilaku ke method class</td></tr><tr><td>Pakai inheritance untuk has-a</td><td>Salah memilih hubungan</td><td>Pakai komposisi</td></tr></tbody></table></div></div>
+<h2 class="section-title">6. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Rekening bank dan Enkapsulasi:</strong> _saldo, property, validasi.</li><li><strong>Hewan bersuara dan Polimorfisme:</strong> override dan loop satu jenis panggilan.</li><li><strong>Komposisi:</strong> Perpustakaan berisi Buku.</li></ul></div>
+<h2 class="section-title">7. Proyek: Sistem Inventaris Toko</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Rancang</h4><p>Class Barang (nama, harga, stok) dan class Toko yang menyimpan banyak Barang.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Fitur</h4><p>Tambah stok, jual barang, dan laporan; stok tidak boleh negatif.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji lengkap</h4><p>Jalankan skenario penjualan penuh, termasuk menjual lebih banyak dari stok.</p></div></div></div></div>
 </div></div>
 </body></html>

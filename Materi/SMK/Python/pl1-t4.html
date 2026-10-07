@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 4: Metode List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .table-container { overflow-x: auto; margin: 18px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="../../../belajar-smk.html?p=pl1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 4 • METODE LANJUTAN LIST</span>
+    <h1>Metode List</h1>
+    <p>Menyisipkan, menghapus elemen, membalik urutan, dan mengurutkan data list secara efisien</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">1. Beragam Method Bawaan List</h2>
+    <div class="card">
+      <p>Python menyediakan fungsi bawaan (method) yang mempermudah manipulasi antrean dan urutan data di dalam list tanpa perlu perulangan manual.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Contoh Perintah</th>
+              <th>Hasil / Efek</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>insert()</code></td>
+              <td><code>data.insert(1, "Budi")</code></td>
+              <td>Menyisipkan item ke posisi indeks tertentu tanpa menimpa data lama.</td>
+            </tr>
+            <tr>
+              <td><code>pop()</code></td>
+              <td><code>data.pop()</code> / <code>data.pop(0)</code></td>
+              <td>Mengambil sekaligus menghapus elemen terakhir atau elemen pada indeks tertentu.</td>
+            </tr>
+            <tr>
+              <td><code>remove()</code></td>
+              <td><code>data.remove("Budi")</code></td>
+              <td>Menghapus elemen berdasarkan kesamaan nilainya.</td>
+            </tr>
+            <tr>
+              <td><code>sort()</code></td>
+              <td><code>data.sort()</code></td>
+              <td>Mengurutkan item dari terkecil ke terbesar (A-Z atau 0-9).</td>
+            </tr>
+            <tr>
+              <td><code>reverse()</code></td>
+              <td><code>data.reverse()</code></td>
+              <td>Membalikkan urutan isi list dari belakang ke depan.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Method <code>pop()</code> sangat bermanfaat untuk simulasi antrean, karena ia menghapus item sekaligus mengembalikan nilai yang dihapus ke dalam variabel.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment"># Simulasi Antrean Pasien</span>
+antrean = [<span class="code-str">"Rina"</span>, <span class="code-str">"Dedi"</span>, <span class="code-str">"Fajar"</span>]
+
+<span class="code-comment"># 1. Pasien darurat masuk di urutan kedua (indeks 1)</span>
+antrean.<span class="code-func">insert</span>(<span class="code-num">1</span>, <span class="code-str">"Maya"</span>)
+print(<span class="code-str">"Setelah disisipkan:"</span>, antrean)  <span class="code-comment"># ['Rina', 'Maya', 'Dedi', 'Fajar']</span>
+
+<span class="code-comment"># 2. Pasien pertama dipanggil ke ruangan (dihapus dari antrean)</span>
+pasien_masuk = antrean.<span class="code-func">pop</span>(<span class="code-num">0</span>)
+print(<span class="code-str">f"Sedang dilayani: {pasien_masuk}"</span>)
+
+<span class="code-comment"># 3. Mengurutkan nama pasien sisa sesuai abjad</span>
+antrean.<span class="code-func">sort</span>()
+print(<span class="code-str">"Antrean urut abjad:"</span>, antrean)</div>
+    </div>
+
+    <h2 class="section-title">3. Langkah Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Buat list data acak</h4>
+            <p>Buat list angka atau nama yang urutannya sengaja dibuat tidak beraturan.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Sisipkan item dengan .insert()</h4>
+            <p>Tambahkan sebuah elemen baru tepat di posisi indeks tertentu.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Keluarkan data dengan .pop()</h4>
+            <p>Ambil elemen pertama dengan <code>.pop(0)</code> dan simpan ke variabel tersendiri.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Urutkan dengan .sort()</h4>
+            <p>Panggil <code>.sort()</code> untuk merapikan seluruh isi list secara otomatis.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menuliskan <code>hasil = data.sort()</code>; method <code>sort()</code> langsung mengubah list asli di tempat dan menghasilkan nilai <code>None</code>. Cukup tulis <code>data.sort()</code>.</li>
+        <li>Muncul <code>ValueError</code> saat menggunakan <code>.remove("nama")</code> pada item yang ternyata tidak ada di dalam list.</li>
+        <li>Tertukar urutan argumen pada <code>insert(indeks, nilai)</code>; letakkan indeks terlebih dahulu sebelum nilainya.</li>
+      </ul>
+      <div class="alert-box">
+        Jika ingin mengurutkan dari besar ke kecil (kebalikan), gunakan parameter <code>data.sort(reverse=True)</code>.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
