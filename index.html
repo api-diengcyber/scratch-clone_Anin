@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Masuk ΓÇó Dieng Cyber Coding Academy</title>
+  <title>Masuk • Dieng Cyber Coding Academy</title>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
@@ -16,9 +16,54 @@
     label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
     input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
     input:focus { outline: 2px solid #7181ec; border-color: transparent; }
+    
+    /* Wrapper untuk input password dan tombol toggle */
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-wrapper input {
+      padding-right: 44px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      width: auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8791a5;
+    }
+    .toggle-password:hover {
+      background: none;
+      color: #556075;
+    }
+
     .error { display: none; margin-top: 12px; color: #d33; font-size: 12px; }
-    button { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
-    button:hover { background: #5f70dd; }
+    .btn-submit { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
+    .btn-submit:hover { background: #5f70dd; }
+
+    /* Footer link untuk registrasi */
+    .register-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #8791a5;
+    }
+    .register-link a {
+      color: #7181ec;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .register-link a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -34,72 +79,95 @@
       <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
 
       <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
+        <button type="button" id="togglePassword" class="toggle-password" aria-label="Tampilkan atau sembunyikan password">
+          <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
 
       <div id="loginError" class="error">Username dan Password wajib diisi!</div>
 
-      <button type="submit">Masuk</button>
+      <button type="submit" class="btn-submit">Masuk</button>
     </form>
+
+    <!-- Navigasi Belum Punya Akun -->
+    <div class="register-link">
+      Belum punya akun? <a href="register.html">Daftar sekarang</a>
+    </div>
   </div>
 
   <script>
-    // Kalau sudah login, langsung ke dashboard
-      const loginForm = document.getElementById('loginForm');
-      const loginError = document.getElementById('loginError');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
 
-      loginForm.addEventListener('submit', async function (e) {
-        e.preventDefault();
+    // Toggle Show/Hide Password
+    togglePassword.addEventListener('click', function () {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
 
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
+      if (isPassword) {
+        eyeIcon.innerHTML = `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+      } else {
+        eyeIcon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
+    });
 
-        loginError.style.display = 'none';
+    loginForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-        if (!username || !password) {
-          loginError.textContent = 'Username dan password wajib diisi!';
+      const username = document.getElementById('username').value.trim();
+      const password = passwordInput.value;
+
+      loginError.style.display = 'none';
+
+      if (!username || !password) {
+        loginError.textContent = 'Username dan password wajib diisi!';
+        loginError.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          loginError.textContent = data.message || 'Login gagal.';
           loginError.style.display = 'block';
           return;
         }
 
-        try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              username,
-              password
-            })
-          });
+        // Login berhasil
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('scratch_user', data.username);
+        localStorage.setItem('authToken', data.token);
 
-          const data = await response.json();
+        window.location.replace('dashboard.html');
 
-          if (!response.ok) {
-            loginError.textContent = data.message || 'Login gagal.';
-            loginError.style.display = 'block';
-            return;
-          }
-
-          // Login berhasil
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('username', data.username);
-          localStorage.setItem('scratch_user', data.username);
-
-          // Token dari backend
-          localStorage.setItem('authToken', data.token);
-
-          window.location.replace('dashboard.html');
-
-        } catch (error) {
-          console.error('Login error:', error);
-
-          loginError.textContent =
-            'Backend tidak dapat dihubungi.';
-          loginError.style.display = 'block';
-        }
-      });
-</script>
+      } catch (error) {
+        console.error('Login error:', error);
+        loginError.textContent = 'Backend tidak dapat dihubungi.';
+        loginError.style.display = 'block';
+      }
+    });
   </script>
 </body>
 </html>

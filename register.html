@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar • Dieng Cyber Coding Academy</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
+    .card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 30px; box-shadow: 0 8px 25px rgba(50,70,110,.08); }
+    .brand { text-align: center; margin-bottom: 20px; }
+    .brand-icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 16px; background: #fff; display: grid; place-items: center; font-size: 28px; overflow: hidden; }
+    .brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
+    p { margin: 4px 0 0; color: #8791a5; font-size: 12px; }
+    label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
+    input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
+    input:focus { outline: 2px solid #7181ec; border-color: transparent; }
+    
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-wrapper input {
+      padding-right: 44px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      width: auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8791a5;
+    }
+    .toggle-password:hover {
+      background: none;
+      color: #556075;
+    }
+
+    .message { display: none; margin-top: 12px; font-size: 12px; }
+    .error { color: #d33; }
+    .success { color: #2e7d32; }
+
+    .btn-submit { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
+    .btn-submit:hover { background: #5f70dd; }
+
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #8791a5;
+    }
+    .login-link a {
+      color: #7181ec;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon"><img src="Assets/logo.png" alt="Logo Dieng Cyber"></div>
+      <h1>DIENG CYBER CODING</h1>
+      <p>Buat akun baru untuk mulai belajar coding</p>
+    </div>
+
+    <form id="registerForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Buat username" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Buat password" autocomplete="new-password" required>
+        <button type="button" class="toggle-password" data-target="password" aria-label="Tampilkan atau sembunyikan password">
+          <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+
+      <label for="confirmPassword">Konfirmasi Password</label>
+      <div class="password-wrapper">
+        <input type="password" id="confirmPassword" placeholder="Ulangi password" autocomplete="new-password" required>
+        <button type="button" class="toggle-password" data-target="confirmPassword" aria-label="Tampilkan atau sembunyikan konfirmasi password">
+          <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+
+      <div id="registerMsg" class="message"></div>
+
+      <button type="submit" class="btn-submit">Daftar</button>
+    </form>
+
+    <div class="login-link">
+      Sudah punya akun? <a href="index.html">Masuk di sini</a>
+    </div>
+  </div>
+
+  <script>
+    const registerForm = document.getElementById('registerForm');
+    const registerMsg = document.getElementById('registerMsg');
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+
+    const eyeOpenSvg = `
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    `;
+    const eyeCloseSvg = `
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    `;
+
+    // Toggle visibility untuk kedua field password
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        const icon = this.querySelector('.eye-icon');
+        const isPassword = input.getAttribute('type') === 'password';
+
+        input.setAttribute('type', isPassword ? 'text' : 'password');
+        icon.innerHTML = isPassword ? eyeCloseSvg : eyeOpenSvg;
+      });
+    });
+
+    registerForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      registerMsg.style.display = 'none';
+      registerMsg.className = 'message error';
+
+      if (!username || !password || !confirmPassword) {
+        registerMsg.textContent = 'Semua field wajib diisi!';
+        registerMsg.style.display = 'block';
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        registerMsg.textContent = 'Password dan konfirmasi password tidak sama!';
+        registerMsg.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          registerMsg.textContent = data.message || 'Pendaftaran gagal.';
+          registerMsg.style.display = 'block';
+          return;
+        }
+
+        // Tampilkan pesan sukses dan arahkan ke halaman login
+        registerMsg.className = 'message success';
+        registerMsg.textContent = 'Pendaftaran berhasil! Mengalihkan ke halaman login...';
+        registerMsg.style.display = 'block';
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+
+      } catch (error) {
+        console.error('Register error:', error);
+        registerMsg.textContent = 'Backend tidak dapat dihubungi.';
+        registerMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
