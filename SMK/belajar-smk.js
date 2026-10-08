@@ -16,7 +16,7 @@
       const cards = t.nodes.map((n, i) => { const p = S.prog(n), full = p.total > 0 && p.done === p.total;
         const dots = n.tasks.map((k, j) => { const d = S.isDone(n.id, j); return k.project ? '<i class="trophy ' + (d ? "on" : "") + '">🏆</i>' : '<i class="' + (d ? "on" : "") + '">' + (d ? "✓" : "") + "</i>"; }).join("") + (n.tasks.some((k) => k.project) ? "" : '<i class="trophy ' + (full ? "on" : "") + '">🏆</i>');
         const label = p.done === 0 ? "Mulai belajar" : full ? "Lihat lagi" : "Lanjutkan";
-        return '<a class="pcard" href="belajar-smk.html?p=' + n.id + '" style="--c:' + col(t, i) + '"><div class="pe">' + m.em[i] + "</div><h3>" + esc(n.title) + "</h3><p>" + esc(n.deskripsi) + '</p><div class="dots">' + dots + '</div><div class="pcount">' + p.done + " dari " + p.total + " task" + (full ? " • Selesai!" : "") + '</div><span class="go">' + label + " →</span></a>"; }).join("");
+        return '<a class="pcard" href="/belajar-smk.html?p=' + n.id + '" style="--c:' + col(t, i) + '"><div class="pe">' + m.em[i] + "</div><h3>" + esc(n.title) + "</h3><p>" + esc(n.deskripsi) + '</p><div class="dots">' + dots + '</div><div class="pcount">' + p.done + " dari " + p.total + " task" + (full ? " • Selesai!" : "") + '</div><span class="go">' + label + " →</span></a>"; }).join("");
       return '<section class="smk-tahap"><div class="tahap-hero ' + m.cls + '"><h1>' + esc(m.n) + "</h1><p>Untuk siswa usia " + (m.usia || "15–18 tahun") + ". " + esc(m.slogan) + '</p><div class="bar"><i style="width:' + pct + '%"></i></div><div class="bar-text">' + tp.done + " dari " + tp.total + " langkah selesai</div></div>" +
         '<div class="flow"><b>' + esc(m.n.split(" — ")[0]) + "</b><span>→</span><b>📚 Pilih Pembelajaran</b><span>→</span><b>🧩 Task</b><span>→</span><b>✅ Tandai Selesai</b></div>" +
         '<h2 class="sec-title">📚 Pilih pembelajaran</h2><div class="pgrid">' + cards + "</div></section>"; }).join("");
@@ -24,14 +24,14 @@
   }
   let lastBtn = null;
   // Tombol materi: tiap task punya halamanMateri (diisi di jalur-data-*.js). Kalau kosong → tampil "segera hadir".
-  const mhref = (k) => k.halamanMateri + (k.halamanMateri.indexOf("?") > -1 ? "&" : "?") + "kembali=" + encodeURIComponent("belajar-smk.html?p=" + node.id);
+  const mhref = (k) => k.halamanMateri + (k.halamanMateri.indexOf("?") > -1 ? "&" : "?") + "kembali=" + encodeURIComponent("/belajar-smk.html?p=" + node.id);
   const matBtn = (k, op) => !op || k.kumpul ? "" : k.halamanMateri ? '<a class="btn ghost mlink" href="' + esc(mhref(k)) + '">📺 Materi</a>' : '<button class="btn grey mlink" type="button" disabled title="Materi segera hadir">📺 Segera hadir</button>';
   const matCard = (k) => k.kumpul ? "" : k.halamanMateri ? '<a class="materi-link" href="' + esc(mhref(k)) + '"><span class="ml-icon">📺</span><span class="ml-text"><b>Lihat Materi</b><small>Belajar dulu sebelum mengerjakan</small></span><span class="ml-go">→</span></a>' : '<div class="materi-link soon" aria-disabled="true"><span class="ml-icon">📺</span><span class="ml-text"><b>Materi segera hadir</b><small>Materi untuk task ini sedang disiapkan</small></span></div>';
 
   function render() {
     if (!node) return renderTahap();
     const m = M[tr.id], idx = tr.nodes.indexOf(node), p = S.prog(node), pct = Math.round(p.done / p.total * 100), cur = node.tasks.findIndex((_, i) => !S.isDone(node.id, i)), mc = col(tr, idx);
-    app.innerHTML = crumbs([[esc(tr.nama), "belajar-smk.html?t=" + tr.id], [m.em[idx] + " " + esc(node.title), "#"]]) +
+    app.innerHTML = crumbs([[esc(tr.nama), "/belajar-smk.html?t=" + tr.id], [m.em[idx] + " " + esc(node.title), "#"]]) +
       '<div style="--c:' + mc + '"><div class="phead"><div class="pe">' + m.em[idx] + "</div><div><h2>" + esc(node.title) + "</h2><p>" + esc(node.deskripsi) + " Pertemuan " + node.pertemuan + " • " + esc(node.level) + '</p><div class="bar"><i style="width:' + pct + '%"></i></div><div class="bar-text">' + p.done + " dari " + p.total + " task selesai</div></div></div>" +
       '<section class="tcard"><h3>📖 Ringkasan &amp; Teori Singkat</h3><p class="desc">' + esc(node.ringkasan) + "</p><ul>" + node.teori.map((s) => "<li>" + esc(s) + "</li>").join("") + '</ul><div class="chips">' + node.materi.map((s) => '<span class="chip">' + esc(s) + "</span>").join("") + "</div></section>" +
       '<div class="path">' + node.tasks.map((k, i) => { const dn = S.isDone(node.id, i), op = i === 0 || S.isDone(node.id, i - 1), cu = i === cur;

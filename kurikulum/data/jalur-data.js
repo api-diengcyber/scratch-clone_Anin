@@ -18,7 +18,7 @@
 //
 // `opsi` boleh dihilangkan. Isinya (semua boleh dikosongkan):
 //   materi:  ["hal yang dipelajari", ...]
-//   halamanMateri: "Materi/SD/Tahap 2/3D&Roblox/g2-t1.html"  (alamat halaman materi; kalau diisi, muncul tombol 📺 Lihat Materi di halaman task. File ditaruh di folder Materi/)
+//   halamanMateri: "/SD/materi/tahap-2/3D&Roblox/g2-t1.html"  (alamat halaman materi; kalau diisi, muncul tombol 📺 Lihat Materi di halaman task. File ditaruh di folder Materi/)
 //   poin:    15                         (kalau kosong → POIN_TASK / POIN_PROJECT)
 //   sukses:  "kapan task interactive dianggap berhasil"
 //   gagal:   "kapan task interactive dianggap belum berhasil"
@@ -301,7 +301,7 @@ window.LP_DATA = {
           desc: "Jalur 3D: membangun benda dan dunia 3D langsung di 3D Editor, dengan istilah seperti di Roblox.",
           topik: ["Bentuk 3D", "Warna dan ukuran", "Menyusun benda", "Tempat muncul", "Dunia 3D mini", "Project 3D"],
           tasks: [
-            model3d({"materi": ["Benda 3D punya lebar, tinggi, dan panjang", "Menambah benda", "Memutar pandangan"], "halamanMateri": "Materi/SD/Tahap 2/3D&Roblox/g2-t1.html", "langkah": ["Klik tombol 🟦 Balok di bagian atas.", "Tahan klik di dunia 3D, lalu geser mouse untuk memutar pandanganmu.", "Putar roda mouse untuk mendekat dan menjauh."], "cek": [
+            model3d({"materi": ["Benda 3D punya lebar, tinggi, dan panjang", "Menambah benda", "Memutar pandangan"], "halamanMateri": "/SD/materi/tahap-2/3D&Roblox/g2-t1.html", "langkah": ["Klik tombol 🟦 Balok di bagian atas.", "Tahan klik di dunia 3D, lalu geser mouse untuk memutar pandanganmu.", "Putar roda mouse untuk mendekat dan menjauh."], "cek": [
                 { teks: "Ada 1 benda di dunia", uji: (c) => bagian(c).length >= 1 },
                 { teks: "Kamu sudah memutar pandangan", uji: (c) => c.orbited }
               ]}, "Kenalan dengan 3D", "Tambahkan bendamu yang pertama dan lihat dari berbagai sisi.",

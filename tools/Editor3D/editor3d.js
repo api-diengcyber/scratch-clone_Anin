@@ -10,7 +10,7 @@
   const authToken = localStorage.getItem("authToken");
 
   if (!authToken) {
-    window.location.replace("../index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -27,7 +27,7 @@
       localStorage.removeItem("scratch_user");
       localStorage.removeItem("authToken");
 
-      window.location.replace("../index.html");
+      window.location.replace("/index.html");
       return;
     }
 
@@ -39,7 +39,7 @@
 
   } catch (error) {
     console.error("Gagal memeriksa sesi:", error);
-    window.location.replace("../index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -53,15 +53,15 @@
   let info = null, task = null, proj = null;
   if (taskId) {
     info = LP.find(taskId);
-    if (!info || info.task.kind !== "model3d") { location.replace("../belajar.html" + (info ? "?task=" + taskId : "")); return; }
-    if (!LP.isUnlocked(taskId)) { location.replace("../belajar.html?p=" + info.pemb.id); return; }
+    if (!info || info.task.kind !== "model3d") { location.replace("/belajar.html" + (info ? "?task=" + taskId : "")); return; }
+    if (!LP.isUnlocked(taskId)) { location.replace("/belajar.html?p=" + info.pemb.id); return; }
     task = info.task;
-    $("backLink").href = "../belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar";
+    $("backLink").href = "/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar";
   } else if (projectId && LP.find(projectId)) {
     proj = LP.find(projectId).task;
-    $("backLink").href = "../belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir";
+    $("backLink").href = "/belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir";
   } else if (dari && LP.find(dari)) {
-    $("backLink").href = "../belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task";
+    $("backLink").href = "/belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task";
   }
   const key = taskId || (projectId ? "p-" + projectId : "bebas");
   const refreshPoints = () => { $("pointsValue").textContent = LP.points(); }; refreshPoints();
@@ -287,7 +287,7 @@
   function success() {
     const nameLine = "Task " + task.no + " — " + task.title, nx = LP.next(taskId), buttons = [];
     if (nx) buttons.push({ label: nx.type === "project" ? "Lanjut ke Project Akhir 🏆" : "Task berikutnya →", cls: "mp-primary", fn: () => { location.href = LP.href(nx.id, "Editor3D"); } });
-    buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { location.href = "../belajar.html?p=" + info.pemb.id; } }, { label: "Lanjut bereksperimen", cls: "mp-secondary" });
+    buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { location.href = "/belajar.html?p=" + info.pemb.id; } }, { label: "Lanjut bereksperimen", cls: "mp-secondary" });
     const r = LP.complete(taskId, true); refreshPoints();
     popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: '<div class="mp-points"><b>+' + r.earned + '</b> poin</div><p class="mp-info">Total poinmu: <b>⭐ ' + r.total + "</b></p>", buttons });
   }

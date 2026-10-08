@@ -3,7 +3,7 @@
   const authToken = localStorage.getItem("authToken");
 
   if (!authToken) {
-    window.location.replace("index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -20,7 +20,7 @@
       localStorage.removeItem("scratch_user");
       localStorage.removeItem("authToken");
 
-      window.location.replace("index.html");
+      window.location.replace("/index.html");
       return;
     }
 
@@ -32,7 +32,7 @@
 
   } catch (error) {
     console.error("Gagal memeriksa sesi:", error);
-    window.location.replace("index.html");
+    window.location.replace("/index.html");
     return;
   }
 

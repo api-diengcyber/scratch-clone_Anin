@@ -241,11 +241,11 @@ const logoutBtn =
   document.getElementById("logout-btn");
 
 
-function checkAuth() {
+async function checkAuth() {
 const authToken = localStorage.getItem("authToken");
 
 if (!authToken) {
-  window.location.replace("../index.html");
+  window.location.replace("/index.html");
   return;
 }
 
@@ -262,7 +262,7 @@ try {
     localStorage.removeItem("scratch_user");
     localStorage.removeItem("authToken");
 
-    window.location.replace("../index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -274,10 +274,11 @@ try {
 
 } catch (error) {
   console.error("Gagal memeriksa sesi:", error);
-  window.location.replace("../index.html");
+  window.location.replace("/index.html");
   return;
 }
 
+  const savedUser = user.username;
   state.currentUser = savedUser;
 
   if (userDisplayName) {
@@ -373,7 +374,7 @@ if (logoutBtn) {
       // (dibuka dari Project Akhir → kembali ke halaman project-nya)
       const qs = new URLSearchParams(window.location.search);
       const pj = qs.get("project") || qs.get("dari");
-      window.location.href = (pj && typeof LP !== "undefined" && LP.find(pj)) ? "../belajar.html?task=" + pj : "../dashboard.html";
+      window.location.href = (pj && typeof LP !== "undefined" && LP.find(pj)) ? "/belajar.html?task=" + pj : "/dashboard.html";
     }
   );
 }
@@ -9174,7 +9175,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     const info = LP.find(taskId);
     if (!info || !EDITOR_GOALS[taskId]) return;
     if (!LP.isUnlocked(taskId)) {               // task belum terbuka → balik ke jalur belajar
-      window.location.replace("../belajar.html?p=" + info.pemb.id);
+      window.location.replace("/belajar.html?p=" + info.pemb.id);
       return;
     }
     const nxt = LP.next(taskId);
@@ -9186,7 +9187,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     hasNext = !!nxt;
     nextLabel = nxt && nxt.type === "project" ? "Lanjut ke Project Akhir 🏆" : "Task berikutnya →";
     nextHref = nxt ? LP.href(nxt.id, true) : null;
-    backHref = "../belajar.html?p=" + info.pemb.id;
+    backHref = "/belajar.html?p=" + info.pemb.id;
     backLabel = "Kembali ke jalur belajar";
     pointsBase = LP.poinOf(info.task);
     pointsBonus = LP.BONUS_PERTAMA;
@@ -9199,7 +9200,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     hasNext = !!(MISSIONS[grade] && MISSIONS[grade][level + 1]);
     nextLabel = "Level berikutnya →";
     nextHref = "index.html?grade=" + grade + "&level=" + (level + 1);
-    backHref = "../dashboard.html";
+    backHref = "/dashboard.html";
     backLabel = "Kembali ke dashboard";
     pointsBase = POINTS_BASE;
     pointsBonus = POINTS_BONUS;

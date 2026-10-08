@@ -1,5 +1,5 @@
 (function () {
-  const TXT = "TextEditor/index.html", D3 = "Editor3D/index.html";
+  const TXT = "/tools/TextEditor/index.html", D3 = "/tools/Editor3D/index.html";
   const N = (url, id, title, deskripsi, pertemuan, level, ringkasan, teori, materi, tasks) => ({ id, title, deskripsi, pertemuan, level, ringkasan, teori, materi,
     tasks: tasks.map((t) => Object.assign({ judul: t[0], langkah: t[1] }, t[2] === "p" ? { project: true } : t[2] === "k" ? { project: true, kumpul: true } : {})), urlEditor: url });
   window.LP_SMP = [
@@ -164,16 +164,16 @@
   //   "idModul"        → berlaku untuk SEMUA task di modul itu
   //   "idModul:nomor"  → hanya satu task (nomor mulai dari 0); menang atas kunci modul
   const MATERI = {
-    d2: "Materi/SMP/3D/kontrol-karakter.html", d3: "Materi/SMP/3D/fisika-raycast.html", d4: "Materi/SMP/3D/game-loop-audio-ai.html", d5: "Materi/SMP/3D/optimasi-performa.html",
-    ai2: "Materi/SMP/AI/web-html-css-ai.html", ai3: "Materi/SMP/AI/tools-ai.html", ai4: "Materi/SMP/AI/aset-kreatif.html", ai5: "Materi/SMP/AI/game-storytelling.html",
-    py4: "Materi/SMP/Python/oop.html", py5: "Materi/SMP/Python/game-2d.html",
-    "py2:4": "Materi/SMP/Python/pintu-rahasia-kuis.html", "py2:5": "Materi/SMP/Python/pintu-rahasia-kuis.html",
-    py1: "Materi/SMP/Python/python1.html",
-    "py1:1": "Materi/SMP/Python/python2.html", "py1:2": "Materi/SMP/Python/python3.html", "py1:3": "Materi/SMP/Python/python4.html", "py1:4": "Materi/SMP/Python/python5.html",
-    "py2:0": "Materi/SMP/Python/ceknilai.html", "py2:1": "Materi/SMP/Python/tebakangka.html", "py2:2": "Materi/SMP/Python/menupilihan.html", "py2:3": "Materi/SMP/Python/hitungmundur.html",
-    py3: "Materi/SMP/Python/fungsi-math.html",
-    ai1: "Materi/SMP/AI/prompt-engineering.html",
-    d1: "Materi/SMP/3D/world-building.html",
+    d2: "/SMP/materi/3D/kontrol-karakter.html", d3: "/SMP/materi/3D/fisika-raycast.html", d4: "/SMP/materi/3D/game-loop-audio-ai.html", d5: "/SMP/materi/3D/optimasi-performa.html",
+    ai2: "/SMP/materi/AI/web-html-css-ai.html", ai3: "/SMP/materi/AI/tools-ai.html", ai4: "/SMP/materi/AI/aset-kreatif.html", ai5: "/SMP/materi/AI/game-storytelling.html",
+    py4: "/SMP/materi/Python/oop.html", py5: "/SMP/materi/Python/game-2d.html",
+    "py2:4": "/SMP/materi/Python/pintu-rahasia-kuis.html", "py2:5": "/SMP/materi/Python/pintu-rahasia-kuis.html",
+    py1: "/SMP/materi/Python/python1.html",
+    "py1:1": "/SMP/materi/Python/python2.html", "py1:2": "/SMP/materi/Python/python3.html", "py1:3": "/SMP/materi/Python/python4.html", "py1:4": "/SMP/materi/Python/python5.html",
+    "py2:0": "/SMP/materi/Python/ceknilai.html", "py2:1": "/SMP/materi/Python/tebakangka.html", "py2:2": "/SMP/materi/Python/menupilihan.html", "py2:3": "/SMP/materi/Python/hitungmundur.html",
+    py3: "/SMP/materi/Python/fungsi-math.html",
+    ai1: "/SMP/materi/AI/prompt-engineering.html",
+    d1: "/SMP/materi/3D/world-building.html",
   };
   window.LP_SMP.forEach((t) => t.nodes.forEach((n) => n.tasks.forEach((k, i) => { k.halamanMateri = MATERI[n.id + ":" + i] || MATERI[n.id] || ""; })));
 })();

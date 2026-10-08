@@ -3,7 +3,7 @@
   const authToken = localStorage.getItem('authToken');
 
   if (!authToken) {
-    window.location.replace('index.html');
+    window.location.replace('/index.html');
     return;
   }
 
@@ -20,7 +20,7 @@
       localStorage.removeItem('scratch_user');
       localStorage.removeItem('authToken');
 
-      window.location.replace('index.html');
+      window.location.replace('/index.html');
       return;
     }
 
@@ -38,7 +38,7 @@
   } catch (error) {
     console.error('Gagal memeriksa sesi:', error);
 
-    window.location.replace('index.html');
+    window.location.replace('/index.html');
     return;
   }
 
@@ -88,7 +88,7 @@ function tahapBlock(th) {
       `<i class="trophy ${p.projectDone ? 'on' : ''}">🏆</i>`;
     const status = p.done === 0 ? (pilih ? 'Ayo pilih!' : 'Belum mulai') : p.done === p.total ? '✓ Selesai!' : `${p.done}/${p.total} selesai`;
     const isMine = chosenId === pb.id;
-    return `<a class="tg-card ${p.done === p.total ? 'complete' : ''} ${isMine ? 'mine' : ''}" href="belajar.html?p=${pb.id}" style="--c:${pb.warna}; --d:${i * 0.07}s">
+    return `<a class="tg-card ${p.done === p.total ? 'complete' : ''} ${isMine ? 'mine' : ''}" href="/belajar.html?p=${pb.id}" style="--c:${pb.warna}; --d:${i * 0.07}s">
       ${isMine ? '<span class="tg-chip">⭐ Jalurmu</span>' : ''}
       <div class="tg-emoji">${pb.emoji}</div>
       <h3>${pb.judul}</h3>
@@ -111,7 +111,7 @@ function tahapBlock(th) {
         </div>
         <small>${text}</small>
       </div>
-      <a class="tb-btn" href="belajar.html?t=${th.id}">${btn}</a>
+      <a class="tb-btn" href="/belajar.html?t=${th.id}">${btn}</a>
     </div>
     <div class="tahap-grid ${gridClass}" style="--n:${n}">${cards}</div>
   </section>`;
@@ -186,7 +186,7 @@ if (tabsLeft.length) {
     localStorage.removeItem('scratch_user');
     localStorage.removeItem('authToken');
 
-    window.location.replace('index.html');
+    window.location.replace('/index.html');
   });
 });
 })();

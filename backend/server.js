@@ -69,7 +69,7 @@ app.use(
 
 app.get("/", (req, res) => {
     res.sendFile(
-        path.join(PROJECT_ROOT, "dashboard.html")
+        path.join(PROJECT_ROOT, "index.html")
     );
 });
 
@@ -77,22 +77,37 @@ app.get("/", (req, res) => {
 // HALAMAN FRONTEND
 // ============================================================
 
+// Dashboard
 app.get("/dashboard.html", (req, res) => {
     res.sendFile(
-        path.join(PROJECT_ROOT, "dashboard.html")
+        path.join(PROJECT_ROOT, "dashboard", "dashboard.html")
     );
 });
 
-app.get("/dashboard.html", (req, res) => {
-    res.sendFile(
-        path.join(PROJECT_ROOT, "dashboard.html")
-    );
-});
-
+// Alias lama untuk halaman belajar SD
 app.get("/belajar.html", (req, res) => {
     res.sendFile(
-        path.join(PROJECT_ROOT, "belajar.html")
+        path.join(PROJECT_ROOT, "SD", "belajar.html")
     );
+});
+
+// Halaman belajar SMP
+app.get("/belajar-smp.html", (req, res) => {
+    res.sendFile(
+        path.join(PROJECT_ROOT, "SMP", "belajar-smp.html")
+    );
+});
+
+// Halaman belajar SMK
+app.get("/belajar-smk.html", (req, res) => {
+    res.sendFile(
+        path.join(PROJECT_ROOT, "SMK", "belajar-smk.html")
+    );
+});
+
+// Alias untuk halaman kurikulum SMP lama
+app.get("/smp.html", (req, res) => {
+    res.redirect("/belajar-smp.html");
 });
 
 // ============================================================

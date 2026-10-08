@@ -22,7 +22,7 @@
   const authToken = localStorage.getItem("authToken");
 
   if (!authToken) {
-    window.location.replace("../index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -39,7 +39,7 @@
       localStorage.removeItem("scratch_user");
       localStorage.removeItem("authToken");
 
-      window.location.replace("../index.html");
+      window.location.replace("/index.html");
       return;
     }
 
@@ -51,7 +51,7 @@
 
   } catch (error) {
     console.error("Gagal memeriksa sesi:", error);
-    window.location.replace("../index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -69,8 +69,8 @@
   let info = null, task = null;
   if (taskId) {
     info = LP.find(taskId);
-    if (!info || info.task.kind !== "code") { window.location.replace("../belajar.html" + (info ? "?task=" + taskId : "")); return; }
-    if (!LP.isUnlocked(taskId)) { window.location.replace("../belajar.html?p=" + info.pemb.id); return; }   // belum terbuka → balik
+    if (!info || info.task.kind !== "code") { window.location.replace("/belajar.html" + (info ? "?task=" + taskId : "")); return; }
+    if (!LP.isUnlocked(taskId)) { window.location.replace("/belajar.html?p=" + info.pemb.id); return; }   // belum terbuka → balik
     task = info.task;
   }
 
@@ -117,10 +117,10 @@
   if (draft.stdin != null) stdinEl.value = draft.stdin;
   const refreshPoints = () => { $("pointsValue").textContent = LP.points(); };
   refreshPoints();
-  if (task) { $("backLink").href = "../belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar"; }
+  if (task) { $("backLink").href = "/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar"; }
   const projectId = params.get("project");      // dibuka dari Project Akhir → kembali ke halaman project-nya
-  if (!task && dari && LP.find(dari)) { $("backLink").href = "../belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task"; }
-  if (!task && projectId && LP.find(projectId)) { $("backLink").href = "../belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir"; }
+  if (!task && dari && LP.find(dari)) { $("backLink").href = "/belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task"; }
+  if (!task && projectId && LP.find(projectId)) { $("backLink").href = "/belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir"; }
 
   // ---------- popup ----------
   function popup(o) {
@@ -470,7 +470,7 @@
     const nx = LP.next(taskId);
     const buttons = [];
     if (nx) buttons.push({ label: nx.type === "project" ? "Lanjut ke Project Akhir 🏆" : "Task berikutnya →", cls: "mp-primary", fn: () => { window.location.href = LP.href(nx.id, "TextEditor"); } });
-    buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { window.location.href = "../belajar.html?p=" + info.pemb.id; } });
+    buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { window.location.href = "/belajar.html?p=" + info.pemb.id; } });
     buttons.push({ label: "Lanjut bereksperimen", cls: "mp-secondary" });
     if (already) {
       return popup({ type: "info", emoji: "✅", title: "Sudah selesai!", name: nameLine,

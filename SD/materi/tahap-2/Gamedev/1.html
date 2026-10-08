@@ -47,7 +47,7 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
 </style>
 </head>
 <body>
-<div class="top"><img src="../Assets/logo.png" alt="Logo Dieng Cyber" onerror="this.style.display='none'"><b>🧊 Materi • Kenalan dengan 3D</b><a href="../belajar.html?task=g2-t1">← Kembali</a></div>
+<div class="top"><img src="/Assets/logo.png" alt="Logo Dieng Cyber" onerror="this.style.display='none'"><b>🧊 Materi • Kenalan dengan 3D</b><a href="/belajar.html?task=g2-t1">← Kembali</a></div>
 <div class="player">
   <div class="bar"><i id="fill"></i></div>
   <section class="scene s1"><h2>Kenalan dengan 3D</h2><div class="stage"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></section>
@@ -55,7 +55,7 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
   <section class="scene s3"><h2>Tambah Benda</h2><div class="mock"><div class="tb"><span>🟦 Balok</span><span>⚪ Bola</span><span>🥫 Tabung</span></div><div class="vp"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="hand">👆</span></div></section>
   <section class="scene s4"><h2>Putar Pandanganmu</h2><div class="mock"><div class="vp" style="height:190px"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="hand">👆</span></div></section>
   <section class="scene s5"><h2>Dekat dan Jauh</h2><div class="mock"><div class="vp" style="height:190px"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div class="wheel">🖱️</div></section>
-  <section class="scene s6"><h2>Kamu Siap! 🎉</h2><ul class="check"><li>✅ Tambah 1 benda</li><li>✅ Putar pandanganmu</li></ul><a class="go" href="../Editor3D/index.html?task=g2-t1">Mulai Task 1 🧊</a></section>
+  <section class="scene s6"><h2>Kamu Siap! 🎉</h2><ul class="check"><li>✅ Tambah 1 benda</li><li>✅ Putar pandanganmu</li></ul><a class="go" href="/tools/Editor3D/index.html?task=g2-t1">Mulai Task 1 🧊</a></section>
   <div class="cap" id="cap"></div>
   <div class="ctl"><button id="prev">◀</button><button id="play" class="on">⏸ Jeda</button><button id="next">▶</button><span class="dots" id="dots"></span><button id="voice">🔇 Suara</button></div>
 </div>
@@ -81,6 +81,6 @@ document.getElementById("play").onclick=function(){playing=!playing;this.textCon
 document.getElementById("voice").onclick=function(){voice=!voice;this.textContent=voice?"🔊 Suara":"🔇 Suara";this.classList.toggle("on",voice);go(i)};
 go(0);
 </script>
-  <script src="../icons.js?v=2"></script>
+  <script src="/shared/js/icons.js?v=2"></script>
 </body>
 </html>

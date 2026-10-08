@@ -16,11 +16,11 @@ const LP = Object.assign({}, window.LP_DATA, {
   // Task interactive dibuka di editor sesuai `kind`-nya. Untuk editor baru (misalnya PHP),
   // tambahkan satu entri di sini + satu pembuat data di jalur-data.js.
   EDITOR: {
-    editor: { folder: "Scratch",    nama: "Block Editor", icon: "🧩", tombol: "Buka Editor 🚀",
+    editor: { folder: "/tools/Scratch",    nama: "Block Editor", icon: "🧩", tombol: "Buka Editor 🚀",
               cara: ["Klik tombol <b>Buka Editor</b>.", "Susun blok sesuai misi.", "Klik bendera hijau 🚩 — misi dicek otomatis!"] },
-    code:   { folder: "TextEditor", nama: "Text Editor",  icon: "💻", tombol: "Buka Text Editor 💻",
+    code:   { folder: "/tools/TextEditor", nama: "Text Editor",  icon: "💻", tombol: "Buka Text Editor 💻",
               cara: ["Klik tombol <b>Buka Text Editor</b>.", "Tulis kode di sebelah kiri, hasilnya muncul di sebelah kanan.", "Klik ▶ <b>Jalankan</b> — misi dicek otomatis!"] },
-    model3d: { folder: "Editor3D",   nama: "3D Editor",   icon: "🧊", tombol: "Buka 3D Editor 🧊",
+    model3d: { folder: "/tools/Editor3D",   nama: "3D Editor",   icon: "🧊", tombol: "Buka 3D Editor 🧊",
               cara: ["Klik tombol <b>Buka 3D Editor</b>. Misimu langsung muncul di atas.", "Tambah dan atur benda 3D seperti di Roblox Studio.", "Kalau semua syarat di kartu misi sudah ✅, task selesai otomatis!"] }
   },
   // editor untuk sebuah task (null jika task tidak memakai editor, mis. kuis / external)
@@ -36,8 +36,8 @@ const LP = Object.assign({}, window.LP_DATA, {
   // Mode block/text pada task kuis/external membuka editor dalam MODE BEBAS (tanpa cek otomatis);
   // task tetap diselesaikan lewat kuis / checklist-nya seperti biasa, jadi poin & kunci berurutan tidak berubah.
   PRAKTIK: {
-    block:    { icon: "🧩", nama: "Block Editor",    folder: "Scratch" },
-    text:     { icon: "💻", nama: "Text Editor",     folder: "TextEditor" },
+    block:    { icon: "🧩", nama: "Block Editor",    folder: "/tools/Scratch" },
+    text:     { icon: "💻", nama: "Text Editor",     folder: "/tools/TextEditor" },
     external: { icon: "🔵", nama: "Aplikasi Luar",   folder: null },
     physical: { icon: "🎨", nama: "Aktivitas Nyata", folder: null }
   },
@@ -64,7 +64,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   praktikHref(id, dari) {
     const f = this.find(id), m = f && this.praktikOf(f.task);
     if (!m || !m.folder) return null;
-    return (dari ? "../" : "") + m.folder + "/index.html?dari=" + id;
+    return m.folder + "/index.html?dari=" + id;
   },
 
   // ---------- STATUS TASK ----------
@@ -79,13 +79,13 @@ const LP = Object.assign({}, window.LP_DATA, {
   //   bukti: minimal salah satu ini harus diisi sebelum project bisa dikumpulkan
   //   file / link: apakah kolom unggah file / kolom link ditampilkan
   JENIS: {
-    block:    { icon: "🧩", nama: "Block Editor",     info: "Dibuat memakai Block Editor di website ini", folder: "Scratch",
+    block:    { icon: "🧩", nama: "Block Editor",     info: "Dibuat memakai Block Editor di website ini", folder: "/tools/Scratch",
                 mulai: "Buka Block Editor 🧩", file: "image/*", link: false, bukti: ["img", "note"],
                 petunjuk: "Klik tombol di bawah untuk membuka Block Editor. Setelah karyamu selesai, kembali ke halaman ini lalu kumpulkan." },
-    text:     { icon: "💻", nama: "Text Editor",      info: "Dibuat memakai Text Editor di website ini", folder: "TextEditor",
+    text:     { icon: "💻", nama: "Text Editor",      info: "Dibuat memakai Text Editor di website ini", folder: "/tools/TextEditor",
                 mulai: "Buka Text Editor 💻", file: "image/*", link: true, bukti: ["img", "link", "note"],
                 petunjuk: "Klik tombol di bawah untuk membuka Text Editor. Setelah websitemu selesai, kembali ke halaman ini lalu kumpulkan." },
-    model3d:  { icon: "🧊", nama: "3D Editor",        info: "Dibuat memakai 3D Editor di website ini", folder: "Editor3D",
+    model3d:  { icon: "🧊", nama: "3D Editor",        info: "Dibuat memakai 3D Editor di website ini", folder: "/tools/Editor3D",
                 mulai: "Buka 3D Editor 🧊", file: "image/*", link: false, bukti: ["img", "note"],
                 petunjuk: "Klik tombol di bawah untuk membuka 3D Editor. Setelah duniamu selesai, ambil screenshot, kembali ke halaman ini lalu kumpulkan." },
     external: { icon: "🔵", nama: "External",         info: "Dikerjakan di aplikasi luar", folder: null,
@@ -401,10 +401,9 @@ const LP = Object.assign({}, window.LP_DATA, {
   // `true` tetap diterima = "Scratch" (cara panggil lama).
   href(id, dari) {
     const f = this.find(id);
-    const from = dari === true ? "Scratch" : (dari || "");
     const ed = f && this.editorOf(f.task);
-    if (ed) return (from === ed.folder ? "" : from ? "../" + ed.folder + "/" : ed.folder + "/") + "index.html?task=" + id;
-    return (from ? "../" : "") + "belajar.html?task=" + id;
+    if (ed) return ed.folder + "/index.html?task=" + id;
+    return "/belajar.html?task=" + id;
   },
 
   // tandai selesai + beri poin (hanya sekali). Mengembalikan { already, earned, bonus, total }
@@ -502,7 +501,7 @@ const LP = Object.assign({}, window.LP_DATA, {
 
 // ---------- beri id, nomor, dan label otomatis ----------
 LP.tahap.forEach(th => th.pembelajaran.forEach(pb => {
-  pb.tasks.forEach((t, i) => { t.id = pb.id + "-t" + (i + 1); if (!t.halamanMateri) t.halamanMateri = "Materi/sd.html?task=" + t.id; t.no = i + 1; t.label = LP.LABEL[i] || ("Task " + (i + 1)); });
+  pb.tasks.forEach((t, i) => { t.id = pb.id + "-t" + (i + 1); if (!t.halamanMateri) t.halamanMateri = "/SD/materi/sd.html?task=" + t.id; t.no = i + 1; t.label = LP.LABEL[i] || ("Task " + (i + 1)); });
   pb.project.id = pb.id + "-project"; pb.project.type = "project"; pb.project.no = pb.tasks.length + 1; pb.project.label = "Project Akhir";
 }));
 

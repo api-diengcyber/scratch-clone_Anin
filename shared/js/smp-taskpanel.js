@@ -16,8 +16,8 @@
   };
 
   load(
-    "../jalur-data-smp.js?v=1",
-    () => load("../jalur-data-smak.js?v=1", start)
+    "/kurikulum/data/jalur-data-smp.js?v=1",
+    () => load("/kurikulum/data/jalur-data-smak.js?v=1", start)
   );
 
   const esc = (t) =>
@@ -282,8 +282,8 @@
           '<a href="../' +
             (
               tr.grade === "smak"
-                ? "belajar-smk.html"
-                : "belajar-smp.html"
+                ? "/belajar-smk.html"
+                : "/belajar-smp.html"
             ) +
             "?p=" +
             tr.id +
@@ -503,8 +503,8 @@
         "../" +
         (
           tr.grade === "smak"
-            ? "belajar-smk.html"
-            : "belajar-smp.html"
+            ? "/belajar-smk.html"
+            : "/belajar-smp.html"
         ) +
         "?p=" +
         nid;
