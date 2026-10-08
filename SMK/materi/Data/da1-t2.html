@@ -151,7 +151,7 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html?p=da1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smk.html?p=da1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <div class="container">
   <div class="header">
     <span class="badge">TASK 2 • DATA CLEANING</span>
@@ -159,6 +159,26 @@
     <p>Menghapus kotoran, merapikan format, dan menangani nilai kosong sebelum analisis</p>
   </div>
   <div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
     <h2 class="section-title">1. Prinsip Garbage In, Garbage Out</h2>
     <div class="card">
       <p>Data mentah dari survei atau sistem hampir tidak pernah langsung siap pakai. Jika kita menganalisis data kotor, kesimpulan yang diambil juga akan salah. Tahap pembersihan data (data cleaning) memakan sekitar 70% waktu seorang praktisi data.</p>
@@ -214,16 +234,16 @@
       <div class="code-block"><span class="code-comment"># Data mentah hasil kuesioner jurusan siswa</span>
 data_mentah = [<span class="code-str">" RPL"</span>, <span class="code-str">"tkj"</span>, <span class="code-str">"RPL"</span>, <span class="code-str">""</span>, <span class="code-str">"TKJ "</span>, <span class="code-str">"rpl"</span>, <span class="code-keyword">None</span>, <span class="code-str">"DKV"</span>]
 
-<span class="code-comment"># Langkah 1: Buang data kosong (None atau teks kosong)</span>
+<span class="code-comment"># Contoh 1: Buang data kosong (None atau teks kosong)</span>
 data_terisi = [d <span class="code-keyword">for</span> d <span class="code-keyword">in</span> data_mentah <span class="code-keyword">if</span> d <span class="code-keyword">is not None</span> <span class="code-keyword">and</span> d.strip() != <span class="code-str">""</span>]
 
-<span class="code-comment"># Langkah 2: Rapikan spasi dan seragamkan huruf kapital</span>
+<span class="code-comment"># Contoh 2: Rapikan spasi dan seragamkan huruf kapital</span>
 data_bersih = [d.strip().upper() <span class="code-keyword">for</span> d <span class="code-keyword">in</span> data_terisi]
 
 print(<span class="code-str">"Data setelah dibersihkan:"</span>, data_bersih)
 <span class="code-comment"># Hasil: ['RPL', 'TKJ', 'RPL', 'TKJ', 'RPL', 'DKV']</span>
 
-<span class="code-comment"># Langkah 3: Hitung frekuensi data yang sudah valid</span>
+<span class="code-comment"># Contoh 3: Hitung frekuensi data yang sudah valid</span>
 rekap = {}
 <span class="code-keyword">for</span> item <span class="code-keyword">in</span> data_bersih:
     rekap[item] = rekap.get(item, <span class="code-num">0</span>) + <span class="code-num">1</span>
@@ -231,7 +251,7 @@ print(<span class="code-str">"Rekapitulasi:"</span>, rekap)
 <span class="code-comment"># Hasil: {'RPL': 3, 'TKJ': 2, 'DKV': 1}</span></div>
     </div>
 
-    <h2 class="section-title">4. Langkah Praktik</h2>
+    <h2 class="section-title">4. Eksplorasi Praktik</h2>
     <div class="card">
       <div class="steps-container">
         <div class="step-item">
@@ -278,5 +298,6 @@ print(<span class="code-str">"Rekapitulasi:"</span>, rekap)
     </div>
   </div>
 </div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body>
 </html>

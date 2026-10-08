@@ -76,8 +76,8 @@
     </div>
 
     <form id="registerForm">
-      <label for="username">Username</label>
-      <input type="text" id="username" placeholder="Buat username" autocomplete="username" required>
+      <label for="email">Email</label>
+      <input type="text" id="email" placeholder="Buat email" autocomplete="email" required>
 
       <label for="password">Password</label>
       <div class="password-wrapper">
@@ -141,14 +141,14 @@
     registerForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
 
       registerMsg.style.display = 'none';
       registerMsg.className = 'message error';
 
-      if (!username || !password || !confirmPassword) {
+      if (!email || !password || !confirmPassword) {
         registerMsg.textContent = 'Semua field wajib diisi!';
         registerMsg.style.display = 'block';
         return;
@@ -164,7 +164,7 @@
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();

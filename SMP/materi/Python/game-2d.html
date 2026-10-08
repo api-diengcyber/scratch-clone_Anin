@@ -285,9 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smp.html?p=py5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
 <div class="container"><div class="header"><span class="badge">MODUL KODING SMP • PYTHON START</span><h1>Game 2D: Loop, Gerak, Tabrakan &amp; Skor</h1><p>Membangun game dari satu loop yang berjalan terus</p></div><div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 <h2 class="section-title">1. Game loop</h2><div class="card"><p style="margin-top:8px;">Semua game berjalan dengan siklus yang diulang puluhan kali per detik: <strong>1) baca input → 2) ubah keadaan (update) → 3) tampilkan (draw)</strong>.</p><div class="table-container"><table><thead><tr><th>Tahap</th><th>Pertanyaannya</th><th>Contoh</th></tr></thead><tbody><tr><td>Input</td><td>Pemain menekan apa?</td><td>Tombol kiri atau kanan</td></tr><tr><td>Update</td><td>Apa yang berubah?</td><td>Posisi pemain, skor, rintangan</td></tr><tr><td>Draw</td><td>Bagaimana tampilannya?</td><td>Gambar ulang semuanya</td></tr></tbody></table></div><div class="code-block">posisi, lebar = 5, 10
 while True:
     garis = ["."] * lebar
@@ -338,4 +358,5 @@ while True:
 <h2 class="section-title">8. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Gerakkan pemain:</strong> loop utama, input, clamp.</li><li><strong>Kumpulkan koin:</strong> posisi acak, tabrakan, skor.</li><li><strong>Skor dan nyawa:</strong> dua variabel keadaan dan tampilannya.</li><li><strong>Rintangan bergerak:</strong> kecepatan tetap dan reset posisi.</li><li><strong>Game over dan ulang:</strong> kondisi nyawa, pesan, dan mulai_ulang().</li></ul></div>
 <h2 class="section-title">9. Proyek: Game Hindari Rintangan</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Gabungkan</h4><p>Pemain, koin, dan rintangan dalam satu loop; urutan per putaran: input, update, cek tabrakan, tampilkan.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Lengkapi</h4><p>Pastikan ada skor, nyawa, layar Game Over, dan opsi main lagi.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji dengan teman</h4><p>Minta satu orang bermain, catat satu hal yang membingungkan, lalu perbaiki.</p></div></div></div></div>
 </div></div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body></html>

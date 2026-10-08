@@ -50,6 +50,7 @@
   </style>
 </head>
 <body>
+<a id="btnKembali" href="/belajar-smp.html?p=py1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
   <div class="container">
     <div class="header">
       <span class="badge">TASK 2 • KODING SMP</span>
@@ -58,6 +59,26 @@
     </div>
 
     <div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
       <h2 class="section-title">1. Masalah Utama pada input()</h2>
       <div class="card">
         <p>Di modul sebelumnya, kita sudah tahu bahwa fungsi <code>input()</code> <strong>selalu menghasilkan teks (string)</strong>.</p>
@@ -73,12 +94,12 @@ b = <span class="code-str">"5"</span>
         </div>
       </div>
 
-      <h2 class="section-title">2. Instruksi 3 Langkah Praktik</h2>
+      <h2 class="section-title">2. Eksplorasi Praktik</h2>
       <div class="steps-container">
         <div class="step-item">
           <div class="step-num">1</div>
           <div>
-            <h4>Langkah 1: Ambil Angka Pertama</h4>
+            <h4>Contoh 1: Ambil Angka Pertama</h4>
             <p>Minta input angka dari pengguna dan bungkus langsung dengan <code>int()</code>.</p>
             <div class="code-block">angka1 = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Masukkan angka pertama: "</span>))</div>
           </div>
@@ -87,7 +108,7 @@ b = <span class="code-str">"5"</span>
         <div class="step-item">
           <div class="step-num">2</div>
           <div>
-            <h4>Langkah 2: Ambil Angka Kedua</h4>
+            <h4>Contoh 2: Ambil Angka Kedua</h4>
             <p>Gunakan cara yang sama untuk menyimpan angka kedua di variabel baru.</p>
             <div class="code-block">angka2 = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Masukkan angka kedua: "</span>))</div>
           </div>
@@ -96,7 +117,7 @@ b = <span class="code-str">"5"</span>
         <div class="step-item">
           <div class="step-num">3</div>
           <div>
-            <h4>Langkah 3: Hitung dan Cetak Hasil</h4>
+            <h4>Contoh 3: Hitung dan Cetak Hasil</h4>
             <p>Jumlahkan kedua variabel lalu tampilkan ke layar dengan fungsi <code>print()</code>.</p>
             <div class="code-block">hasil = angka1 + angka2
 <span class="code-func">print</span>(<span class="code-str">"Hasil penjumlahan:"</span>, hasil)</div>
@@ -136,5 +157,6 @@ b = <span class="code-str">"5"</span>
         `> [Kesimpulan] Kalkulator mini berhasil menghitung angka!`;
     }
   </script>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body>
 </html>

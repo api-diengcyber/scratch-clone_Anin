@@ -285,9 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html?p=pl4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smk.html?p=pl4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
 <div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>File, JSON &amp; Penanganan Error</h1><p>Menyimpan data permanen dan membuat program yang tidak mudah mogok</p></div><div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 <h2 class="section-title">1. Membaca dan menulis file</h2><div class="card"><div class="table-container"><table><thead><tr><th>Mode</th><th>Arti</th><th>Perhatian</th></tr></thead><tbody><tr><td>r</td><td>Baca</td><td>Error bila file tidak ada</td></tr><tr><td>w</td><td>Tulis</td><td>Menghapus isi lama</td></tr><tr><td>a</td><td>Tambah di akhir</td><td>Membuat file bila belum ada</td></tr></tbody></table></div><div class="code-block"># menulis (menambah di akhir)
 with open("catatan.txt", "a", encoding="utf-8") as f:
     f.write(input("Catatan: ") + "\n")
@@ -341,4 +361,5 @@ with open("data.json", "w", encoding="utf-8") as f:
 <h2 class="section-title">8. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Catatan harian:</strong> mode a, membaca, menghitung baris.</li><li><strong>Simpan data JSON dan Muat dan ubah JSON:</strong> dump, load, try/except.</li><li><strong>Program tahan error:</strong> dua jenis error spesifik.</li><li><strong>Hitung kata:</strong> bagian Counter.</li></ul></div>
 <h2 class="section-title">9. Proyek: Buku Kontak Permanen</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Fitur</h4><p>Tambah, cari, ubah, dan hapus kontak; simpan sebagai list berisi dict.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Penyimpanan</h4><p>Muat file saat program dibuka dan simpan setiap ada perubahan.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji</h4><p>Jalankan, tambah kontak, tutup, buka lagi: datanya harus masih ada. Uji juga file belum ada dan input salah.</p></div></div></div></div>
 </div></div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body></html>

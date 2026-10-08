@@ -48,6 +48,7 @@
   </style>
 </head>
 <body>
+<a id="btnKembali" href="/belajar-smp.html?p=py2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
   <div class="container">
     <div class="header">
       <span class="badge">TASK 2 • OPERATOR PERBANDINGAN</span>
@@ -56,6 +57,26 @@
     </div>
 
     <div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
       <h2 class="section-title">1. Simbol Perbandingan pada Python</h2>
       <div class="card">
         <p>Untuk membandingkan dua nilai, kita menggunakan <strong>Operator Komparasi</strong>:</p>
@@ -77,12 +98,12 @@
         <p style="font-size:0.9rem; color:#64748b; margin-top:8px;"><em>Catatan: Tanda <code>=</code> satu kali untuk mengisi variabel, sedangkan <code>==</code> dua kali untuk membandingkan!</em></p>
       </div>
 
-      <h2 class="section-title">2. Instruksi 3 Langkah Praktik</h2>
+      <h2 class="section-title">2. Eksplorasi Praktik</h2>
       <div class="steps-container">
         <div class="step-item">
           <div class="step-num">1</div>
           <div>
-            <h4>Langkah 1: Tentukan Angka Rahasia</h4>
+            <h4>Contoh 1: Tentukan Angka Rahasia</h4>
             <p>Simpan angka kunci rahasia di dalam variabel <code>rahasia</code>.</p>
             <div class="code-block">rahasia = <span class="code-num">7</span></div>
           </div>
@@ -91,7 +112,7 @@
         <div class="step-item">
           <div class="step-num">2</div>
           <div>
-            <h4>Langkah 2: Ambil Tebakan Pemain</h4>
+            <h4>Contoh 2: Ambil Tebakan Pemain</h4>
             <p>Minta pemain memasukkan tebakannya dan ubah ke tipe integer.</p>
             <div class="code-block">tebakan = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Tebak angka rahasia (1-10): "</span>))</div>
           </div>
@@ -100,7 +121,7 @@
         <div class="step-item">
           <div class="step-num">3</div>
           <div>
-            <h4>Langkah 3: Periksa dengan Operator ==</h4>
+            <h4>Contoh 3: Periksa dengan Operator ==</h4>
             <p>Bandingkan apakah tebakan sama dengan angka rahasia.</p>
             <div class="code-block"><span class="code-keyword">if</span> tebakan == rahasia:
     <span class="code-func">print</span>(<span class="code-str">"Keren banget! Tebakanmu BENAR 🎯"</span>)
@@ -135,5 +156,6 @@
       document.getElementById('t2_res').innerHTML = `> Evaluasi: ${hasil}`;
     }
   </script>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body>
 </html>

@@ -222,3 +222,8 @@ button { font: inherit; cursor: pointer; }
   .nacts { width: 100%; }
   .nacts .btn { flex: 1; text-align: center; padding: 12px 10px; font-size: 14px; }
 }
+
+/* ---------- Tombol berbentuk link (<a class="btn">), mis. "Mulai →" yang langsung membuka editor ---------- */
+a.btn { display: inline-block; text-decoration: none; text-align: center; line-height: 1.2; }
+a.btn:focus-visible, button.btn:focus-visible { outline: 3px solid #5b3dff; outline-offset: 2px; }
+@media (max-width: 600px) { .nacts a.btn { flex: 1; } }

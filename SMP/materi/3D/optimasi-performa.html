@@ -285,9 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smp.html?p=d5" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
 <div class="container"><div class="header"><span class="badge">MODUL SMP • GAME DEV 3D</span><h1>Optimasi Performa</h1><p>Mengukur dulu, baru memperbaiki: membuat game 3D berjalan lancar</p></div><div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 <h2 class="section-title">1. Mengapa game bisa lambat?</h2><div class="card"><p style="margin-top:8px;">Setiap benda di dunia harus dihitung dan digambar di setiap frame. Makin banyak dan makin rumit bendanya, makin berat kerja komputer.</p><div class="table-container"><table><thead><tr><th>Kelancaran</th><th>Waktu per frame</th></tr></thead><tbody><tr><td>60 FPS</td><td>sekitar 16,7 milidetik</td></tr><tr><td>30 FPS</td><td>sekitar 33,3 milidetik</td></tr></tbody></table></div><div class="highlight-box">Target umum adalah <strong>60 FPS</strong>. Di bawah 30 FPS gerakan terasa patah-patah.</div></div>
 <h2 class="section-title">2. Ukur dulu</h2><div class="card"><div class="table-container"><table><thead><tr><th>Yang dicatat</th><th>Cara</th></tr></thead><tbody><tr><td>FPS</td><td>Lihat penghitung FPS di game</td></tr><tr><td>Jumlah benda</td><td>Hitung semua benda di dunia</td></tr><tr><td>Perangkat</td><td>Tulis jenis laptop atau HP</td></tr><tr><td>Bagian terasa lambat</td><td>Tandai lokasi di dunia</td></tr></tbody></table></div><div class="alert-box">Jangan mengoptimasi tanpa angka awal. Tanpa pengukuran, kamu tidak tahu apakah perubahanmu membantu.</div></div>
 <h2 class="section-title">3. Strategi mengurangi beban</h2><div class="card"><div class="table-container"><table><thead><tr><th>Strategi</th><th>Caranya</th><th>Risiko</th></tr></thead><tbody><tr><td>Kurangi jumlah benda</td><td>Hapus benda yang tidak terlihat atau tidak perlu</td><td>Dunia terasa kosong</td></tr><tr><td>Pakai ulang bentuk</td><td>Gandakan satu bentuk, bukan membuat bentuk baru tiap kali</td><td>Semua salinan tampak sama</td></tr><tr><td>Bentuk lebih sederhana</td><td>Pakai bentuk dengan lebih sedikit sisi</td><td>Terlihat kasar dari dekat</td></tr><tr><td>Sembunyikan yang jauh</td><td>Benda jauh tidak digambar</td><td>Benda tiba-tiba muncul bila batas terlalu dekat</td></tr></tbody></table></div><div class="code-block">for (const benda of dunia.benda) {
@@ -299,4 +319,5 @@
 <h2 class="section-title">6. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Kurangi beban dan Hitung jumlah objek:</strong> pengukuran jumlah benda.</li><li><strong>Pakai ulang bentuk:</strong> strategi gandakan bentuk.</li><li><strong>Sembunyikan yang jauh:</strong> jarak gambar.</li><li><strong>Uji lapangan:</strong> tabel uji perangkat.</li></ul></div>
 <h2 class="section-title">7. Proyek: Laporan Optimasi Game</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Kondisi awal</h4><p>Catat FPS, jumlah benda, dan perangkat sebelum diubah.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Tiga perbaikan</h4><p>Lakukan minimal tiga perbaikan, ubah satu per satu, catat hasilnya.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Laporan satu halaman</h4><p>Tulis: kondisi awal, perubahan, hasil sesudah, dan kesimpulan.</p></div></div></div></div>
 </div></div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body></html>

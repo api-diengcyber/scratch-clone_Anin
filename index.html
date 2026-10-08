@@ -75,8 +75,8 @@
     </div>
 
     <form id="loginForm">
-      <label for="username">Username</label>
-      <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
+      <label for="email">Email</label>
+      <input type="text" id="email" placeholder="Masukkan Email" autocomplete="email" required>
 
       <label for="password">Password</label>
       <div class="password-wrapper">
@@ -89,7 +89,7 @@
         </button>
       </div>
 
-      <div id="loginError" class="error">Username dan Password wajib diisi!</div>
+      <div id="loginError" class="error">Email dan Password wajib diisi!</div>
 
       <button type="submit" class="btn-submit">Masuk</button>
     </form>
@@ -128,13 +128,13 @@
     loginForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = passwordInput.value;
 
       loginError.style.display = 'none';
 
-      if (!username || !password) {
-        loginError.textContent = 'Username dan password wajib diisi!';
+      if (!email || !password) {
+        loginError.textContent = 'Email dan password wajib diisi!';
         loginError.style.display = 'block';
         return;
       }
@@ -143,7 +143,7 @@
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
@@ -156,8 +156,8 @@
 
         // Login berhasil
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', data.username);
-        localStorage.setItem('scratch_user', data.username);
+        localStorage.setItem('email', data.email);
+        localStorage.setItem('scratch_user', data.email);
         localStorage.setItem('authToken', data.token);
 
         window.location.replace('dashboard.html');

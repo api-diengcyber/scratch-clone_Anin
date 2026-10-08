@@ -285,9 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smp.html?p=py4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
 <div class="container"><div class="header"><span class="badge">MODUL KODING SMP • PYTHON START</span><h1>OOP: Kelas, Object &amp; Inheritance</h1><p>Membuat cetakan, membuat banyak objek, dan membuat class turunan</p></div><div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 <h2 class="section-title">1. Mengapa perlu class?</h2><div class="card"><p style="margin-top:8px;">Bayangkan game dengan 3 karakter. Tanpa class, kamu butuh <code>nama1, hp1, nama2, hp2, ...</code>: panjang dan mudah tertukar. <strong>OOP</strong> (Object-Oriented Programming) mengelompokkan data dan aksinya dalam satu paket bernama <strong>object</strong>.</p><div class="highlight-box"><strong>Class</strong> = cetakan. <strong>Object</strong> = hasil cetakan. Satu class bisa menghasilkan banyak object.</div></div>
 <h2 class="section-title">2. Istilah penting</h2><div class="card"><div class="table-container"><table><thead><tr><th>Istilah</th><th>Arti</th><th>Contoh</th></tr></thead><tbody><tr><td>class</td><td>Cetakan yang mendefinisikan data dan aksi</td><td><code>class Hewan:</code></td></tr><tr><td>object / instance</td><td>Hasil dari class</td><td><code>kucing = Hewan("Mimi", "meong")</code></td></tr><tr><td>atribut</td><td>Data milik object</td><td><code>self.nama</code></td></tr><tr><td>method</td><td>Fungsi milik class</td><td><code>def bersuara(self):</code></td></tr><tr><td>__init__</td><td>Dijalankan otomatis saat object dibuat</td><td><code>def __init__(self, nama):</code></td></tr><tr><td>self</td><td>Menunjuk object yang sedang dipakai</td><td><code>self.nama = nama</code></td></tr></tbody></table></div><div class="code-block">class Hewan:
     def __init__(self, nama, suara):
@@ -347,4 +367,5 @@ for s in kelas:
 <h2 class="section-title">7. Peta ke task</h2><div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li><strong>Class Karakter:</strong> nama dan hp di __init__, method serang().</li><li><strong>Pewarisan:</strong> Penyihir(Karakter) dengan super() dan method sihir().</li><li><strong>Method menyerang:</strong> serang(lawan) mengurangi lawan.hp (lihat contoh kirim()).</li><li><strong>Banyak karakter:</strong> object disimpan dalam list, tampilkan dengan for.</li><li><strong>Kartu karakter:</strong> info() dan __str__ seperti contoh Siswa.</li></ul></div>
 <h2 class="section-title">8. Proyek: Arena Pertarungan Mini</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Rancang</h4><p>Tentukan atribut (nama, hp, kekuatan) dan method (serang, masih_hidup).</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Giliran</h4><p>Pakai while selama kedua karakter masih hidup; tiap putaran, karakter bergantian menyerang.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Pemenang</h4><p>Setelah loop, umumkan karakter yang masih punya hp. Pastikan hp tidak tampil negatif.</p></div></div></div></div>
 </div></div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body></html>

@@ -285,9 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smp.html?p=py2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
 <div class="container"><div class="header"><span class="badge">MODUL KODING SMP • PYTHON START</span><h1>Pintu Rahasia &amp; Proyek Kuis</h1><p>Perulangan while, batas percobaan, dan merangkai program kuis</p></div><div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 <h2 class="section-title">1. Kapan memakai while?</h2><div class="card"><p style="margin-top:8px;"><strong>for</strong> dipakai saat jumlah pengulangan sudah diketahui. <strong>while</strong> dipakai saat kita mengulang <em>sampai suatu kondisi terpenuhi</em>, misalnya sampai sandi benar.</p><div class="table-container"><table><thead><tr><th>Perulangan</th><th>Berhenti ketika</th><th>Contoh</th></tr></thead><tbody><tr><td>for</td><td>Daftar atau rentang habis</td><td>Cek 5 soal satu per satu</td></tr><tr><td>while</td><td>Kondisi menjadi False</td><td>Minta sandi sampai benar</td></tr></tbody></table></div><div class="highlight-box">Setiap while butuh <strong>jalan keluar</strong>: sesuatu di dalam loop yang pada akhirnya membuat kondisi False, atau perintah break. Tanpa itu loop berjalan selamanya (infinite loop).</div></div>
 <h2 class="section-title">2. Pola pintu rahasia</h2><div class="card"><div class="code-block">sandi = "lumbung"
 coba = 0
@@ -332,6 +352,7 @@ else:
     predikat = "Perlu belajar lagi"
 print(predikat)</div><p style="margin-top:8px;">Urutan elif penting: Python memakai cabang pertama yang benar, jadi mulai dari syarat tertinggi.</p></div>
 <h2 class="section-title">6. Kesalahan yang sering terjadi</h2><div class="card"><div class="table-container"><table><thead><tr><th>Masalah</th><th>Penyebab</th><th>Perbaikan</th></tr></thead><tbody><tr><td>Loop tidak pernah berhenti</td><td>Penghitung tidak bertambah</td><td>Tambah coba += 1 di dalam loop</td></tr><tr><td>Jawaban benar dianggap salah</td><td>Huruf besar/kecil atau spasi berbeda</td><td>Pakai .strip().lower()</td></tr><tr><td>Skor selalu 0</td><td>skor = 0 ada di dalam loop</td><td>Pindahkan ke luar loop</td></tr><tr><td>Nilai salah hitung</td><td>Membagi dengan angka yang salah</td><td>Gunakan len(soal)</td></tr></tbody></table></div></div>
-<h2 class="section-title">7. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pintu rahasia</h4><p>Simpan sandi, ulangi tebakan dengan while, batasi 3 kali dengan and.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Rancang kuis</h4><p>Tulis 5 pertanyaan dan kunci jawaban dalam satu daftar.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Skor dan predikat</h4><p>Hitung skor di dalam for, lalu tampilkan nilai dan predikatnya.</p></div></div></div></div>
+<h2 class="section-title">7. Eksplorasi Praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pintu rahasia</h4><p>Simpan sandi, ulangi tebakan dengan while, batasi 3 kali dengan and.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Rancang kuis</h4><p>Tulis 5 pertanyaan dan kunci jawaban dalam satu daftar.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Skor dan predikat</h4><p>Hitung skor di dalam for, lalu tampilkan nilai dan predikatnya.</p></div></div></div></div>
 </div></div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body></html>

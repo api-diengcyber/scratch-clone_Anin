@@ -285,9 +285,29 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smk.html?p=pl1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smk.html?p=pl1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
 <div class="container"><div class="header"><span class="badge">MODUL SMK • PYTHON LANJUTAN</span><h1>Struktur Data: List, Tuple, Dict &amp; Set</h1><p>Memilih wadah data yang tepat untuk masalah yang tepat</p></div><div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 <h2 class="section-title">1. Mengapa struktur data penting?</h2><div class="card"><p style="margin-top:8px;">Program nyata mengelola banyak data: daftar siswa, stok barang, riwayat transaksi. Struktur data menentukan <strong>seberapa mudah dan cepat</strong> data itu disimpan, dicari, dan diubah.</p><div class="highlight-box">Pertanyaan pemilihan: apakah data berurutan? bisa diubah? perlu dicari lewat nama (kunci)? boleh ada duplikat?</div></div>
 <h2 class="section-title">2. Perbandingan empat struktur data</h2><div class="card"><div class="table-container"><table><thead><tr><th>Struktur</th><th>Sintaks</th><th>Urut</th><th>Bisa diubah</th><th>Duplikat</th><th>Cocok untuk</th></tr></thead><tbody><tr><td>list</td><td>[1, 2, 3]</td><td>Ya</td><td>Ya</td><td>Boleh</td><td>Daftar yang berubah</td></tr><tr><td>tuple</td><td>(1, 2)</td><td>Ya</td><td>Tidak</td><td>Boleh</td><td>Data tetap, mis. koordinat</td></tr><tr><td>dict</td><td>{"nama": "Rani"}</td><td>Ya (3.7+)</td><td>Ya</td><td>Kunci unik</td><td>Data dicari lewat kunci</td></tr><tr><td>set</td><td>{1, 2, 3}</td><td>Tidak</td><td>Ya</td><td>Tidak boleh</td><td>Menghapus duplikat, himpunan</td></tr></tbody></table></div></div>
 <h2 class="section-title">3. List dan dict: operasi utama</h2><div class="card"><div class="code-block">nilai = [80, 75, 90]
@@ -312,6 +332,7 @@ titik = (3, 5)              # tidak bisa diubah</div><ul style="margin:8px 0 0 2
 barang = [{"nama": "Pensil", "stok": 20}, {"nama": "Buku", "stok": 5}]
 habis = [b["nama"] for b in barang if b["stok"] &lt; 10]
 print(habis)   # ['Buku']</div><div class="alert-box">Jangan menambah atau menghapus isi list saat sedang di-loop. Buat list baru atau loop pada salinannya.</div></div>
-<h2 class="section-title">6. Instruksi praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pilih struktur</h4><p>Untuk daftar nilai, data profil, dan daftar hadir unik, tentukan struktur yang tepat dan alasannya.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Buat program kecil</h4><p>Simpan data barang sebagai list berisi dict, lalu cetak yang stoknya kurang dari 10.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji kasus tepi</h4><p>Coba kunci yang tidak ada dan list kosong; pastikan programmu tidak error.</p></div></div></div></div>
+<h2 class="section-title">6. Eksplorasi Praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Pilih struktur</h4><p>Untuk daftar nilai, data profil, dan daftar hadir unik, tentukan struktur yang tepat dan alasannya.</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Buat program kecil</h4><p>Simpan data barang sebagai list berisi dict, lalu cetak yang stoknya kurang dari 10.</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Uji kasus tepi</h4><p>Coba kunci yang tidak ada dan list kosong; pastikan programmu tidak error.</p></div></div></div></div>
 </div></div>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body></html>

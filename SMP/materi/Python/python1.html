@@ -285,7 +285,7 @@
   </style>
 </head>
 <body>
-<a id="btnKembali" href="../../../belajar-smp.html" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali</a>
+<a id="btnKembali" href="/belajar-smp.html?p=py1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>
   (function () { var k = new URLSearchParams(location.search).get('kembali');
     if (k && /^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k)) document.getElementById('btnKembali').href = '../../../' + k; })();
@@ -298,6 +298,26 @@
     </div>
 
     <div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
 
       <!-- Bagian 1: Alur Baca Python -->
       <h2 class="section-title">1. Cara Python Membaca Kode</h2>
@@ -420,7 +440,7 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
         <div class="step-item">
           <div class="step-num">1</div>
           <div class="step-content">
-            <h4>Langkah 1: Simpan Namamu di Variabel</h4>
+            <h4>Contoh 1: Simpan Namamu di Variabel</h4>
             <p>Buat variabel bernama <code>nama</code> lalu simpan nama panggilanmu di dalamnya.</p>
             <div class="code-block">nama = <span class="code-str">"Nama Kamu"</span></div>
           </div>
@@ -429,7 +449,7 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
         <div class="step-item">
           <div class="step-num">2</div>
           <div class="step-content">
-            <h4>Langkah 2: Tampilkan dengan print()</h4>
+            <h4>Contoh 2: Tampilkan dengan print()</h4>
             <p>Gunakan fungsi <code>print()</code> untuk menampilkan sapaan beserta isi variabel <code>nama</code>.</p>
             <div class="code-block"><span class="code-func">print</span>(<span class="code-str">"Halo!"</span>, nama)</div>
           </div>
@@ -438,7 +458,7 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
         <div class="step-item">
           <div class="step-num">3</div>
           <div class="step-content">
-            <h4>Langkah 3: Tambahkan Umur lewat input()</h4>
+            <h4>Contoh 3: Tambahkan Umur lewat input()</h4>
             <p>Minta pengguna mengisi umur via keyboard, lalu cetak rangkuman datanya ke layar.</p>
             <div class="code-block">umur = <span class="code-func">input</span>(<span class="code-str">"Berapa umurmu? "</span>)
 <span class="code-func">print</span>(nama, <span class="code-str">"berusia"</span>, umur, <span class="code-str">"tahun!"</span>)</div>
@@ -453,12 +473,12 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
         <p style="font-size: 0.9rem; margin-bottom: 15px; color: #c7d2fe;">Uji coba alur program Langkah 1, 2, dan 3 langsung di form ini:</p>
         
         <div class="input-group">
-          <label>Langkah 1: Masukkan Nama</label>
+          <label>Contoh 1: Masukkan Nama</label>
           <input type="text" id="simNama" placeholder="Contoh: Rian">
         </div>
 
         <div class="input-group">
-          <label>Langkah 3: Masukkan Umur (input())</label>
+          <label>Contoh 3: Masukkan Umur (input())</label>
           <input type="number" id="simUmur" placeholder="Contoh: 14">
         </div>
 
@@ -484,5 +504,6 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
                          `> [Tipe Data] Variabel nama: str | input umur dibaca sebagai: str`;
     }
   </script>
+<script src="/shared/js/materi-back.js?v=1"></script>
 </body>
 </html>
