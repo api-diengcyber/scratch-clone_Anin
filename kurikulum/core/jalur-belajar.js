@@ -442,6 +442,8 @@ const LP = Object.assign({}, window.LP_DATA, {
       String(total)
     );
 
+    this.logPoin(id, f.task.title, earned, bonus);   // catat ke riwayat poin
+
     // ==========================================================
     // SIMPAN KE DATABASE
     // ==========================================================
@@ -455,6 +457,76 @@ const LP = Object.assign({}, window.LP_DATA, {
       bonus,
       total
     };
+  },
+
+  // ============================================================
+  // RIWAYAT POIN, LEVEL, DAN TUKAR POIN (dipakai halaman /poin/poin.html)
+  // ============================================================
+
+  // catat satu baris riwayat (dipanggil dari complete() dan dari editor Scratch)
+  logPoin(id, judul, earned, bonus) {
+    const log = this._get("pointLog", []);
+    log.push({ t: new Date().toISOString(), id: id, judul: judul || id, earned: earned || 0, bonus: bonus || 0 });
+    this._set("pointLog", log.slice(-300));          // simpan 300 terakhir saja
+  },
+  // riwayat terbaru dulu
+  riwayat() { return this._get("pointLog", []).slice().reverse(); },
+
+  // tingkatan berdasarkan TOTAL poin (total tidak pernah turun walau poin dibelanjakan)
+  LEVEL: [
+    { min: 0,   emoji: "🌱", nama: "Pemula" },
+    { min: 50,  emoji: "🧭", nama: "Penjelajah Kode" },
+    { min: 150, emoji: "🛠️", nama: "Pembuat Karya" },
+    { min: 300, emoji: "💻", nama: "Programmer Muda" },
+    { min: 500, emoji: "🚀", nama: "Jagoan Kode" },
+    { min: 750, emoji: "👑", nama: "Master Coder" }
+  ],
+  levelOf(total) {
+    let i = 0;
+    this.LEVEL.forEach((l, k) => { if (total >= l.min) i = k; });
+    const now = this.LEVEL[i], next = this.LEVEL[i + 1] || null;
+    return { no: i + 1, now: now, next: next, pct: next ? Math.round((total - now.min) / (next.min - now.min) * 100) : 100 };
+  },
+
+  // hadiah yang bisa ditukar dengan poin. jenis: "bingkai" (bingkai foto profil) | "gelar" (julukan di bawah nama)
+  HADIAH: [
+    { id: "bf-emas",    jenis: "bingkai", emoji: "🟡", nama: "Bingkai Emas",    harga: 50,  css: "0 0 0 3px #ffc94d, 0 0 12px #ffc94d99" },
+    { id: "bf-pelangi", jenis: "bingkai", emoji: "🌈", nama: "Bingkai Pelangi", harga: 100, css: "0 0 0 3px #ff6fa5, 0 0 0 6px #ffc94d, 0 0 0 9px #4c9aff" },
+    { id: "bf-galaksi", jenis: "bingkai", emoji: "🌌", nama: "Bingkai Galaksi", harga: 200, css: "0 0 0 3px #8f6bff, 0 0 18px #8f6bffcc" },
+    { id: "gl-bintang", jenis: "gelar",   emoji: "⭐", nama: "Bintang Kelas",   harga: 80 },
+    { id: "gl-detektif",jenis: "gelar",   emoji: "🕵️", nama: "Detektif Bug",    harga: 150 },
+    { id: "gl-robot",   jenis: "gelar",   emoji: "🤖", nama: "Sahabat Robot",   harga: 250 }
+  ],
+  hadiahMilik() { return this._get("hadiahMilik", []); },
+  hadiahPakai() { return this._get("hadiahPakai", {}); },
+  // saldo = total poin − harga semua hadiah yang sudah dibeli
+  saldo() {
+    const own = this.hadiahMilik();
+    const spent = this.HADIAH.filter(h => own.indexOf(h.id) >= 0).reduce((s, h) => s + h.harga, 0);
+    return Math.max(0, this.points() - spent);
+  },
+  beli(id) {
+    const h = this.HADIAH.find(x => x.id === id), own = this.hadiahMilik();
+    if (!h) return { ok: false, pesan: "Hadiah tidak ditemukan." };
+    if (own.indexOf(id) >= 0) return { ok: false, pesan: "Hadiah ini sudah kamu punya." };
+    if (this.saldo() < h.harga) return { ok: false, pesan: "Poinmu belum cukup. Selesaikan task lagi ya!" };
+    own.push(id);
+    this._set("hadiahMilik", own);
+    this.pakai(id);                                   // langsung dipakai
+    return { ok: true };
+  },
+  pakai(id) {
+    const h = this.HADIAH.find(x => x.id === id);
+    if (!h || this.hadiahMilik().indexOf(id) < 0) return false;
+    const p = this.hadiahPakai(); p[h.jenis] = id; this._set("hadiahPakai", p);
+    return true;
+  },
+  lepas(jenis) { const p = this.hadiahPakai(); delete p[jenis]; this._set("hadiahPakai", p); },
+  // hadiah yang sedang dipakai: { bingkai: {...}|null, gelar: {...}|null }
+  hadiahAktif() {
+    const p = this.hadiahPakai(), own = this.hadiahMilik(), out = {};
+    ["bingkai", "gelar"].forEach(j => { out[j] = this.HADIAH.find(h => h.id === p[j] && own.indexOf(h.id) >= 0) || null; });
+    return out;
   },
 
   // ============================================================

@@ -287,27 +287,23 @@
 <body>
 <a id="btnKembali" href="/belajar-smp.html?p=d2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <script>(function(){var k=new URLSearchParams(location.search).get("kembali");if(k&&/^[\w.-]+\.html(\?[\w=&.:%-]*)?$/.test(k))document.getElementById("btnKembali").href="../../../"+k;})();</script>
-<div class="container"><div class="header"><span class="badge">MODUL SMP • GAME DEV 3D</span><h1>Lompat</h1><p>Kontrol Karakter • Level Menengah</p></div><div class="content">
-    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
-    <div class="card">
-      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
-      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
-      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
-    </div>
-    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
-    <div class="card">
-      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
-      <ul style="margin:8px 0 0 20px;line-height:1.7;">
-        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
-        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
-        <li>Konsep mana yang paling relevan? Mengapa?</li>
-        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
-        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
-      </ul>
-    </div>
-    <h2 class="section-title">Eksplorasi Mandiri</h2>
-    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
-
+<div class="container"><div class="header"><span class="badge">MODUL SMP • GAME DEV 3D</span><h1>Lompat</h1><p>Kontrol Karakter • Level Menengah</p></div><div class="content"><h2 class="section-title">Materi Lengkap: World Building Dan Interaksi 3D</h2>
+<div class="card">
+<p><strong>Konsep dasar.</strong> Pengembangan 3D mengatur objek dalam ruang tiga dimensi. Setiap objek memiliki posisi, rotasi, skala, dan dapat berinteraksi dengan kamera, cahaya, fisika, audio, serta logika permainan. Pada materi <strong>Lompat</strong>, fokus utama kita adalah <strong>world building dan interaksi 3D</strong>. Tujuannya bukan menghafal langkah, tetapi memahami alasan di balik setiap keputusan sehingga kamu dapat menerapkannya pada masalah yang berbeda.</p>
+<p><strong>Cara kerja.</strong> Scene 3D dibangun dari objek, transformasi, kamera, pencahayaan, material, dan logika interaksi. Setiap elemen memiliki peran sehingga dunia terasa konsisten dan dapat dimainkan.</p>
+</div>
+<h2 class="section-title">Contoh Sederhana</h2>
+<div class="card"><p>Desa mini dapat terdiri dari rumah, jalan, pohon, kamera, karakter, collider, dan pencahayaan.</p><div class="highlight-box"><strong>Coba pikirkan:</strong> jika input, ukuran data, kondisi, atau lingkungan diubah, bagian mana dari proses yang ikut berubah? Sebelum menjalankan task, buat prediksi terlebih dahulu.</div></div>
+<h2 class="section-title">Istilah Penting</h2>
+<div class="card"><p><strong>scene, object, transform, material, collider, camera, lighting</strong></p><p>Pahami istilah tersebut sebagai konsep yang saling berhubungan, bukan daftar hafalan. Saat membaca task, coba tunjukkan istilah mana yang sedang digunakan dan apa buktinya dari hasil program/scene.</p></div>
+<h2 class="section-title">Kapan Konsep Ini Digunakan?</h2>
+<div class="card"><p>Gunakan saat membangun level, simulasi, atau game 3D.</p><p>Pemilihan teknik selalu bergantung pada masalah. Tidak ada satu metode yang paling benar untuk semua situasi; bandingkan kebutuhan, batasan, data, dan hasil yang diinginkan.</p></div>
+<h2 class="section-title">Hal yang Perlu Diperhatikan</h2>
+<div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Perhatikan koordinat, parent-child transform, collider, frame rate, jarak kamera, dan perbedaan update per frame dengan waktu nyata.</li><li>Uji lebih dari satu kondisi, termasuk kasus normal dan kasus batas.</li><li>Amati hasil sebelum mengubah kode/scene agar perubahanmu memiliki alasan.</li><li>Bedakan masalah pada konsep, data/input, dan implementasi.</li></ul></div>
+<h2 class="section-title">Kesalahan Umum</h2>
+<div class="card"><p>Kesalahan umum: salah memahami sumbu, gerak bergantung frame rate, collider tidak sesuai bentuk, terlalu banyak objek/efek, dan tidak menguji scene pada kondisi performa berbeda.</p><p>Jika hasil task berbeda dari prediksi, jangan langsung mengganti kode secara acak. Cari langkah pertama ketika perilaku mulai berbeda, lalu jelaskan penyebabnya.</p></div>
+<h2 class="section-title">Cara Belajar Sebelum Task</h2>
+<div class="card"><ol style="margin:8px 0 0 20px;line-height:1.7;"><li>Jelaskan konsep dengan kata-katamu sendiri.</li><li>Perhatikan contoh dan prediksi hasilnya sebelum dijalankan.</li><li>Kerjakan task tanpa menyalin jawaban langkah demi langkah.</li><li>Ubah satu bagian dan amati dampaknya.</li><li>Catat alasan solusi yang kamu pilih.</li></ol></div>
 <h2 class="section-title">1. Tujuan task</h2><div class="card"><p style="margin-top:8px;">Di task ini kamu mengerjakan <strong>Lompat</strong>, bagian dari modul <em>Kontrol Karakter</em> (pertemuan 7–12).</p><div class="highlight-box">Konsep yang dipakai: <strong>WASD, kamera, animasi</strong>.</div></div>
 <h2 class="section-title">2. Ringkasan konsep</h2><div class="card"><p style="margin-top:8px;">Kontrol karakter membaca tombol lalu mengubah posisi tiap frame.</p><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>WASD menggerakkan karakter</li><li>Kamera mengikuti karakter</li><li>Animasi memberi kesan hidup</li></ul></div>
 <h2 class="section-title">3. Eksplorasi Praktik</h2><div class="card"><div class="steps-container"><div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>Langkah 1</h4><p>Tambahkan aksi lompat untuk karaktermu</p></div></div><div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>Langkah 2</h4><p>Atur tinggi lompatan agar tidak terlalu tinggi</p></div></div><div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>Langkah 3</h4><p>Uji lompat di atas satu benda</p></div></div></div></div>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan Profil - Dieng Cyber Coding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef8ff',
+              100: '#d9f0ff',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased flex flex-col font-sans selection:bg-sky-200">
+
+  <!-- Top Navigation Bar Full Width -->
+  <header class="w-full bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+    <div class="w-full px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <!-- Tombol Kembali ke Dashboard -->
+        <a href="/dashboard.html"
+           id="btnBackToDashboard"
+           class="group inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-100/90 hover:bg-sky-50 text-slate-700 hover:text-brand-600 font-bold text-sm transition-all duration-200 border border-slate-200/60 hover:border-sky-300 active:scale-95"
+           title="Kembali ke Dashboard">
+          <span class="w-7 h-7 rounded-lg bg-white shadow-xs text-brand-600 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-colors duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </span>
+          <span class="hidden sm:inline">Dashboard</span>
+          <span class="sm:hidden">Kembali</span>
+        </a>
+
+        <!-- Breadcrumb Navigasi -->
+        <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-400">
+          <a href="/dashboard.html" class="hover:text-slate-600 transition-colors">Dashboard</a>
+          <span class="text-slate-300">/</span>
+          <span class="text-brand-600 font-bold">Pengaturan Profil</span>
+        </div>
+      </div>
+
+      <!-- Identitas Platform E-learning -->
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+          <p id="topBarUser" class="text-sm font-bold text-slate-800 leading-tight">&nbsp;</p>
+          <p class="text-xs text-slate-400 font-medium">Akun Siswa Aktif</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden bg-sky-100 border-2 border-brand-500 shadow-xs flex-shrink-0">
+          <img id="navAvatarPreview" src="" alt="Mini Avatar" class="w-full h-full object-cover">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner Header Area -->
+  <div class="w-full bg-white border-b border-slate-200/60 px-4 sm:px-8 py-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 font-display"> Pengaturan Profil</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Kelola data diri dan avatar belajarmu di platform Dieng Cyber Coding.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifikasi Global -->
+  <div class="w-full px-4 sm:px-8 pt-4">
+    <div id="toastNotification" class="hidden max-w-7xl mx-auto rounded-2xl p-4 text-sm font-semibold flex items-center justify-between shadow-sm transition-all duration-300">
+      <div class="flex items-center gap-3">
+        <span id="toastIcon" class="text-xl">✨</span>
+        <span id="toastMessage">Pesan sistem</span>
+      </div>
+      <button type="button" onclick="closeToast()" class="text-slate-400 hover:text-slate-700 font-bold text-xs px-2 py-1">✕</button>
+    </div>
+  </div>
+
+  <!-- Konten Utama: Two-Column Layout -->
+  <main class="w-full flex-1 px-4 sm:px-8 py-6">
+    <div class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Kolom Kiri: Profil & Ganti Avatar -->
+      <section class="lg:col-span-4 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col items-center text-center">
+        <div class="w-full flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+          <h2 class="text-sm font-bold text-slate-800 tracking-wide uppercase">Foto & Karakter</h2>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online
+          </span>
+        </div>
+
+        <!-- Avatar Wrapper -->
+        <div class="relative group my-2">
+          <div class="w-36 h-36 rounded-3xl overflow-hidden border-4 border-white ring-4 ring-sky-100 shadow-md bg-gradient-to-tr from-sky-100 to-indigo-100 flex items-center justify-center">
+            <img id="avatarImage"
+                 src=""
+                 alt="Foto Profil Siswa"
+                 class="w-full h-full object-cover">
+          </div>
+
+          <label for="avatarInput"
+                 class="absolute -bottom-2 -right-2 bg-brand-600 hover:bg-brand-700 text-white w-11 h-11 rounded-2xl flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition-transform hover:scale-110 active:scale-95"
+                 title="Ganti Foto Profil">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+            </svg>
+            <input type="file" id="avatarInput" accept="image/*" class="hidden">
+          </label>
+        </div>
+
+        <div class="mt-4">
+          <h3 id="displayFullName" class="font-extrabold text-slate-800 text-lg">&nbsp;</h3>
+          <p id="displayUsername" class="text-xs font-semibold text-slate-400">@</p>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-3 leading-relaxed">
+          Unggah foto asli atau pilih karakter robot koding favoritmu untuk dipakai di kelas daring!
+        </p>
+
+        <!-- Aksi Acak Avatar -->
+        <div class="w-full mt-5 pt-4 border-t border-slate-100 flex flex-col gap-2">
+          <button type="button" id="btnRandomAvatar" class="w-full py-2.5 px-4 rounded-xl bg-sky-50 hover:bg-sky-100 text-brand-700 font-bold text-xs sm:text-sm border border-sky-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+            <span>🎲</span> Acak Karakter Robot Baru
+          </button>
+        </div>
+
+        <!-- Panduan Ramah Anak -->
+        <div class="mt-6 w-full p-4 rounded-2xl bg-amber-50/80 border border-amber-200/60 text-left">
+          <h4 class="text-xs font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+            <span>💡</span> Tips Siswa Cerdas
+          </h4>
+          <p class="text-[11px] text-amber-800 leading-normal">
+            Pastikan nama lengkap sesuai dengan yang terdaftar di kelas agar tugasmu tercatat dengan tepat!
+          </p>
+        </div>
+      </section>
+
+      <!-- Kolom Kanan: Form Biodata Akun -->
+      <div class="lg:col-span-8">
+        <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+          <div class="border-b border-slate-100 pb-4 mb-6">
+            <h2 class="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-sky-100 text-brand-600 flex items-center justify-center text-sm">📝</span>
+              Informasi Data Diri Siswa
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Lengkapi informasi belajarmu agar guru dan teman sekelas dapat mengenalimu.</p>
+          </div>
+
+          <form id="profileForm" class="space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="space-y-1.5">
+                <label for="fullName" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Nama Lengkap</label>
+                <input type="text" id="fullName" value="" maxlength="60" required
+                       class="w-full px-4 py-2.5 bg-slate-50 focus:bg-white text-sm font-medium border border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all">
+              </div>
+
+              <div class="space-y-1.5">
+                <label for="username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Username Coder</label>
+                <div class="relative">
+                  <span class="absolute left-4 top-2.5 text-slate-400 text-sm font-semibold">@</span>
+                  <input type="text" id="username" value="" readonly
+                         class="w-full pl-9 pr-4 py-2.5 bg-slate-100 text-slate-500 cursor-not-allowed text-sm font-medium border border-slate-200 rounded-xl outline-none">
+                </div>
+                <p class="text-[11px] text-slate-400">Username dipakai untuk login, jadi tidak bisa diubah di sini.</p>
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Alamat Email Belajar</label>
+              <input type="email" id="email" value="" placeholder="nama@email.com"
+                     class="w-full px-4 py-2.5 bg-slate-50 focus:bg-white text-sm font-medium border border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all">
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="bio" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Tentang Dirimu & Catatan Belajar</label>
+              <textarea id="bio" rows="4" maxlength="300" placeholder="Tuliskan cerita singkat, minat, atau target belajarmu..."
+                        class="w-full px-4 py-2.5 bg-slate-50 focus:bg-white text-sm font-medium border border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all resize-none"></textarea>
+            </div>
+
+            <div class="flex justify-end pt-3">
+              <button type="submit"
+                      class="w-full sm:w-auto px-7 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-95">
+                Simpan Perubahan Profil
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer Full Width -->
+  <footer class="w-full bg-white border-t border-slate-200/80 py-4 px-4 sm:px-8 mt-auto text-center text-xs font-semibold text-slate-400">
+    &copy; Dieng Cyber Coding &bull; Platform E-Learning Anak & Remaja
+  </footer>
+
+  <script>
+    // ---------- Wajib login (sama seperti dashboard) ----------
+    if (!localStorage.getItem('authToken')) {
+      location.replace('/index.html');
+    }
+
+    const currentUser = localStorage.getItem('username') || localStorage.getItem('scratch_user') || 'tamu';
+    const PROFILE_KEY = 'profile_' + currentUser;   // dibaca juga oleh dashboard untuk avatar & nama
+
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarImage = document.getElementById('avatarImage');
+    const navAvatarPreview = document.getElementById('navAvatarPreview');
+    const btnRandomAvatar = document.getElementById('btnRandomAvatar');
+    const profileForm = document.getElementById('profileForm');
+    const toast = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    const displayFullName = document.getElementById('displayFullName');
+    const displayUsername = document.getElementById('displayUsername');
+    const topBarUser = document.getElementById('topBarUser');
+    const fullNameInput = document.getElementById('fullName');
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const bioInput = document.getElementById('bio');
+
+    let toastTimeout = null;
+
+    // ---------- Simpan / baca profil (per akun, di browser ini) ----------
+    function loadProfile() {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch (e) { return {}; }
+    }
+    function saveProfile(data) {
+      try {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+        return true;
+      } catch (e) {
+        return false;   // penyimpanan penuh / diblokir
+      }
+    }
+    function robotUrl(seed) {
+      return 'https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(seed);
+    }
+
+    // Status profil yang sedang ditampilkan (avatar baru belum tersimpan sampai klik Simpan)
+    const profile = loadProfile();
+    let currentAvatar = profile.avatar || robotUrl('DiengCoder-' + currentUser);
+
+    function setAvatar(url) {
+      currentAvatar = url;
+      avatarImage.src = url;
+      navAvatarPreview.src = url;
+    }
+    function paintNames(fullName) {
+      const shown = fullName || currentUser;
+      displayFullName.textContent = shown;
+      topBarUser.textContent = shown;
+      displayUsername.textContent = '@' + currentUser;
+    }
+
+    // Isi form dari data tersimpan
+    fullNameInput.value = profile.fullName || '';
+    usernameInput.value = currentUser;
+    emailInput.value = profile.email || '';
+    bioInput.value = profile.bio || '';
+    setAvatar(currentAvatar);
+    paintNames(profile.fullName || '');
+
+    // ---------- Notifikasi ----------
+    function showNotification(msg, type = 'success') {
+      clearTimeout(toastTimeout);
+      toastMessage.textContent = msg;
+      toast.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'bg-rose-50', 'text-rose-800', 'border-rose-200', 'bg-sky-50', 'text-sky-800', 'border-sky-200');
+
+      if (type === 'success') {
+        toastIcon.textContent = '🎉';
+        toast.classList.add('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200');
+      } else if (type === 'error') {
+        toastIcon.textContent = '⚠️';
+        toast.classList.add('bg-rose-50', 'text-rose-800', 'border', 'border-rose-200');
+      } else {
+        toastIcon.textContent = '🚀';
+        toast.classList.add('bg-sky-50', 'text-sky-800', 'border', 'border-sky-200');
+      }
+
+      toast.classList.remove('hidden');
+      toastTimeout = setTimeout(closeToast, 4000);
+    }
+
+    function closeToast() {
+      toast.classList.add('hidden');
+    }
+
+    // ---------- Foto: perkecil dulu agar muat di penyimpanan browser ----------
+    function shrinkImage(file, size, cb) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const side = Math.min(img.width, img.height);          // potong tengah jadi persegi
+          const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = size;
+          canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, size, size);
+          cb(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => cb(null);
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => cb(null);
+      reader.readAsDataURL(file);
+    }
+
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        showNotification('Ukuran file foto terlalu besar (maksimal 2 MB).', 'error');
+        avatarInput.value = '';
+        return;
+      }
+
+      shrinkImage(file, 256, (dataUrl) => {
+        if (!dataUrl) {
+          showNotification('Foto tidak bisa dibaca. Coba pilih file gambar lain ya.', 'error');
+          return;
+        }
+        setAvatar(dataUrl);
+        showNotification('Foto dipilih! Klik "Simpan Perubahan Profil" supaya tersimpan.', 'info');
+      });
+    });
+
+    btnRandomAvatar.addEventListener('click', () => {
+      const randomSeed = 'DiengCoder-' + Math.random().toString(36).substring(2, 9);
+      setAvatar(robotUrl(randomSeed));
+      showNotification('Karakter robot baru dipilih! Klik "Simpan Perubahan Profil" supaya tersimpan.', 'info');
+    });
+
+    profileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fullNameVal = fullNameInput.value.trim();
+
+      if (!fullNameVal) {
+        showNotification('Nama lengkap tidak boleh kosong ya!', 'error');
+        return;
+      }
+
+      const ok = saveProfile({
+        fullName: fullNameVal,
+        email: emailInput.value.trim(),
+        bio: bioInput.value.trim(),
+        avatar: currentAvatar
+      });
+
+      if (!ok) {
+        showNotification('Profil gagal disimpan (penyimpanan browser penuh). Coba pakai foto yang lebih kecil.', 'error');
+        return;
+      }
+
+      paintNames(fullNameVal);
+      showNotification('Data profil berhasil disimpan!');
+    });
+  </script>
+</body>
+</html>

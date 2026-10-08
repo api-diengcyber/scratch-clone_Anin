@@ -51,11 +51,42 @@ const currentUser = localStorage.getItem('username') || localStorage.getItem('sc
 const totalPoints = Number(localStorage.getItem('codingPoints_' + currentUser)) || 0;
 
 const savedUser = localStorage.getItem('username');
-if (savedUser) {
-  $('displayUsername').textContent = '@' + savedUser;
-  $('displayUsernameM').textContent = '@' + savedUser;
+
+// Profil dari halaman Pengaturan Profil (nama lengkap + foto), disimpan per akun di browser ini
+let profile = {};
+try { profile = JSON.parse(localStorage.getItem('profile_' + currentUser)) || {}; } catch (e) {}
+
+const shownName = profile.fullName || (savedUser ? '@' + savedUser : '@' + currentUser);
+$('displayUsername').textContent = shownName;
+
+const avatarBox = $('avatarLetter');
+if (profile.avatar) {
+  const img = document.createElement('img');
+  img.src = profile.avatar;
+  img.alt = 'Foto profil';
+  avatarBox.textContent = '';
+  avatarBox.appendChild(img);
+} else {
+  avatarBox.textContent = (savedUser || currentUser || 'A').charAt(0).toUpperCase();
 }
-$('avatarLetter').textContent = (savedUser || currentUser || 'A').charAt(0).toUpperCase();
+
+if (LP.hadiahAktif) {
+  const act = LP.hadiahAktif();
+  if (act.bingkai) avatarBox.style.boxShadow = act.bingkai.css;
+  if (act.gelar) $('displayUsername').textContent += ' · ' + act.gelar.emoji + ' ' + act.gelar.nama;
+}
+
+// ---------- Burger menu ----------
+const menuBtn = $('menuBtn');
+const userMenu = $('userMenu');
+function setMenu(open) {
+  userMenu.hidden = !open;
+  menuBtn.setAttribute('aria-expanded', String(open));
+  menuBtn.querySelector('i').className = open ? 'fas fa-xmark' : 'fas fa-bars';
+}
+menuBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(userMenu.hidden); });
+document.addEventListener('click', e => { if (!userMenu.hidden && !userMenu.contains(e.target)) setMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !userMenu.hidden) { setMenu(false); menuBtn.focus(); } });
 
 $('pointsValue').textContent = totalPoints;
 
@@ -163,7 +194,7 @@ if (tabsLeft.length) {
   renderGrade(startTab.dataset.grade);
 }
 
-['logoutBtn', 'logoutBtnM'].forEach(id => {
+['logoutBtn'].forEach(id => {
   $(id).addEventListener('click', async () => {
 
     const token = localStorage.getItem('authToken');

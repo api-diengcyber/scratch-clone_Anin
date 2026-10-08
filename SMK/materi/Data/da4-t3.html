@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Task 3: Data Latih dan Data Uji</title>
+  <title>MODUL SMK • Data Latih dan Data Uji</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -154,32 +154,28 @@
 <a id="btnKembali" href="/belajar-smk.html?p=da4" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
 <div class="container">
   <div class="header">
-    <span class="badge">TASK 3 • PEMBAGIAN DATASET</span>
+    <span class="badge">MODUL SMK • PEMBAGIAN DATASET</span>
     <h1>Data Latih dan Data Uji</h1>
     <p>Memisahkan data latihan dan ujian untuk mencegah jebakan model yang hanya menghafal (Overfitting)</p>
   </div>
-  <div class="content">
-    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
-    <div class="card">
-      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
-      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
-      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
-    </div>
-    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
-    <div class="card">
-      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
-      <ul style="margin:8px 0 0 20px;line-height:1.7;">
-        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
-        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
-        <li>Konsep mana yang paling relevan? Mengapa?</li>
-        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
-        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
-      </ul>
-    </div>
-    <h2 class="section-title">Eksplorasi Mandiri</h2>
-    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
-
-    <h2 class="section-title">1. Memahami Peran Data Latih vs Data Uji</h2>
+  <div class="content"><h2 class="section-title">Materi Lengkap: Klasifikasi Dan Evaluasi Model</h2>
+<div class="card">
+<p><strong>Konsep dasar.</strong> Data adalah kumpulan fakta atau pengukuran yang dapat digunakan untuk menjawab pertanyaan. Analisis data dimulai dari pertanyaan yang jelas, kualitas data, pengolahan, lalu interpretasi hasil. Pada materi <strong>Data Latih dan Data Uji</strong>, fokus utama kita adalah <strong>klasifikasi dan evaluasi model</strong>. Tujuannya bukan menghafal langkah, tetapi memahami alasan di balik setiap keputusan sehingga kamu dapat menerapkannya pada masalah yang berbeda.</p>
+<p><strong>Cara kerja.</strong> Klasifikasi memberikan label pada data berdasarkan pola. Data latih digunakan untuk belajar aturan/pola, data uji untuk mengukur performa pada data yang belum digunakan saat belajar. k-NN membandingkan kedekatan data baru dengan contoh yang sudah berlabel.</p>
+</div>
+<h2 class="section-title">Contoh Sederhana</h2>
+<div class="card"><p>Jika tiga tetangga terdekat sebuah titik adalah dua “A” dan satu “B”, k-NN dengan k=3 cenderung memilih A.</p><div class="highlight-box"><strong>Coba pikirkan:</strong> jika input, ukuran data, kondisi, atau lingkungan diubah, bagian mana dari proses yang ikut berubah? Sebelum menjalankan task, buat prediksi terlebih dahulu.</div></div>
+<h2 class="section-title">Istilah Penting</h2>
+<div class="card"><p><strong>feature, label, training, testing, k-NN, distance, accuracy</strong></p><p>Pahami istilah tersebut sebagai konsep yang saling berhubungan, bukan daftar hafalan. Saat membaca task, coba tunjukkan istilah mana yang sedang digunakan dan apa buktinya dari hasil program/scene.</p></div>
+<h2 class="section-title">Kapan Konsep Ini Digunakan?</h2>
+<div class="card"><p>Gunakan untuk masalah yang hasilnya berupa kategori dan memiliki contoh data berlabel.</p><p>Pemilihan teknik selalu bergantung pada masalah. Tidak ada satu metode yang paling benar untuk semua situasi; bandingkan kebutuhan, batasan, data, dan hasil yang diinginkan.</p></div>
+<h2 class="section-title">Hal yang Perlu Diperhatikan</h2>
+<div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Perhatikan sumber, missing value, satuan, skala grafik, ukuran sampel, outlier, dan perbedaan antara korelasi dan sebab-akibat.</li><li>Uji lebih dari satu kondisi, termasuk kasus normal dan kasus batas.</li><li>Amati hasil sebelum mengubah kode/scene agar perubahanmu memiliki alasan.</li><li>Bedakan masalah pada konsep, data/input, dan implementasi.</li></ul></div>
+<h2 class="section-title">Kesalahan Umum</h2>
+<div class="card"><p>Kesalahan umum: langsung menghitung tanpa pertanyaan, grafik menyesatkan, mengabaikan data kosong, menyimpulkan terlalu jauh, dan memperlakukan data kecil sebagai gambaran seluruh populasi.</p><p>Jika hasil task berbeda dari prediksi, jangan langsung mengganti kode secara acak. Cari langkah pertama ketika perilaku mulai berbeda, lalu jelaskan penyebabnya.</p></div>
+<h2 class="section-title">Cara Belajar Sebelum Task</h2>
+<div class="card"><ol style="margin:8px 0 0 20px;line-height:1.7;"><li>Jelaskan konsep dengan kata-katamu sendiri.</li><li>Perhatikan contoh dan prediksi hasilnya sebelum dijalankan.</li><li>Kerjakan task tanpa menyalin jawaban langkah demi langkah.</li><li>Ubah satu bagian dan amati dampaknya.</li><li>Catat alasan solusi yang kamu pilih.</li></ol></div>
+<h2 class="section-title">1. Memahami Peran Data Latih vs Data Uji</h2>
     <div class="card">
       <p>Sama seperti siswa sekolah yang belajar dari buku paket lalu diuji dengan soal ujian baru, model Machine Learning harus dilatih dengan <strong>Data Latih (Training Data)</strong> dan dievaluasi dengan <strong>Data Uji (Testing Data)</strong> yang belum pernah dilihat sama sekali.</p>
       <div class="table-container">

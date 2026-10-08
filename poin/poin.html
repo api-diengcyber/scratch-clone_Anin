@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poinku • Dieng Cyber Coding</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Keyframes Pendaran Cahaya Neon Multi-Layer */
+    @keyframes neonPulseCyan {
+      0%, 100% {
+        box-shadow: 0 0 6px #fff, 0 0 14px #00f2fe, 0 0 30px #00f2fe, 0 0 45px #0284c7, inset 0 0 12px #00f2fe;
+        border-color: #ffffff;
+      }
+      50% {
+        box-shadow: 0 0 3px #fff, 0 0 8px #00f2fe, 0 0 18px #00f2fe, 0 0 28px #0284c7, inset 0 0 6px #00f2fe;
+        border-color: #a5f3fc;
+      }
+    }
+
+    @keyframes neonPulseGold {
+      0%, 100% {
+        box-shadow: 0 0 6px #fff, 0 0 16px #fde047, 0 0 32px #eab308, 0 0 50px #ca8a04, inset 0 0 14px #fde047;
+      }
+      50% {
+        box-shadow: 0 0 3px #fff, 0 0 9px #fde047, 0 0 18px #eab308, 0 0 28px #ca8a04, inset 0 0 7px #fde047;
+      }
+    }
+
+    @keyframes neonPulseFire {
+      0%, 100% {
+        box-shadow: 0 0 6px #fff, 0 0 16px #fb923c, 0 0 32px #ef4444, 0 0 50px #dc2626, inset 0 0 14px #fb923c;
+      }
+      50% {
+        box-shadow: 0 0 3px #fff, 0 0 8px #fb923c, 0 0 18px #ef4444, 0 0 28px #dc2626, inset 0 0 8px #fb923c;
+      }
+    }
+
+    @keyframes neonPulseMatrix {
+      0%, 100% {
+        box-shadow: 0 0 6px #fff, 0 0 15px #4ade80, 0 0 30px #22c55e, 0 0 48px #15803d, inset 0 0 12px #4ade80;
+      }
+      50% {
+        box-shadow: 0 0 3px #fff, 0 0 8px #4ade80, 0 0 18px #22c55e, 0 0 28px #15803d, inset 0 0 6px #4ade80;
+      }
+    }
+
+    @keyframes neonPulseGalaxy {
+      0%, 100% {
+        box-shadow: 0 0 6px #fff, 0 0 16px #c084fc, 0 0 35px #a855f7, 0 0 55px #7e22ce, inset 0 0 16px #c084fc;
+      }
+      50% {
+        box-shadow: 0 0 3px #fff, 0 0 9px #c084fc, 0 0 18px #a855f7, 0 0 30px #7e22ce, inset 0 0 8px #c084fc;
+      }
+    }
+
+    @keyframes rainbowRotate {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    /* Animasi Khusus Objek & Hewan Interaktif */
+    @keyframes orbitRound {
+      from { transform: rotate(0deg) translateX(44px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(44px) rotate(-360deg); }
+    }
+    .anim-orbit {
+      animation: orbitRound 4.5s linear infinite;
+    }
+
+    @keyframes bobPeek {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .anim-peek {
+      animation: bobPeek 1.8s ease-in-out infinite;
+    }
+
+    @keyframes wiggleSubtle {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+    .anim-wiggle {
+      animation: wiggleSubtle 2s ease-in-out infinite;
+    }
+
+    /* Style Dasar Bingkai Avatar */
+    .frame-neon {
+      border: 3.5px solid #ffffff !important;
+      background: radial-gradient(circle, #0c4a6e 20%, #031e2e 90%) !important;
+      animation: neonPulseCyan 2s ease-in-out infinite !important;
+    }
+    .frame-gold {
+      border: 3.5px solid #fffbeb !important;
+      background: radial-gradient(circle, #78350f 15%, #451a03 90%) !important;
+      animation: neonPulseGold 2.2s ease-in-out infinite !important;
+    }
+    .frame-rainbow {
+      border: 4px solid #ff007f !important;
+      background: radial-gradient(circle, #2e1065 20%, #0f172a 90%) !important;
+      box-shadow: 0 0 12px #ff007f, 0 0 25px #00f2fe, 0 0 45px #a855f7 !important;
+      animation: rainbowRotate 4s linear infinite !important;
+    }
+    .frame-galaxy {
+      border: 3.5px solid #f3e8ff !important;
+      background: radial-gradient(circle, #3b0764 15%, #18022b 90%) !important;
+      animation: neonPulseGalaxy 2.4s ease-in-out infinite !important;
+    }
+    .frame-fire {
+      border: 3.5px solid #fff7ed !important;
+      background: radial-gradient(circle, #7c2d12 15%, #431407 90%) !important;
+      animation: neonPulseFire 1.8s ease-in-out infinite !important;
+    }
+    .frame-matrix {
+      border: 3.5px solid #f0fdf4 !important;
+      background: radial-gradient(circle, #14532d 15%, #052e16 90%) !important;
+      animation: neonPulseMatrix 1.9s ease-in-out infinite !important;
+    }
+    .frame-cat {
+      border: 3.5px solid #fb7185 !important;
+      background: radial-gradient(circle, #881337 15%, #4c0519 90%) !important;
+      box-shadow: 0 0 6px #fff, 0 0 18px #fb7185, 0 0 35px #e11d48, inset 0 0 12px #fda4af !important;
+    }
+    .frame-space {
+      border: 3.5px solid #38bdf8 !important;
+      background: radial-gradient(circle, #1e1b4b 20%, #030712 90%) !important;
+      box-shadow: 0 0 6px #fff, 0 0 18px #38bdf8, 0 0 35px #4f46e5, inset 0 0 12px #818cf8 !important;
+    }
+    .frame-sea {
+      border: 3.5px solid #2dd4bf !important;
+      background: radial-gradient(circle, #134e4a 20%, #042f2e 90%) !important;
+      box-shadow: 0 0 6px #fff, 0 0 16px #2dd4bf, 0 0 32px #0f766e, inset 0 0 12px #99f6e4 !important;
+    }
+    .frame-nature {
+      border: 3.5px solid #ecfdf5 !important;
+      background: radial-gradient(circle, #064e3b 15%, #022c22 90%) !important;
+      box-shadow: 0 0 8px #fff, 0 0 20px #34d399, 0 0 35px #059669, inset 0 0 12px #34d399 !important;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-sky-50/70 via-indigo-50/40 to-slate-100 min-h-screen text-slate-800 antialiased flex flex-col font-sans selection:bg-amber-200">
+
+  <!-- Header Navigasi -->
+  <header class="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs">
+    <div class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-5">
+        <a href="/dashboard.html" 
+           class="group inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-brand-600 font-bold text-xs sm:text-sm transition-all border border-slate-200 hover:border-sky-300 active:scale-95 shadow-xs">
+          <span class="w-7 h-7 rounded-xl bg-white text-brand-600 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-colors font-black">←</span>
+          <span class="hidden sm:inline">Kembali ke Dashboard</span>
+          <span class="sm:hidden">Kembali</span>
+        </a>
+
+        <div class="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-slate-200">
+          <div class="w-9 h-9 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl border border-amber-200">⭐</div>
+          <div>
+            <h1 class="text-sm sm:text-base font-extrabold text-slate-900 font-display flex items-center gap-1.5 leading-tight">
+              Poinku & Hadiah
+              <span class="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-brand-700">Dieng Cyber</span>
+            </h1>
+            <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Koleksi bingkai interaktif unik & tukarkan hadiah koding!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200/70 px-3.5 py-1.5 rounded-2xl shadow-xs">
+          <span class="text-base">💰</span>
+          <span id="quickSaldo" class="text-xs sm:text-sm font-extrabold text-amber-800">0</span>
+          <span class="text-[10px] text-amber-600 font-semibold hidden sm:inline">Koin Belajar</span>
+        </div>
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-600 text-white font-black flex items-center justify-center shadow-md text-xs">DC</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-8 py-6 space-y-6">
+    <section id="hero" class="w-full relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600 text-white p-6 sm:p-8 shadow-xl">
+      <!-- Dimuat dinamis oleh JavaScript -->
+    </section>
+
+    <nav class="flex items-center gap-2 overflow-x-auto pb-1 pt-1" id="tabs"></nav>
+
+    <section class="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-xs min-h-[420px]" id="panel"></section>
+  </main>
+
+  <!-- Modal Konfirmasi Dialog Ramah Anak -->
+  <div id="modalConfirm" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border-4 border-amber-200">
+      <div class="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-3xl mb-4">🎁</div>
+      <h3 class="text-xl font-extrabold text-slate-800" id="modalTitle">Tukar Hadiah?</h3>
+      <p class="text-sm text-slate-600 mt-2" id="modalDesc"></p>
+      <div class="mt-6 flex gap-3">
+        <button id="modalBtnCancel" type="button" class="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Batal</button>
+        <button id="modalBtnConfirm" type="button" class="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-sm shadow-md">Tukar Sekarang! ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifikasi -->
+  <div class="fixed bottom-6 right-6 z-50 max-w-md w-full px-4 pointer-events-none">
+    <div id="toastNotification" class="hidden pointer-events-auto rounded-2xl p-4 text-sm font-semibold flex items-center justify-between shadow-xl border bg-white">
+      <div class="flex items-center gap-3">
+        <span id="toastIcon" class="text-xl">✨</span>
+        <span id="toastMsg">Pemberitahuan</span>
+      </div>
+      <button type="button" onclick="closeToast()" class="text-slate-400 hover:text-slate-700 font-bold text-xs ml-3 px-1.5 py-0.5">✕</button>
+    </div>
+  </div>
+
+  <footer class="w-full bg-white border-t border-slate-200/80 py-4 px-4 sm:px-8 mt-auto text-center text-xs font-semibold text-slate-400">
+    &copy; Dieng Cyber Coding &bull; Platform Belajar Koding Interaktif untuk Generasi Juara
+  </footer>
+
+  <script src="/kurikulum/data/jalur-data.js?v=12"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=12"></script>
+
+  <script>
+  (function () {
+    // Fallback Mock jika LP belum termuat
+    if (typeof window.LP === 'undefined') {
+      window.LP = {
+        _points: 250,
+        _saldo: 15,
+        _owned: [],
+        _used: { bingkai: null, gelar: null },
+        points: function() { return this._points; },
+        saldo: function() { return this._saldo; },
+        levelOf: function(p) { return { no: 1, now: { nama: 'Junior Coder', emoji: '🌱' }, next: { min: 300, nama: 'Code Explorer', emoji: '🚀' }, pct: 45 }; },
+        hadiahAktif: function() { return { bingkai: null, gelar: null }; },
+        hadiahMilik: function() { return this._owned; },
+        hadiahPakai: function() { return this._used; },
+        riwayat: function() { return []; },
+        tahap: [],
+        items: function() { return []; },
+        isDone: function() { return false; },
+        poinOf: function() { return 10; },
+        poinTotal: function() { return 50; },
+        beli: function(id) { 
+          const item = (this.HADIAH || []).find(x => x.id === id);
+          if (!item) return { ok: false, pesan: "Item tidak ditemukan." };
+          if (this._saldo < item.harga) return { ok: false, pesan: "Koin belajarmu belum cukup!" };
+          this._saldo -= item.harga;
+          this._owned.push(id);
+          return { ok: true };
+        },
+        pakai: function(id) { 
+          const item = (this.HADIAH || []).find(x => x.id === id);
+          if (item) this._used[item.jenis] = item.id;
+        },
+        lepas: function(jenis) { this._used[jenis] = null; }
+      };
+    }
+
+    // DAFTAR BINGKAI INTERAKTIF (Ada Objek & Hewan Hidup)
+    const EXTRA_FRAMES = [
+      { 
+        id: "bg_gold", 
+        jenis: "bingkai", 
+        nama: "Bingkai Mahkota Emas", 
+        emoji: "👑", 
+        harga: 50, 
+        frameClass: "frame-gold", 
+        badge: "Juara", 
+        ornamentTop: '<span class="absolute -top-4 left-1/2 -translate-x-1/2 text-2xl anim-peek">👑</span>',
+        ornamentBottom: '',
+        desc: "Mahkota emas berkilau di atas kepala avatarmu." 
+      },
+      { 
+        id: "bg_matrix", 
+        jenis: "bingkai", 
+        nama: "Bingkai Matrix Terminal", 
+        emoji: "🤖", 
+        harga: 100, // Diubah menjadi 100 poin
+        frameClass: "frame-matrix", 
+        badge: "Pro Coder", 
+        ornamentTop: '<span class="absolute -top-2 -right-2 text-base anim-wiggle">⚡</span>',
+        ornamentBottom: '<span class="absolute -bottom-2 -left-2 text-xs font-mono font-bold bg-green-950 text-green-400 px-1 rounded border border-green-500">0101</span>',
+        desc: "Neon hacker hijau digital dengan kode terminal." 
+      },
+      { 
+        id: "bg_rainbow", 
+        jenis: "bingkai", 
+        nama: "Bingkai Permen Pelangi", 
+        emoji: "🍭", 
+        harga: 150, // Diubah menjadi 150 poin
+        frameClass: "frame-rainbow", 
+        badge: "Ceria", 
+        ornamentTop: '<span class="absolute -top-3 -right-2 text-2xl anim-wiggle">🍭</span>',
+        ornamentBottom: '<span class="absolute -bottom-2 -left-2 text-xl anim-peek">⭐</span>',
+        desc: "Gradasi pelangi neon lengkap dengan permen manis." 
+      },
+      { 
+        id: "bg_cat", 
+        jenis: "bingkai", 
+        nama: "Kucing Mengintip Ceria", 
+        emoji: "🐱", 
+        harga: 130, 
+        frameClass: "frame-cat", 
+        badge: "Hewan", 
+        ornamentTop: '<span class="absolute -top-4 left-1/2 -translate-x-1/2 text-2xl anim-peek">🐱</span>',
+        ornamentBottom: '<span class="absolute -bottom-2 -right-1 text-base">🐾</span>',
+        desc: "Kucing imut yang selalu mengintip dari atas bingkai neon." 
+      },
+      { 
+        id: "bg_space", 
+        jenis: "bingkai", 
+        nama: "Roket Orbit Antariksa", 
+        emoji: "🚀", 
+        harga: 180, 
+        frameClass: "frame-space", 
+        badge: "Orbit", 
+        ornamentTop: '<span class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="anim-orbit text-xl">🚀</span></span>',
+        ornamentBottom: '<span class="absolute -bottom-2 -right-2 text-base">🪐</span>',
+        desc: "Roket luar angkasa yang terbang mengitari lingkaran avatarmu." 
+      },
+      { 
+        id: "bg_sea", 
+        jenis: "bingkai", 
+        nama: "Akuarium Lumba-lumba", 
+        emoji: "🐬", 
+        harga: 140, 
+        frameClass: "frame-sea", 
+        badge: "Bahari", 
+        ornamentTop: '<span class="absolute -top-3.5 -right-2 text-2xl anim-wiggle">🐬</span>',
+        ornamentBottom: '<span class="absolute -bottom-2 left-1 text-base">🫧</span>',
+        desc: "Gelembung laut toska dengan lumba-lumba yang ceria melompat." 
+      },
+      { 
+        id: "bg_fire", 
+        jenis: "bingkai", 
+        nama: "Kobaran Api Petualang", 
+        emoji: "🔥", 
+        harga: 120, 
+        frameClass: "frame-fire", 
+        badge: "Semangat", 
+        ornamentTop: '<span class="absolute -top-3 -right-2 text-2xl anim-peek">🔥</span>',
+        ornamentBottom: '<span class="absolute -bottom-2 -left-2 text-lg">💥</span>',
+        desc: "Api membara dengan letupan energi koding penuh semangat." 
+      },
+      { 
+        id: "bg_neon", 
+        jenis: "bingkai", 
+        nama: "Bingkai Neon Cyber", 
+        emoji: "💫", 
+        harga: 75, 
+        frameClass: "frame-neon", 
+        badge: "Cyber", 
+        ornamentTop: '<span class="absolute -top-2.5 left-2 text-xl anim-wiggle">💫</span>',
+        ornamentBottom: '',
+        desc: "Laser neon biru pendar murni berdenyut tajam." 
+      },
+      { 
+        id: "bg_galaxy", 
+        jenis: "bingkai", 
+        nama: "Bingkai Galaksi Kosmik", 
+        emoji: "🔮", 
+        harga: 200, 
+        frameClass: "frame-galaxy", 
+        badge: "Misteri", 
+        ornamentTop: '<span class="absolute -top-3 -left-2 text-2xl anim-wiggle">✨</span>',
+        ornamentBottom: '<span class="absolute -bottom-2 -right-2 text-xl anim-peek">🔮</span>',
+        desc: "Aura kosmik ungu dengan taburan bintang bercahaya." 
+      }
+    ];
+
+    const EXTRA_TITLES = [
+      { id: "gl_star", jenis: "gelar", nama: "Bintang Kelas", emoji: "⭐", harga: 80 },
+      { id: "gl_bug", jenis: "gelar", nama: "Detektif Bug", emoji: "🕵️", harga: 150 },
+      { id: "gl_robot", jenis: "gelar", nama: "Sahabat Robot", emoji: "🤖", harga: 250 },
+      { id: "gl_python", jenis: "gelar", nama: "Pawang Python", emoji: "🐍", harga: 120 },
+      { id: "gl_web", jenis: "gelar", nama: "Arsitek Web", emoji: "🌐", harga: 180 },
+      { id: "gl_master", jenis: "gelar", nama: "Master Algoritma", emoji: "⚡", harga: 300 }
+    ];
+
+    LP.HADIAH = [...EXTRA_FRAMES, ...EXTRA_TITLES];
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (t) => String(t || '').replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+    const TABS = [
+      ["tukar", "🎁 Toko Hadiah & Kostum"],
+      ["riwayat", "🧾 Riwayat Poin"],
+      ["lencana", "🏅 Lencana"],
+      ["jalur", "🌿 Poin Per Jalur"]
+    ];
+
+    let currentTab = "tukar";
+    let pendingItem = null;
+    let toastTimer = null;
+
+    function showToast(msg, type = "success") {
+      clearTimeout(toastTimer);
+      const t = $("toastNotification");
+      $("toastMsg").textContent = msg;
+      $("toastIcon").textContent = type === "success" ? "🎉" : type === "error" ? "⚠️" : "✨";
+      t.className = "pointer-events-auto rounded-2xl p-4 text-sm font-semibold flex items-center justify-between shadow-xl border " +
+                    (type === "success" ? "bg-emerald-50 text-emerald-900 border-emerald-200" :
+                     type === "error" ? "bg-rose-50 text-rose-900 border-rose-200" : "bg-sky-50 text-sky-900 border-sky-200");
+      t.classList.remove("hidden");
+      toastTimer = setTimeout(() => $("toastNotification").classList.add("hidden"), 3500);
+    }
+    window.closeToast = () => $("toastNotification").classList.add("hidden");
+
+    // Fungsi pembungkus avatar dengan objek/hewan di bingkainya
+    function renderAvatarWithFrame(avatarEmoji, frameId, sizeClass = "w-24 h-24", emojiSize = "text-5xl") {
+      const frameItem = EXTRA_FRAMES.find(f => f.id === frameId);
+      const frameClass = frameItem ? frameItem.frameClass : "border-4 border-white/40 bg-white/20";
+      const ornamentTop = frameItem ? (frameItem.ornamentTop || '') : '';
+      const ornamentBottom = frameItem ? (frameItem.ornamentBottom || '') : '';
+
+      return `
+        <div class="relative inline-flex items-center justify-center">
+          ${ornamentTop}
+          <div class="${sizeClass} rounded-full flex items-center justify-center ${emojiSize} shadow-lg transition-transform ${frameClass}">
+            ${avatarEmoji}
+          </div>
+          ${ornamentBottom}
+        </div>
+      `;
+    }
+
+    function renderHero() {
+      const total = LP.points();
+      const lv = LP.levelOf(total);
+      const pakai = LP.hadiahPakai ? LP.hadiahPakai() : {};
+      const activeFrameId = pakai.bingkai;
+      const activeGelarId = pakai.gelar;
+      const gelarItem = EXTRA_TITLES.find(g => g.id === activeGelarId);
+      const saldo = LP.saldo();
+
+      if ($("quickSaldo")) $("quickSaldo").textContent = saldo;
+
+      $("hero").innerHTML = `
+        <div class="flex flex-col md:flex-row items-center gap-6 relative z-10">
+          <div class="relative flex-none">
+            ${renderAvatarWithFrame(lv.now.emoji, activeFrameId, "w-28 h-28", "text-6xl")}
+            <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 font-black text-xs px-3 py-0.5 rounded-full shadow-md border border-white whitespace-nowrap z-20">
+              Level ${lv.no}
+            </div>
+          </div>
+
+          <div class="flex-1 text-center md:text-left min-w-0">
+            <h2 class="text-2xl sm:text-3xl font-extrabold font-display leading-tight">
+              ${esc(lv.now.nama)}
+            </h2>
+
+            ${gelarItem ? `
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 mt-1 rounded-xl bg-amber-400/25 border border-amber-300/40 text-amber-200 text-xs sm:text-sm font-bold">
+                ${gelarItem.emoji}${esc(gelarItem.nama)}
+              </div>
+            ` : ''}
+
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4">
+              <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2 text-center min-w-[110px]">
+                <div class="text-lg font-black text-amber-300">⭐ ${total}</div>
+                <small class="text-[10px] text-sky-100 uppercase tracking-wider font-bold">Total Poin</small>
+              </div>
+              <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2 text-center min-w-[110px]">
+                <div class="text-lg font-black text-emerald-300">💰 ${saldo}</div>
+                <small class="text-[10px] text-sky-100 uppercase tracking-wider font-bold">Koin Belajar</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function tabTukar() {
+      const own = LP.hadiahMilik ? LP.hadiahMilik() : [];
+      const pakai = LP.hadiahPakai ? LP.hadiahPakai() : {};
+      const saldo = LP.saldo();
+
+      let html = `
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100 mb-6">
+          <div>
+            <h3 class="text-xl font-extrabold text-slate-800 font-display flex items-center gap-2">
+              <span>🎁</span> Toko Hadiah & Kostum Avatar Siswa
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Pilih bingkai avatar hidup dan gelar prestasi untuk mempercantik profil belajarmu.</p>
+          </div>
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-400 text-amber-950 font-black text-sm shadow-xs">
+            <span>💰 Saldo Koinmu:</span>
+            <span class="text-base">${saldo} Koin</span>
+          </div>
+        </div>
+      `;
+
+      // BAGIAN BINGKAI INTERAKTIF & OBJEK HIDUP
+      html += `
+        <div class="mb-8">
+          <div class="mb-4">
+            <h4 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <span>🖼️</span> Bingkai Avatar Karakter Interaktif
+            </h4>
+            <p class="text-xs text-slate-400">Bingkai neon bercahaya lengkap dengan animasi hewan, roket orbit, dan mahkota.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
+      `;
+
+      html += EXTRA_FRAMES.map((f) => {
+        const isOwned = own.includes(f.id);
+        const isActive = pakai.bingkai === f.id;
+        const canAfford = saldo >= f.harga;
+
+        let btn = '';
+        if (!isOwned) {
+          btn = `<button data-act="beli" data-id="${f.id}" ${!canAfford ? 'disabled' : ''} class="w-full py-2.5 px-3 rounded-xl font-bold text-xs transition-all ${canAfford ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-md active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">${canAfford ? `Tukar (${f.harga} Poin)` : 'Poin Belum Cukup'}</button>`;
+        } else if (isActive) {
+          btn = `<button data-act="lepas" data-jenis="bingkai" class="w-full py-2.5 px-3 rounded-xl font-bold text-xs bg-emerald-100 hover:bg-rose-100 text-emerald-700 hover:text-rose-700 transition-all border border-emerald-300 hover:border-rose-300">✔ Dipakai (Klik Lepas)</button>`;
+        } else {
+          btn = `<button data-act="pakai" data-id="${f.id}" class="w-full py-2.5 px-3 rounded-xl font-bold text-xs bg-brand-600 hover:bg-brand-700 text-white transition-all shadow-md active:scale-95">Pakai Bingkai Ini</button>`;
+        }
+
+        return `
+          <div class="p-5 rounded-3xl border-2 transition-all flex flex-col justify-between items-center text-center relative ${isActive ? 'bg-emerald-50/50 border-emerald-400 shadow-md ring-4 ring-emerald-100' : 'bg-white border-slate-200 hover:border-sky-300 shadow-xs'}">
+            ${isActive ? '<span class="absolute top-3 right-3 text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full z-20">DIPAKAI</span>' : ''}
+            
+            <div class="my-3 w-full flex flex-col items-center">
+              <!-- Pratinjau Bingkai Berserta Objek/Hewan -->
+              <div class="py-2">
+                ${renderAvatarWithFrame("🤖", f.id, "w-20 h-20", "text-4xl")}
+              </div>
+              <h5 class="font-extrabold text-slate-800 text-sm mt-3 mb-1">${esc(f.nama)}</h5>
+              <p class="text-[11px] text-slate-400 mb-2 max-w-[200px] leading-relaxed">${esc(f.desc)}</p>
+              <div class="text-xs font-bold ${isOwned ? 'text-emerald-600' : 'text-amber-600'} mb-3">
+                ${isOwned ? '✅ Sudah Dimiliki' : `⭐ ${f.harga} Poin Belajar`}
+              </div>
+            </div>
+
+            ${btn}
+          </div>
+        `;
+      }).join("");
+
+      html += '</div></div>';
+
+      // BAGIAN GELAR PRESTASI
+      html += `
+        <div class="mb-4">
+          <div class="mb-4">
+            <h4 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <span>🏷️</span> Gelar & Julukan Prestasi
+            </h4>
+            <p class="text-xs text-slate-400">Tampilkan julukan kehormatan di bawah namamu.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
+      `;
+
+      html += EXTRA_TITLES.map((g) => {
+        const isOwned = own.includes(g.id);
+        const isActive = pakai.gelar === g.id;
+        const canAfford = saldo >= g.harga;
+
+        let btn = '';
+        if (!isOwned) {
+          btn = `<button data-act="beli" data-id="${g.id}" ${!canAfford ? 'disabled' : ''} class="w-full py-2.5 px-3 rounded-xl font-bold text-xs transition-all ${canAfford ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-md active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">${canAfford ? `Tukar (${g.harga} Poin)` : 'Poin Belum Cukup'}</button>`;
+        } else if (isActive) {
+          btn = `<button data-act="lepas" data-jenis="gelar" class="w-full py-2.5 px-3 rounded-xl font-bold text-xs bg-emerald-100 hover:bg-rose-100 text-emerald-700 hover:text-rose-700 transition-all border border-emerald-300">✔ Dipakai (Klik Lepas)</button>`;
+        } else {
+          btn = `<button data-act="pakai" data-id="${g.id}" class="w-full py-2.5 px-3 rounded-xl font-bold text-xs bg-brand-600 hover:bg-brand-700 text-white transition-all shadow-md active:scale-95">Pakai Gelar Ini</button>`;
+        }
+
+        return `
+          <div class="p-5 rounded-3xl border-2 transition-all flex flex-col justify-between items-center text-center relative ${isActive ? 'bg-emerald-50/50 border-emerald-400 shadow-md ring-4 ring-emerald-100' : 'bg-white border-slate-200 hover:border-sky-300 shadow-xs'}">
+            ${isActive ? '<span class="absolute top-3 right-3 text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">DIPAKAI</span>' : ''}
+            
+            <div class="my-3">
+              <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                ${g.emoji}
+              </div>
+              <h5 class="font-extrabold text-slate-800 text-sm mb-1">${esc(g.nama)}</h5>
+              <div class="text-xs font-bold ${isOwned ? 'text-emerald-600' : 'text-amber-600'} mb-3">
+                ${isOwned ? '✅ Sudah Dimiliki' : `⭐ ${g.harga} Poin Belajar`}
+              </div>
+            </div>
+
+            ${btn}
+          </div>
+        `;
+      }).join("");
+
+      html += '</div></div>';
+      return html;
+    }
+
+    function tabRiwayat() {
+      const log = (LP.riwayat ? LP.riwayat() : []) || [];
+      return `
+        <div class="pb-4 border-b border-slate-100 mb-5">
+          <h3 class="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2"><span>🧾</span> Catatan Riwayat Poin</h3>
+        </div>
+        ${log.length ? `<div class="space-y-3">${log.map(r => `
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <div><h4 class="text-sm font-bold text-slate-800">${esc(r.judul)}</h4><small class="text-slate-400">${new Date(r.t).toLocaleString('id-ID')}</small></div>
+            <div class="text-emerald-600 font-bold">+${r.earned}</div>
+          </div>
+        `).join('')}</div>` : '<div class="p-6 rounded-2xl bg-amber-50 text-center text-amber-800 text-sm font-semibold">Belum ada riwayat aktivitas koding.</div>'}
+      `;
+    }
+
+    function tabLencana() {
+      return `
+        <div class="pb-4 border-b border-slate-100 mb-5">
+          <h3 class="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2"><span>🏅</span> Koleksi Lencana</h3>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center gap-3">
+            <span class="text-3xl">🏅</span>
+            <div><h4 class="text-sm font-extrabold text-amber-900">Kreator Muda</h4><small class="text-amber-700">Telah Diraih ✨</small></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function tabJalur() {
+      return `
+        <div class="pb-4 border-b border-slate-100 mb-5">
+          <h3 class="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2"><span>🌿</span> Poin Per Jalur Belajar</h3>
+        </div>
+        <p class="text-sm text-slate-500">Selesaikan setiap tahapan koding untuk memenuhi perolehan poin per jalur.</p>
+      `;
+    }
+
+    function render() {
+      renderHero();
+      $("tabs").innerHTML = TABS.map(t => `
+        <button data-tab="${t[0]}" class="flex-none px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all border ${t[0] === currentTab ? 'bg-brand-600 text-white border-brand-600 shadow-md scale-[1.02]' : 'bg-white text-slate-600 border-slate-200 hover:bg-sky-50'}">
+          ${t[1]}
+        </button>
+      `).join("");
+
+      const panels = { tukar: tabTukar, riwayat: tabRiwayat, lencana: tabLencana, jalur: tabJalur };
+      $("panel").innerHTML = panels[currentTab] ? panels[currentTab]() : tabTukar();
+    }
+
+    $("tabs").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-tab]");
+      if (!b) return;
+      currentTab = b.dataset.tab;
+      render();
+    });
+
+    $("panel").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-act]");
+      if (!b) return;
+      const act = b.dataset.act, id = b.dataset.id;
+
+      if (act === "beli") {
+        const item = LP.HADIAH.find(x => x.id === id);
+        if (!item) return;
+        pendingItem = item;
+        $("modalTitle").textContent = `Tukar ${item.nama}?`;
+        $("modalDesc").innerHTML = `Gunakan <span class="font-bold text-amber-600">⭐ ${item.harga} poin</span> belajarmu untuk membuka item ini.`;
+        $("modalConfirm").classList.remove("hidden");
+      } else if (act === "pakai") {
+        LP.pakai(id);
+        showToast("Bingkai berhasil dipasang ke avatar! ✨");
+        render();
+      } else if (act === "lepas") {
+        LP.lepas(b.dataset.jenis);
+        showToast("Kostum telah dilepas.");
+        render();
+      }
+    });
+
+    $("modalBtnConfirm").addEventListener("click", () => {
+      if (pendingItem) {
+        const res = LP.beli(pendingItem.id);
+        $("modalConfirm").classList.add("hidden");
+        if (res.ok) {
+          showToast(`Hore! ${pendingItem.nama} berhasil didapatkan! 🎉`);
+        } else {
+          showToast(res.pesan || "Poin belum mencukupi.", "error");
+        }
+        pendingItem = null;
+        render();
+      }
+    });
+
+    $("modalBtnCancel").addEventListener("click", () => {
+      pendingItem = null;
+      $("modalConfirm").classList.add("hidden");
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

@@ -227,3 +227,6 @@ button { font: inherit; cursor: pointer; }
 a.btn { display: inline-block; text-decoration: none; text-align: center; line-height: 1.2; }
 a.btn:focus-visible, button.btn:focus-visible { outline: 3px solid #5b3dff; outline-offset: 2px; }
 @media (max-width: 600px) { .nacts a.btn { flex: 1; } }
+
+a.points-chip { text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+a.points-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(168,106,0,.25); }

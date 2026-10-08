@@ -9366,6 +9366,11 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
       done[levelKey] = true;
       localStorage.setItem(progressKey, JSON.stringify(done));
       localStorage.setItem(pointsKey, String(getPoints() + earned + bonus));
+      if (window.LP && LP.find && LP.find(levelKey)) {      // task dari jalur belajar → sinkron ke server
+        LP.saveProgressToServer(levelKey, true);
+        LP.savePointsToServer(getPoints());
+      }
+      if (window.LP && LP.logPoin) LP.logPoin(levelKey, mission.title, earned, bonus);
     }
     refreshPoints();
     showDonePopup(already, earned, bonus);

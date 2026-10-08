@@ -7,7 +7,7 @@
   <!-- Font Awesome + MDB (untuk navbar burger). style.css dimuat SESUDAH MDB agar aturan kita yang menang -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.3.0/mdb.min.css">
-  <link rel="stylesheet" href="/shared/css/style.css?v=11">
+  <link rel="stylesheet" href="/shared/css/style.css?v=12">
 </head>
 <body>
   <header class="header">
@@ -20,40 +20,30 @@
     </div>
 
     <div class="profile">
-      <!-- Desktop: menu tampil sebaris -->
-      <div class="desk-only profile-info">
-        <strong id="displayUsername">@anak_coding</strong>
-        <span>Belajar • Bermain • Berkarya</span>
-      </div>
-      <div class="points-chip">⭐ <b id="pointsValue">0</b> poin</div>
-      <a class="desk-only points-chip" href="/laporan/laporan.html" style="text-decoration:none">📊 Laporan Saya</a>
-      <button id="logoutBtn" class="desk-only logout" type="button">Keluar</button>
+      <a class="points-chip" href="/poin/poin.html" title="Lihat poinmu">⭐ <b id="pointsValue">0</b> poin</a>
 
-      <!-- HP: tombol burger (MDB navbar-toggler) -->
-      <button data-mdb-button-init class="navbar-toggler" type="button" data-mdb-collapse-init
-        data-mdb-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent"
-        aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fas fa-bars"></i>
-      </button>
-    </div>
-  </header>
+      <!-- Burger menu (semua ukuran layar) -->
+      <div class="user-menu-wrap">
+        <button id="menuBtn" class="menu-btn" type="button" aria-haspopup="true"
+          aria-expanded="false" aria-controls="userMenu" aria-label="Buka menu">
+          <i class="fas fa-bars"></i>
+        </button>
 
-  <!-- HP: isi menu burger (MDB collapse) -->
-  <div class="collapse" id="navbarToggleExternalContent">
-    <div class="bg-body-tertiary shadow-3 p-4">
-      <div class="nm-user">
-        <div class="nm-avatar" id="avatarLetter">A</div>
-        <div>
-          <strong id="displayUsernameM">@anak_coding</strong>
-          <span>Belajar • Bermain • Berkarya</span>
+        <div id="userMenu" class="user-menu" role="menu" hidden>
+          <div class="um-user">
+            <div class="um-avatar" id="avatarLetter">A</div>
+            <div class="um-info">
+              <strong id="displayUsername">@anak_coding</strong>
+              <span>Belajar • Bermain • Berkarya</span>
+            </div>
+          </div>
+          <a class="um-item" role="menuitem" href="/profil/profil.html">⚙️ Pengaturan Profil</a>
+          <a class="um-item" role="menuitem" href="/laporan/laporan.html">📊 Laporan Saya</a>
+          <button id="logoutBtn" class="um-item um-logout" role="menuitem" type="button">🚪 Keluar</button>
         </div>
       </div>
-      <a href="/laporan/laporan.html" data-mdb-button-init data-mdb-ripple-init
-        class="btn btn-link btn-block border-bottom m-0">📊 Laporan Saya</a>
-      <button id="logoutBtnM" type="button" data-mdb-button-init data-mdb-ripple-init
-        class="btn btn-link btn-block m-0 nm-logout">🚪 Keluar</button>
     </div>
-  </div>
+  </header>
 
   <main>
     <section class="hero">
@@ -92,13 +82,13 @@
   </main>
 
   <script src="/kurikulum/data/jalur-data.js?v=12"></script>
-  <script src="/kurikulum/core/jalur-belajar.js?v=10"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=12"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.3.0/mdb.umd.min.js"></script>
   <script src="/kurikulum/data/jalur-data-smp.js?v=1"></script>
   <script src="/kurikulum/data/jalur-data-smak.js?v=1"></script>
   <script src="/kurikulum/ui/smp-tahap.js?v=5"></script>
   <script src="/kurikulum/ui/smak-tahap.js?v=2"></script>
-  <script src="/dashboard/dashboard.js?v=16"></script>
+  <script src="/dashboard/dashboard.js?v=17"></script>
   <script src="/shared/js/icons.js?v=2"></script>
 </body>
 </html>
