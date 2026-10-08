@@ -81,6 +81,25 @@ db.exec(`
     )
 `);
 
+// ============================================================
+// MATERIALS
+// ============================================================
+// Menyimpan hubungan antara task dengan halaman materi.
+// Isi halaman HTML-nya masih tetap berupa file di frontend.
+// Untuk sekarang kita simpan path-nya dulu.
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS materials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        grade TEXT NOT NULL,
+        task_id TEXT NOT NULL,
+        path TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        UNIQUE(grade, task_id)
+    )
+`);
+
 console.log("Database berhasil terhubung.");
 console.log("Lokasi database:", dbPath);
 

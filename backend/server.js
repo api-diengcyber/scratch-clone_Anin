@@ -123,6 +123,76 @@ app.get("/api/health", (req, res) => {
 });
 
 // ============================================================
+// MATERIALS API
+// ============================================================
+
+// Ambil semua materi
+app.get("/api/materials", (req, res) => {
+    try {
+        const materials = db.prepare(`
+            SELECT
+                id,
+                grade,
+                task_id,
+                lesson_index,
+                path,
+                created_at
+            FROM materials
+            ORDER BY grade ASC, task_id ASC, lesson_index ASC
+        `).all();
+
+        res.json(materials);
+
+    } catch (error) {
+        console.error("Gagal mengambil data materi:", error);
+
+        res.status(500).json({
+            message: "Gagal mengambil data materi"
+        });
+    }
+});
+
+// ============================================================
+// GET MATERIALS BY TASK
+// ============================================================
+
+app.get("/api/materials/:grade/:taskId", (req, res) => {
+    try {
+        const grade = String(req.params.grade || "").trim();
+        const taskId = String(req.params.taskId || "").trim();
+
+        if (!grade || !taskId) {
+            return res.status(400).json({
+                message: "grade dan taskId wajib diisi"
+            });
+        }
+
+        const materials = db.prepare(`
+            SELECT
+                id,
+                grade,
+                task_id,
+                lesson_index,
+                path,
+                created_at
+            FROM materials
+            WHERE grade = ?
+              AND task_id = ?
+            ORDER BY lesson_index ASC
+        `).all(grade, taskId);
+
+        res.json(materials);
+
+    } catch (error) {
+        console.error("Gagal mengambil materi task:", error);
+
+        res.status(500).json({
+            message: "Gagal mengambil data materi"
+        });
+    }
+});
+
+// ============================================================
 // AUTH (LOGIN)
 // ============================================================
 //

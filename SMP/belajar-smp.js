@@ -4,6 +4,50 @@
   const esc = (t) => String(t).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
   document.getElementById("pointsValue").textContent = LP.points();
   const tr = T.find((t) => t.nodes.some((n) => n.id === q.get("p"))), node = tr && tr.nodes.find((n) => n.id === q.get("p"));
+
+    // ============================================================
+  // LOAD MATERIAL DARI API
+  // ============================================================
+
+  async function loadMaterialsFromAPI() {
+    if (!node) return;
+
+    try {
+      const response = await fetch(
+        "/api/materials/SMP/" + encodeURIComponent(node.id)
+      );
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      const materials = await response.json();
+
+      for (const material of materials) {
+        const index = Number(material.lesson_index);
+        const task = node.tasks[index];
+
+        if (task && material.path) {
+          task.halamanMateri = material.path;
+        }
+      }
+
+      console.log(
+        "Materi API berhasil dimuat:",
+        node.id,
+        materials.length,
+        "halaman"
+      );
+
+    } catch (error) {
+      console.error(
+        "Gagal memuat materi dari API:",
+        node.id,
+        error
+      );
+    }
+  }
+
   const crumbs = (a) => '<div class="crumbs">' + a.map((c, i) => (i ? "<span>›</span>" : "") + '<button data-href="' + c[1] + '">' + c[0] + "</button>").join("") + "</div>";
   // Warna ikon/tombol per modul (seperti kartu SD yang tiap kartunya beda warna)
   const COL = ["#4c9aff", "#3fbf7f", "#ff8a5c", "#8f6bff", "#ff6fa5", "#1fb5d6"];
@@ -60,6 +104,17 @@
     draw(); document.body.appendChild(ov); document.addEventListener("keydown", key); ov.querySelector(".xbtn").focus();
   }
   app.addEventListener("click", (e) => { const c = e.target.closest("[data-href]"), b = e.target.closest("[data-k]"); if (c && c.dataset.href !== "#") location.href = c.dataset.href; else if (b && !b.disabled) { lastBtn = b; modal(+b.dataset.k); } });
-  render();
-  window.addEventListener("pageshow", (e) => { if (e.persisted) { document.getElementById("pointsValue").textContent = LP.points(); render(); } });
+    async function init() {
+    await loadMaterialsFromAPI();
+    render();
+  }
+
+  init();
+
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) {
+      document.getElementById("pointsValue").textContent = LP.points();
+      init();
+    }
+  });
 })();
