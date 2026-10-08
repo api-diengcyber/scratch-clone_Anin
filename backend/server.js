@@ -16,6 +16,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ============================================================
+// DEVELOPMENT USER
+// ============================================================
+
+const DEV_USERNAME = "dev";
+
+db.prepare(`
+    INSERT INTO users (username)
+    VALUES (?)
+    ON CONFLICT(username) DO NOTHING
+`).run(DEV_USERNAME);
+
+// ============================================================
 // PATH PROJECT
 // ============================================================
 
@@ -193,6 +205,56 @@ app.get("/api/materials/:grade/:taskId", (req, res) => {
 });
 
 // ============================================================
+// GET TASKS BY MODULE
+// ============================================================
+
+app.get("/api/tasks/:grade/:moduleId", (req, res) => {
+    try {
+        const grade = String(req.params.grade || "").trim();
+        const moduleId = String(req.params.moduleId || "").trim();
+
+        if (!grade || !moduleId) {
+            return res.status(400).json({
+                message: "grade dan moduleId wajib diisi"
+            });
+        }
+
+        const rows = db.prepare(`
+            SELECT
+                id,
+                grade,
+                module_id,
+                task_id,
+                task_index,
+                title,
+                steps,
+                is_project,
+                requires_submission,
+                editor_url,
+                created_at
+            FROM tasks
+            WHERE grade = ?
+              AND module_id = ?
+            ORDER BY task_index ASC
+        `).all(grade, moduleId);
+
+        const tasks = rows.map((task) => ({
+            ...task,
+            steps: JSON.parse(task.steps)
+        }));
+
+        res.json(tasks);
+
+    } catch (error) {
+        console.error("Gagal mengambil data task:", error);
+
+        res.status(500).json({
+            message: "Gagal mengambil data task"
+        });
+    }
+});
+
+// ============================================================
 // AUTH (LOGIN)
 // ============================================================
 //
@@ -341,6 +403,192 @@ app.get("/api/auth/me", auth.requireAuth, (req, res) => {
 app.post("/api/auth/logout", auth.requireAuth, (req, res) => {
     auth.deleteSession(req.token);
     res.json({ message: "Logout berhasil" });
+});
+
+
+// ============================================================
+// DEVELOPMENT PROGRESS
+// ============================================================
+
+// Ambil progress user development
+app.get("/api/dev/progress", (req, res) => {
+    try {
+        const progress = db.prepare(`
+            SELECT
+                task_id,
+                completed,
+                completed_at
+            FROM progress
+            WHERE username = ?
+            ORDER BY id ASC
+        `).all(DEV_USERNAME);
+
+        res.json({
+            username: DEV_USERNAME,
+            progress
+        });
+
+    } catch (error) {
+        console.error("Gagal mengambil progress dev:", error);
+
+        res.status(500).json({
+            message: "Gagal mengambil progress"
+        });
+    }
+});
+
+// ============================================================
+// SAVE DEVELOPMENT PROGRESS
+// ============================================================
+
+app.post("/api/dev/progress", (req, res) => {
+    try {
+        const { taskId, completed } = req.body || {};
+
+        if (typeof taskId !== "string" || !taskId.trim()) {
+            return res.status(400).json({
+                message: "taskId wajib diisi"
+            });
+        }
+
+        if (typeof completed !== "boolean") {
+            return res.status(400).json({
+                message: "completed harus bernilai true atau false"
+            });
+        }
+
+        const cleanTaskId = taskId.trim();
+
+        // Pastikan user dev tersedia.
+        db.prepare(`
+            INSERT INTO users (username)
+            VALUES (?)
+            ON CONFLICT(username) DO NOTHING
+        `).run(DEV_USERNAME);
+
+        const completedAt = completed
+            ? new Date().toISOString()
+            : null;
+
+        db.prepare(`
+            INSERT INTO progress (
+                username,
+                task_id,
+                completed,
+                completed_at
+            )
+            VALUES (?, ?, ?, ?)
+
+            ON CONFLICT(username, task_id)
+            DO UPDATE SET
+                completed = excluded.completed,
+                completed_at = excluded.completed_at
+        `).run(
+            DEV_USERNAME,
+            cleanTaskId,
+            completed ? 1 : 0,
+            completedAt
+        );
+
+        res.json({
+            message: "Progress berhasil disimpan",
+            username: DEV_USERNAME,
+            taskId: cleanTaskId,
+            completed
+        });
+
+    } catch (error) {
+        console.error("Gagal menyimpan progress dev:", error);
+
+        res.status(500).json({
+            message: "Gagal menyimpan progress"
+        });
+    }
+});
+
+// ============================================================
+// DEVELOPMENT POINTS
+// ============================================================
+
+// Ambil points user development
+app.get("/api/dev/points", (req, res) => {
+    try {
+        const row = db.prepare(`
+            SELECT total
+            FROM points
+            WHERE username = ?
+        `).get(DEV_USERNAME);
+
+        res.json({
+            username: DEV_USERNAME,
+            total: row ? row.total : 0
+        });
+
+    } catch (error) {
+        console.error("Gagal mengambil points dev:", error);
+
+        res.status(500).json({
+            message: "Gagal mengambil points"
+        });
+    }
+});
+
+// ============================================================
+// SAVE DEVELOPMENT POINTS
+// ============================================================
+
+app.post("/api/dev/points", (req, res) => {
+    try {
+        const total = Number(req.body?.total);
+
+        if (!Number.isFinite(total) || total < 0) {
+            return res.status(400).json({
+                message: "total points tidak valid"
+            });
+        }
+
+        const cleanTotal = Math.floor(total);
+
+        // Pastikan user dev tersedia
+        db.prepare(`
+            INSERT INTO users (username)
+            VALUES (?)
+            ON CONFLICT(username) DO NOTHING
+        `).run(DEV_USERNAME);
+
+        db.prepare(`
+            INSERT INTO points (
+                username,
+                total,
+                updated_at
+            )
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+
+            ON CONFLICT(username)
+            DO UPDATE SET
+                total = excluded.total,
+                updated_at = CURRENT_TIMESTAMP
+        `).run(
+            DEV_USERNAME,
+            cleanTotal
+        );
+
+        res.json({
+            message: "Points berhasil disimpan",
+            username: DEV_USERNAME,
+            total: cleanTotal
+        });
+
+    } catch (error) {
+        console.error(
+            "Gagal menyimpan points dev:",
+            error
+        );
+
+        res.status(500).json({
+            message: "Gagal menyimpan points"
+        });
+    }
 });
 
 // ============================================================

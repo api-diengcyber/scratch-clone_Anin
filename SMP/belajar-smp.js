@@ -48,6 +48,69 @@
     }
   }
 
+    // ============================================================
+  // LOAD TASK DARI API
+  // ============================================================
+
+  async function loadTasksFromAPI() {
+    if (!node) return;
+
+    try {
+      const response = await fetch(
+        "/api/tasks/SMP/" + encodeURIComponent(node.id)
+      );
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      const tasks = await response.json();
+
+      for (const task of tasks) {
+        const index = Number(task.task_index);
+        const oldTask = node.tasks[index];
+
+        if (!oldTask) continue;
+
+        // API menjadi sumber baru.
+        // Data JS lama tetap menjadi fallback.
+        if (typeof task.title === "string") {
+          oldTask.judul = task.title;
+        }
+
+        if (Array.isArray(task.steps)) {
+          oldTask.langkah = task.steps;
+        }
+
+        oldTask.project = Boolean(task.is_project);
+        oldTask.kumpul = Boolean(task.requires_submission);
+      }
+
+      // editor_url berada di level module
+      const editorUrl = tasks.find(
+        (task) => task.editor_url
+      )?.editor_url;
+
+      if (editorUrl) {
+        node.urlEditor = editorUrl;
+      }
+
+      console.log(
+        "Task API berhasil dimuat:",
+        node.id,
+        tasks.length,
+        "task"
+      );
+
+    } catch (error) {
+      console.error(
+        "Gagal memuat task dari API:",
+        node.id,
+        error
+      );
+    }
+  }
+
   const crumbs = (a) => '<div class="crumbs">' + a.map((c, i) => (i ? "<span>›</span>" : "") + '<button data-href="' + c[1] + '">' + c[0] + "</button>").join("") + "</div>";
   // Warna ikon/tombol per modul (seperti kartu SD yang tiap kartunya beda warna)
   const COL = ["#4c9aff", "#3fbf7f", "#ff8a5c", "#8f6bff", "#ff6fa5", "#1fb5d6"];
@@ -104,8 +167,9 @@
     draw(); document.body.appendChild(ov); document.addEventListener("keydown", key); ov.querySelector(".xbtn").focus();
   }
   app.addEventListener("click", (e) => { const c = e.target.closest("[data-href]"), b = e.target.closest("[data-k]"); if (c && c.dataset.href !== "#") location.href = c.dataset.href; else if (b && !b.disabled) { lastBtn = b; modal(+b.dataset.k); } });
-    async function init() {
+      async function init() {
     await loadMaterialsFromAPI();
+    await loadTasksFromAPI();
     render();
   }
 

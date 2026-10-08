@@ -100,6 +100,42 @@ db.exec(`
     )
 `);
 
+// ============================================================
+// TASKS
+// ============================================================
+// Menyimpan definisi task dari Learning Path.
+// Status selesai tetap disimpan di tabel progress.
+//
+// Satu module bisa memiliki banyak task.
+// Contoh:
+// SMP / py1 / py1:0
+// SMP / py1 / py1:1
+// dst.
+// ============================================================
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        grade TEXT NOT NULL,
+        module_id TEXT NOT NULL,
+        task_id TEXT NOT NULL,
+        task_index INTEGER NOT NULL,
+
+        title TEXT NOT NULL,
+        steps TEXT NOT NULL DEFAULT '[]',
+
+        is_project INTEGER NOT NULL DEFAULT 0,
+        requires_submission INTEGER NOT NULL DEFAULT 0,
+
+        editor_url TEXT,
+
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        UNIQUE(grade, task_id)
+    )
+`);
+
 console.log("Database berhasil terhubung.");
 console.log("Lokasi database:", dbPath);
 
