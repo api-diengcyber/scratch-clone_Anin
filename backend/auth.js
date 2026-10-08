@@ -1,31 +1,126 @@
 const crypto = require("crypto");
 const db = require("./database");
 
+const {
+    firebaseAuth
+} = require("./firebase-admin");
+
 // Tiket login berlaku 30 hari.
 const SESSION_DAYS = 30;
 
 // ============================================================
 // PASSWORD
 // ============================================================
-// Password tidak pernah disimpan apa adanya. Yang disimpan:
-// - salt : acakan unik per user
-// - hash : hasil "pengacakan satu arah" (scrypt) dari password + salt
-// Pakai crypto bawaan Node, jadi tidak perlu install package baru.
 
 function hashPassword(password, salt) {
-    const useSalt = salt || crypto.randomBytes(16).toString("hex");
-    const hash = crypto.scryptSync(password, useSalt, 64).toString("hex");
+    const useSalt =
+        salt ||
+        crypto.randomBytes(16).toString("hex");
 
-    return { salt: useSalt, hash };
+    const hash =
+        crypto
+            .scryptSync(password, useSalt, 64)
+            .toString("hex");
+
+    return {
+        salt: useSalt,
+        hash
+    };
 }
 
-function verifyPassword(password, salt, expectedHash) {
-    const { hash } = hashPassword(password, salt);
+function verifyPassword(
+    password,
+    salt,
+    expectedHash
+) {
+    const { hash } =
+        hashPassword(
+            password,
+            salt
+        );
 
-    const a = Buffer.from(hash, "hex");
-    const b = Buffer.from(expectedHash, "hex");
+    const a =
+        Buffer.from(hash, "hex");
 
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+    const b =
+        Buffer.from(expectedHash, "hex");
+
+    return (
+        a.length === b.length &&
+        crypto.timingSafeEqual(a, b)
+    );
+}
+
+// ============================================================
+// FIREBASE
+// ============================================================
+
+// Verifikasi Firebase ID Token.
+//
+// Token berasal dari Firebase Authentication.
+// Setelah valid, kita ambil username dari email.
+//
+// Contoh:
+// admin@diengcyber.local
+//        ↓
+// username = admin
+//
+// Untuk tahap migrasi ini kita menggunakan format:
+// <username>@diengcyber.local
+// ============================================================
+
+async function verifyFirebaseToken(idToken) {
+    if (
+        typeof idToken !== "string" ||
+        !idToken.trim()
+    ) {
+        throw new Error(
+            "Firebase ID token tidak tersedia."
+        );
+    }
+
+    const decoded =
+        await firebaseAuth.verifyIdToken(
+            idToken
+        );
+
+    const email =
+        String(decoded.email || "")
+            .trim()
+            .toLowerCase();
+
+    if (!email) {
+        throw new Error(
+            "Akun Firebase tidak memiliki email."
+        );
+    }
+
+    const suffix =
+        "@diengcyber.local";
+
+    if (!email.endsWith(suffix)) {
+        throw new Error(
+            "Format email Firebase tidak dikenali."
+        );
+    }
+
+    const username =
+        email.slice(
+            0,
+            -suffix.length
+        );
+
+    if (!username) {
+        throw new Error(
+            "Username Firebase tidak valid."
+        );
+    }
+
+    return {
+        uid: decoded.uid,
+        email,
+        username
+    };
 }
 
 // ============================================================
@@ -33,71 +128,132 @@ function verifyPassword(password, salt, expectedHash) {
 // ============================================================
 
 function sha256(text) {
-    return crypto.createHash("sha256").update(text).digest("hex");
+    return crypto
+        .createHash("sha256")
+        .update(text)
+        .digest("hex");
 }
 
 function createSession(username) {
-    const token = crypto.randomBytes(32).toString("hex");
+    const token =
+        crypto.randomBytes(32).toString("hex");
 
-    const expiresAt = new Date(
-        Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000
-    ).toISOString();
+    const expiresAt =
+        new Date(
+            Date.now() +
+            SESSION_DAYS *
+            24 *
+            60 *
+            60 *
+            1000
+        ).toISOString();
 
     db.prepare(`
-        INSERT INTO sessions (token_hash, username, expires_at)
+        INSERT INTO sessions (
+            token_hash,
+            username,
+            expires_at
+        )
         VALUES (?, ?, ?)
-    `).run(sha256(token), username, expiresAt);
+    `).run(
+        sha256(token),
+        username,
+        expiresAt
+    );
 
     return token;
 }
 
 function readToken(req) {
-    const header = req.headers.authorization || "";
-    const match = /^Bearer\s+(.+)$/i.exec(header);
+    const header =
+        req.headers.authorization || "";
 
-    return match ? match[1].trim() : null;
+    const match =
+        /^Bearer\s+(.+)$/i.exec(
+            header
+        );
+
+    return match
+        ? match[1].trim()
+        : null;
 }
 
 function deleteSession(token) {
-    db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha256(token));
+    db.prepare(
+        "DELETE FROM sessions WHERE token_hash = ?"
+    ).run(
+        sha256(token)
+    );
 }
 
 // ============================================================
 // MIDDLEWARE
 // ============================================================
 
-// "Satpam": wajib bawa tiket yang valid.
-function requireAuth(req, res, next) {
-    const token = readToken(req);
+// "Satpam":
+// wajib membawa session token dari backend.
+function requireAuth(
+    req,
+    res,
+    next
+) {
+    const token =
+        readToken(req);
 
     if (!token) {
-        return res.status(401).json({ message: "Belum login" });
-    }
-
-    const session = db.prepare(`
-        SELECT username, expires_at
-        FROM sessions
-        WHERE token_hash = ?
-    `).get(sha256(token));
-
-    if (!session || new Date(session.expires_at) < new Date()) {
         return res.status(401).json({
-            message: "Sesi habis, silakan login lagi"
+            message: "Belum login"
         });
     }
 
-    req.user = session.username;
-    req.token = token;
+    const session =
+        db.prepare(`
+            SELECT
+                username,
+                expires_at
+            FROM sessions
+            WHERE token_hash = ?
+        `).get(
+            sha256(token)
+        );
+
+    if (
+        !session ||
+        new Date(session.expires_at) < new Date()
+    ) {
+        return res.status(401).json({
+            message:
+                "Sesi habis, silakan login lagi"
+        });
+    }
+
+    req.user =
+        session.username;
+
+    req.token =
+        token;
+
     next();
 }
 
-// "Satpam kedua": tiket Budi hanya boleh membuka data Budi.
-function requireSameUser(req, res, next) {
-    const requested = String(req.params.username || "").trim();
+// "Satpam kedua":
+// tiket Budi hanya boleh membuka data Budi.
+function requireSameUser(
+    req,
+    res,
+    next
+) {
+    const requested =
+        String(
+            req.params.username || ""
+        ).trim();
 
-    if (requested !== req.user) {
+    if (
+        requested !== req.user
+    ) {
         return res.status(403).json({
-            message: "Tidak boleh mengakses data user lain"
+            message:
+                "Tidak boleh mengakses data user lain"
         });
     }
 
@@ -105,19 +261,29 @@ function requireSameUser(req, res, next) {
 }
 
 // ============================================================
-// BATAS PERCOBAAN LOGIN (anti tebak-tebakan password)
+// BATAS PERCOBAAN LOGIN
 // ============================================================
 
-const failedLogins = new Map();
+const failedLogins =
+    new Map();
+
 const MAX_FAILS = 10;
-const WINDOW_MS = 15 * 60 * 1000;
+
+const WINDOW_MS =
+    15 * 60 * 1000;
 
 function isBlocked(key) {
-    const entry = failedLogins.get(key);
+    const entry =
+        failedLogins.get(key);
 
-    if (!entry) return false;
+    if (!entry) {
+        return false;
+    }
 
-    if (Date.now() - entry.first > WINDOW_MS) {
+    if (
+        Date.now() - entry.first >
+        WINDOW_MS
+    ) {
         failedLogins.delete(key);
         return false;
     }
@@ -126,10 +292,21 @@ function isBlocked(key) {
 }
 
 function recordFail(key) {
-    const entry = failedLogins.get(key);
+    const entry =
+        failedLogins.get(key);
 
-    if (!entry || Date.now() - entry.first > WINDOW_MS) {
-        failedLogins.set(key, { count: 1, first: Date.now() });
+    if (
+        !entry ||
+        Date.now() - entry.first >
+        WINDOW_MS
+    ) {
+        failedLogins.set(
+            key,
+            {
+                count: 1,
+                first: Date.now()
+            }
+        );
     } else {
         entry.count += 1;
     }
@@ -139,13 +316,22 @@ function clearFails(key) {
     failedLogins.delete(key);
 }
 
+// ============================================================
+// EXPORT
+// ============================================================
+
 module.exports = {
     hashPassword,
     verifyPassword,
+
+    verifyFirebaseToken,
+
     createSession,
     deleteSession,
+
     requireAuth,
     requireSameUser,
+
     isBlocked,
     recordFail,
     clearFails

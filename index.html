@@ -99,75 +99,217 @@
       Belum punya akun? <a href="register.html">Daftar sekarang</a>
     </div>
   </div>
+<script type="module">
+  import {
+    auth
+  } from "/shared/js/firebase.js";
 
-  <script>
-    const loginForm = document.getElementById('loginForm');
-    const loginError = document.getElementById('loginError');
-    const passwordInput = document.getElementById('password');
-    const togglePassword = document.getElementById('togglePassword');
-    const eyeIcon = document.getElementById('eyeIcon');
+  import {
+    signInWithEmailAndPassword
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
-    // Toggle Show/Hide Password
-    togglePassword.addEventListener('click', function () {
-      const isPassword = passwordInput.getAttribute('type') === 'password';
-      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("loginError");
+  const passwordInput = document.getElementById("password");
+  const togglePassword = document.getElementById("togglePassword");
+  const eyeIcon = document.getElementById("eyeIcon");
 
-      if (isPassword) {
-        eyeIcon.innerHTML = `
-          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-          <line x1="1" y1="1" x2="23" y2="23"></line>
-        `;
-      } else {
-        eyeIcon.innerHTML = `
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        `;
+  // ======================================================
+  // TOGGLE SHOW / HIDE PASSWORD
+  // ======================================================
+
+  togglePassword.addEventListener("click", function () {
+    const isPassword =
+      passwordInput.getAttribute("type") === "password";
+
+    passwordInput.setAttribute(
+      "type",
+      isPassword ? "text" : "password"
+    );
+
+    if (isPassword) {
+      eyeIcon.innerHTML = `
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+      `;
+    } else {
+      eyeIcon.innerHTML = `
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      `;
+    }
+  });
+
+  // ======================================================
+  // LOGIN
+  // ======================================================
+
+  loginForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email =
+      document
+        .getElementById("email")
+        .value
+        .trim();
+
+    const password =
+      passwordInput.value;
+
+    loginError.style.display = "none";
+
+    if (!email || !password) {
+      loginError.textContent =
+        "Email dan password wajib diisi.";
+
+      loginError.style.display =
+        "block";
+
+      return;
+    }
+
+    try {
+      // ==================================================
+      // LOGIN FIREBASE
+      // ==================================================
+
+      const credential =
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+      const firebaseUser =
+        credential.user;
+
+      // ==================================================
+      // AMBIL FIREBASE ID TOKEN
+      // ==================================================
+
+      const idToken =
+        await firebaseUser.getIdToken();
+
+      // ==================================================
+      // TUKARKAN ID TOKEN MENJADI
+      // SESSION TOKEN BACKEND
+      // ==================================================
+
+      const response =
+        await fetch(
+          "/api/auth/firebase-login",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify({
+                idToken
+              })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          "Login backend gagal."
+        );
       }
-    });
 
-    loginForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
+      // ==================================================
+      // SIMPAN SESSION BACKEND
+      // ==================================================
 
-      const email = document.getElementById('email').value.trim();
-      const password = passwordInput.value;
+      localStorage.setItem(
+        "isLoggedIn",
+        "true"
+      );
 
-      loginError.style.display = 'none';
+      localStorage.setItem(
+        "email",
+        data.email
+      );
 
-      if (!email || !password) {
-        loginError.textContent = 'Email dan password wajib diisi!';
-        loginError.style.display = 'block';
-        return;
+      localStorage.setItem(
+        "scratch_user",
+        data.email
+      );
+
+      localStorage.setItem(
+        "authToken",
+        data.token
+      );
+
+      // ==================================================
+      // MASUK DASHBOARD
+      // ==================================================
+
+      window.location.replace(
+        "/dashboard.html"
+      );
+
+    } catch (error) {
+      console.error(
+        "Firebase login error:",
+        error
+      );
+
+      let message =
+        "Login gagal.";
+
+      if (
+        error.code ===
+        "auth/invalid-credential"
+      ) {
+        message =
+          "Email atau password salah.";
       }
 
-      try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          loginError.textContent = data.message || 'Login gagal.';
-          loginError.style.display = 'block';
-          return;
-        }
-
-        // Login berhasil
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('email', data.email);
-        localStorage.setItem('scratch_user', data.email);
-        localStorage.setItem('authToken', data.token);
-
-        window.location.replace('dashboard.html');
-
-      } catch (error) {
-        console.error('Login error:', error);
-        loginError.textContent = 'Backend tidak dapat dihubungi.';
-        loginError.style.display = 'block';
+      else if (
+        error.code ===
+        "auth/user-not-found"
+      ) {
+        message =
+          "Akun tidak ditemukan.";
       }
-    });
-  </script>
+
+      else if (
+        error.code ===
+        "auth/wrong-password"
+      ) {
+        message =
+          "Password salah.";
+      }
+
+      else if (
+        error.code ===
+        "auth/invalid-email"
+      ) {
+        message =
+          "Format email tidak valid.";
+      }
+
+      else if (
+        error.message
+      ) {
+        message =
+          error.message;
+      }
+
+      loginError.textContent =
+        message;
+
+      loginError.style.display =
+        "block";
+    }
+  });
+</script>
 </body>
 </html>

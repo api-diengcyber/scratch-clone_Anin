@@ -215,6 +215,55 @@ app.post("/api/auth/login", (req, res) => {
     });
 });
 
+app.post("/api/auth/firebase-login", async (req, res) => {
+    try {
+        const idToken = String(
+            req.body.idToken || ""
+        ).trim();
+
+        if (!idToken) {
+            return res.status(400).json({
+                message: "Firebase ID token wajib diisi"
+            });
+        }
+
+        const firebaseUser =
+            await auth.verifyFirebaseToken(idToken);
+
+        const username =
+            firebaseUser.username;
+
+        // Pastikan user juga tersedia di SQLite
+        db.prepare(`
+            INSERT INTO users (username)
+            VALUES (?)
+            ON CONFLICT(username) DO NOTHING
+        `).run(username);
+
+        // Buat session token backend seperti sistem lama
+        const token =
+            auth.createSession(username);
+
+        return res.json({
+            message: "Login Firebase berhasil",
+            username,
+            token
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Firebase login error:",
+            error
+        );
+
+        return res.status(401).json({
+            message:
+                "Login Firebase gagal."
+        });
+    }
+});
+
 app.get("/api/auth/me", auth.requireAuth, (req, res) => {
     res.json({ username: req.user });
 });
