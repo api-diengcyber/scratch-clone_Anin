@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pengaturan Profil - Dieng Cyber Coding</title>
+  <link rel="icon" type="image/png" href="/Assets/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/css/frames.css?v=1">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -64,7 +66,7 @@
           <p id="topBarUser" class="text-sm font-bold text-slate-800 leading-tight">&nbsp;</p>
           <p class="text-xs text-slate-400 font-medium">Akun Siswa Aktif</p>
         </div>
-        <div class="w-10 h-10 rounded-xl overflow-hidden bg-sky-100 border-2 border-brand-500 shadow-xs flex-shrink-0">
+        <div id="navAvatarBox" class="w-10 h-10 rounded-full overflow-hidden bg-sky-100 border-2 border-brand-500 shadow-xs flex-shrink-0">
           <img id="navAvatarPreview" src="" alt="Mini Avatar" class="w-full h-full object-cover">
         </div>
       </div>
@@ -107,7 +109,7 @@
 
         <!-- Avatar Wrapper -->
         <div class="relative group my-2">
-          <div class="w-36 h-36 rounded-3xl overflow-hidden border-4 border-white ring-4 ring-sky-100 shadow-md bg-gradient-to-tr from-sky-100 to-indigo-100 flex items-center justify-center">
+          <div id="avatarBox" class="w-36 h-36 rounded-full overflow-hidden border-4 border-white ring-4 ring-sky-100 shadow-md bg-gradient-to-tr from-sky-100 to-indigo-100 flex items-center justify-center">
             <img id="avatarImage"
                  src=""
                  alt="Foto Profil Siswa"
@@ -212,6 +214,10 @@
     &copy; Dieng Cyber Coding &bull; Platform E-Learning Anak & Remaja
   </footer>
 
+  <!-- Data & mesin poin (sama seperti dashboard) supaya bingkai yang dipakai ikut tampil -->
+  <script src="/kurikulum/data/jalur-data.js?v=12"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=12"></script>
+  <script src="/shared/js/avatar-frame.js?v=1"></script>
   <script>
     // ---------- Wajib login (sama seperti dashboard) ----------
     if (!localStorage.getItem('authToken')) {
@@ -264,11 +270,23 @@
       avatarImage.src = url;
       navAvatarPreview.src = url;
     }
+
+    // Bingkai yang sedang dipakai (dibeli/dipasang di halaman Poin) — sama seperti di dashboard
+    function paintFrame() {
+      const frame = (window.AvatarFrame && AvatarFrame.active()) || null;
+      if (!window.AvatarFrame) return;
+      AvatarFrame.apply(document.getElementById('avatarBox'), frame, { size: 144 });
+      AvatarFrame.apply(document.getElementById('navAvatarBox'), frame, { size: 40, ornaments: false });
+      // gelar prestasi ikut tampil di bawah username, seperti di dashboard
+      const gelar = window.LP && LP.hadiahAktif ? LP.hadiahAktif().gelar : null;
+      displayUsername.textContent = '@' + currentUser + (gelar ? ' · ' + gelar.emoji + ' ' + gelar.nama : '');
+    }
     function paintNames(fullName) {
       const shown = fullName || currentUser;
       displayFullName.textContent = shown;
       topBarUser.textContent = shown;
       displayUsername.textContent = '@' + currentUser;
+      paintFrame();   // teks username ditulis ulang di atas, jadi gelar & bingkai dipasang lagi
     }
 
     // Isi form dari data tersimpan

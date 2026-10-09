@@ -72,7 +72,7 @@ if (profile.avatar) {
 
 if (LP.hadiahAktif) {
   const act = LP.hadiahAktif();
-  if (act.bingkai) avatarBox.style.boxShadow = act.bingkai.css;
+  if (act.bingkai && window.AvatarFrame) AvatarFrame.apply(avatarBox, act.bingkai, { size: 44 });
   if (act.gelar) $('displayUsername').textContent += ' · ' + act.gelar.emoji + ' ' + act.gelar.nama;
 }
 
