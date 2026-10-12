@@ -16,6 +16,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ============================================================
+// API ERROR HELPER
+// ============================================================
+
+function sendApiError(res, status, message, code = "API_ERROR") {
+    return res.status(status).json({
+        ok: false,
+        code,
+        message,
+        error: message
+    });
+}
+
+// ============================================================
 // DEVELOPMENT USER
 // ============================================================
 
@@ -139,43 +152,14 @@ app.get("/api/health", (req, res) => {
 // ============================================================
 
 // Ambil semua materi
-app.get("/api/materials", (req, res) => {
-    try {
-        const materials = db.prepare(`
-            SELECT
-                id,
-                grade,
-                task_id,
-                lesson_index,
-                path,
-                created_at
-            FROM materials
-            ORDER BY grade ASC, task_id ASC, lesson_index ASC
-        `).all();
-
-        res.json(materials);
-
-    } catch (error) {
-        console.error("Gagal mengambil data materi:", error);
-
-        res.status(500).json({
-            message: "Gagal mengambil data materi"
-        });
-    }
-});
-
-// ============================================================
-// GET MATERIALS BY TASK
-// ============================================================
-
-app.get("/api/materials/:grade/:taskId", (req, res) => {
+app.get("/api/materials/:grade/:moduleId", (req, res) => {
     try {
         const grade = String(req.params.grade || "").trim();
-        const taskId = String(req.params.taskId || "").trim();
+        const moduleId = String(req.params.moduleId || "").trim();
 
-        if (!grade || !taskId) {
+        if (!grade || !moduleId) {
             return res.status(400).json({
-                message: "grade dan taskId wajib diisi"
+                message: "grade dan moduleId wajib diisi"
             });
         }
 
@@ -183,24 +167,55 @@ app.get("/api/materials/:grade/:taskId", (req, res) => {
             SELECT
                 id,
                 grade,
-                task_id,
+                module_id,
                 lesson_index,
                 path,
                 created_at
             FROM materials
             WHERE grade = ?
-              AND task_id = ?
+              AND module_id = ?
             ORDER BY lesson_index ASC
-        `).all(grade, taskId);
+        `).all(grade, moduleId);
 
         res.json(materials);
-
     } catch (error) {
         console.error("Gagal mengambil materi task:", error);
 
         res.status(500).json({
             message: "Gagal mengambil data materi"
         });
+    }
+});
+
+ // ============================================================
+ // GET ALL MATERIALS
+ // ============================================================
+
+app.get("/api/materials", (req, res) => {
+    try {
+        const materials = db.prepare(`
+            SELECT
+                id,
+                grade,
+                module_id,
+                lesson_index,
+                path,
+                created_at
+            FROM materials
+            ORDER BY grade ASC, module_id ASC, lesson_index ASC
+        `).all();
+
+        return res.json(materials);
+
+    } catch (error) {
+        console.error("Gagal mengambil semua materi:", error);
+
+        return sendApiError(
+            res,
+            500,
+            "Gagal mengambil data materi",
+            "INTERNAL_ERROR"
+        );
     }
 });
 
@@ -459,6 +474,18 @@ app.post("/api/dev/progress", (req, res) => {
 
         const cleanTaskId = taskId.trim();
 
+        const taskExists = db.prepare(`
+            SELECT 1
+            FROM tasks
+            WHERE task_id = ?
+        `).get(cleanTaskId);
+
+        if (!taskExists) {
+            return res.status(404).json({
+                message: "Task tidak ditemukan"
+            });
+        }
+
         // Pastikan user dev tersedia.
         db.prepare(`
             INSERT INTO users (username)
@@ -539,17 +566,21 @@ app.get("/api/dev/points", (req, res) => {
 
 app.post("/api/dev/points", (req, res) => {
     try {
-        const total = Number(req.body?.total);
+        const total = req.body?.total;
 
-        if (!Number.isFinite(total) || total < 0) {
-            return res.status(400).json({
-                message: "total points tidak valid"
-            });
+        if (
+            typeof total !== "number" ||
+            !Number.isSafeInteger(total) ||
+            total < 0
+        ) {
+            return sendApiError(
+                res,
+                400,
+                "total points harus berupa bilangan bulat nonnegatif",
+                "VALIDATION_ERROR"
+            );
         }
 
-        const cleanTotal = Math.floor(total);
-
-        // Pastikan user dev tersedia
         db.prepare(`
             INSERT INTO users (username)
             VALUES (?)
@@ -568,28 +599,26 @@ app.post("/api/dev/points", (req, res) => {
             DO UPDATE SET
                 total = excluded.total,
                 updated_at = CURRENT_TIMESTAMP
-        `).run(
-            DEV_USERNAME,
-            cleanTotal
-        );
+        `).run(DEV_USERNAME, total);
 
-        res.json({
+        return res.json({
             message: "Points berhasil disimpan",
             username: DEV_USERNAME,
-            total: cleanTotal
+            total
         });
 
     } catch (error) {
-        console.error(
-            "Gagal menyimpan points dev:",
-            error
-        );
+        console.error("Gagal menyimpan points dev:", error);
 
-        res.status(500).json({
-            message: "Gagal menyimpan points"
-        });
+        return sendApiError(
+            res,
+            500,
+            "Gagal menyimpan points",
+            "INTERNAL_ERROR"
+        );
     }
 });
+
 
 // ============================================================
 // GET PROGRESS

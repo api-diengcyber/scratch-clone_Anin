@@ -75,7 +75,7 @@ if (!MATERI) {
 const insert = db.prepare(`
     INSERT OR IGNORE INTO materials (
         grade,
-        task_id,
+        module_id,
         lesson_index,
         path
     )
@@ -124,8 +124,13 @@ for (const modul of LP_SMP) {
 // ============================================================
 // INSERT
 // ============================================================
-
 const seed = db.transaction(() => {
+    // Sinkronkan ulang materi modul py1 dari sumber kurikulum.
+    db.prepare(`
+        DELETE FROM materials
+        WHERE grade = ? AND module_id = ?
+    `).run("SMP", "py1");
+
     for (const material of materials) {
         insert.run(...material);
     }
