@@ -30,6 +30,11 @@
     localStorage.setItem("scratch_user", user.username);
     localStorage.setItem("isLoggedIn", "true");
 
+    // Samakan poin & progres dengan server (sama seperti dashboard dan halaman Poin)
+    if (typeof LP !== "undefined" && typeof LP.loadFromServer === "function") {
+      await LP.loadFromServer();
+    }
+
   } catch (error) {
     console.error("Gagal memeriksa sesi:", error);
     window.location.replace("/index.html");
@@ -39,7 +44,8 @@
   const app = document.getElementById("app");
   let tahap = LP.tahap[0];                         // tahap yang sedang dibuka (berubah sesuai task / jalur)
   const $points = document.getElementById("pointsValue");
-  const refreshPoints = () => { $points.textContent = LP.points(); };
+  // Tampilkan saldo koin (total poin − hadiah yang dibeli), sama dengan dashboard & halaman Poin
+  const refreshPoints = () => { $points.textContent = LP.saldo(); };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   refreshPoints();
 

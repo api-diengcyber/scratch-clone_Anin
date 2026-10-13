@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 1: Tombol Pengubah Teks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .table-container { overflow-x: auto; margin: 18px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="/belajar-smk.html?p=wb3" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 1 • DASAR DOM</span>
+    <h1>Tombol Pengubah Teks</h1>
+    <p>Menghubungkan tombol HTML dengan JavaScript untuk mengubah isi halaman web</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
+    <h2 class="section-title">1. Memahami Elemen dan Event Listener</h2>
+    <div class="card">
+      <p>Halaman web dibangun dari susunan elemen HTML yang tersusun seperti pohon (DOM). Supaya elemen bisa merespons tindakan pengguna, JavaScript menggunakan <strong>Event Listener</strong>.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metode DOM</th>
+              <th>Kegunaan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>document.querySelector()</code></td>
+              <td>Memilih elemen HTML berdasarkan class atau id.</td>
+            </tr>
+            <tr>
+              <td><code>addEventListener()</code></td>
+              <td>Mendeteksi aksi pengguna seperti klik atau ketikan.</td>
+            </tr>
+            <tr>
+              <td><code>textContent</code></td>
+              <td>Membaca atau mengganti isi teks di dalam elemen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Dengan menggabungkan seleksi elemen dan event listener, kamu bisa membuat halaman web berinteraksi saat pengguna menekan tombol.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment">&lt;!-- Struktur HTML --&gt;</span>
+&lt;<span class="code-keyword">h2</span> <span class="code-func">id</span>=<span class="code-str">"judul"</span>&gt;Halo Dunia!&lt;/<span class="code-keyword">h2</span>&gt;
+&lt;<span class="code-keyword">button</span> <span class="code-func">id</span>=<span class="code-str">"btnUbah"</span>&gt;Ubah Pesan&lt;/<span class="code-keyword">button</span>&gt;
+
+<span class="code-comment">// Logika JavaScript</span>
+<span class="code-keyword">const</span> judul = document.<span class="code-func">querySelector</span>(<span class="code-str">"#judul"</span>);
+<span class="code-keyword">const</span> tombol = document.<span class="code-func">querySelector</span>(<span class="code-str">"#btnUbah"</span>);
+
+tombol.<span class="code-func">addEventListener</span>(<span class="code-str">"click"</span>, <span class="code-keyword">function</span>() {
+  judul.textContent = <span class="code-str">"Teks berhasil diubah lewat JavaScript!"</span>;
+});</div>
+    </div>
+
+    <h2 class="section-title">3. Eksplorasi Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Siapkan struktur HTML</h4>
+            <p>Buat elemen teks dengan tag <code>&lt;h1&gt;</code> atau <code>&lt;p&gt;</code> dan sebuah <code>&lt;button&gt;</code> dengan atribut <code>id</code> yang jelas.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Seleksi elemen di file JavaScript</h4>
+            <p>Simpan referensi kedua elemen tersebut ke dalam variabel <code>const</code> menggunakan <code>document.querySelector('#nama-id')</code>.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Pasang event listener klik</h4>
+            <p>Gunakan method <code>addEventListener('click', ...)</code> pada elemen tombol yang sudah kamu simpan.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Ubah properti textContent</h4>
+            <p>Di dalam blok fungsi event, tentukan kalimat baru yang akan menggantikan teks lama.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Lupa menuliskan tanda pagar (<code>#</code>) saat memilih elemen id dengan <code>querySelector</code>.</li>
+        <li>Salah penulisan huruf besar-kecil pada <code>textContent</code> atau <code>addEventListener</code>.</li>
+        <li>File script JavaScript dipanggil sebelum elemen HTML selesai dimuat oleh browser.</li>
+      </ul>
+      <div class="alert-box">
+        Pastikan file JavaScript dimuat di akhir tag <code>&lt;body&gt;</code> atau gunakan atribut <code>defer</code> agar elemen HTML terbaca sempurna.
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/shared/js/materi-back.js?v=1"></script>
+</body>
+</html>

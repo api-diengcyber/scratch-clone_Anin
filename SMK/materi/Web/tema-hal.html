@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 5: Pengubah Tema Halaman</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --accent: #f72585;
+      --warning: #ffb703;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.7;
+      padding: 30px 15px;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .header {
+      background: linear-gradient(135deg, #4361ee, #3a0ca3);
+      color: #ffffff;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 1.05rem; opacity: 0.9; }
+    .content { padding: 35px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .card {
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+      font-weight: 500;
+    }
+    .alert-box {
+      background: #fff0f5;
+      border-left: 5px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 18px 0;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #334155;
+    }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .table-container { overflow-x: auto; margin: 18px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--dark); }
+  </style>
+</head>
+<body>
+<a id="btnKembali" href="/belajar-smk.html?p=wb3" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
+<div class="container">
+  <div class="header">
+    <span class="badge">TASK 5 • MANIPULASI CLASS CSS</span>
+    <h1>Pengubah Tema Halaman</h1>
+    <p>Beralih antara mode terang dan gelap secara dinamis menggunakan classList</p>
+  </div>
+  <div class="content">
+    <h2 class="section-title">Materi Inti: Konsep inti materi</h2>
+    <div class="card">
+      <p><strong>Gagasan utama.</strong> Materi sebaiknya dipahami sebagai konsep, bukan sekadar urutan klik. Pahami istilah, hubungan sebab-akibat, dan alasan sebuah teknik digunakan sebelum mencoba task.</p>
+      <p><strong>Cara berpikir sebelum mengerjakan task.</strong> Sebelum membuka task, jelaskan dengan kata-katamu sendiri masalah, data yang tersedia, dan hasil yang diharapkan.</p>
+      <p><strong>Istilah yang perlu dipahami:</strong> konsep, model mental, sebab-akibat, eksperimen, evaluasi.</p>
+    </div>
+    <h2 class="section-title">Hubungkan Konsep dengan Masalah</h2>
+    <div class="card">
+      <p>Jangan langsung mencari urutan klik atau menyalin jawaban. Gunakan task sebagai tempat menguji pemahaman. Buat prediksi, jalankan percobaan, amati hasilnya, lalu revisi dugaan jika hasilnya berbeda.</p>
+      <ul style="margin:8px 0 0 20px;line-height:1.7;">
+        <li>Apa masalah yang sebenarnya ingin diselesaikan?</li>
+        <li>Informasi atau data apa yang tersedia, dan apa yang belum diketahui?</li>
+        <li>Konsep mana yang paling relevan? Mengapa?</li>
+        <li>Kasus apa yang mungkin membuat solusi pertamamu gagal?</li>
+        <li>Bagaimana kamu membuktikan bahwa hasil task benar?</li>
+      </ul>
+    </div>
+    <h2 class="section-title">Eksplorasi Mandiri</h2>
+    <div class="card"><div class="highlight-box">Gunakan contoh yang tersedia sebagai bahan pengamatan, bukan sebagai jawaban task. Ubah satu variabel atau kondisi, buat prediksi, lalu bandingkan hasilnya. Catat temuan yang membuatmu lebih memahami konsep.</div></div>
+
+    <h2 class="section-title">1. Memahami classList dan Toggle</h2>
+    <div class="card">
+      <p>Daripada mengubah warna elemen satu per satu lewat kode JavaScript, cara terbaik untuk mengganti tema adalah dengan <strong>menambah atau menghapus class CSS</strong> pada elemen induk seperti <code>&lt;body&gt;</code>.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metode classList</th>
+              <th>Fungsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>classList.add("nama-class")</code></td>
+              <td>Menambahkan class baru ke elemen.</td>
+            </tr>
+            <tr>
+              <td><code>classList.remove("nama-class")</code></td>
+              <td>Menghapus class tertentu dari elemen.</td>
+            </tr>
+            <tr>
+              <td><code>classList.toggle("nama-class")</code></td>
+              <td>Menambah class jika belum ada, atau menghapusnya jika sudah ada.</td>
+            </tr>
+            <tr>
+              <td><code>classList.contains("nama-class")</code></td>
+              <td>Mengecek apakah elemen sedang memiliki class tersebut (menghasilkan true/false).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box">
+        Method <code>toggle()</code> bertindak seperti sakelar lampu: satu klik menyalakan class mode gelap, klik berikutnya mematikan class tersebut.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Contoh Kode Pengubah Tema</h2>
+    <div class="card">
+      <div class="code-block"><span class="code-comment">/* 1. Aturan CSS untuk Tema Gelap */</span>
+<span class="code-keyword">body</span>.<span class="code-func">dark-mode</span> {
+  background-color: <span class="code-str">#0f172a</span>;
+  color: <span class="code-str">#f8fafc</span>;
+}
+
+<span class="code-comment">&lt;!-- 2. Tombol HTML --&gt;</span>
+&lt;<span class="code-keyword">button</span> <span class="code-func">id</span>=<span class="code-str">"btnTema"</span>&gt;🌙 Mode Gelap&lt;/<span class="code-keyword">button</span>&gt;
+
+<span class="code-comment">// 3. Logika JavaScript</span>
+<span class="code-keyword">const</span> btnTema = document.<span class="code-func">querySelector</span>(<span class="code-str">"#btnTema"</span>);
+
+btnTema.<span class="code-func">addEventListener</span>(<span class="code-str">"click"</span>, <span class="code-keyword">function</span>() {
+  document.body.classList.<span class="code-func">toggle</span>(<span class="code-str">"dark-mode"</span>);
+
+  <span class="code-keyword">if</span> (document.body.classList.<span class="code-func">contains</span>(<span class="code-str">"dark-mode"</span>)) {
+    btnTema.textContent = <span class="code-str">"☀️ Mode Terang"</span>;
+  } <span class="code-keyword">else</span> {
+    btnTema.textContent = <span class="code-str">"🌙 Mode Gelap"</span>;
+  }
+});</div>
+    </div>
+
+    <h2 class="section-title">3. Eksplorasi Praktik</h2>
+    <div class="card">
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Tentukan gaya tema gelap di file CSS</h4>
+            <p>Buat class <code>.dark-mode</code> yang mengatur warna latar belakang (background) menjadi gelap dan warna teks menjadi terang.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Tambahkan tombol pengubah tema</h4>
+            <p>Buat sebuah elemen <code>&lt;button id="btnTema"&gt;</code> di bagian atas halaman web.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Terapkan classList.toggle() saat tombol diklik</h4>
+            <p>Panggil <code>document.body.classList.toggle("dark-mode")</code> di dalam event listener klik tombol.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Sesuaikan teks dan ikon tombol</h4>
+            <p>Gunakan pengkondisian <code>classList.contains("dark-mode")</code> untuk mengganti ikon tombol antara bulan (🌙) dan matahari (☀️).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">4. Kesalahan yang Sering Terjadi</h2>
+    <div class="card">
+      <ul style="margin: 8px 0 0 20px;">
+        <li>Menuliskan tanda titik pada nama class di dalam method JS, contoh keliru: <code>classList.toggle(".dark-mode")</code>. Seharusnya tanpa titik: <code>classList.toggle("dark-mode")</code>.</li>
+        <li>Mengubah style warna satu per satu lewat <code>document.body.style.background</code> yang membuat kode berantakan dan sulit dikelola.</li>
+        <li>Lupa mengubah warna teks saat latar belakang menjadi gelap, sehingga tulisan tidak terlihat (hitam di atas hitam).</li>
+      </ul>
+      <div class="alert-box">
+        Saat menggunakan properti <code>classList</code>, tuliskan langsung nama class-nya tanpa tanda titik (<code>.</code>), karena JavaScript sudah tahu bahwa nilai tersebut adalah nama class.
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/shared/js/materi-back.js?v=1"></script>
+</body>
+</html>

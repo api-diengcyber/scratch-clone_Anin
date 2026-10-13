@@ -88,7 +88,10 @@ menuBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(userMenu.h
 document.addEventListener('click', e => { if (!userMenu.hidden && !userMenu.contains(e.target)) setMenu(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !userMenu.hidden) { setMenu(false); menuBtn.focus(); } });
 
-$('pointsValue').textContent = totalPoints;
+// Samakan dengan halaman Poin: tampilkan saldo koin (total poin − hadiah yang sudah dibeli)
+const refreshSaldo = () => { $('pointsValue').textContent = Number(LP.saldo ? LP.saldo() : totalPoints) || 0; };
+refreshSaldo();
+window.addEventListener('pageshow', e => { if (e.persisted) refreshSaldo(); });
 
 // ---------- Tahap belajar (banner + kartu) ----------
 // Tahap biasa (Tahap 1): kartu = semua pembelajaran.

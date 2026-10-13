@@ -2,7 +2,8 @@
 (function () {
   const T = window.LP_SMAK || [], S = window.SMAK, M = window.SMAK_META, LP = window.LP, app = document.getElementById("app"), q = new URLSearchParams(location.search);
   const esc = (t) => String(t).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
-  document.getElementById("pointsValue").textContent = LP.points();
+  const paintPoints = () => { document.getElementById("pointsValue").textContent = LP.saldo(); };   // saldo = sama dengan dashboard & halaman Poin
+  paintPoints();
   const tr = T.find((t) => t.nodes.some((n) => n.id === q.get("p"))), node = tr && tr.nodes.find((n) => n.id === q.get("p"));
   const crumbs = (a) => '<div class="crumbs">' + a.map((c, i) => (i ? "<span>›</span>" : "") + '<button data-href="' + c[1] + '">' + c[0] + "</button>").join("") + "</div>";
   // Warna ikon/tombol per modul (seperti kartu SD yang tiap kartunya beda warna)
@@ -61,5 +62,8 @@
   }
   app.addEventListener("click", (e) => { const c = e.target.closest("[data-href]"), b = e.target.closest("[data-k]"); if (c && c.dataset.href !== "#") location.href = c.dataset.href; else if (b && !b.disabled) { lastBtn = b; modal(+b.dataset.k); } });
   render();
-  window.addEventListener("pageshow", (e) => { if (e.persisted) { document.getElementById("pointsValue").textContent = LP.points(); render(); } });
+  // Sinkronkan poin & progres dari server, lalu gambar ulang kalau berhasil
+  const syncServer = () => LP.loadFromServer().then((ok) => { if (ok) { paintPoints(); render(); } }).catch(() => {});
+  syncServer();
+  window.addEventListener("pageshow", (e) => { if (e.persisted) { paintPoints(); render(); syncServer(); } });
 })();

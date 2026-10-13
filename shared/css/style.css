@@ -275,3 +275,6 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; line-height: normal; }
 
 a.points-chip { text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s; }
 a.points-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(168,106,0,.25); }
+
+/* Label "Koin Belajar" di chip saldo: disembunyikan di layar kecil (sama seperti halaman Poin) */
+@media (max-width: 640px) { .points-chip .pc-label { display: none; } }

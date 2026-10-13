@@ -3239,7 +3239,7 @@ svg.control-shape .control-shape-arrow {
 .mission-points{font-weight:bold;color:#b9770e}
 .mission-manual{border:0;background:#855cd6;color:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:bold}
 .mission-overlay{position:fixed;inset:0;z-index:20000;background:rgba(30,20,60,.55);display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif}
-.mission-popup{width:min(380px,90vw);background:#fff;border-radius:20px;padding:26px 24px 20px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:mpPop .25s ease-out}
+.mission-popup{width:min(380px,90vw);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;background:#fff;border-radius:20px;padding:26px 24px 20px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:mpPop .25s ease-out}
 @keyframes mpPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .mp-emoji{font-size:54px}
 .mission-popup h2{margin:6px 0 2px;color:#855cd6}
