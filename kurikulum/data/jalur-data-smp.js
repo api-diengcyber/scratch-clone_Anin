@@ -169,11 +169,20 @@
     py4: "/SMP/materi/Python/oop.html", py5: "/SMP/materi/Python/game-2d.html",
     "py2:4": "/SMP/materi/Python/pintu-rahasia-kuis.html", "py2:5": "/SMP/materi/Python/pintu-rahasia-kuis.html",
     py1: "/SMP/materi/Python/python1.html",
-    "py1:1": "/SMP/materi/Python/python2.html", "py1:2": "/SMP/materi/Python/python3.html", "py1:3": "/SMP/materi/Python/python4.html", "py1:4": "/SMP/materi/Python/python5.html",
-    "py2:0": "/SMP/materi/Python/ceknilai.html", "py2:1": "/SMP/materi/Python/tebakangka.html", "py2:2": "/SMP/materi/Python/menupilihan.html", "py2:3": "/SMP/materi/Python/hitungmundur.html",
+    "py1:0": "/SMP/materi/Python/python1.html",
+    "py1:1": "/SMP/materi/Python/python2.html",
+    "py1:2": "/SMP/materi/Python/python3.html",
+    "py1:3": "/SMP/materi/Python/python4.html",
+    "py1:4": "/SMP/materi/Python/python5.html",
+    "py2:0": "/SMP/materi/Python/ceknilai.html", 
+    "py2:1": "/SMP/materi/Python/tebakangka.html", 
+    "py2:2": "/SMP/materi/Python/menupilihan.html", 
+    "py2:3": "/SMP/materi/Python/hitungmundur.html",
     py3: "/SMP/materi/Python/fungsi-math.html",
     ai1: "/SMP/materi/AI/prompt-engineering.html",
     d1: "/SMP/materi/3D/world-building.html",
   };
   window.LP_SMP.forEach((t) => t.nodes.forEach((n) => n.tasks.forEach((k, i) => { k.halamanMateri = MATERI[n.id + ":" + i] || MATERI[n.id] || ""; })));
 })();
+
+

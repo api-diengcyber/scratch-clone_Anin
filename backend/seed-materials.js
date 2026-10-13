@@ -104,8 +104,7 @@ for (const modul of LP_SMP) {
 
             const materialPath =
                 MATERI[keySpecific] ||
-                MATERI[keyDefault] ||
-                "";
+                (node.id === "py1" ? "" : MATERI[keyDefault] || "");
 
             if (!materialPath) {
                 continue;
