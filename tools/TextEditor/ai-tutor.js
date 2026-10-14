@@ -300,6 +300,16 @@
       "📋 Task SMP yang dikirim:",
       smpTask
     );
+
+    // Add auth header (required by backend)
+    const token = localStorage.getItem("authToken");
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = "Bearer " + token;
+    }
+
     const response =
       await fetch(
         "/api/ai/tutor",
@@ -307,12 +317,7 @@
 
           method: "POST",
 
-          headers: {
-
-            "Content-Type":
-              "application/json",
-
-          },
+          headers: headers,
 
           body:
             JSON.stringify({
@@ -389,14 +394,8 @@
     if (!response.ok) {
 
       throw new Error(
-
-        data &&
-        data.error
-
-          ? data.error
-
-          : "AI Tutor gagal merespons."
-
+        (data && (data.message || data.error)) ||
+          ("AI Tutor gagal merespons. (HTTP " + response.status + ")")
       );
 
     }

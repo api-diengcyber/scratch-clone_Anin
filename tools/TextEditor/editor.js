@@ -156,6 +156,7 @@
   function buildDoc(html, css) {
     const doc = new DOMParser().parseFromString(html, "text/html");      // tidak menjalankan script
     doc.querySelectorAll("meta[http-equiv], base").forEach((n) => n.remove());   // cegah redirect & pembelokan alamat
+    doc.querySelectorAll('link[rel="stylesheet"], link[rel~="stylesheet"]').forEach((n) => n.remove());   // CSS sudah disisip inline di bawah; <link href="style.css"> hanya memicu pelanggaran CSP + request sia-sia   // cegah redirect & pembelokan alamat
     const head = doc.head;
     const csp = doc.createElement("meta"); csp.setAttribute("http-equiv", "Content-Security-Policy"); csp.setAttribute("content", CSP);
     const base = doc.createElement("base"); base.setAttribute("target", "_blank");
