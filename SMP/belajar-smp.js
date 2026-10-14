@@ -22,7 +22,9 @@
         throw new Error("HTTP " + response.status);
       }
 
-      const materials = await response.json();
+      const body = await response.json();
+      // server membalas { ok, materials: [...] }; tetap terima array polos kalau formatnya lama
+      const materials = Array.isArray(body) ? body : (body.materials || []);
 
       for (const material of materials) {
         const index = Number(material.lesson_index);
@@ -65,7 +67,9 @@
         throw new Error("HTTP " + response.status);
       }
 
-      const tasks = await response.json();
+      const body = await response.json();
+      // server membalas { ok, tasks: [...] }; tetap terima array polos kalau formatnya lama
+      const tasks = Array.isArray(body) ? body : (body.tasks || []);
 
       for (const task of tasks) {
         const index = Number(task.task_index);
