@@ -2,9 +2,9 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Text Editor • Dieng Cyber Coding</title>
-  <link rel="stylesheet" href="editor.css?v=3">
+  <link rel="stylesheet" href="editor.css?v=5">
 </head>
 <body>
   <header class="eh">
@@ -62,7 +62,11 @@
       </div>
       <div class="prev-foot" id="prevFoot">🔗 Tautan di preview tidak bisa diklik di sini. Itu normal, kodenya tetap benar!</div>
     </section>
-      <!-- AI TUTOR -->
+  </main>
+
+  <!-- DOCK: panel "Task aktif" (smp-taskpanel.js) dan Tutor AI ditata bersama agar tidak saling menimpa -->
+  <div class="editor-dock" id="editorDock">
+    <!-- AI TUTOR -->
   <aside class="ai-tutor" id="aiTutor">
     <div class="ai-tutor-head">
       <div>
@@ -81,13 +85,7 @@
     </div>
 
     <div class="ai-tutor-messages" id="aiTutorMessages">
-      <div class="ai-message ai-message-bot">
-        <div class="ai-message-label">Tutor AI</div>
-        <div>
-          Hai! Aku bisa membantu kamu memahami tugas dan memperbaiki
-          prompt-mu. Coba tulis prompt yang sedang kamu buat 😊
-        </div>
-      </div>
+      <div class="ai-message ai-message-bot"><div class="ai-message-label">Tutor AI</div><div>Hai! Aku bisa membantu kamu memahami tugas dan memperbaiki prompt-mu. Coba tulis prompt yang sedang kamu buat 😊</div></div>
     </div>
 
     <form class="ai-tutor-form" id="aiTutorForm">
@@ -104,15 +102,15 @@
       </button>
     </form>
   </aside>
-  </main>
+  </div>
 
   <script src="/kurikulum/data/jalur-data.js?v=12"></script>
   <script src="/kurikulum/core/jalur-belajar.js?v=12"></script>
   <script src="highlight.js?v=2"></script>
   <script src="runner.js?v=1"></script>
   <script src="editor.js?v=13"></script>
-  <script src="ai-tutor.js?v=2"></script>
-  <script src="/shared/js/smp-taskpanel.js?v=6"></script>
+  <script src="ai-tutor.js?v=3"></script>
+  <script src="/shared/js/smp-taskpanel.js?v=7"></script>
   <script src="/shared/js/icons.js?v=2"></script>
 </body>
 </html>

@@ -320,7 +320,7 @@
     $("mInfo").innerHTML = infoHtml;
     if (task.langkah && task.langkah.length) {
       $("infoBtn").textContent = "📝 Langkah & petunjuk";
-      $("mInfo").hidden = LP.isDone(taskId);              // task baru: langkah terbuka; task yang sudah selesai: tertutup
+      $("mInfo").hidden = LP.isDone(taskId) || window.matchMedia("(max-width: 820px), (max-height: 560px)").matches;   // layar kecil: ciut dulu, buka lewat tombol              // task baru: langkah terbuka; task yang sudah selesai: tertutup
     }
     $("infoBtn").addEventListener("click", () => { $("mInfo").hidden = !$("mInfo").hidden; });
     if (LP.isDone(taskId)) {
