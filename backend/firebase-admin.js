@@ -15,7 +15,8 @@ const {
 } = require("firebase-admin/firestore");
 
 // ============================================================
-// SERVICE ACCOUNT
+// SERVICE ACCOUNT (opsional di mode dummy — langkah 1 belum perlu Firebase)
+// Backend TETAP boot tanpa file ini; verifyFirebaseToken gagal ramah.
 // ============================================================
 
 const serviceAccountPath = path.join(
@@ -23,24 +24,22 @@ const serviceAccountPath = path.join(
     "dieng-cyber-coding-firebase-adminsdk-fbsvc-b6d234f528.json"
 );
 
-const serviceAccount = require(serviceAccountPath);
+let app = null;
+let firebaseAuth = null;
+let firestore = null;
 
-// ============================================================
-// INITIALIZE FIREBASE ADMIN
-// ============================================================
-
-const app = getApps().length
-    ? getApps()[0]
-    : initializeApp({
-        credential: cert(serviceAccount)
-    });
-
-// ============================================================
-// SERVICES
-// ============================================================
-
-const firebaseAuth = getAuth(app);
-const firestore = getFirestore(app);
+try {
+    const serviceAccount = require(serviceAccountPath);
+    app = getApps().length
+        ? getApps()[0]
+        : initializeApp({
+            credential: cert(serviceAccount)
+        });
+    firebaseAuth = getAuth(app);
+    firestore = getFirestore(app);
+} catch (e) {
+    console.warn("[WARN] Firebase Admin tidak dikonfigurasi:", e.message);
+}
 
 module.exports = {
     app,

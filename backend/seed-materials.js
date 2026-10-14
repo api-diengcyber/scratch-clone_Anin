@@ -124,6 +124,11 @@ for (const modul of LP_SMP) {
 // INSERT
 // ============================================================
 const seed = db.transaction(() => {
+    const insertModule = db.prepare(`INSERT OR IGNORE INTO modules (grade, module_id) VALUES (?, ?)`);
+    for (const modul of LP_SMP) {
+        for (const node of modul.nodes) insertModule.run("SMP", node.id);
+    }
+
     // Sinkronkan ulang materi modul py1 dari sumber kurikulum.
     db.prepare(`
         DELETE FROM materials

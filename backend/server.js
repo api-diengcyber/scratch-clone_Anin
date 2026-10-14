@@ -25,8 +25,8 @@ function sendApiError(res, status, message, code = "API_ERROR", details = null) 
     return res.status(status).json(body);
 }
 
-function sendApiSuccess(res, data, message = "OK") {
-    return res.json({ ok: true, message, ...data });
+function sendApiSuccess(res, data, message = "OK", status = 200) {
+    return res.status(status).json({ ok: true, message, ...data });
 }
 
 function requireDevelopmentMode(req, res, next) {
@@ -48,6 +48,16 @@ function validateRequired(body, fields) {
 function sanitizeString(str, maxLen = 1000) {
     if (typeof str !== "string") return "";
     return str.slice(0, maxLen).trim();
+}
+// Grade canonical: SD/SMP/SMK (huruf besar). Seeds + frontend SMP memakai huruf besar.
+const VALID_GRADES = ["SD", "SMP", "SMK"];
+function normalizeGrade(g) { return sanitizeString(g, 16).toUpperCase(); }
+function isValidGrade(g) { return VALID_GRADES.includes(g); }
+// Pemotong string/array agar field opsional AI tidak bisa membengkakkan request.
+function capStr(v, max) { return typeof v === "string" ? v.slice(0, max) : undefined; }
+function capStrArray(a, maxItems, maxLen) {
+    if (!Array.isArray(a)) return undefined;
+    return a.slice(0, maxItems).map((x) => String(x).slice(0, maxLen));
 }
 
 // ============================================================
@@ -80,7 +90,15 @@ const PROJECT_ROOT = path.join(__dirname, "..");
 // MIDDLEWARE
 // ============================================================
 
-app.use(cors());
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || null;
+if (process.env.NODE_ENV === "production" && FRONTEND_ORIGIN) {
+    app.use(cors({ origin: FRONTEND_ORIGIN }));
+} else {
+    app.use(cors());
+    if (process.env.NODE_ENV === "production") {
+        console.warn("[WARN] CORS terbuka (*) di production. Set FRONTEND_ORIGIN untuk membatasi.");
+    }
+}
 app.use(express.json({ limit: "1mb" }));
 
 // ============================================================
@@ -93,7 +111,12 @@ app.use((req, res, next) => {
         req.path.startsWith("/backend/") ||
         req.path.startsWith("/node_modules") ||
         req.path === "/package.json" ||
-        req.path === "/package-lock.json"
+        req.path === "/package-lock.json" ||
+        req.path === "/.env" ||
+        req.path.startsWith("/.env.") ||
+        req.path === "/.git" ||
+        req.path.startsWith("/.git/") ||
+        /\.sqlite(-shm|-wal)?$/.test(req.path)
     ) {
         return res.status(404).send("Not Found");
     }
@@ -150,7 +173,7 @@ app.get("/smp.html", (req, res) => {
 app.get("/api/health", (req, res) => {
     sendApiSuccess(res, {
         status: "ok",
-        message: "Backend Scratch Anin berjalan",
+        info: "Backend Scratch Anin berjalan",
         time: new Date().toISOString(),
         version: "1.0.0"
     });
@@ -163,11 +186,14 @@ app.get("/api/health", (req, res) => {
 // Ambil semua materi
 app.get("/api/materials/:grade/:moduleId", (req, res) => {
     try {
-        const grade = sanitizeString(req.params.grade);
-        const moduleId = sanitizeString(req.params.moduleId);
+        const grade = normalizeGrade(req.params.grade);
+        const moduleId = sanitizeString(req.params.moduleId, 64);
 
         if (!grade || !moduleId) {
             return sendApiError(res, 400, "grade dan moduleId wajib diisi", "VALIDATION_ERROR");
+        }
+        if (!isValidGrade(grade)) {
+            return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
         }
 
         const materials = db.prepare(`
@@ -206,11 +232,14 @@ app.get("/api/materials", (req, res) => {
 // GET TASKS BY MODULE
 app.get("/api/tasks/:grade/:moduleId", (req, res) => {
     try {
-        const grade = sanitizeString(req.params.grade);
-        const moduleId = sanitizeString(req.params.moduleId);
+        const grade = normalizeGrade(req.params.grade);
+        const moduleId = sanitizeString(req.params.moduleId, 64);
 
         if (!grade || !moduleId) {
             return sendApiError(res, 400, "grade dan moduleId wajib diisi", "VALIDATION_ERROR");
+        }
+        if (!isValidGrade(grade)) {
+            return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
         }
 
         const rows = db.prepare(`
@@ -259,8 +288,9 @@ app.get("/api/tasks", (req, res) => {
 
 app.get("/api/modules/:grade", (req, res) => {
     try {
-        const grade = sanitizeString(req.params.grade);
+        const grade = normalizeGrade(req.params.grade);
         if (!grade) return sendApiError(res, 400, "grade wajib diisi", "VALIDATION_ERROR");
+        if (!isValidGrade(grade)) return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
 
         const modules = db.prepare(`
             SELECT m.id, m.grade, m.module_id, m.created_at,
@@ -292,7 +322,7 @@ app.post("/api/auth/login", (req, res) => {
     const validation = validateRequired(req.body, ["username", "password"]);
     if (validation) return sendApiError(res, 400, validation, "VALIDATION_ERROR");
     if (username.length > 32) return sendApiError(res, 400, "Username maksimal 32 karakter", "VALIDATION_ERROR");
-    if (password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
+    if (typeof password !== "string" || password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
 
     const attemptKey = req.ip + "|" + username;
 
@@ -337,9 +367,12 @@ app.post("/api/auth/login", (req, res) => {
 
 app.post("/api/auth/firebase-login", async (req, res) => {
     try {
-        const idToken = sanitizeString(req.body.idToken);
+        const rawToken = req.body ? req.body.idToken : undefined;
         const validation = validateRequired(req.body, ["idToken"]);
         if (validation) return sendApiError(res, 400, validation, "VALIDATION_ERROR");
+        if (typeof rawToken !== "string" || !rawToken.trim()) return sendApiError(res, 400, "idToken wajib diisi", "VALIDATION_ERROR");
+        if (rawToken.length > 8000) return sendApiError(res, 400, "idToken terlalu panjang", "VALIDATION_ERROR");
+        const idToken = rawToken.trim();
 
         const firebaseUser = await auth.verifyFirebaseToken(idToken);
         const username = firebaseUser.username;
@@ -372,7 +405,7 @@ app.post("/api/auth/register", (req, res) => {
     const validation = validateRequired(req.body, ["username", "password"]);
     if (validation) return sendApiError(res, 400, validation, "VALIDATION_ERROR");
     if (username.length > 32) return sendApiError(res, 400, "Username maksimal 32 karakter", "VALIDATION_ERROR");
-    if (password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
+    if (typeof password !== "string" || password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
 
     // Cek apakah username sudah ada
     const existing = db.prepare("SELECT 1 FROM users WHERE username = ?").get(username);
@@ -397,9 +430,12 @@ app.post("/api/auth/register", (req, res) => {
 
 app.post("/api/auth/firebase-register", async (req, res) => {
     try {
-        const idToken = sanitizeString(req.body.idToken);
+        const rawToken = req.body ? req.body.idToken : undefined;
         const validation = validateRequired(req.body, ["idToken"]);
         if (validation) return sendApiError(res, 400, validation, "VALIDATION_ERROR");
+        if (typeof rawToken !== "string" || !rawToken.trim()) return sendApiError(res, 400, "idToken wajib diisi", "VALIDATION_ERROR");
+        if (rawToken.length > 8000) return sendApiError(res, 400, "idToken terlalu panjang", "VALIDATION_ERROR");
+        const idToken = rawToken.trim();
 
         const firebaseUser = await auth.verifyFirebaseToken(idToken);
         const username = firebaseUser.username;
@@ -442,17 +478,30 @@ app.post("/api/auth/logout", auth.requireAuth, (req, res) => {
 // ============================================================
 
 app.get("/api/profile", auth.requireAuth, (req, res) => {
-    const user = db.prepare(`
-        SELECT username, email, firebase_uid, created_at
-        FROM users WHERE username = ?
-    `).get(req.user);
-    if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
-    sendApiSuccess(res, { profile: user });
+    try {
+        const user = db.prepare(`
+            SELECT username, email, firebase_uid, created_at
+            FROM users WHERE username = ?
+        `).get(req.user);
+        if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
+        sendApiSuccess(res, { profile: user });
+    } catch (error) {
+        console.error("Gagal mengambil profil:", error);
+        sendApiError(res, 500, "Gagal mengambil profil", "INTERNAL_ERROR");
+    }
 });
 
 app.put("/api/profile", auth.requireAuth, (req, res) => {
-    const { fullName, avatar } = req.body;
-    // Simpan ke localStorage via frontend, tapi bisa juga ke DB kalau perlu
+    const body = req.body || {};
+    if (body.fullName !== undefined && typeof body.fullName !== "string") {
+        return sendApiError(res, 400, "fullName harus string", "VALIDATION_ERROR");
+    }
+    if (body.avatar !== undefined && typeof body.avatar !== "string") {
+        return sendApiError(res, 400, "avatar harus string", "VALIDATION_ERROR");
+    }
+    const fullName = typeof body.fullName === "string" ? body.fullName.slice(0, 100).trim() : undefined;
+    const avatar = typeof body.avatar === "string" ? body.avatar.slice(0, 500000) : undefined;
+    // Stub: belum ada kolom DB untuk fullName/avatar — frontend menyimpan di localStorage.
     sendApiSuccess(res, { fullName, avatar }, "Profil diperbarui (simpan di frontend)");
 });
 
@@ -462,7 +511,7 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
 
 app.get("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
     // Default: semua grade. Bisa di-extend nanti dengan kolom di users table.
-    sendApiSuccess(res, { grades: ["sd", "smp", "smak"] });
+    sendApiSuccess(res, { grades: ["SD", "SMP", "SMK"] });
 });
 
 app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
@@ -477,9 +526,11 @@ app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
 
 const DEV_USERNAME = "dev";
 
-db.prepare(`
-    INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING
-`).run(DEV_USERNAME);
+if (process.env.NODE_ENV !== "production") {
+    db.prepare(`
+        INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING
+    `).run(DEV_USERNAME);
+}
 
 app.get("/api/dev/progress", requireDevelopmentMode, (req, res) => {
     try {
@@ -490,7 +541,7 @@ app.get("/api/dev/progress", requireDevelopmentMode, (req, res) => {
         sendApiSuccess(res, { username: DEV_USERNAME, progress });
     } catch (error) {
         console.error("Gagal mengambil progress dev:", error);
-        sendApiError(res, 500, "Gagal mengambil progress");
+        sendApiError(res, 500, "Gagal mengambil progress", "INTERNAL_ERROR");
     }
 });
 
@@ -514,7 +565,7 @@ app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
         sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed }, "Progress disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress dev:", error);
-        sendApiError(res, 500, "Gagal menyimpan progress");
+        sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
     }
 });
 
@@ -524,7 +575,7 @@ app.get("/api/dev/points", requireDevelopmentMode, (req, res) => {
         sendApiSuccess(res, { username: DEV_USERNAME, total: row ? row.total : 0 });
     } catch (error) {
         console.error("Gagal mengambil points dev:", error);
-        sendApiError(res, 500, "Gagal mengambil points");
+        sendApiError(res, 500, "Gagal mengambil points", "INTERNAL_ERROR");
     }
 });
 
@@ -541,7 +592,7 @@ app.post("/api/dev/points", requireDevelopmentMode, (req, res) => {
         sendApiSuccess(res, { username: DEV_USERNAME, total }, "Points disimpan");
     } catch (error) {
         console.error("Gagal menyimpan points dev:", error);
-        sendApiError(res, 500, "Gagal menyimpan points");
+        sendApiError(res, 500, "Gagal menyimpan points", "INTERNAL_ERROR");
     }
 });
 
@@ -550,14 +601,18 @@ app.post("/api/dev/points", requireDevelopmentMode, (req, res) => {
 // ============================================================
 
 app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
-    const username = req.params.username.trim();
-    if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-
-    const progress = db.prepare(`
-        SELECT task_id, completed, completed_at
-        FROM progress WHERE username = ? ORDER BY id ASC
-    `).all(username);
-    sendApiSuccess(res, { progress });
+    try {
+        const username = String(req.params.username || "").trim();
+        if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
+        const progress = db.prepare(`
+            SELECT task_id, completed, completed_at
+            FROM progress WHERE username = ? ORDER BY id ASC
+        `).all(username);
+        sendApiSuccess(res, { progress });
+    } catch (error) {
+        console.error("Gagal mengambil progress:", error);
+        sendApiError(res, 500, "Gagal mengambil progress", "INTERNAL_ERROR");
+    }
 });
 
 // ============================================================
@@ -565,23 +620,26 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
 // ============================================================
 
 app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
-    const username = req.params.username.trim();
-    const { taskId, completed } = req.body;
-
-    if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-    if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
-
-    db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
-
-    const isCompleted = completed === true;
-    db.prepare(`
-        INSERT INTO progress (username, task_id, completed, completed_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(username, task_id) DO UPDATE SET
-            completed = excluded.completed, completed_at = excluded.completed_at
-    `).run(username, taskId, isCompleted ? 1 : 0, isCompleted ? new Date().toISOString() : null);
-
-    sendApiSuccess(res, { username, taskId, completed: isCompleted }, "Progress berhasil disimpan");
+    try {
+        const username = String(req.params.username || "").trim();
+        const { taskId, completed } = req.body || {};
+        if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
+        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
+        if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
+        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
+        if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
+        db.prepare(`
+            INSERT INTO progress (username, task_id, completed, completed_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(username, task_id) DO UPDATE SET
+                completed = excluded.completed, completed_at = excluded.completed_at
+        `).run(username, String(taskId), completed ? 1 : 0, completed ? new Date().toISOString() : null);
+        sendApiSuccess(res, { username, taskId: String(taskId), completed }, "Progress berhasil disimpan");
+    } catch (error) {
+        console.error("Gagal menyimpan progress:", error);
+        sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
+    }
 });
 
 // ============================================================
@@ -589,11 +647,15 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
 // ============================================================
 
 app.get("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
-    const username = req.params.username.trim();
-    if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-
-    const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
-    sendApiSuccess(res, { username, total: row ? row.total : 0 });
+    try {
+        const username = String(req.params.username || "").trim();
+        if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
+        const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
+        sendApiSuccess(res, { username, total: row ? row.total : 0 });
+    } catch (error) {
+        console.error("Gagal mengambil points:", error);
+        sendApiError(res, 500, "Gagal mengambil points", "INTERNAL_ERROR");
+    }
 });
 
 // ============================================================
@@ -601,20 +663,23 @@ app.get("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, r
 // ============================================================
 
 app.post("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
-    const username = req.params.username.trim();
-    const total = Number(req.body.total);
-
-    if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-    if (!Number.isFinite(total) || total < 0) return sendApiError(res, 400, "total points tidak valid", "VALIDATION_ERROR");
-
-    db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
-
-    db.prepare(`
-        INSERT INTO points (username, total, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(username) DO UPDATE SET total = excluded.total, updated_at = CURRENT_TIMESTAMP
-    `).run(username, Math.floor(total));
-
-    sendApiSuccess(res, { username, total: Math.floor(total) }, "Points berhasil disimpan");
+    try {
+        const username = String(req.params.username || "").trim();
+        const total = req.body ? req.body.total : undefined;
+        if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
+        if (typeof total !== "number" || !Number.isSafeInteger(total) || total < 0) {
+            return sendApiError(res, 400, "total points harus bilangan bulat non-negatif", "VALIDATION_ERROR");
+        }
+        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
+        db.prepare(`
+            INSERT INTO points (username, total, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(username) DO UPDATE SET total = excluded.total, updated_at = CURRENT_TIMESTAMP
+        `).run(username, total);
+        sendApiSuccess(res, { username, total }, "Points berhasil disimpan");
+    } catch (error) {
+        console.error("Gagal menyimpan points:", error);
+        sendApiError(res, 500, "Gagal menyimpan points", "INTERNAL_ERROR");
+    }
 });
 
 // ============================================================
@@ -628,12 +693,13 @@ app.post("/api/ai/tutor", auth.requireAuth, async (req, res) => {
             return sendApiError(res, 429, "Terlalu banyak permintaan ke AI. Tunggu sebentar.", "RATE_LIMITED");
         }
 
+        const body = req.body || {};
         const {
             message,
             taskId, taskTitle, taskDescription, taskSteps, taskMaterial, taskHint,
             editorHtml, editorCss, editorLanguage, editorCode,
             smpTask,
-        } = req.body || {};
+        } = body;
 
         if (typeof message !== "string" || !message.trim()) {
             return sendApiError(res, 400, "Pesan tidak boleh kosong.", "VALIDATION_ERROR");
@@ -647,10 +713,29 @@ app.post("/api/ai/tutor", auth.requireAuth, async (req, res) => {
             return sendApiError(res, 500, "AI Tutor belum dikonfigurasi.", "CONFIGURATION_ERROR");
         }
 
+        let cleanSmpTask = null;
+        if (smpTask && typeof smpTask === "object") {
+            cleanSmpTask = {
+                nodeId: capStr(smpTask.nodeId, 64),
+                taskIndex: Number.isSafeInteger(smpTask.taskIndex) ? smpTask.taskIndex : undefined,
+                judul: capStr(smpTask.judul, 500),
+                langkah: capStrArray(smpTask.langkah, 50, 500) || [],
+            };
+        }
+
         const result = await askTutor({
             message: message.trim(),
-            taskId, taskTitle, taskDescription, taskSteps, taskMaterial, taskHint,
-            editorHtml, editorCss, editorLanguage, editorCode, smpTask,
+            taskId: capStr(taskId, 128),
+            taskTitle: capStr(taskTitle, 500),
+            taskDescription: capStr(taskDescription, 2000),
+            taskSteps: capStrArray(taskSteps, 50, 500),
+            taskMaterial: capStrArray(taskMaterial, 50, 500),
+            taskHint: capStr(taskHint, 2000),
+            editorHtml: capStr(editorHtml, 200000),
+            editorCss: capStr(editorCss, 200000),
+            editorLanguage: capStr(editorLanguage, 20),
+            editorCode: capStr(editorCode, 200000),
+            smpTask: cleanSmpTask,
         });
 
         sendApiSuccess(res, result);
@@ -665,13 +750,44 @@ app.post("/api/ai/tutor", auth.requireAuth, async (req, res) => {
 // ============================================================
 
 app.use((req, res) => {
+    // Halaman HTML yang tidak ada sebaiknya tetap 404 teks agar tidak membingungkan browser.
+    if (req.path.endsWith(".html")) return res.status(404).send("Not Found");
     sendApiError(res, 404, "Route tidak ditemukan", "NOT_FOUND", { path: req.path });
 });
+
+// Global error handler: jaga kontrak envelope JSON (termasuk body JSON rusak).
+app.use((err, req, res, next) => {
+    if (err && (err.type === "entity.parse.failed" || err instanceof SyntaxError)) {
+        return sendApiError(res, 400, "Body JSON tidak valid", "VALIDATION_ERROR");
+    }
+    console.error("Unhandled error:", err);
+    if (res.headersSent) return next(err);
+    sendApiError(res, 500, "Terjadi kesalahan server", "INTERNAL_ERROR");
+});
+
+// ============================================================
+// HOUSEKEEPING (interval, tidak menahan proses keluar)
+// ============================================================
+
+// Bersihkan sesi kedaluwarsa tiap jam.
+setInterval(() => {
+    try {
+        const r = db.prepare("DELETE FROM sessions WHERE expires_at <= datetime('now')").run();
+        if (r.changes) console.log(`Sesi kedaluwarsa dibersihkan: ${r.changes}`);
+    } catch (e) { console.error("Gagal membersihkan sesi:", e.message); }
+}, 60 * 60 * 1000).unref();
+
+// Pangkas tabel rate-limit AI agar tidak tumbuh tanpa batas.
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, e] of aiRequestCounts) {
+        if (now - e.windowStart > AI_RATE_WINDOW_MS) aiRequestCounts.delete(ip);
+    }
+}, 5 * 60 * 1000).unref();
 
 // ============================================================
 // START SERVER
 // ============================================================
-
 app.listen(PORT, () => {
     console.log("");
     console.log("==========================================");

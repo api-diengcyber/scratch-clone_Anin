@@ -102,6 +102,11 @@ for (const tahap of LP_SMP) {
 // ============================================================
 
 const seed = db.transaction(() => {
+    const insertModule = db.prepare(`INSERT OR IGNORE INTO modules (grade, module_id) VALUES (?, ?)`);
+    for (const tahap of LP_SMP) {
+        for (const node of tahap.nodes) insertModule.run("SMP", node.id);
+    }
+
     for (const task of tasks) {
         insert.run(...task);
     }

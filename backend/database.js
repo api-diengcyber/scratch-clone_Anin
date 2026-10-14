@@ -23,6 +23,12 @@ db.pragma("foreign_keys = ON");
 // All new users via Firebase get firebase_uid + email + username (from email prefix).
 // Legacy users have username + password_hash only.
 // All nullable to support gradual migration.
+//
+// KEPUTUSAN IDENTITAS FINAL (langkah 2):
+// - firebase_uid = identitas kanonis untuk user baru (stabil, dari Firebase).
+// - email = atribut unik (case-insensitive), bukan kunci relasi.
+// - username = kompatibilitas legacy + target FK saat ini (jangan rename).
+// - Migrasi FK username -> firebase_uid DITUNDA sampai langkah 5 (butuh backfill + ganti auth).
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -391,6 +397,14 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
         db.pragma("foreign_keys = ON");
     }
 }
+
+db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username);
+    CREATE INDEX IF NOT EXISTS idx_progress_username ON progress(username);
+    CREATE INDEX IF NOT EXISTS idx_progress_task ON progress(task_id);
+    CREATE INDEX IF NOT EXISTS idx_tasks_grade_module ON tasks(grade, module_id);
+    CREATE INDEX IF NOT EXISTS idx_materials_grade_module ON materials(grade, module_id);
+`);
 
 console.log("Database berhasil terhubung.");
 console.log("Lokasi database:", dbPath);

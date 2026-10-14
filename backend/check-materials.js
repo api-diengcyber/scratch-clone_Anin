@@ -9,11 +9,11 @@ const materials = db.prepare(`
     SELECT
         id,
         grade,
-        task_id,
+        module_id,
         lesson_index,
         path
     FROM materials
-    ORDER BY grade, task_id, lesson_index
+    ORDER BY grade, module_id, lesson_index
 `).all();
 
 let missing = 0;
@@ -33,7 +33,7 @@ for (const material of materials) {
         missing++;
 
         console.log(
-            `❌ ID ${material.id} | ${material.grade}/${material.task_id}:${material.lesson_index}`
+            `❌ ID ${material.id} | ${material.grade}/${material.module_id}:${material.lesson_index}`
         );
 
         console.log(

@@ -151,6 +151,12 @@ const insert = db.prepare(`
 `);
 
 const seed = db.transaction(() => {
+    const insertModule = db.prepare(`INSERT OR IGNORE INTO modules (grade, module_id) VALUES (?, ?)`);
+    for (const key of modules) {
+        const i = key.indexOf(":");
+        insertModule.run(key.slice(0, i), key.slice(i + 1));
+    }
+
     for (const row of rows) {
         insert.run(...row);
     }

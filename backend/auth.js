@@ -36,6 +36,7 @@ async function verifyFirebaseToken(idToken) {
         throw new Error("Firebase ID token tidak tersedia.");
     }
 
+    if (!firebaseAuth) throw new Error("Login Firebase belum dikonfigurasi di server.");
     const decoded = await firebaseAuth.verifyIdToken(idToken);
 
     const email = String(decoded.email || "").trim().toLowerCase();
@@ -151,6 +152,14 @@ function recordFail(key) {
 function clearFails(key) {
     failedLogins.delete(key);
 }
+
+// Pangkas entri rate-limit yang sudah lewat jendelanya (tiap 5 menit).
+setInterval(() => {
+    const now = Date.now();
+    for (const [k, e] of failedLogins) {
+        if (now - e.first > WINDOW_MS) failedLogins.delete(k);
+    }
+}, 5 * 60 * 1000).unref();
 
 // ============================================================
 // EXPORT
