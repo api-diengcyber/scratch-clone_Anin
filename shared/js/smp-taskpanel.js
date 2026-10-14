@@ -73,7 +73,7 @@
     let ti = Math.min(Math.max(+q.get("t") || 0, 0), last);
     while (ti > 0 && !isOpen(ti)) ti--;      // alamat task yang masih terkunci → mundur ke task yang boleh dikerjakan
 
-    let shut = false;
+    let shut = window.matchMedia("(max-width: 1099px)").matches;   // layar kecil: mulai diciutkan agar tidak menutupi editor
     let notice = "";                           // pesan singkat setelah menandai selesai
 
     // ============================================================
@@ -111,7 +111,7 @@
     const p = document.createElement("aside");
     p.className = "smpP";
     p.setAttribute("aria-label", "Task aktif");
-    document.body.appendChild(p);
+    (document.getElementById("editorDock") || document.body).appendChild(p);   // editor yang punya #editorDock menata panel ini bersama Tutor AI
 
     // ============================================================
     // STORAGE (centang langkah — hanya visual)

@@ -924,20 +924,57 @@
   // MINIMIZE
   // ------------------------------------------------------------
 
+  // body.dock-open: di desktop, halaman memberi ruang di kanan selama ada panel (Task aktif / Tutor AI) yang terbuka
+  const dock = document.getElementById("editorDock");
+
+  function syncDock() {
+    const open = dock
+      ? !!dock.querySelector(".ai-tutor:not(.minimized), .smpP:not(.min)")
+      : !tutor.classList.contains("minimized");
+    document.body.classList.toggle("dock-open", open);
+  }
+
+  if (dock && window.MutationObserver) {
+    // panel Task aktif dibuat/diubah oleh smp-taskpanel.js, jadi dipantau lewat observer
+    new MutationObserver(syncDock).observe(dock, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+  }
+
+  function setMinimized(min) {
+    tutor.classList.toggle("minimized", min);
+    minBtn.textContent = min ? "+" : "−";
+    minBtn.setAttribute(
+      "aria-label",
+      min ? "Buka Tutor AI" : "Minimalkan Tutor AI"
+    );
+    syncDock();
+  }
+
   minBtn.addEventListener(
     "click",
     function () {
-
-      tutor.classList.toggle(
-        "minimized"
-      );
-
-      minBtn.textContent =
-        tutor.classList.contains("minimized")
-          ? "+"
-          : "−";
-
+      setMinimized(!tutor.classList.contains("minimized"));
     }
   );
+
+  // Saat diciutkan, mengetuk bagian atas panel juga membukanya (lebih mudah di layar sentuh)
+  const tutorHead = tutor.querySelector(".ai-tutor-head");
+  if (tutorHead) {
+    tutorHead.addEventListener("click", function (e) {
+      if (
+        tutor.classList.contains("minimized") &&
+        e.target !== minBtn
+      ) {
+        setMinimized(false);
+      }
+    });
+  }
+
+  // Layar kecil: mulai dalam keadaan diciutkan agar tidak menutupi editor
+  setMinimized(window.matchMedia("(max-width: 1099px)").matches);
 
 })();
