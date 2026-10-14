@@ -178,8 +178,12 @@ const LP = Object.assign({}, window.LP_DATA, {
         throw new Error("Gagal mengambil data progress dari server.");
       }
 
-      const progressRows = await progressRes.json();
+      const progressData = await progressRes.json();
       const pointsData = await pointsRes.json();
+
+      // Handle new API format: { ok: true, progress: [...] }
+      const progressRows = progressData.progress || progressData;
+      const pointsTotal = pointsData.total ?? pointsData;
 
       const completed = {};
 
@@ -193,7 +197,7 @@ const LP = Object.assign({}, window.LP_DATA, {
 
       localStorage.setItem(
         "codingPoints_" + username,
-        String(Number(pointsData.total) || 0)
+        String(Number(pointsTotal) || 0)
       );
 
       return true;
