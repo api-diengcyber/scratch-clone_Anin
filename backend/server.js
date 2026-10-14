@@ -65,6 +65,9 @@ function capStrArray(a, maxItems, maxLen) {
 // ============================================================
 
 const aiRequestCounts = new Map();
+const AI_TUTOR_MODULES = String(process.env.AI_TUTOR_ALLOWED_MODULES || "ai1,ai2,ai3,ai4")
+    .split(",").map((x) => x.trim()).filter(Boolean);
+// Tutor AI hanya untuk modul AI & Creative Tech SMP (ai1-ai4). SD/SMK/mode bebas ditolak.
 const AI_RATE_LIMIT = 30; // requests per window
 const AI_RATE_WINDOW_MS = 60 * 1000; // 1 minute
 
@@ -688,6 +691,12 @@ app.post("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, 
 
 app.post("/api/ai/tutor", auth.requireAuth, async (req, res) => {
     try {
+        // Gerbang modul: hanya nodeId SMP yang butuh AI (default ai1-ai4).
+        const smpNode = req.body && req.body.smpTask ? req.body.smpTask.nodeId : undefined;
+        if (!smpNode || !AI_TUTOR_MODULES.includes(String(smpNode))) {
+            return sendApiError(res, 403, "Tutor AI hanya tersedia di modul AI & Creative Tech (Prompt Engineering, Web via AI, Tools AI, Aset Kreatif).", "TUTOR_NOT_ALLOWED");
+        }
+
         // Rate limiting by IP
         if (!checkAiRateLimit(req.ip)) {
             return sendApiError(res, 429, "Terlalu banyak permintaan ke AI. Tunggu sebentar.", "RATE_LIMITED");

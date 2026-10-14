@@ -122,6 +122,28 @@ const B = `http://localhost:${PORT}`;
     r = await fetch(`${B}/api/dev/points`); const d = await j(r);
     eq(d.total, 42, "total");
   });
+  await t("ai tanpa smpTask -> 403 (bukan 500)", async () => {
+    // register user dummy untuk token
+    let r = await fetch(`${B}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "aitest", password: "abcd1234" }) });
+    let d = await j(r);
+    const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
+    r = await fetch(`${B}/api/ai/tutor`, { method: "POST", headers: hdr, body: JSON.stringify({ message: "halo" }) });
+    d = await j(r); eq(r.status, 403, "status"); eq(d.code, "TUTOR_NOT_ALLOWED", "code");
+  });
+  await t("ai modul non-AI (py1) -> 403", async () => {
+    let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "aitest", password: "abcd1234" }) });
+    let d = await j(r);
+    const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
+    r = await fetch(`${B}/api/ai/tutor`, { method: "POST", headers: hdr, body: JSON.stringify({ message: "halo", smpTask: { nodeId: "py1", taskIndex: 0, judul: "x", langkah: ["a"] } }) });
+    d = await j(r); eq(r.status, 403, "status"); eq(d.code, "TUTOR_NOT_ALLOWED", "code");
+  });
+  await t("ai modul ai1 lolos gate (gagal di key/mock, bukan 403)", async () => {
+    let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "aitest", password: "abcd1234" }) });
+    let d = await j(r);
+    const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
+    r = await fetch(`${B}/api/ai/tutor`, { method: "POST", headers: hdr, body: JSON.stringify({ message: "halo", smpTask: { nodeId: "ai1", taskIndex: 0, judul: "x", langkah: ["a"] } }) });
+    if (r.status === 403) throw new Error("ai1 ikut ditolak");
+  });
   await t("register sukses -> 201", async () => {
     const r = await fetch(`${B}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "tester1", password: "abcd1234" }) });
     const d = await j(r); eq(r.status, 201, "status"); eq(d.ok, true, "ok");
