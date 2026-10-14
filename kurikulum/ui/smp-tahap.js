@@ -21,11 +21,11 @@
     const btn = tp.done === 0 ? "Mulai Petualangan →" : tp.done === tp.total ? "Lihat Lagi 🎉" : "Lanjutkan Belajar →";
     const cards = t.nodes.map((n, i) => { const p = S.prog(n);
       const dots = n.tasks.map((_, k) => '<i class="' + (S.isDone(n.id, k) ? "on" : "") + '"></i>').join("") + '<i class="trophy ' + (p.done === p.total ? "on" : "") + '">🏆</i>';
-      return '<a class="tg-card ' + (p.done === p.total ? "complete" : "") + '" href="belajar-smp.html?p=' + n.id + '" style="--c:' + t.c + "; --d:" + i * 0.07 + 's"><div class="tg-emoji">' + m.em[i] + "</div><h3>" + esc(n.title) + "</h3><p>" + esc(n.deskripsi) + "</p>" +
+      return '<a class="tg-card ' + (p.done === p.total ? "complete" : "") + '" href="/belajar-smp.html?p=' + n.id + '" style="--c:' + t.c + "; --d:" + i * 0.07 + 's"><div class="tg-emoji">' + m.em[i] + "</div><h3>" + esc(n.title) + "</h3><p>" + esc(n.deskripsi) + "</p>" +
         '<div class="tg-dots">' + dots + '</div><span class="tg-status">' + (p.done === 0 ? "Belum mulai" : p.done === p.total ? "✓ Selesai!" : p.done + "/" + p.total + " selesai") + "</span></a>"; }).join("");
     return '<section class="tahap-section"><div class="tahap-banner ' + m.cls + '"><div class="tb-bubbles"><i></i><i></i><i></i><i></i></div><div class="tb-left"><span class="tb-age">Untuk usia <b>' + (m.usia || "12–15 tahun") + '</b></span>' +
       "<h2>" + m.n + "</h2><p>" + m.slogan + " " + esc(t.meta) + '.</p><div class="tb-track"><div class="tb-bar"><i style="width:' + pct + '%"></i></div><span class="tb-rocket" style="left:calc(' + pct + '% * 0.94)">🚀</span></div>' +
-      "<small>" + tp.done + " dari " + tp.total + ' langkah selesai</small></div><a class="tb-btn" href="belajar-smp.html?t=' + t.id + '">' + btn + '</a></div><div class="tahap-grid smp-fit" style="--n:' + t.nodes.length + '; --cols:' + (t.nodes.length <= 4 ? t.nodes.length : t.nodes.length % 3 === 0 ? 3 : 4) + '">' + cards + "</div></section>";
+      "<small>" + tp.done + " dari " + tp.total + ' langkah selesai</small></div><a class="tb-btn" href="/belajar-smp.html?t=' + t.id + '">' + btn + '</a></div><div class="tahap-grid smp-fit" style="--n:' + t.nodes.length + '; --cols:' + (t.nodes.length <= 4 ? t.nodes.length : t.nodes.length % 3 === 0 ? 3 : 4) + '">' + cards + "</div></section>";
   }
   window.renderSMPTahap = function (box, only) { box.innerHTML = T.filter((t) => !only || t.id === only).map(sec).join(""); };
   window.renderSMP = window.renderSMPTahap;   // dashboard memanggil window.renderSMP(area)

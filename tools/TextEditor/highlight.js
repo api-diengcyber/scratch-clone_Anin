@@ -1,7 +1,7 @@
 // ============================================================
-// PEWARNA KODE SEDERHANA — HTML & CSS
+// PEWARNA KODE SEDERHANA — HTML, CSS, Python & PHP
 // Mengubah teks kode menjadi HTML berwarna (<span class="tk-...">).
-// Untuk bahasa baru (misalnya PHP): tambahkan satu fungsi lagi di bawah.
+// Bahasa yang ada: html, css, python, php. Bahasa baru: tambahkan satu fungsi lagi di bawah.
 // ============================================================
 (function () {
 
@@ -64,5 +64,76 @@
     return out;
   }
 
-  window.Highlight = { html: html, css: css };
+  // ---------- PYTHON ----------
+  const PY_KW = new Set("and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield".split(" "));
+  const PY_CONST = new Set(["True", "False", "None"]);
+  const PY_BUILTIN = new Set("print input len range int float str bool list dict set tuple sum min max abs round sorted reversed enumerate zip map filter open type isinstance super self".split(" "));
+
+  function python(src) {
+    const re = /(#[^\n]*)|((?:[rRbBfFuU]{0,2})(?:"""[\s\S]*?(?:"""|$)|'''[\s\S]*?(?:'''|$)|"(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?))|(@[A-Za-z_][\w.]*)|(\b\d+\.?\d*(?:[eE][+-]?\d+)?\b|\.\d+\b)|([A-Za-z_]\w*)/g;
+    let out = "", last = 0, prev = "", m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      last = m.index + m[0].length;
+      if (m[1]) out += span("com", m[0]);
+      else if (m[2]) out += span("str", m[0]);
+      else if (m[3]) out += span("fn", m[0]);
+      else if (m[4]) out += span("num", m[0]);
+      else {
+        const w = m[5];
+        if (PY_KW.has(w)) out += span("kw", w);
+        else if (PY_CONST.has(w)) out += span("cn", w);
+        else if (prev === "def" || prev === "class") out += span("fn", w);
+        else if (PY_BUILTIN.has(w)) out += span("bi", w);
+        else if (src[last] === "(") out += span("fn", w);
+        else out += esc(w);
+        prev = w;
+        continue;
+      }
+      prev = "";
+    }
+    return out + esc(src.slice(last));
+  }
+
+  // ---------- PHP ----------
+  // Di luar <?php ... ?> dianggap HTML biasa, di dalamnya diwarnai sebagai PHP.
+  const PHP_KW = new Set("echo print if else elseif while for foreach as function return class new public private protected static const array isset empty unset include require require_once include_once switch case break continue default try catch throw finally extends implements namespace use fn match abstract interface trait global do list and or xor".split(" "));
+  const PHP_CONST = new Set(["true", "false", "null"]);
+
+  function phpCode(src) {
+    const re = /((?:\/\/|#)(?:(?!\?>)[^\n])*|\/\*[\s\S]*?(?:\*\/|$))|("(?:[^"\\]|\\[\s\S])*"?|'(?:[^'\\]|\\[\s\S])*'?)|(\$[A-Za-z_]\w*)|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g;
+    let out = "", last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      last = m.index + m[0].length;
+      if (m[1]) out += span("com", m[0]);
+      else if (m[2]) out += span("str", m[0]);
+      else if (m[3]) out += span("var", m[0]);
+      else if (m[4]) out += span("num", m[0]);
+      else {
+        const w = m[5], lw = w.toLowerCase();
+        if (PHP_KW.has(lw)) out += span("kw", w);
+        else if (PHP_CONST.has(lw)) out += span("cn", w);
+        else if (/^\s*\(/.test(src.slice(last, last + 8))) out += span("fn", w);
+        else out += esc(w);
+      }
+    }
+    return out + esc(src.slice(last));
+  }
+
+  function php(src) {
+    const re = /<\?(?:php|=)?[\s\S]*?(?:\?>|$)/g;
+    let out = "", last = 0, m;
+    while ((m = re.exec(src))) {
+      out += html(src.slice(last, m.index));
+      last = m.index + m[0].length;
+      const open = /^<\?(?:php|=)?/.exec(m[0])[0];
+      let body = m[0].slice(open.length), close = "";
+      if (body.endsWith("?>")) { close = "?>"; body = body.slice(0, -2); }
+      out += span("doc", open) + phpCode(body) + span("doc", close);
+    }
+    return out + html(src.slice(last));
+  }
+
+  window.Highlight = { html: html, css: css, python: python, php: php };
 })();

@@ -32,7 +32,7 @@
       const p = progNode(n), complete = p.done === p.total;
       const dots = n.tasks.map((_, k) => '<i class="' + (isDone(n.id, k) ? "on" : "") + '"></i>').join("") + '<i class="trophy ' + (complete ? "on" : "") + '">🏆</i>';
       const status = p.done === 0 ? "Belum mulai" : complete ? "✓ Selesai!" : p.done + "/" + p.total + " selesai";
-      return '<a class="tg-card ' + (complete ? "complete" : "") + '" href="belajar-smk.html?p=' + n.id + '" style="--c:' + t.c + "; --d:" + i * 0.07 + 's">' +
+      return '<a class="tg-card ' + (complete ? "complete" : "") + '" href="/belajar-smk.html?p=' + n.id + '" style="--c:' + t.c + "; --d:" + i * 0.07 + 's">' +
         '<div class="tg-emoji">' + m.em[i] + "</div><h3>" + esc(n.title) + "</h3><p>" + esc(n.deskripsi) + "</p>" +
         '<div class="tg-dots">' + dots + '</div><span class="tg-status">' + status + "</span></a>";
     }).join("");
@@ -40,7 +40,7 @@
       '<div class="tb-left"><span class="tb-age">Untuk usia <b>' + m.usia + "</b></span><h2>" + m.n + "</h2><p>" + m.slogan + " " + esc(t.meta) + '.</p>' +
       '<div class="tb-track"><div class="tb-bar"><i style="width:' + pct + '%"></i></div><span class="tb-rocket" style="left:calc(' + pct + '% * 0.94)">🚀</span></div>' +
       "<small>" + tp.done + " dari " + tp.total + " langkah selesai</small></div>" +
-      '<a class="tb-btn" href="belajar-smk.html?t=' + t.id + '">' + btn + "</a></div>" +
+      '<a class="tb-btn" href="/belajar-smk.html?t=' + t.id + '">' + btn + "</a></div>" +
       '<div class="tahap-grid smk-fit" style="--n:' + t.nodes.length + "; --cols:" + cols + '">' + cards + "</div></section>";
   }
   window.renderSMAK = function (box, only) { box.innerHTML = T.filter((t) => !only || t.id === only).map(sec).join(""); };
