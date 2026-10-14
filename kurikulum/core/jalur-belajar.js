@@ -403,7 +403,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     const f = this.find(id);
     const ed = f && this.editorOf(f.task);
     if (ed) return ed.folder + "/index.html?task=" + id;
-    return "/belajar.html?task=" + id;
+    return "/SD/belajar.html?task=" + id;
   },
 
   // tandai selesai + beri poin (hanya sekali). Mengembalikan { already, earned, bonus, total }

@@ -7,7 +7,7 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   >
   <title>Scratch Studio Clone</title>
-  <link rel="stylesheet" href="style.css?v=20261010a">
+  <link rel="stylesheet" href="style.css?v=20261014a">
 </head>
 
 <body>
@@ -259,13 +259,10 @@
          =================================================== -->
     <section class="workspace-panel">
 
-      <div class="workspace-header">
-        <span>
-          Area Kerja Skrip
-          <span class="workspace-hint">
-            (Seret & Tempatkan Blok)
-          </span>
-        </span>
+      <div class="workspace-header workspace-tabs" role="tablist" aria-label="Tab area kerja">
+        <button id="tab-code" class="ws-tab active" type="button" role="tab" aria-selected="true">Kode</button>
+        <button id="tab-sounds" class="ws-tab" type="button" role="tab" aria-selected="false">🔊 Suara</button>
+        <span class="workspace-hint">Seret &amp; tempatkan blok di tab Kode</span>
       </div>
 
       <div
@@ -285,6 +282,15 @@
           <button id="workspace-zoom-out" class="workspace-zoom-btn" type="button" title="Zoom Out" aria-label="Zoom Out">−</button>
           <button id="workspace-zoom-reset" class="workspace-zoom-btn" type="button" title="Reset Zoom" aria-label="Reset Zoom">=</button>
         </div>
+      </div>
+
+      <!-- TAB SUARA: daftar suara, ganti nama, trim, hapus, rekam -->
+      <div id="sounds-panel" class="sounds-panel" hidden>
+        <div class="sounds-list-col">
+          <div id="sounds-list" class="sounds-list" aria-label="Daftar suara"></div>
+          <button id="sounds-record-btn" class="sounds-record-btn" type="button">🎤 Rekam</button>
+        </div>
+        <div id="sounds-editor" class="sounds-editor"></div>
       </div>
 
     </section>
@@ -417,9 +423,9 @@
   <!-- =====================================================
        JAVASCRIPT
        ===================================================== -->
-  <script src="../jalur-data.js?v=10"></script>
-  <script src="../jalur-belajar.js?v=10"></script>
-  <script src="script.js?v=7"></script>
+  <script src="/kurikulum/data/jalur-data.js?v=12"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=12"></script>
+  <script src="script.js?v=12"></script>
 
 </body>
 </html>

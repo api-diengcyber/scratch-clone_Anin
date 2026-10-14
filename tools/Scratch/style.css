@@ -3262,3 +3262,369 @@ svg.control-shape .control-shape-arrow {
 .mission-done-note{background:#e6f8ee;color:#1e8f52;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:12px;font-weight:bold}
 .mission-back{margin-left:auto;font-size:12px;color:#6d5bd0;text-decoration:none;font-weight:bold}
 .mission-back:hover{text-decoration:underline}
+
+
+/* =========================================================
+   TAB KODE / SUARA, EDITOR SUARA, DAN PEREKAM
+   ========================================================= */
+
+.workspace-header.workspace-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+}
+.workspace-tabs .workspace-hint {
+  margin-left: auto;
+  font-weight: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ws-tab {
+  border: 1px solid #cdb9ee;
+  background: #fff;
+  color: #575e75;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.ws-tab.active {
+  background: #cf63cf;
+  border-color: #cf63cf;
+  color: #fff;
+}
+.ws-tab:focus-visible,
+.snd-btn:focus-visible,
+.sounds-record-btn:focus-visible,
+.sound-item:focus-visible {
+  outline: 2px solid #8b4bd6;
+  outline-offset: 2px;
+}
+
+.scratch-dialog-overlay [hidden],
+.sounds-panel[hidden] {
+  display: none !important;
+}
+
+/* ---------- panel suara ---------- */
+.sounds-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: #f0f4f8;
+}
+.sounds-list-col {
+  flex: 0 0 190px;
+  width: 190px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #e9eef5;
+  border-right: 1px solid #d0dbe5;
+}
+.sounds-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sound-item {
+  position: relative;
+  padding: 8px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.sound-item.selected {
+  border-color: #cf63cf;
+  background: #fbeefb;
+}
+.sound-item-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 26px;
+}
+.sound-item-num {
+  flex: 0 0 auto;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #cf63cf;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 18px;
+}
+.sound-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #575e75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sound-item-thumb {
+  display: block;
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+}
+.sound-item-dur {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #8b95a3;
+}
+.sound-item-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: #ef476f;
+  color: #fff;
+  font-size: 12px;
+  line-height: 24px;
+  padding: 0;
+  cursor: pointer;
+  display: none;
+}
+.sound-item.selected .sound-item-del,
+.sound-item:hover .sound-item-del,
+.sound-item:focus-within .sound-item-del {
+  display: block;
+}
+@media (hover: none) {
+  .sound-item-del { display: block; }
+}
+.sounds-record-btn {
+  margin: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 22px;
+  background: #cf63cf;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sounds-record-btn:hover { background: #b84fb8; }
+.sounds-empty {
+  padding: 20px 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #8b95a3;
+}
+
+/* ---------- editor ---------- */
+.sounds-editor {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sound-edit-row label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #575e75;
+}
+.sound-edit-name {
+  height: 36px;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 10px;
+  border: 1px solid #aab;
+  border-radius: 6px;
+  font-size: 15px;
+  outline: none;
+}
+.sound-edit-name:focus {
+  border-color: #8b4bd6;
+  box-shadow: 0 0 0 2px rgba(139, 75, 214, .16);
+}
+.sound-edit-info,
+.sound-edit-hint {
+  font-size: 12px;
+  color: #737d8c;
+}
+.sound-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.snd-btn {
+  padding: 8px 14px;
+  border: 1px solid #8b4bd6;
+  border-radius: 18px;
+  background: #8b4bd6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.snd-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.snd-btn:disabled { opacity: .45; cursor: not-allowed; }
+.snd-btn.secondary {
+  background: #fff;
+  color: #575e75;
+  border-color: #cdb9ee;
+}
+.snd-btn.danger {
+  background: #fff;
+  color: #d6336c;
+  border-color: #f0b3c6;
+}
+.snd-btn.snd-rec { background: #e5334f; border-color: #e5334f; }
+
+/* ---------- pemotong gelombang (trim) ---------- */
+.trim-wrap {
+  position: relative;
+  height: 140px;
+  background: #fff;
+  border: 1px solid #cdb9ee;
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.trim-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.trim-shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(87, 94, 117, .38);
+  pointer-events: none;
+}
+.trim-shade-l { left: 0; }
+.trim-shade-r { right: 0; }
+.trim-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  cursor: ew-resize;
+  touch-action: none;
+  z-index: 2;
+}
+/* pegangan kiri berada di kanan garis potong, pegangan kanan di kirinya,
+   jadi keduanya selalu utuh terlihat walau di ujung gelombang */
+.trim-handle-r { margin-left: -22px; }
+.trim-handle::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #8b4bd6;
+}
+.trim-handle-r::after { left: auto; right: 0; }
+.trim-handle::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  width: 12px;
+  height: 30px;
+  margin-top: -15px;
+  border-radius: 6px;
+  background: #8b4bd6;
+  z-index: 1;
+}
+.trim-handle.dragging::before,
+.trim-handle:focus-visible::before { background: #ff9a1a; }
+.trim-handle:focus-visible { outline: none; }
+.trim-playhead {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ff9a1a;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------- dialog rekam ---------- */
+.sound-rec-card { width: 480px; }
+.sound-rec-body { display: flex; flex-direction: column; gap: 12px; }
+.sound-rec-status {
+  min-height: 20px;
+  font-size: 14px;
+  color: #575e75;
+}
+.sound-rec-meter {
+  height: 14px;
+  border-radius: 7px;
+  background: #e9eef5;
+  overflow: hidden;
+}
+.sound-rec-meter-fill {
+  width: 0;
+  height: 100%;
+  background: #cf63cf;
+  transition: width .06s linear;
+}
+.sound-rec-time {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #575e75;
+  font-variant-numeric: tabular-nums;
+}
+.sound-rec-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sound-rec-name-row label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #575e75;
+}
+.sound-rec-name { flex: 1; }
+.sound-rec-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sound-rec-spacer { flex: 1; }
+
+@media (max-width: 600px) {
+  .sounds-panel { flex-direction: column; }
+  .sounds-list-col {
+    flex: 0 0 auto;
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid #d0dbe5;
+  }
+  .sounds-list { flex-direction: row; overflow-x: auto; max-height: none; }
+  .sound-item { width: 140px; }
+  .workspace-tabs .workspace-hint { display: none; }
+}

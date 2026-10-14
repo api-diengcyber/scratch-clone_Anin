@@ -108,7 +108,7 @@ function renderMinat(jalur) {
 // ---------- tampilkan ----------
 function render() {
   const jalur = buildReport(), user = LP.user();
-  $("hello").textContent = "Halo, " + user + "! 👋"; $("pts").textContent = LP.points();
+  $("hello").textContent = "Halo, " + user + "! 👋"; $("pts").textContent = LP.saldo ? LP.saldo() : LP.points();   // saldo, sama dengan dashboard & halaman poin
   const dn = jalur.reduce((s, j) => s + j.done, 0), lenc = jalur.filter((j) => LP.isDone(j.pb.project.id));
   $("sum").innerHTML = "<div>✅ " + dn + " langkah selesai</div><div>🏅 " + lenc.length + " lencana</div><div>🌿 " + jalur.filter((j) => j.done).length + " jalur dicoba</div>";
   renderMinat(jalur);
@@ -128,7 +128,9 @@ function render() {
   $("noteBtn").onclick = () => { $("noteEdit").hidden = !$("noteEdit").hidden; $("noteTa").value = localStorage.getItem(k) || ""; };
   $("noteSave").onclick = () => { localStorage.setItem(k, $("noteTa").value.trim()); $("noteEdit").hidden = true; show(); };
 }
-render();
+// ambil poin & progres terbaru dari server dulu (seperti dashboard), baru tampilkan
+(LP.loadFromServer ? LP.loadFromServer().catch(() => false) : Promise.resolve(false)).then(() => render());
+window.addEventListener("pageshow", (e) => { if (e.persisted) $("pts").textContent = LP.saldo ? LP.saldo() : LP.points(); });
 </script>
   <script src="/shared/js/icons.js?v=2"></script>
 </body>

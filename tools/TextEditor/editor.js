@@ -12,7 +12,7 @@
 // ============================================================
 (function () {
 
-  if (localStorage.getItem("isLoggedIn") !== "true") { window.location.replace("../index.html"); return; }
+  if (localStorage.getItem("isLoggedIn") !== "true") { window.location.replace("/index.html"); return; }
   if (typeof LP === "undefined") { document.body.textContent = "Data jalur belajar belum termuat."; return; }
 
   const $ = (id) => document.getElementById(id);
@@ -24,8 +24,8 @@
   let info = null, task = null;
   if (taskId) {
     info = LP.find(taskId);
-    if (!info || info.task.kind !== "code") { window.location.replace("../belajar.html" + (info ? "?task=" + taskId : "")); return; }
-    if (!LP.isUnlocked(taskId)) { window.location.replace("../belajar.html?task=" + taskId); return; }   // belum terbuka → balik (halaman belajar menampilkan info terkunci)
+    if (!info || info.task.kind !== "code") { window.location.replace("/SD/belajar.html" + (info ? "?task=" + taskId : "")); return; }
+    if (!LP.isUnlocked(taskId)) { window.location.replace("/SD/belajar.html?task=" + taskId); return; }   // belum terbuka → balik (halaman belajar menampilkan info terkunci)
     task = info.task;
   }
 
@@ -47,12 +47,14 @@
 
   // ---------- elemen ----------
   const ta = $("src"), hl = $("hl"), frame = $("preview"), note = $("prevNote");
-  const refreshPoints = () => { $("pointsValue").textContent = LP.points(); };
+  const nowPoints = () => (LP.saldo ? LP.saldo() : LP.points());   // sama dengan dashboard & halaman poin (saldo setelah belanja hadiah)
+  const refreshPoints = () => { $("pointsValue").textContent = nowPoints(); };
   refreshPoints();
-  if (task) { $("backLink").href = "../belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar"; }
+  if (LP.loadFromServer) LP.loadFromServer().then((ok) => { if (ok) refreshPoints(); }).catch(() => {});   // ambil poin terbaru dari server
+  if (task) { $("backLink").href = "/SD/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar"; }
   const projectId = params.get("project");      // dibuka dari Project Akhir → kembali ke halaman project-nya
-  if (!task && dari && LP.find(dari)) { $("backLink").href = "../belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task"; }
-  if (!task && projectId && LP.find(projectId)) { $("backLink").href = "../belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir"; }
+  if (!task && dari && LP.find(dari)) { $("backLink").href = "/SD/belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task"; }
+  if (!task && projectId && LP.find(projectId)) { $("backLink").href = "/SD/belajar.html?task=" + projectId; $("backLink").textContent = "← Project Akhir"; }
 
   // ---------- popup ----------
   function popup(o) {
@@ -266,7 +268,7 @@
     const nx = LP.next(taskId);
     const buttons = [];
     if (nx) buttons.push({ label: nx.type === "project" ? "Lanjut ke Project Akhir 🏆" : "Task berikutnya →", cls: "mp-primary", fn: () => { window.location.href = LP.href(nx.id, "TextEditor"); } });
-    buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { window.location.href = "../belajar.html?p=" + info.pemb.id; } });
+    buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { window.location.href = "/SD/belajar.html?p=" + info.pemb.id; } });
     buttons.push({ label: "Lanjut bereksperimen", cls: "mp-secondary" });
     if (already) {
       return popup({ type: "info", emoji: "✅", title: "Sudah selesai!", name: nameLine,
@@ -276,7 +278,7 @@
     refreshPoints();
     let html = '<div class="mp-points"><b>+' + r.earned + "</b> poin</div>";
     if (r.bonus) html += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + r.bonus + "</div>";
-    html += '<p class="mp-info">Total poinmu: <b>⭐ ' + r.total + "</b></p>";
+    html += '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>";
     popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: html, buttons: buttons });
   }
 

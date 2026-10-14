@@ -215,7 +215,875 @@ function playMeowSound(duration = 0.3) {
     audioCtx.currentTime +
       duration
   );
+
+  trackSoundSource(osc);
 }
+
+
+// ============================================================
+// SOUND LIBRARY, PEREKAM SUARA, DAN TAB SOUNDS
+// ============================================================
+// - soundLibrary : daftar suara proyek (Meow bawaan + hasil rekaman)
+// - openSoundRecorder : dialog rekam (MediaRecorder) + trim sebelum disimpan
+// - Tab "Suara" : pilih, ganti nama, potong (trim), putar, dan hapus suara
+// - Blok "play sound" / "start sound" memutar suara yang dipilih di dropdown
+
+const soundLibrary = [
+  { id: "snd-meow", name: "Meow", builtin: true, buffer: null, undoBuffer: null, duration: 0.4 }
+];
+let soundIdCounter = 1;
+let selectedSoundId = "snd-meow";
+const activeSoundNodes = new Set();
+const MAX_RECORD_SECONDS = 600;
+let previewSource = null;
+let previewRaf = 0;
+
+function uniqueSoundName(base, ignoreId) {
+  const clean = String(base || "").trim().slice(0, 40) || "recording1";
+  const taken = new Set(
+    soundLibrary.filter((s) => s.id !== ignoreId).map((s) => s.name)
+  );
+  if (!taken.has(clean)) return clean;
+  const m = clean.match(/^(.*?)(\d+)$/);
+  const stem = m ? m[1] : clean;
+  let n = m ? parseInt(m[2], 10) + 1 : 2;
+  while (taken.has(stem + n)) n++;
+  return stem + n;
+}
+
+function getSoundByName(name) {
+  return soundLibrary.find((s) => s.name === name) || null;
+}
+
+function getSoundOptions() {
+  return [
+    ...soundLibrary.map((s) => ({ label: s.name, value: s.name })),
+    { label: "record...", value: "__record_sound__", isSoundAction: true }
+  ];
+}
+
+// ---------- PEMUTARAN ----------
+
+function trackSoundSource(src) {
+  activeSoundNodes.add(src);
+  src.addEventListener("ended", () => activeSoundNodes.delete(src));
+}
+
+function stopAllSounds() {
+  Array.from(activeSoundNodes).forEach((src) => {
+    try { src.stop(); } catch (e) { /* belum start / sudah berhenti */ }
+  });
+  activeSoundNodes.clear();
+  stopPreview();
+}
+
+function playBufferWithEffects(buffer) {
+  return new Promise((resolve) => {
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = Math.max(
+      0.25,
+      Math.min(4, Math.pow(2, state.soundState.pitch / 100))
+    );
+    const gain = audioCtx.createGain();
+    gain.gain.value = Math.max(0, Math.min(1, state.soundState.volume / 100));
+    src.connect(gain);
+    let last = gain;
+    if (audioCtx.createStereoPanner) {
+      const panner = audioCtx.createStereoPanner();
+      panner.pan.value = Math.max(-1, Math.min(1, state.soundState.pan / 100));
+      gain.connect(panner);
+      last = panner;
+    }
+    last.connect(audioCtx.destination);
+    trackSoundSource(src);
+    src.addEventListener("ended", resolve);
+    src.start();
+  });
+}
+
+function playSoundByName(name, waitUntilDone) {
+  const snd = getSoundByName(name);
+  if (!snd || !audioCtx) return Promise.resolve();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (snd.builtin) {
+    playMeowSound(0.4);
+    return waitUntilDone
+      ? new Promise((resolve) => setTimeout(resolve, 400))
+      : Promise.resolve();
+  }
+  if (!snd.buffer) return Promise.resolve();
+  const playing = playBufferWithEffects(snd.buffer);
+  return waitUntilDone ? playing : Promise.resolve();
+}
+
+// Pratinjau di editor/perekam: tidak terpengaruh volume/pitch/pan blok.
+function stopPreview() {
+  cancelAnimationFrame(previewRaf);
+  if (previewSource) {
+    const s = previewSource;
+    previewSource = null;
+    s.onended = null;
+    try { s.stop(); } catch (e) { /* abaikan */ }
+  }
+}
+
+function playPreview(buffer, startSec, endSec, callbacks) {
+  const { onTick, onEnd } = callbacks || {};
+  stopPreview();
+  if (!audioCtx || !buffer) { if (onEnd) onEnd(); return; }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(audioCtx.destination);
+  const dur = Math.max(0.01, endSec - startSec);
+  const t0 = audioCtx.currentTime;
+  previewSource = src;
+  src.onended = () => {
+    if (previewSource !== src) return;
+    previewSource = null;
+    cancelAnimationFrame(previewRaf);
+    if (onEnd) onEnd();
+  };
+  src.start(0, startSec, dur);
+  const tick = () => {
+    if (previewSource !== src) return;
+    const p = Math.min(1, (audioCtx.currentTime - t0) / dur);
+    if (onTick) onTick(startSec + p * dur);
+    previewRaf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+// ---------- OLAH AUDIO ----------
+
+function sliceBuffer(buf, startSec, endSec) {
+  const sr = buf.sampleRate;
+  const s = Math.max(0, Math.floor(startSec * sr));
+  const e = Math.min(buf.length, Math.ceil(endSec * sr));
+  const len = Math.max(1, e - s);
+  const out = audioCtx.createBuffer(buf.numberOfChannels, len, sr);
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+    out.copyToChannel(buf.getChannelData(ch).slice(s, s + len), ch);
+  }
+  return out;
+}
+
+function decodeBlob(blob) {
+  return blob.arrayBuffer().then(
+    (ab) =>
+      new Promise((resolve, reject) => {
+        const p = audioCtx.decodeAudioData(ab, resolve, reject);
+        if (p && p.catch) p.catch(reject);
+      })
+  );
+}
+
+function pickRecorderMime() {
+  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return "";
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/ogg;codecs=opus"
+  ];
+  return candidates.find((t) => MediaRecorder.isTypeSupported(t)) || "";
+}
+
+function micErrorMessage(err) {
+  switch (err && err.name) {
+    case "NotAllowedError":
+    case "SecurityError":
+      return "Izin mikrofon ditolak. Izinkan akses mikrofon di pengaturan browser, lalu coba lagi.";
+    case "NotFoundError":
+    case "OverconstrainedError":
+      return "Mikrofon tidak ditemukan. Sambungkan mikrofon lalu coba lagi.";
+    case "NotReadableError":
+    case "AbortError":
+      return "Mikrofon sedang dipakai aplikasi lain atau tidak bisa dibuka.";
+    default:
+      return "Tidak bisa mengakses mikrofon.";
+  }
+}
+
+function fmtClock(sec) {
+  const s = Math.max(0, Math.floor(sec));
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+
+// ---------- GAMBAR GELOMBANG ----------
+
+const peakCache = new WeakMap();
+
+function getPeaks(buffer, cols) {
+  let byCols = peakCache.get(buffer);
+  if (!byCols) { byCols = new Map(); peakCache.set(buffer, byCols); }
+  if (byCols.has(cols)) return byCols.get(cols);
+  const data = buffer.getChannelData(0);
+  const step = Math.max(1, Math.floor(data.length / cols));
+  const stride = Math.max(1, Math.floor(step / 64));
+  const out = new Float32Array(cols * 2);
+  for (let c = 0; c < cols; c++) {
+    let mn = 0, mx = 0;
+    const s = c * step;
+    const e = Math.min(data.length, s + step);
+    for (let i = s; i < e; i += stride) {
+      const v = data[i];
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+    out[c * 2] = mn;
+    out[c * 2 + 1] = mx;
+  }
+  byCols.set(cols, out);
+  return out;
+}
+
+function drawWave(canvas, buffer) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(1, Math.round(canvas.clientWidth));
+  const h = Math.max(1, Math.round(canvas.clientHeight));
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#cf63cf";
+  const mid = h / 2;
+  if (!buffer) { ctx.fillRect(0, mid - 0.5, w, 1); return; }
+  const peaks = getPeaks(buffer, w);
+  let max = 0.05;
+  for (let i = 0; i < peaks.length; i++) max = Math.max(max, Math.abs(peaks[i]));
+  const k = (h / 2 - 2) / max;
+  for (let x = 0; x < w; x++) {
+    const mn = peaks[x * 2] * k;
+    const mx = peaks[x * 2 + 1] * k;
+    ctx.fillRect(x, mid - mx, 1, Math.max(1, mx - mn));
+  }
+}
+
+// Gelombang + dua pegangan untuk memotong bagian awal/akhir.
+function createTrimmer(buffer, onChange) {
+  const wrap = document.createElement("div");
+  wrap.className = "trim-wrap";
+  const canvas = document.createElement("canvas");
+  canvas.className = "trim-canvas";
+  const mk = (cls) => {
+    const d = document.createElement("div");
+    d.className = cls;
+    return d;
+  };
+  const shadeL = mk("trim-shade trim-shade-l");
+  const shadeR = mk("trim-shade trim-shade-r");
+  const handleL = mk("trim-handle trim-handle-l");
+  const handleR = mk("trim-handle trim-handle-r");
+  const head = mk("trim-playhead");
+  handleL.tabIndex = 0;
+  handleR.tabIndex = 0;
+  handleL.setAttribute("role", "slider");
+  handleR.setAttribute("role", "slider");
+  handleL.setAttribute("aria-label", "Titik awal potong");
+  handleR.setAttribute("aria-label", "Titik akhir potong");
+  wrap.append(canvas, shadeL, shadeR, handleL, handleR, head);
+
+  let a = 0;
+  let b = 1;
+  const minGap = () => Math.min(0.5, Math.max(0.01, 0.05 / buffer.duration));
+
+  function layout() {
+    shadeL.style.width = a * 100 + "%";
+    shadeR.style.width = (1 - b) * 100 + "%";
+    handleL.style.left = a * 100 + "%";
+    handleR.style.left = b * 100 + "%";
+    handleL.setAttribute("aria-valuenow", (a * buffer.duration).toFixed(2));
+    handleR.setAttribute("aria-valuenow", (b * buffer.duration).toFixed(2));
+  }
+  function redraw() { drawWave(canvas, buffer); layout(); }
+  function move(isLeft, f) {
+    f = Math.min(1, Math.max(0, f));
+    if (isLeft) a = Math.min(f, b - minGap());
+    else b = Math.max(f, a + minGap());
+    layout();
+    if (onChange) onChange();
+  }
+  function bind(h, isLeft) {
+    h.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      h.setPointerCapture(e.pointerId);
+      h.classList.add("dragging");
+    });
+    h.addEventListener("pointermove", (e) => {
+      if (!h.hasPointerCapture(e.pointerId)) return;
+      const r = wrap.getBoundingClientRect();
+      move(isLeft, (e.clientX - r.left) / r.width);
+    });
+    const end = () => h.classList.remove("dragging");
+    h.addEventListener("pointerup", end);
+    h.addEventListener("pointercancel", end);
+    h.addEventListener("keydown", (e) => {
+      const step = e.shiftKey ? 0.05 : 0.01;
+      if (e.key === "ArrowLeft") { e.preventDefault(); move(isLeft, (isLeft ? a : b) - step); }
+      if (e.key === "ArrowRight") { e.preventDefault(); move(isLeft, (isLeft ? a : b) + step); }
+    });
+  }
+  bind(handleL, true);
+  bind(handleR, false);
+  if (window.ResizeObserver) new ResizeObserver(redraw).observe(wrap);
+  layout();
+
+  return {
+    el: wrap,
+    redraw,
+    getRange() {
+      return {
+        start: a * buffer.duration,
+        end: b * buffer.duration,
+        isFull: a === 0 && b === 1
+      };
+    },
+    setPlayhead(sec) {
+      if (sec == null) { head.style.display = "none"; return; }
+      head.style.display = "block";
+      head.style.left = (sec / buffer.duration) * 100 + "%";
+    }
+  };
+}
+
+// Tombol putar/berhenti untuk pratinjau; mengembalikan fungsi reset.
+function wirePreviewButton(btn, buffer, trimmer) {
+  let playing = false;
+  const label = () => { btn.textContent = playing ? "■ Berhenti" : "▶ Putar"; };
+  const reset = () => { playing = false; label(); trimmer.setPlayhead(null); };
+  btn.onclick = () => {
+    if (playing) { stopPreview(); reset(); return; }
+    const r = trimmer.getRange();
+    playing = true;
+    label();
+    playPreview(buffer, r.start, r.end, {
+      onTick: (t) => trimmer.setPlayhead(t),
+      onEnd: reset
+    });
+  };
+  label();
+  return reset;
+}
+
+// ---------- DAFTAR SUARA ----------
+
+function syncSoundDropdowns(rename) {
+  document
+    .querySelectorAll('.custom-dropdown[data-source="sounds"]')
+    .forEach((dd) => {
+      if (rename && dd.dataset.value === rename.from) dd.dataset.value = rename.to;
+      if (dd._rebuildOptions) dd._rebuildOptions(getSoundOptions());
+    });
+}
+
+function refreshSoundPalette() {
+  if (typeof initPalette !== "function" || !paletteScroll) return;
+  const top = paletteScroll.scrollTop;
+  initPalette();
+  paletteScroll.scrollTop = top;
+}
+
+function soundsChanged(rename) {
+  syncSoundDropdowns(rename);
+  refreshSoundPalette();
+  renderSoundsTab();
+}
+
+function addSound({ name, buffer }) {
+  const snd = {
+    id: "snd-" + soundIdCounter++,
+    name: uniqueSoundName(name),
+    builtin: false,
+    buffer,
+    undoBuffer: null,
+    duration: buffer.duration
+  };
+  soundLibrary.push(snd);
+  selectedSoundId = snd.id;
+  soundsChanged();
+  return snd;
+}
+
+function renameSound(id, newName) {
+  const snd = soundLibrary.find((s) => s.id === id);
+  if (!snd) return null;
+  const from = snd.name;
+  snd.name = uniqueSoundName(newName, id);
+  soundsChanged(from !== snd.name ? { from, to: snd.name } : undefined);
+  return snd.name;
+}
+
+function deleteSound(id) {
+  const idx = soundLibrary.findIndex((s) => s.id === id);
+  if (idx < 0) return;
+  stopAllSounds();
+  soundLibrary.splice(idx, 1);
+  if (selectedSoundId === id) {
+    const next = soundLibrary[Math.min(idx, soundLibrary.length - 1)];
+    selectedSoundId = next ? next.id : null;
+  }
+  soundsChanged();
+}
+
+function resetSoundLibrary() {
+  stopAllSounds();
+  soundLibrary.length = 0;
+  soundLibrary.push({
+    id: "snd-meow", name: "Meow", builtin: true,
+    buffer: null, undoBuffer: null, duration: 0.4
+  });
+  selectedSoundId = "snd-meow";
+  setTimeout(soundsChanged, 0);
+}
+
+function confirmDeleteSound(snd) {
+  if (window.confirm('Hapus suara "' + snd.name + '"?')) deleteSound(snd.id);
+}
+
+// ---------- DIALOG REKAM ----------
+
+function openSoundRecorder(onSaved) {
+  stopPreview();
+  const overlay = document.createElement("div");
+  overlay.className = "scratch-dialog-overlay";
+  overlay.innerHTML = `
+    <div class="scratch-dialog-card sound-rec-card" role="dialog" aria-modal="true" aria-label="Rekam Suara">
+      <div class="scratch-dialog-title"><span>Rekam Suara</span><button type="button" class="scratch-dialog-close" aria-label="Tutup">×</button></div>
+      <div class="scratch-dialog-body sound-rec-body">
+        <div class="sound-rec-status" aria-live="polite">Klik Rekam, lalu bicara ke mikrofon.</div>
+        <div class="sound-rec-meter"><div class="sound-rec-meter-fill"></div></div>
+        <div class="sound-rec-time">0:00</div>
+        <div class="sound-rec-stage" hidden></div>
+        <div class="sound-rec-name-row" hidden><label>Nama:</label><input class="sound-edit-name sound-rec-name" type="text" maxlength="40" autocomplete="off"></div>
+        <div class="sound-rec-actions">
+          <button type="button" class="snd-btn snd-rec sr-record">● Rekam</button>
+          <button type="button" class="snd-btn snd-rec sr-stop" hidden>■ Berhenti</button>
+          <button type="button" class="snd-btn sr-play" hidden>▶ Putar</button>
+          <button type="button" class="snd-btn secondary sr-again" hidden>↺ Rekam ulang</button>
+          <span class="sound-rec-spacer"></span>
+          <button type="button" class="snd-btn secondary sr-cancel">Batal</button>
+          <button type="button" class="snd-btn sr-save" hidden>Simpan</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const $ = (sel) => overlay.querySelector(sel);
+  const statusEl = $(".sound-rec-status");
+  const meterEl = $(".sound-rec-meter");
+  const meterFill = $(".sound-rec-meter-fill");
+  const timeEl = $(".sound-rec-time");
+  const stageEl = $(".sound-rec-stage");
+  const nameRow = $(".sound-rec-name-row");
+  const nameInput = $(".sound-rec-name");
+  const btnRec = $(".sr-record");
+  const btnStop = $(".sr-stop");
+  const btnPlay = $(".sr-play");
+  const btnAgain = $(".sr-again");
+  const btnSave = $(".sr-save");
+
+  let closed = false;
+  let stream = null;
+  let recorder = null;
+  let chunks = [];
+  let timerId = 0;
+  let startedAt = 0;
+  let analyser = null;
+  let srcNode = null;
+  let meterData = null;
+  let buffer = null;
+  let trimmer = null;
+  let resetPlayBtn = null;
+
+  function setMode(m) {
+    btnRec.hidden = m !== "idle";
+    btnStop.hidden = m !== "recording";
+    meterEl.hidden = m === "review";
+    stageEl.hidden = m !== "review";
+    nameRow.hidden = m !== "review";
+    btnPlay.hidden = m !== "review";
+    btnAgain.hidden = m !== "review";
+    btnSave.hidden = m !== "review";
+  }
+
+  function cleanupCapture() {
+    clearInterval(timerId);
+    timerId = 0;
+    try { if (srcNode) srcNode.disconnect(); } catch (e) { /* abaikan */ }
+    srcNode = null;
+    analyser = null;
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+    }
+    meterFill.style.width = "0%";
+  }
+
+  function close() {
+    if (closed) return;
+    closed = true;
+    stopPreview();
+    if (recorder && recorder.state !== "inactive") {
+      recorder.onstop = null;
+      try { recorder.stop(); } catch (e) { /* abaikan */ }
+    }
+    cleanupCapture();
+    document.removeEventListener("keydown", onKey);
+    overlay.remove();
+  }
+
+  function onKey(e) {
+    if (e.key === "Escape") close();
+  }
+  document.addEventListener("keydown", onKey);
+
+  async function startRec() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      statusEl.textContent = window.isSecureContext === false
+        ? "Perekaman butuh koneksi aman (https atau localhost)."
+        : "Browser ini tidak mendukung akses mikrofon.";
+      return;
+    }
+    if (!window.MediaRecorder || !audioCtx) {
+      statusEl.textContent = "Browser ini tidak mendukung perekaman audio.";
+      return;
+    }
+    btnRec.disabled = true;
+    statusEl.textContent = "Meminta izin mikrofon…";
+    let s;
+    try {
+      s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      btnRec.disabled = false;
+      if (!closed) statusEl.textContent = micErrorMessage(err);
+      return;
+    }
+    btnRec.disabled = false;
+    if (closed) { s.getTracks().forEach((t) => t.stop()); return; }
+    stream = s;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    const mime = pickRecorderMime();
+    try {
+      recorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
+    } catch (err) {
+      cleanupCapture();
+      statusEl.textContent = "Perekaman tidak bisa dimulai di browser ini.";
+      return;
+    }
+    chunks = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size) chunks.push(e.data);
+    };
+    recorder.onstop = async () => {
+      const type = recorder.mimeType || mime || "audio/webm";
+      cleanupCapture();
+      if (closed) return;
+      const blob = new Blob(chunks, { type });
+      chunks = [];
+      statusEl.textContent = "Memproses rekaman…";
+      try { buffer = await decodeBlob(blob); } catch (err) { buffer = null; }
+      if (closed) return;
+      if (!buffer || buffer.duration < 0.05) {
+        statusEl.textContent = buffer
+          ? "Rekaman terlalu pendek. Coba lagi."
+          : "Rekaman tidak bisa diproses. Coba lagi.";
+        buffer = null;
+        timeEl.textContent = "0:00";
+        btnStop.disabled = false;
+        setMode("idle");
+        return;
+      }
+      showReview();
+    };
+
+    try {
+      srcNode = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024;
+      srcNode.connect(analyser); // tidak disambung ke speaker (hindari gema)
+      meterData = new Uint8Array(analyser.fftSize);
+    } catch (err) {
+      analyser = null;
+    }
+
+    recorder.start(250);
+    startedAt = performance.now();
+    btnStop.disabled = false;
+    statusEl.textContent = "Sedang merekam…";
+    timeEl.textContent = "0:00";
+    setMode("recording");
+    timerId = setInterval(() => {
+      const elapsed = (performance.now() - startedAt) / 1000;
+      timeEl.textContent = fmtClock(elapsed);
+      if (analyser) {
+        analyser.getByteTimeDomainData(meterData);
+        let sum = 0;
+        for (let i = 0; i < meterData.length; i++) {
+          const x = (meterData[i] - 128) / 128;
+          sum += x * x;
+        }
+        meterFill.style.width =
+          Math.min(100, Math.round(Math.sqrt(sum / meterData.length) * 220)) + "%";
+      }
+      if (elapsed >= MAX_RECORD_SECONDS) stopRec();
+    }, 60);
+  }
+
+  function stopRec() {
+    if (recorder && recorder.state !== "inactive") {
+      btnStop.disabled = true;
+      statusEl.textContent = "Memproses rekaman…";
+      recorder.stop();
+    }
+  }
+
+  function showReview() {
+    stageEl.innerHTML = "";
+    trimmer = createTrimmer(buffer, () => {
+      stopPreview();
+      if (resetPlayBtn) resetPlayBtn();
+    });
+    stageEl.appendChild(trimmer.el);
+    resetPlayBtn = wirePreviewButton(btnPlay, buffer, trimmer);
+    nameInput.value = uniqueSoundName("recording1");
+    timeEl.textContent = fmtClock(buffer.duration);
+    statusEl.textContent = "Geser pegangan ungu untuk memotong bagian awal atau akhir.";
+    setMode("review");
+    nameInput.focus();
+    nameInput.select();
+  }
+
+  btnRec.addEventListener("click", startRec);
+  btnStop.addEventListener("click", stopRec);
+  btnAgain.addEventListener("click", () => {
+    stopPreview();
+    buffer = null;
+    timeEl.textContent = "0:00";
+    statusEl.textContent = "Klik Rekam, lalu bicara ke mikrofon.";
+    setMode("idle");
+  });
+  btnSave.addEventListener("click", () => {
+    if (!buffer || !trimmer) return;
+    stopPreview();
+    const r = trimmer.getRange();
+    const out = r.isFull ? buffer : sliceBuffer(buffer, r.start, r.end);
+    const snd = addSound({ name: nameInput.value, buffer: out });
+    close();
+    if (onSaved) onSaved(snd);
+  });
+  nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") btnSave.click();
+  });
+  $(".sr-cancel").addEventListener("click", close);
+  $(".scratch-dialog-close").addEventListener("click", close);
+  setMode("idle");
+  btnRec.focus();
+}
+
+// ---------- TAB SUARA ----------
+
+function renderSoundsTab() {
+  const panel = document.getElementById("sounds-panel");
+  const listEl = document.getElementById("sounds-list");
+  const editorEl = document.getElementById("sounds-editor");
+  if (!panel || panel.hidden || !listEl || !editorEl) return;
+  stopPreview();
+
+  if (!soundLibrary.some((s) => s.id === selectedSoundId)) {
+    selectedSoundId = soundLibrary[0] ? soundLibrary[0].id : null;
+  }
+
+  listEl.innerHTML = "";
+  if (!soundLibrary.length) {
+    listEl.innerHTML =
+      '<div class="sounds-empty">Belum ada suara.<br>Klik tombol Rekam di bawah.</div>';
+  }
+  soundLibrary.forEach((snd, i) => {
+    const item = document.createElement("div");
+    item.className = "sound-item" + (snd.id === selectedSoundId ? " selected" : "");
+    item.tabIndex = 0;
+    item.setAttribute("role", "button");
+    item.setAttribute("aria-pressed", String(snd.id === selectedSoundId));
+
+    const head = document.createElement("div");
+    head.className = "sound-item-head";
+    const num = document.createElement("span");
+    num.className = "sound-item-num";
+    num.textContent = String(i + 1);
+    const nm = document.createElement("span");
+    nm.className = "sound-item-name";
+    nm.textContent = snd.name;
+    head.append(num, nm);
+
+    const thumb = document.createElement("canvas");
+    thumb.className = "sound-item-thumb";
+
+    const dur = document.createElement("div");
+    dur.className = "sound-item-dur";
+    dur.textContent = snd.duration.toFixed(2) + " dtk";
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "sound-item-del";
+    del.title = "Hapus suara";
+    del.setAttribute("aria-label", "Hapus suara " + snd.name);
+    del.textContent = "🗑";
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      confirmDeleteSound(snd);
+    });
+
+    const select = () => {
+      if (selectedSoundId === snd.id) return;
+      selectedSoundId = snd.id;
+      renderSoundsTab();
+    };
+    item.addEventListener("click", select);
+    item.addEventListener("keydown", (e) => {
+      if (e.target !== item) return;
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(); }
+    });
+
+    item.append(head, thumb, dur, del);
+    listEl.appendChild(item);
+    drawWave(thumb, snd.buffer);
+  });
+
+  renderSoundEditor(editorEl);
+}
+
+function renderSoundEditor(editorEl) {
+  editorEl.innerHTML = "";
+  const snd = soundLibrary.find((s) => s.id === selectedSoundId);
+  if (!snd) {
+    editorEl.innerHTML =
+      '<div class="sounds-empty">Rekam suara untuk mulai mengedit.</div>';
+    return;
+  }
+
+  const nameRow = document.createElement("div");
+  nameRow.className = "sound-edit-row";
+  const nameLabel = document.createElement("label");
+  nameLabel.textContent = "Nama";
+  const nameInput = document.createElement("input");
+  nameInput.className = "sound-edit-name";
+  nameInput.type = "text";
+  nameInput.maxLength = 40;
+  nameInput.value = snd.name;
+  nameInput.autocomplete = "off";
+  nameInput.addEventListener("change", () => {
+    const v = nameInput.value.trim();
+    if (!v) { nameInput.value = snd.name; return; }
+    if (v !== snd.name) renameSound(snd.id, v);
+  });
+  nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") nameInput.blur();
+  });
+  nameLabel.appendChild(nameInput);
+  nameRow.appendChild(nameLabel);
+  editorEl.appendChild(nameRow);
+
+  const info = document.createElement("div");
+  info.className = "sound-edit-info";
+  info.textContent =
+    snd.duration.toFixed(2) + " detik" + (snd.builtin ? " · suara bawaan" : "");
+  editorEl.appendChild(info);
+
+  const actions = document.createElement("div");
+  actions.className = "sound-edit-actions";
+  const mkBtn = (text, cls) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "snd-btn" + (cls ? " " + cls : "");
+    b.textContent = text;
+    return b;
+  };
+  const btnPlay = mkBtn("▶ Putar");
+  const btnDelete = mkBtn("🗑 Hapus", "danger");
+  btnDelete.addEventListener("click", () => confirmDeleteSound(snd));
+
+  if (snd.buffer) {
+    const btnTrim = mkBtn("✂ Potong", "secondary");
+    const btnUndo = mkBtn("↶ Urungkan", "secondary");
+    btnTrim.disabled = true;
+    btnUndo.disabled = !snd.undoBuffer;
+
+    let resetPlay = null;
+    const trimmer = createTrimmer(snd.buffer, () => {
+      stopPreview();
+      if (resetPlay) resetPlay();
+      btnTrim.disabled = trimmer.getRange().isFull;
+    });
+    resetPlay = wirePreviewButton(btnPlay, snd.buffer, trimmer);
+    editorEl.appendChild(trimmer.el);
+
+    const hint = document.createElement("div");
+    hint.className = "sound-edit-hint";
+    hint.textContent =
+      "Geser pegangan ungu di kiri/kanan, lalu klik Potong untuk membuang bagian di luar pegangan.";
+    editorEl.appendChild(hint);
+
+    btnTrim.addEventListener("click", () => {
+      const r = trimmer.getRange();
+      if (r.isFull) return;
+      stopPreview();
+      snd.undoBuffer = snd.buffer;
+      snd.buffer = sliceBuffer(snd.buffer, r.start, r.end);
+      snd.duration = snd.buffer.duration;
+      renderSoundsTab();
+    });
+    btnUndo.addEventListener("click", () => {
+      if (!snd.undoBuffer) return;
+      stopPreview();
+      snd.buffer = snd.undoBuffer;
+      snd.duration = snd.buffer.duration;
+      snd.undoBuffer = null;
+      renderSoundsTab();
+    });
+    actions.append(btnPlay, btnTrim, btnUndo, btnDelete);
+  } else {
+    btnPlay.addEventListener("click", () => playSoundByName(snd.name, false));
+    const note = document.createElement("div");
+    note.className = "sound-edit-hint";
+    note.textContent =
+      "Suara bawaan dibuat secara sintetis sehingga tidak bisa dipotong. Rekam suara baru untuk memakai fitur potong.";
+    editorEl.appendChild(note);
+    actions.append(btnPlay, btnDelete);
+  }
+  editorEl.appendChild(actions);
+}
+
+function initSoundsTab() {
+  const tabCode = document.getElementById("tab-code");
+  const tabSounds = document.getElementById("tab-sounds");
+  const panel = document.getElementById("sounds-panel");
+  const codeArea = document.getElementById("script-area");
+  const recordBtn = document.getElementById("sounds-record-btn");
+  if (!tabCode || !tabSounds || !panel || !codeArea) return;
+
+  function showTab(which) {
+    const sounds = which === "sounds";
+    tabCode.classList.toggle("active", !sounds);
+    tabSounds.classList.toggle("active", sounds);
+    tabCode.setAttribute("aria-selected", String(!sounds));
+    tabSounds.setAttribute("aria-selected", String(sounds));
+    codeArea.style.display = sounds ? "none" : "";
+    panel.hidden = !sounds;
+    if (sounds) renderSoundsTab();
+    else stopPreview();
+  }
+  tabCode.addEventListener("click", () => showTab("code"));
+  tabSounds.addEventListener("click", () => showTab("sounds"));
+  if (recordBtn) recordBtn.addEventListener("click", () => openSoundRecorder());
+}
+
+initSoundsTab();
 
 
 // ============================================================
@@ -237,6 +1105,9 @@ const userBadge =
 const userDisplayName =
   document.getElementById("user-display-name");
 
+// Lokasi dashboard dari tools/Scratch/. Ubah di sini kalau letak dashboard.html berbeda.
+const DASHBOARD_URL = "../../dashboard/dashboard.html";
+
 const logoutBtn =
   document.getElementById("logout-btn");
 
@@ -253,7 +1124,7 @@ function checkAuth() {
 
   if (!isLoggedIn || !savedUser) {
     // Belum login -> kembali ke halaman login
-    window.location.replace("../index.html");
+    window.location.replace("/index.html");
     return;
   }
 
@@ -354,7 +1225,7 @@ if (logoutBtn) {
       const pj = qs.get("project") || qs.get("dari");
       if (pj && typeof state !== "undefined" && state.stacks.some(s => s && s.blocks && s.blocks.length) &&
           !confirm("Blok yang kamu susun belum tersimpan dan akan hilang kalau kamu kembali.\n\nSudah ambil foto atau screenshot hasilmu? Tekan OK untuk kembali.")) return;
-      window.location.href = (pj && typeof LP !== "undefined" && LP.find(pj)) ? "../belajar.html?task=" + pj : "../dashboard.html";
+      window.location.href = (pj && typeof LP !== "undefined" && LP.find(pj)) ? "/SD/belajar.html?task=" + pj : DASHBOARD_URL;
     }
   );
 }
@@ -735,14 +1606,11 @@ const blockDefinitions = [
     cat: "sound",
     type: "play_sound_until_done",
     text: "play sound [menu] until done",
+    optionsSource: "sounds",
     options: [
       {
         label: "Meow",
         value: "Meow"
-      },
-      {
-        label: "record",
-        value: "record"
       }
     ]
   },
@@ -751,14 +1619,11 @@ const blockDefinitions = [
     cat: "sound",
     type: "start_sound",
     text: "start sound [menu]",
+    optionsSource: "sounds",
     options: [
       {
         label: "Meow",
         value: "Meow"
-      },
-      {
-        label: "record",
-        value: "record"
       }
     ]
   },
@@ -2890,6 +3755,9 @@ function getDynamicOptions(def) {
   if (def.optionsSource === "myblocks") {
     return Object.keys(state.myBlocks || {}).map(name => ({label:name, value:name}));
   }
+  if (def.optionsSource === "sounds") {
+    return getSoundOptions();
+  }
   if (def.optionsSource === "broadcasts") {
     const messages = Array.isArray(state.broadcastMessages) && state.broadcastMessages.length ? state.broadcastMessages : ["message1"];
     return [...messages.map(name => ({label:name, value:name})), {label:"new message", value:"__new_message__"}];
@@ -2922,8 +3790,12 @@ function createCustomDropdown(
   const firstOption =
     def.options &&
     def.options.length
-      ? def.options[0]
+      ? (def.options.find((o) => !o.isSoundAction) || null)
       : null;
+
+  if (def.optionsSource === "sounds") {
+    dropdown.dataset.source = "sounds";
+  }
 
   dropdown.dataset.value =
     firstOption
@@ -2949,7 +3821,7 @@ function createCustomDropdown(
   selected.textContent =
     firstOption
       ? firstOption.label
-      : "";
+      : (def.optionsSource === "sounds" ? "—" : "");
 
   selected.style.backgroundColor =
     categoryColor;
@@ -2987,12 +3859,9 @@ function createCustomDropdown(
     menu;
 
 
-  if (
-    def.options &&
-    def.options.length
-  ) {
+  function buildMenuOptions(optionList) {
 
-    def.options.forEach(
+    optionList.forEach(
       (option) => {
 
         const optionElement =
@@ -3046,6 +3915,15 @@ function createCustomDropdown(
               return;
             }
 
+            if (def.optionsSource === "sounds" && option.value === "__record_sound__") {
+              closeAllDropdowns();
+              openSoundRecorder((snd) => {
+                dropdown.dataset.value = snd.name;
+                selected.textContent = snd.name;
+              });
+              return;
+            }
+
             if (def.optionsSource === "broadcasts" && option.value === "__new_message__") {
               const message = window.prompt("New Message", "");
               const clean = String(message || "").trim();
@@ -3087,6 +3965,24 @@ function createCustomDropdown(
     );
   }
 
+  if (def.options && def.options.length) {
+    buildMenuOptions(def.options);
+  }
+
+  dropdown._rebuildOptions = (list) => {
+    menu.innerHTML = "";
+    buildMenuOptions(list);
+    const current = list.find(
+      (o) => !o.isSoundAction && o.value === dropdown.dataset.value
+    );
+    if (current) {
+      selected.textContent = current.label;
+    } else {
+      const fallback = list.find((o) => !o.isSoundAction);
+      dropdown.dataset.value = fallback ? fallback.value : "";
+      selected.textContent = fallback ? fallback.label : "—";
+    }
+  };
 
   function toggleDropdown(e) {
 
@@ -7046,14 +7942,9 @@ switch (
 
   case "play_sound_until_done": {
 
-    playMeowSound(0.4);
-
-    await new Promise(
-      (resolve) =>
-        setTimeout(
-          resolve,
-          400
-        )
+    await playSoundByName(
+      selectedOption,
+      true
     );
 
     break;
@@ -7062,7 +7953,10 @@ switch (
 
   case "start_sound": {
 
-    playMeowSound(0.4);
+    playSoundByName(
+      selectedOption,
+      false
+    );
 
     break;
   }
@@ -7070,13 +7964,7 @@ switch (
 
   case "stop_all_sounds": {
 
-    if (
-      audioCtx &&
-      audioCtx.state === "running"
-    ) {
-
-      await audioCtx.suspend();
-    }
+    stopAllSounds();
 
     break;
   }
@@ -8158,6 +9046,8 @@ if (stopBtn) {
     "click",
     () => {
 
+      stopAllSounds();
+
       state.isRunning =
         false;
 
@@ -8226,6 +9116,7 @@ function resetProjectState() {
       "backdrop1"
   };
   // Reset sound
+  resetSoundLibrary();
   state.soundState = {
     volume: 100,
     pitch: 0,
@@ -8962,6 +9853,38 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   const TEXT_BLOCKS = ["say", "say_for_secs", "think", "think_for_secs"];
   const countText = (i) => i.types.filter(t => TEXT_BLOCKS.includes(t)).length;
   const G_FLAG = { text: "Pakai blok \"when 🚩 clicked\"", test: () => flagStacks().length > 0 };
+  // ---- pembantu untuk syarat task Tahap 1 (p2–p5) dan Tahap 2 Game (g1) ----
+  const inside = (b) => { const o = []; (b.branches || []).forEach(br => flatBlocks(br, o)); return o; };
+  const inVals = (b) => (b && b.element ? getOwnInputs(b.element).map(x => x.value) : []);
+  const num = (b) => Number(getBlockInputValue(b));
+  const ddVal = (b) => { const d = b && b.element ? getOwnDropdown(b.element) : null; return d ? d.dataset.value : null; };
+  function reporterTypes(b) {                       // semua reporter/kondisi yang dipasang di slot milik blok b (rekursif)
+    const out = [];
+    const walk = (el) => getOwnInputs(el).forEach(inp => { const r = inp._reporterData; if (r) { out.push(r.type); if (r.element) walk(r.element); } });
+    if (b && b.element) walk(b.element);
+    return out;
+  }
+  const LOOPS = ["repeat", "forever", "repeat_until"];
+  const IFS = ["if", "if_else"];
+  const CMP = ["op_gt", "op_lt", "op_eq"];
+  const SENSE_COND = ["key_pressed", "touching", "touching_color", "color_touching_color", "mouse_down"];
+  const COLOR_FX = ["change_graphic_effect", "set_graphic_effect"];
+  const SIZE_FX = ["change_size", "set_size"];
+  const SAY = ["say", "say_for_secs", "think", "think_for_secs"];
+  const hatStacks = (hat) => stacksInfo().filter(i => i.hat === hat);
+  const keyStacks = () => hatStacks("when_key_pressed");
+  const clickStacks = () => hatStacks("when_sprite_clicked");
+  const recvStacks = () => hatStacks("when_receive");
+  const distinctKeys = (list) => new Set(list.map(i => ddVal(i.blocks[0]))).size;
+  const loopsOf = (i) => i.blocks.filter(b => LOOPS.includes(b.type));
+  const loopHas = (i, fn) => loopsOf(i).some(l => fn(inside(l)));
+  const anyOf = (arr, list) => arr.some(b => list.includes(b.type));
+  const sendsMsg = (i) => i.blocks.filter(b => b.type === "broadcast" || b.type === "broadcast_wait").map(ddVal);
+  const receivedFromFlag = (fn) => {                // ada broadcast di bendera, dan rangkaian "when I receive" pesan yang sama memenuhi fn
+    const sent = new Set(); flagStacks().forEach(i => sendsMsg(i).forEach(m => sent.add(m)));
+    return recvStacks().some(r => sent.has(ddVal(r.blocks[0])) && fn(r));
+  };
+  const G_RUN_FLAG = G_FLAG;
   const EDITOR_GOALS = {
     "p1-t1": [G_FLAG,
       { text: "Sambungkan blok \"move 10 steps\" di bawahnya", test: () => someFlag(i => i.types.includes("move_steps")) }],
@@ -8978,6 +9901,123 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
       { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) },
       { text: "Ada blok suara (Sound)", test: () => someFlag(i => hasAny(i, SOUND)) },
       { text: "Semuanya digabung dalam satu rangkaian", test: () => someFlag(i => hasAny(i, MOTION) && hasAny(i, BACKDROP_BLOCKS) && countText(i) >= 1 && hasAny(i, SOUND)) }]
+    ,
+    // ---------- Tahap 1 • Pembelajaran 2: Seni dari Komputer ----------
+    "p2-t1": [G_FLAG,
+      { text: "Ada minimal 2 blok color effect", test: () => someFlag(i => i.blocks.filter(b => COLOR_FX.includes(b.type)).length >= 2) },
+      { text: "Ada blok \"wait\" di rangkaian yang sama", test: () => someFlag(i => hasAny(i, COLOR_FX) && i.types.includes("wait_secs")) }],
+    "p2-t2": [G_FLAG,
+      { text: "Ada blok \"turn\" di dalam blok \"repeat\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["turn_right", "turn_left"]))) },
+      { text: "Putarannya sampai 360 derajat (ulangan × sudut)", test: () => someFlag(i => loopsOf(i).some(l => l.type === "repeat" && num(l) * inside(l).filter(b => b.type === "turn_right" || b.type === "turn_left").reduce((a, b) => a + Math.abs(num(b) || 0), 0) >= 360)) }],
+    "p2-t3": [G_FLAG,
+      { text: "Ada blok \"repeat\"", test: () => someFlag(i => loopsOf(i).length > 0) },
+      { text: "Di dalam repeat ada blok color effect", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, COLOR_FX))) },
+      { text: "Di dalam repeat ada blok \"wait\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["wait_secs"]))) }],
+    "p2-t4": [G_FLAG,
+      { text: "Ada minimal 3 blok \"glide\"", test: () => someFlag(i => i.blocks.filter(b => b.type === "glide_xy").length >= 3) },
+      { text: "Tujuan (x dan y) ketiganya berbeda", test: () => someFlag(i => new Set(i.blocks.filter(b => b.type === "glide_xy").map(b => inVals(b).slice(1, 3).join(","))).size >= 3) }],
+    "p2-t5": [G_FLAG,
+      { text: "Ada blok ganti latar", test: () => someFlag(i => hasAny(i, BACKDROP_BLOCKS)) },
+      { text: "Ada repeat berisi blok Motion", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, MOTION))) },
+      { text: "Di dalam repeat juga ada blok color effect atau size", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, COLOR_FX.concat(SIZE_FX)))) },
+      { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) }],
+
+    // ---------- Tahap 1 • Pembelajaran 3: Memahat Tanah Liat ----------
+    "p3-t1": [G_FLAG,
+      { text: "Pakai blok \"when key pressed\"", test: () => keyStacks().length > 0 },
+      { text: "Tersambung ke blok Motion", test: () => keyStacks().some(i => hasAny(i, MOTION)) }],
+    "p3-t2": [G_FLAG,
+      { text: "Ada 4 blok \"when key pressed\"", test: () => keyStacks().length >= 4 },
+      { text: "Tombolnya berbeda-beda", test: () => distinctKeys(keyStacks()) >= 4 },
+      { text: "Masing-masing tersambung ke blok Motion", test: () => keyStacks().filter(i => hasAny(i, MOTION)).length >= 4 }],
+    "p3-t3": [G_FLAG,
+      { text: "Pakai blok \"when this sprite clicked\"", test: () => clickStacks().length > 0 },
+      { text: "Tersambung ke minimal 2 blok Looks", test: () => clickStacks().some(i => i.blocks.filter(b => LOOKS.includes(b.type)).length >= 2) }],
+    "p3-t4": [G_FLAG,
+      { text: "Satu tombol membesarkan karakter (angka positif)", test: () => keyStacks().some(i => i.blocks.some(b => b.type === "change_size" && num(b) > 0)) },
+      { text: "Tombol lain mengecilkan karakter (angka negatif)", test: () => keyStacks().some(i => i.blocks.some(b => b.type === "change_size" && num(b) < 0)) },
+      { text: "Kedua tombolnya berbeda", test: () => { const k = keyStacks(); const up = new Set(k.filter(i => i.blocks.some(b => b.type === "change_size" && num(b) > 0)).map(i => ddVal(i.blocks[0]))); const dn = new Set(k.filter(i => i.blocks.some(b => b.type === "change_size" && num(b) < 0)).map(i => ddVal(i.blocks[0]))); return [...up].some(a => [...dn].some(b => a !== b)); } }],
+    "p3-t5": [G_FLAG,
+      { text: "Ada 2 tombol berbeda yang menggerakkan karakter", test: () => distinctKeys(keyStacks().filter(i => hasAny(i, MOTION))) >= 2 },
+      { text: "Ada klik sprite yang mengubah tampilan (Looks)", test: () => clickStacks().some(i => hasAny(i, LOOKS)) },
+      { text: "Ada blok Sound di salah satu rangkaian", test: () => keyStacks().concat(clickStacks()).some(i => hasAny(i, SOUND)) }],
+
+    // ---------- Tahap 1 • Pembelajaran 4: Mendesain Rumah ----------
+    "p4-t1": [G_FLAG,
+      { text: "Ada blok \"set variable\" di bawah bendera", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Nilainya ditampilkan (show variable, atau variabel di dalam say)", test: () => someFlag(i => i.types.includes("show_var") || i.blocks.some(b => SAY.includes(b.type) && reporterTypes(b).includes("var_reporter"))) }],
+    "p4-t2": [G_FLAG,
+      { text: "Ada blok \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Ada repeat berisi \"change variable\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["change_var"]))) },
+      { text: "Hasilnya diucapkan dengan say (blok variabel di dalam say)", test: () => someFlag(i => i.blocks.some(b => SAY.includes(b.type) && reporterTypes(b).includes("var_reporter"))) }],
+    "p4-t3": [G_FLAG,
+      { text: "Ada blok \"if\" di dalam repeat", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, IFS))) },
+      { text: "Syaratnya dari Sensing (misalnya key pressed?)", test: () => someFlag(i => loopsOf(i).some(l => inside(l).some(b => IFS.includes(b.type) && reporterTypes(b).some(t => SENSE_COND.includes(t))))) },
+      { text: "Di dalam if ada blok Motion atau Looks", test: () => someFlag(i => loopsOf(i).some(l => inside(l).some(b => IFS.includes(b.type) && (anyOf(inside(b), MOTION) || anyOf(inside(b), LOOKS))))) }],
+    "p4-t4": [G_FLAG,
+      { text: "Ada blok \"if-else\"", test: () => stacksInfo().some(i => i.types.includes("if_else")) },
+      { text: "Syaratnya perbandingan (>, <, atau =)", test: () => stacksInfo().some(i => i.blocks.some(b => b.type === "if_else" && reporterTypes(b).some(t => CMP.includes(t)))) },
+      { text: "Kedua jalurnya berisi blok", test: () => stacksInfo().some(i => i.blocks.some(b => b.type === "if_else" && (b.branches || []).length >= 2 && b.branches[0].length > 0 && b.branches[1].length > 0)) },
+      { text: "Salah satunya mengganti latar", test: () => stacksInfo().some(i => i.blocks.some(b => b.type === "if_else" && anyOf(inside(b), BACKDROP_BLOCKS))) }],
+    "p4-t5": [G_FLAG,
+      { text: "Ada blok \"set variable\"", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Ada repeat berisi \"change variable\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["change_var"]))) },
+      { text: "Ada if yang membandingkan variabel", test: () => someFlag(i => i.blocks.some(b => IFS.includes(b.type) && reporterTypes(b).some(t => CMP.includes(t)) && reporterTypes(b).includes("var_reporter"))) },
+      { text: "Ada blok bicara (say / think)", test: () => someFlag(i => countText(i) >= 1) }],
+
+    // ---------- Tahap 1 • Pembelajaran 5: Animasi ala Peppa Pig ----------
+    "p5-t1": [G_FLAG,
+      { text: "Ada blok \"broadcast\" di bawah bendera", test: () => someFlag(i => sendsMsg(i).length > 0) },
+      { text: "Ada \"when I receive\" dengan pesan yang sama", test: () => receivedFromFlag(() => true) },
+      { text: "Rangkaian itu berisi say atau think", test: () => receivedFromFlag(r => countText(r) >= 1) }],
+    "p5-t2": [G_FLAG,
+      { text: "Ada blok \"broadcast\" di bawah bendera", test: () => someFlag(i => sendsMsg(i).length > 0) },
+      { text: "\"when I receive\" berisi ganti latar", test: () => receivedFromFlag(r => hasAny(r, BACKDROP_BLOCKS)) },
+      { text: "Ada say for seconds atau wait", test: () => receivedFromFlag(r => r.types.includes("say_for_secs") || r.types.includes("wait_secs")) }],
+    "p5-t3": [G_FLAG,
+      { text: "Ada blok \"ask and wait\"", test: () => someFlag(i => i.types.includes("ask_wait")) },
+      { text: "Ada say yang memakai \"join\"", test: () => someFlag(i => i.blocks.some(b => SAY.includes(b.type) && reporterTypes(b).includes("op_join"))) },
+      { text: "Di dalam join ada blok \"answer\"", test: () => someFlag(i => i.blocks.some(b => SAY.includes(b.type) && reporterTypes(b).includes("op_join") && reporterTypes(b).includes("answer"))) }],
+    "p5-t4": [G_FLAG,
+      { text: "Ada blok \"broadcast\" di bawah bendera", test: () => someFlag(i => sendsMsg(i).length > 0) },
+      { text: "\"when I receive\" berisi repeat dengan blok Motion", test: () => receivedFromFlag(r => loopHas(r, ins => anyOf(ins, MOTION))) },
+      { text: "Ada blok Sound", test: () => receivedFromFlag(r => hasAny(r, SOUND)) }],
+    "p5-t5": [G_FLAG,
+      { text: "Ada 2 pesan berbeda yang diterima 2 rangkaian \"when I receive\"", test: () => new Set(recvStacks().map(r => ddVal(r.blocks[0]))).size >= 2 },
+      { text: "Ada ganti latar", test: () => recvStacks().some(r => hasAny(r, BACKDROP_BLOCKS)) },
+      { text: "Ada blok bicara (say / think)", test: () => recvStacks().some(r => countText(r) >= 1) },
+      { text: "Ada blok Sound", test: () => recvStacks().some(r => hasAny(r, SOUND)) },
+      { text: "Ada repeat", test: () => recvStacks().some(r => loopsOf(r).length > 0) }],
+
+    // ---------- Tahap 2 • Game Development ----------
+    "g1-t1": [G_FLAG,
+      { text: "Ada blok \"repeat\" di bawah bendera", test: () => someFlag(i => loopsOf(i).length > 0) },
+      { text: "Di dalam repeat ada \"next costume\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["next_costume"]))) },
+      { text: "Di dalam repeat ada \"move\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["move_steps"]))) },
+      { text: "Di dalam repeat ada \"wait\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["wait_secs"]))) }],
+    "g1-t2": [G_FLAG,
+      { text: "Ada 4 tombol berbeda yang menggerakkan karakter", test: () => distinctKeys(keyStacks().filter(i => hasAny(i, MOTION))) >= 4 },
+      { text: "Ada tombol lompat (naik, wait, lalu turun)", test: () => keyStacks().some(i => { const t = i.blocks; const up = t.findIndex(b => b.type === "change_y" && num(b) > 0); if (up < 0) return false; const w = t.findIndex((b, k) => k > up && b.type === "wait_secs"); if (w < 0) return false; return t.some((b, k) => k > w && b.type === "change_y" && num(b) < 0); }) }],
+    "g1-t3": [G_FLAG,
+      { text: "Skor diisi 0 saat bendera diklik (set variable)", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Skor ditampilkan (show variable)", test: () => someFlag(i => i.types.includes("show_var")) },
+      { text: "Saat sprite diklik, skor bertambah (change variable)", test: () => clickStacks().some(i => i.types.includes("change_var")) },
+      { text: "Sprite pindah ke posisi acak (go to random position)", test: () => clickStacks().some(i => i.types.includes("goto_random")) }],
+    "g1-t4": [G_FLAG,
+      { text: "Waktu diisi di awal (set variable)", test: () => someFlag(i => i.types.includes("set_var")) },
+      { text: "Di dalam repeat ada \"wait\"", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["wait_secs"]))) },
+      { text: "Di dalam repeat waktu berkurang (change variable angka negatif)", test: () => someFlag(i => loopHas(i, ins => ins.some(b => b.type === "change_var" && num(b) < 0))) },
+      { text: "Setelah repeat ada say atau stop", test: () => someFlag(i => loopsOf(i).some(l => { const idx = i.blocks.indexOf(l); return anyOf(i.blocks.slice(idx + 1 + inside(l).length), SAY.concat(["stop"])); })) }],
+    "g1-t5": [G_FLAG,
+      { text: "Ada variabel skor dan waktu (2 blok set variable)", test: () => someFlag(i => i.blocks.filter(b => b.type === "set_var").length >= 2) },
+      { text: "Waktu berkurang di dalam repeat dengan wait", test: () => someFlag(i => loopHas(i, ins => anyOf(ins, ["wait_secs"]) && ins.some(b => b.type === "change_var" && num(b) < 0))) },
+      { text: "Klik sprite menambah skor dan pindah posisi acak", test: () => clickStacks().some(i => i.types.includes("change_var") && i.types.includes("goto_random")) },
+      { text: "Ada if / if-else yang membandingkan skor, lalu say", test: () => someFlag(i => i.blocks.some(b => IFS.includes(b.type) && reporterTypes(b).some(t => CMP.includes(t)) && anyOf(inside(b), SAY))) }],
+    "g1-t6": [G_FLAG,
+      { text: "Ada blok ganti latar", test: () => someFlag(i => hasAny(i, BACKDROP_BLOCKS)) },
+      { text: "Ada blok ganti kostum", test: () => someFlag(i => hasAny(i, ["switch_costume", "next_costume"])) },
+      { text: "Ada blok ukuran (set size / change size)", test: () => someFlag(i => hasAny(i, SIZE_FX)) },
+      { text: "Ada blok \"wait\"", test: () => someFlag(i => i.types.includes("wait_secs")) }]
   };
 
   // ---------- PARAMETER URL ----------
@@ -8995,7 +10035,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     const info = LP.find(taskId);
     if (!info || !EDITOR_GOALS[taskId]) return;
     if (!LP.isUnlocked(taskId)) {               // task belum terbuka → balik ke jalur belajar
-      window.location.replace("../belajar.html?task=" + taskId);   // halaman belajar menampilkan info "Masih terkunci"
+      window.location.replace("/SD/belajar.html?task=" + taskId);   // halaman belajar menampilkan info "Masih terkunci"
       return;
     }
     const nxt = LP.next(taskId);
@@ -9007,7 +10047,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     hasNext = !!nxt;
     nextLabel = nxt && nxt.type === "project" ? "Lanjut ke Project Akhir 🏆" : "Task berikutnya →";
     nextHref = nxt ? LP.href(nxt.id, true) : null;
-    backHref = "../belajar.html?p=" + info.pemb.id;
+    backHref = "/SD/belajar.html?p=" + info.pemb.id;
     backLabel = "Kembali ke jalur belajar";
     pointsBase = LP.poinOf(info.task);
     pointsBonus = LP.BONUS_PERTAMA;
@@ -9020,7 +10060,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     hasNext = !!(MISSIONS[grade] && MISSIONS[grade][level + 1]);
     nextLabel = "Level berikutnya →";
     nextHref = "index.html?grade=" + grade + "&level=" + (level + 1);
-    backHref = "../dashboard.html";
+    backHref = DASHBOARD_URL;
     backLabel = "Kembali ke dashboard";
     pointsBase = POINTS_BASE;
     pointsBonus = POINTS_BONUS;
@@ -9075,8 +10115,11 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     return li;
   });
 
-  function refreshPoints() { q(".mission-points").textContent = "⭐ " + getPoints() + " poin"; }
+  const isLPTask = !!(hasLP && taskId && LP.find(taskId));
+  const shownPoints = () => (isLPTask && LP.saldo) ? LP.saldo() : getPoints();   // sama dengan dashboard & halaman poin
+  function refreshPoints() { q(".mission-points").textContent = "⭐ " + shownPoints() + " poin"; }
   refreshPoints();
+  if (isLPTask && LP.loadFromServer) LP.loadFromServer().then((ok) => { if (ok) refreshPoints(); }).catch(() => {});
 
   if (taskId) {                                 // link kembali ke jalur belajar
     const back = document.createElement("a");
@@ -9181,11 +10224,17 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     let earned = 0, bonus = 0;
 
     if (!already) {
-      earned = pointsBase;
-      bonus = (firstTry && mission.goals) ? pointsBonus : 0;
-      done[levelKey] = true;
-      localStorage.setItem(progressKey, JSON.stringify(done));
-      localStorage.setItem(pointsKey, String(getPoints() + earned + bonus));
+      if (isLPTask) {
+        // task Jalur Belajar: lewat LP.complete supaya poin, riwayat, dan database ikut tersimpan (sama seperti editor lain)
+        const r = LP.complete(levelKey, !!(firstTry && mission.goals));
+        earned = r.earned; bonus = r.bonus;
+      } else {
+        earned = pointsBase;
+        bonus = (firstTry && mission.goals) ? pointsBonus : 0;
+        done[levelKey] = true;
+        localStorage.setItem(progressKey, JSON.stringify(done));
+        localStorage.setItem(pointsKey, String(getPoints() + earned + bonus));
+      }
     }
     refreshPoints();
     showDonePopup(already, earned, bonus);
@@ -9203,7 +10252,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     } else {
       lines = '<div class="mp-points"><b>+' + earned + '</b> poin</div>';
       if (bonus) lines += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + bonus + '</div>';
-      lines += '<p class="mp-info">Total poinmu: <b>⭐ ' + getPoints() + '</b></p>';
+      lines += '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + shownPoints() + '</b></p>';
     }
 
     ov.innerHTML =
