@@ -65,9 +65,10 @@ const insert = db.prepare(`
         steps,
         is_project,
         requires_submission,
+        points,
         editor_url
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 // ============================================================
@@ -91,6 +92,7 @@ for (const tahap of LP_SMP) {
                 JSON.stringify(task.langkah),
                 task.project ? 1 : 0,
                 task.kumpul ? 1 : 0,
+                task.project ? 50 : 10,
                 node.urlEditor
             ]);
         }
@@ -101,6 +103,7 @@ for (const tahap of LP_SMP) {
 // INSERT TRANSACTION
 // ============================================================
 
+const refreshPoints = db.prepare(`UPDATE tasks SET points = ? WHERE grade = ? AND task_id = ?`);
 const seed = db.transaction(() => {
     const insertModule = db.prepare(`INSERT OR IGNORE INTO modules (grade, module_id) VALUES (?, ?)`);
     for (const tahap of LP_SMP) {
@@ -109,6 +112,7 @@ const seed = db.transaction(() => {
 
     for (const task of tasks) {
         insert.run(...task);
+        refreshPoints.run(task[8], task[0], task[2]);
     }
 });
 

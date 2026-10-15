@@ -238,6 +238,7 @@ db.exec(`
         steps TEXT NOT NULL DEFAULT '[]',
         is_project INTEGER NOT NULL DEFAULT 0,
         requires_submission INTEGER NOT NULL DEFAULT 0,
+        points INTEGER NOT NULL DEFAULT 10,
         editor_url TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(grade, task_id),
@@ -366,6 +367,7 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
                     grade TEXT NOT NULL, module_id TEXT NOT NULL, task_id TEXT NOT NULL,
                     task_index INTEGER NOT NULL, title TEXT NOT NULL, steps TEXT NOT NULL DEFAULT '[]',
                     is_project INTEGER NOT NULL DEFAULT 0, requires_submission INTEGER NOT NULL DEFAULT 0,
+                    points INTEGER NOT NULL DEFAULT 10,
                     editor_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(grade, task_id),
                     FOREIGN KEY (grade, module_id) REFERENCES modules(grade, module_id)
@@ -379,8 +381,8 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
                 );
             `);
             db.exec(`
-                INSERT INTO tasks_new (id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, editor_url, created_at)
-                SELECT id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, editor_url, created_at FROM tasks;
+                INSERT INTO tasks_new (id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, points, editor_url, created_at)
+                SELECT id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, points, editor_url, created_at FROM tasks;
                 INSERT INTO materials_new (id, grade, module_id, lesson_index, path, created_at)
                 SELECT id, grade, module_id, lesson_index, path, created_at FROM materials;
                 DROP TABLE materials; DROP TABLE tasks;
@@ -396,6 +398,14 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
     } finally {
         db.pragma("foreign_keys = ON");
     }
+}
+
+// Nilai poin per task (fase 2). Default ikut jenis; seed menyegarkan dari kurikulum.
+const taskCols = db.prepare("PRAGMA table_info(tasks)").all().map((c) => c.name);
+if (!taskCols.includes("points")) {
+    db.exec("ALTER TABLE tasks ADD COLUMN points INTEGER NOT NULL DEFAULT 10");
+    db.prepare("UPDATE tasks SET points = 50 WHERE is_project = 1").run();
+    console.log("Migrasi kolom tasks.points berhasil.");
 }
 
 db.exec(`

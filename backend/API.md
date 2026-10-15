@@ -26,9 +26,13 @@ Kode error: `400` input salah, `401` username/password salah / belum login / ses
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
 | GET  | `/api/progress/:username` | - | `[{ task_id, completed, completed_at }]` |
+| GET  | `/api/progress/:username?grade=SMP&module=py1` | - | sama, difilter via JOIN tasks |
 | POST | `/api/progress/:username` | `{ taskId, completed }` | `{ message, ... }` |
 | GET  | `/api/points/:username` | - | `{ username, total }` |
-| POST | `/api/points/:username` | `{ total }` | `{ message, ... }` |
+| GET  | `/api/points/:username` | - | `{ username, total }` (dihitung server) |
+| POST | `/api/points/:username` | - | `410 GONE` — total dihitung server dari task selesai |
+
+Menyelesaikan task (`POST /api/progress` → `completed: true`) otomatis mengkredit `tasks.points` (default task 10 / project 50, bisa per-task dari kurikulum); un-check mendebit kembali. Idempoten.
 
 ## Lain-lain
 | GET | `/api/health` | - | `{ status: "ok" }` |

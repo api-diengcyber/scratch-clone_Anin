@@ -247,7 +247,7 @@ app.get("/api/tasks/:grade/:moduleId", (req, res) => {
 
         const rows = db.prepare(`
             SELECT id, grade, module_id, task_id, task_index, title, steps,
-                   is_project, requires_submission, editor_url, created_at
+                   is_project, requires_submission, points, editor_url, created_at
             FROM tasks
             WHERE grade = ? AND module_id = ?
             ORDER BY task_index ASC
@@ -270,7 +270,7 @@ app.get("/api/tasks", (req, res) => {
     try {
         const rows = db.prepare(`
             SELECT id, grade, module_id, task_id, task_index, title, steps,
-                   is_project, requires_submission, editor_url, created_at
+                   is_project, requires_submission, points, editor_url, created_at
             FROM tasks
             ORDER BY grade ASC, module_id ASC, task_index ASC
         `).all();
@@ -557,6 +557,8 @@ app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
         const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
 
+        const devWas = db.prepare("SELECT completed FROM progress WHERE username = ? AND task_id = ?").get(DEV_USERNAME, String(taskId));
+        const devWasDone = !!devWas && devWas.completed === 1;
         const completedAt = completed ? new Date().toISOString() : null;
         db.prepare(`
             INSERT INTO progress (username, task_id, completed, completed_at)
@@ -564,8 +566,14 @@ app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
             ON CONFLICT(username, task_id) DO UPDATE SET
                 completed = excluded.completed, completed_at = excluded.completed_at
         `).run(DEV_USERNAME, taskId, completed ? 1 : 0, completedAt);
-
-        sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed }, "Progress disimpan");
+        let devPoints = null;
+        if (devWasDone !== completed) {
+            devPoints = adjustPointsForProgress(DEV_USERNAME, String(taskId), completed);
+        } else {
+            const devRow = db.prepare("SELECT total FROM points WHERE username = ?").get(DEV_USERNAME);
+            devPoints = devRow ? devRow.total : 0;
+        }
+        sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed, points: devPoints }, "Progress disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress dev:", error);
         sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
@@ -607,10 +615,25 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
     try {
         const username = String(req.params.username || "").trim();
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-        const progress = db.prepare(`
-            SELECT task_id, completed, completed_at
-            FROM progress WHERE username = ? ORDER BY id ASC
-        `).all(username);
+        const fGrade = req.query.grade ? normalizeGrade(req.query.grade) : null;
+        const fModule = req.query.module ? sanitizeString(req.query.module, 64) : null;
+        if (fGrade && !isValidGrade(fGrade)) return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
+        let progress;
+        if (fGrade || fModule) {
+            progress = db.prepare(`
+                SELECT p.task_id, p.completed, p.completed_at
+                FROM progress p JOIN tasks t ON t.task_id = p.task_id
+                WHERE p.username = ?
+                  AND (? IS NULL OR t.grade = ?)
+                  AND (? IS NULL OR t.module_id = ?)
+                ORDER BY p.id ASC
+            `).all(username, fGrade, fGrade, fModule, fModule);
+        } else {
+            progress = db.prepare(`
+                SELECT task_id, completed, completed_at
+                FROM progress WHERE username = ? ORDER BY id ASC
+            `).all(username);
+        }
         sendApiSuccess(res, { progress });
     } catch (error) {
         console.error("Gagal mengambil progress:", error);
@@ -619,6 +642,22 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
 });
 
 // ============================================================
+// Poin dihitung SERVER dari task selesai (fase 2). Idempoten:
+// hanya selisih status false<->true yang mengkredit/mendebit.
+function adjustPointsForProgress(username, taskId, completed) {
+    const task = db.prepare("SELECT points FROM tasks WHERE task_id = ?").get(taskId);
+    const pts = task && Number.isSafeInteger(task.points) ? task.points : 10;
+    const apply = db.transaction(() => {
+        db.prepare(`INSERT INTO points (username, total, updated_at) VALUES (?, 0, CURRENT_TIMESTAMP) ON CONFLICT(username) DO NOTHING`).run(username);
+        const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
+        const total = row ? row.total : 0;
+        const next = completed ? total + pts : Math.max(0, total - pts);
+        db.prepare(`UPDATE points SET total = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?`).run(next, username);
+        return next;
+    });
+    return apply();
+}
+
 // SAVE PROGRESS (Per User - Auth Required)
 // ============================================================
 
@@ -632,13 +671,22 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
         const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
+        const prev = db.prepare("SELECT completed FROM progress WHERE username = ? AND task_id = ?").get(username, String(taskId));
+        const wasDone = !!prev && prev.completed === 1;
         db.prepare(`
             INSERT INTO progress (username, task_id, completed, completed_at)
             VALUES (?, ?, ?, ?)
             ON CONFLICT(username, task_id) DO UPDATE SET
                 completed = excluded.completed, completed_at = excluded.completed_at
         `).run(username, String(taskId), completed ? 1 : 0, completed ? new Date().toISOString() : null);
-        sendApiSuccess(res, { username, taskId: String(taskId), completed }, "Progress berhasil disimpan");
+        let points = null;
+        if (wasDone !== completed) {
+            points = adjustPointsForProgress(username, String(taskId), completed);
+        } else {
+            const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
+            points = row ? row.total : 0;
+        }
+        sendApiSuccess(res, { username, taskId: String(taskId), completed, points }, "Progress berhasil disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress:", error);
         sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
@@ -666,23 +714,9 @@ app.get("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, r
 // ============================================================
 
 app.post("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
-    try {
-        const username = String(req.params.username || "").trim();
-        const total = req.body ? req.body.total : undefined;
-        if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-        if (typeof total !== "number" || !Number.isSafeInteger(total) || total < 0) {
-            return sendApiError(res, 400, "total points harus bilangan bulat non-negatif", "VALIDATION_ERROR");
-        }
-        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
-        db.prepare(`
-            INSERT INTO points (username, total, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(username) DO UPDATE SET total = excluded.total, updated_at = CURRENT_TIMESTAMP
-        `).run(username, total);
-        sendApiSuccess(res, { username, total }, "Points berhasil disimpan");
-    } catch (error) {
-        console.error("Gagal menyimpan points:", error);
-        sendApiError(res, 500, "Gagal menyimpan points", "INTERNAL_ERROR");
-    }
+    // Fase 2: total poin dihitung server dari task selesai (adjustPointsForProgress).
+    // Tulis manual dimatikan; testing pakai POST /api/dev/points (non-production).
+    return sendApiError(res, 410, "Total poin dihitung server dari task selesai. Gunakan POST /api/progress.", "GONE");
 });
 
 // ============================================================

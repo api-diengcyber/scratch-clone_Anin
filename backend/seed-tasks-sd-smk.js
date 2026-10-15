@@ -56,6 +56,7 @@ for (const tahap of sdData.LP_DATA.tahap) {
         const tasks = modul.tasks || [];
 
         tasks.forEach((task, index) => {
+            const taskPoin = Number.isSafeInteger(task.poin) ? task.poin : 10;
             rows.push([
                 "SD",
                 modul.id,
@@ -71,6 +72,7 @@ for (const tahap of sdData.LP_DATA.tahap) {
                 ),
                 0,
                 0,
+                taskPoin,
                 null
             ]);
         });
@@ -78,6 +80,7 @@ for (const tahap of sdData.LP_DATA.tahap) {
         // Project akhir memiliki ID sendiri.
         if (modul.project) {
             const project = modul.project;
+            const projPoin = Number.isSafeInteger(project.poin) ? project.poin : 50;
 
             rows.push([
                 "SD",
@@ -97,6 +100,7 @@ for (const tahap of sdData.LP_DATA.tahap) {
                     project.kumpul.length > 0
                     ? 1
                     : 0,
+                projPoin,
                 null
             ]);
         }
@@ -125,6 +129,7 @@ for (const tahap of smkData.LP_SMAK) {
                 ),
                 task.project ? 1 : 0,
                 task.kumpul ? 1 : 0,
+                task.project ? 50 : 10,
                 modul.urlEditor || null
             ]);
         });
@@ -145,11 +150,13 @@ const insert = db.prepare(`
         steps,
         is_project,
         requires_submission,
+        points,
         editor_url
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
+const refreshPoints = db.prepare(`UPDATE tasks SET points = ? WHERE grade = ? AND task_id = ?`);
 const seed = db.transaction(() => {
     const insertModule = db.prepare(`INSERT OR IGNORE INTO modules (grade, module_id) VALUES (?, ?)`);
     for (const key of modules) {
@@ -159,6 +166,7 @@ const seed = db.transaction(() => {
 
     for (const row of rows) {
         insert.run(...row);
+        refreshPoints.run(row[8], row[0], row[2]);
     }
 });
 

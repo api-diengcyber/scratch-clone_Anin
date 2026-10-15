@@ -34,6 +34,35 @@
   }
 
   // ------------------------------------------------------------
+  // BATAS MODUL: Tutor AI hanya di SMP AI & Creative Tech
+  // (ai1-ai4). Backend (/api/ai/tutor) juga menolak di luar itu.
+  // ------------------------------------------------------------
+
+  var AI_TUTOR_MODULES = ["ai1", "ai2", "ai3", "ai4"];
+
+  (function gateTutorByModule() {
+
+    if (!tutor) {
+      return;
+    }
+
+    var smp = null;
+
+    try {
+      smp = new URLSearchParams(window.location.search).get("smp");
+    } catch (e) {
+      smp = null;
+    }
+
+    // Tanpa ?smp= (SD / mode bebas) atau SMP non-AI: panel disembunyikan.
+    if (!smp || AI_TUTOR_MODULES.indexOf(smp) === -1) {
+      tutor.style.display = "none";
+      return;
+    }
+
+  })();
+
+  // ------------------------------------------------------------
   // TASK CONTEXT — LEARNING PATH BIASA
   // ------------------------------------------------------------
 
