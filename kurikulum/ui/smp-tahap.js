@@ -9,7 +9,12 @@
     d3: { n: "Tahap 3 — Game Dev 3D Lanjutan", e: "🧊", cls: "s3", slogan: "Bangun dunia 3D, karakter, fisika, dan game utuh!", em: ["🌍", "🕹️", "⚙️", "👾", "⚡", "🎬"] } };
   const esc = (t) => String(t).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
   const S = { map: () => LP._get("smpTasks", {}), isDone: (n, i) => !!S.map()[n + ":" + i],
-    toggle(n, i) { const m = S.map(), k = n + ":" + i; if (m[k]) delete m[k]; else m[k] = 1; LP._set("smpTasks", m); },
+    // selesai → beri poin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
+    toggle(n, i) {
+      if (S.isDone(n, i)) return LP.undoSmp(n, i);
+      const nd = T.reduce((a, t) => a || t.nodes.find((x) => x.id === n), null), k = nd && nd.tasks[i];
+      return LP.completeSmp(n, i, { judul: nd ? nd.title + " — " + (k.judul || "Task " + (i + 1)) : n, project: !!(k && (k.project || k.kumpul)), poin: k && k.poin });
+    },
     prog(node) { const d = node.tasks.filter((_, i) => S.isDone(node.id, i)).length; return { done: d, total: node.tasks.length }; },
     track(t) { return t.nodes.reduce((a, n) => { const p = S.prog(n); return { done: a.done + p.done, total: a.total + p.total }; }, { done: 0, total: 0 }); } };
   window.SMP = S; window.SMP_META = META;

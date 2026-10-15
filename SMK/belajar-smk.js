@@ -43,7 +43,7 @@
       '<div style="--c:' + mc + '"><div class="phead"><div class="pe">' + m.em[idx] + "</div><div><h2>" + esc(node.title) + "</h2><p>" + esc(node.deskripsi) + " Pertemuan " + node.pertemuan + " • " + esc(node.level) + '</p><div class="bar"><i style="width:' + pct + '%"></i></div><div class="bar-text">' + p.done + " dari " + p.total + " task selesai</div></div></div>" +
       '<section class="tcard"><h3>📖 Ringkasan &amp; Teori Singkat</h3><p class="desc">' + esc(node.ringkasan) + "</p><ul>" + node.teori.map((s) => "<li>" + esc(s) + "</li>").join("") + '</ul><div class="chips">' + node.materi.map((s) => '<span class="chip">' + esc(s) + "</span>").join("") + "</div></section>" +
       '<div class="path">' + node.tasks.map((k, i) => { const dn = S.isDone(node.id, i), op = i === 0 || S.isDone(node.id, i - 1), cu = i === cur;
-        return '<div class="node ' + (dn ? "done " : "") + (!op ? "locked " : "") + (cu ? "current" : "") + '"><div class="circle">' + (!op ? "🔒" : dn ? "✓" : i + 1) + '</div><div class="ncard"><div><div class="nlabel">' + (k.kumpul ? "🏆 KUMPULKAN FINAL PROJECT" : k.project ? "🏆 PROJECT AKHIR" : "TASK " + (i + 1)) + (cu ? " • 👉 AYO MULAI!" : "") + "</div><h3>" + esc(k.judul) + "</h3><p>" + k.langkah.length + " langkah praktik</p></div>" +
+        return '<div class="node ' + (dn ? "done " : "") + (!op ? "locked " : "") + (cu ? "current" : "") + '"><div class="circle">' + (!op ? "🔒" : dn ? "✓" : i + 1) + '</div><div class="ncard"><div><div class="nlabel">' + (k.kumpul ? "🏆 KUMPULKAN FINAL PROJECT" : k.project ? "🏆 PROJECT AKHIR" : "TASK " + (i + 1)) + (cu ? " • 👉 AYO MULAI!" : "") + "</div><h3>" + esc(k.judul) + "</h3><p>" + k.langkah.length + " langkah praktik</p>" + LP.smpChips(node, k, i, op, dn) + "</div>" +
           '<div class="nacts">' + matBtn(k, op) + startBtn(k, i, op, dn) + "</div></div></div>"; }).join("") + "</div></div>";
   }
   function modal(i) {
@@ -56,14 +56,16 @@
         '<a class="btn" href="' + esc(edHref(i)) + '">Buka Editor ' + (node.urlEditor.indexOf("3D") > -1 ? "3D 🧊" : "💻") + '</a><div class="mfoot"><button class="btn ' + (dn ? "ghost" : "green") + '" data-done>' + (dn ? "↩ Batalkan selesai" : k.kumpul ? "📤 Kumpulkan sekarang" : "✓ Tandai task selesai") + '</button><button class="btn ghost" data-x>Tutup</button></div></div>'; };
     const close = () => { document.removeEventListener("keydown", key); ov.remove(); if (lastBtn && document.contains(lastBtn)) lastBtn.focus(); };
     const key = (e) => { if (e.key === "Escape") close(); else if (e.key === "Tab") { const f = [...ov.querySelectorAll("a,button")]; if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); } } };
-    ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-x]")) close(); else if (e.target.closest("[data-done]")) { if (k.kumpul && !S.isDone(node.id, i)) { const u = LP.upload(sk); if (!String(u.link || "").trim() && !String(u.note || "").trim()) { ov.querySelector("[data-warn]").hidden = false; return; } } S.toggle(node.id, i); draw(); render(); ov.querySelector("[data-done]").focus(); } });
+    ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-x]")) close(); else if (e.target.closest("[data-done]")) { if (k.kumpul && !S.isDone(node.id, i)) { const u = LP.upload(sk); if (!String(u.link || "").trim() && !String(u.note || "").trim()) { ov.querySelector("[data-warn]").hidden = false; return; } } S.toggle(node.id, i); paintPoints(); draw(); render(); ov.querySelector("[data-done]").focus(); } });
     ov.addEventListener("input", (e) => { const fl = e.target.dataset && e.target.dataset.f; if (!fl) return; LP.saveUpload(sk, { [fl]: e.target.value }); const w = ov.querySelector("[data-warn]"); if (w) w.hidden = true; });
     draw(); document.body.appendChild(ov); document.addEventListener("keydown", key); ov.querySelector(".xbtn").focus();
   }
   app.addEventListener("click", (e) => { const c = e.target.closest("[data-href]"), b = e.target.closest("[data-k]"); if (c && c.dataset.href !== "#") location.href = c.dataset.href; else if (b && !b.disabled) { lastBtn = b; modal(+b.dataset.k); } });
+  LP.syncSmpFromSteps(T);   // task yang semua langkahnya sudah tercentang → tandai selesai
+  paintPoints();
   render();
   // Sinkronkan poin & progres dari server, lalu gambar ulang kalau berhasil
-  const syncServer = () => LP.loadFromServer().then((ok) => { if (ok) { paintPoints(); render(); } }).catch(() => {});
+  const syncServer = () => LP.loadFromServer().then((ok) => { if (ok) { LP.syncSmpFromSteps(T); paintPoints(); render(); } }).catch(() => {});
   syncServer();
   window.addEventListener("pageshow", (e) => { if (e.persisted) { paintPoints(); render(); syncServer(); } });
 })();

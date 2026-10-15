@@ -17,7 +17,12 @@
   const progTrack = (t) => t.nodes.reduce((a, n) => { const p = progNode(n); return { done: a.done + p.done, total: a.total + p.total }; }, { done: 0, total: 0 });
 
   // Dipakai juga oleh belajar-smk.js (halaman detail SMA/SMK)
-  const toggle = (n, i) => { const m = map(), k = n + ":" + i; if (m[k]) delete m[k]; else m[k] = 1; LP._set("smpTasks", m); };
+  // selesai → beri poin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
+  const toggle = (n, i) => {
+    if (isDone(n, i)) return LP.undoSmp(n, i);
+    const nd = T.reduce((a, t) => a || t.nodes.find((x) => x.id === n), null), k = nd && nd.tasks[i];
+    return LP.completeSmp(n, i, { judul: nd ? nd.title + " — " + (k.judul || "Task " + (i + 1)) : n, project: !!(k && (k.project || k.kumpul)), poin: k && k.poin });
+  };
   window.SMAK = { isDone, prog: progNode, track: progTrack, toggle }; window.SMAK_META = META;
 
   const st = document.createElement("style");

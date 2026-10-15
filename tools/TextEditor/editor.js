@@ -97,7 +97,11 @@
     bahasa = (task.bahasa || ["html", "css"]).map((b) => (b === "py" ? "python" : b));
     mode = modeOf(bahasa);
   } else {
-    mode = ALIAS[(params.get("bahasa") || "").toLowerCase()] || ALIAS[draft.mode] || (/^(py|pl|da)\d/.test(dari || "") ? "python" : "web");
+    // Task SMP/SMA-K (?smp=<id modul>) menentukan bahasanya dari id modul: py/pl/da → Python, ai/wb → web.
+    // Ini harus menang atas "pilihan terakhir" (draft), kalau tidak task Python terbuka di mode HTML dan AI Tutor memeriksa tab yang salah.
+    const smpId = params.get("smp") || "";
+    const smpMode = /^(py|pl|da)\d/.test(smpId) ? "python" : /^(ai|wb)\d/.test(smpId) ? "web" : "";
+    mode = ALIAS[(params.get("bahasa") || "").toLowerCase()] || smpMode || ALIAS[draft.mode] || (/^(py|pl|da)\d/.test(dari || "") ? "python" : "web");
     bahasa = MODES[mode];
   }
   const awal = Object.assign({ html: "", css: "", python: "", php: "" }, task ? task.awal : BEBAS);
@@ -444,6 +448,10 @@
     if (running) return;
     syncCode();
     if (isRun()) await execute(); else render();
+    // Task SMP / SMA-SMK: program Python yang sudah jalan diperiksa → langkah yang sesuai dicentang otomatis
+    if (mode === "python" && lastRun && window.SMPTaskPanel && typeof window.SMPTaskPanel.autoCheck === "function") {
+      try { window.SMPTaskPanel.autoCheck({ language: "python", code: code.python, output: lastRun.output, error: lastRun.error }); } catch (e) { console.warn("autoCheck gagal:", e); }
+    }
     if (!task) return;                                    // mode bebas: hanya preview / hasil
     const before = evaluate();
     const metOthers = before.slice(0, -1).every(Boolean);

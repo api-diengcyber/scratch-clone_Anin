@@ -195,6 +195,17 @@ const LP = Object.assign({}, window.LP_DATA, {
 
       this._set("codingCompleted", completed);
 
+      // Task SMP & SMA/SMK memakai id "modul:nomor" (mis. py1:0). Pulihkan juga ke smpTasks
+      // (status selesai) dan smpPoin (poin sudah pernah diberikan) supaya tidak hilang / dobel di perangkat lain.
+      const smpDone = this._get("smpTasks", {}), smpGiven = this._get("smpPoin", {});
+      progressRows.forEach((row) => {
+        if (!row || String(row.task_id).indexOf(":") < 1) return;
+        if (row.completed) { smpDone[row.task_id] = 1; smpGiven[row.task_id] = 1; }
+        else delete smpDone[row.task_id];
+      });
+      this._set("smpTasks", smpDone);
+      this._set("smpPoin", smpGiven);
+
       localStorage.setItem(
         "codingPoints_" + username,
         String(Number(pointsTotal) || 0)
@@ -461,6 +472,93 @@ const LP = Object.assign({}, window.LP_DATA, {
       bonus,
       total
     };
+  },
+
+  // ============================================================
+  // TASK SMP & SMA/SMK — tandai selesai + beri poin
+  // ============================================================
+  // Status selesai disimpan di "smpTasks" (id "modul:nomor"). Poin diberikan SEKALI per task
+  // (dicatat di "smpPoin"), jadi membatalkan lalu menyelesaikan lagi tidak menambah poin.
+  // info: { judul, project (Project Akhir → POIN_PROJECT), poin (angka khusus, opsional) }
+  // Mengembalikan { already, earned, total }.
+  completeSmp(nodeId, index, info) {
+    info = info || {};
+    const id = nodeId + ":" + index;
+
+    const done = this._get("smpTasks", {});
+    done[id] = 1;
+    this._set("smpTasks", done);
+    this.saveProgressToServer(id, true);
+
+    const given = this._get("smpPoin", {});
+    if (given[id]) return { already: true, earned: 0, total: this.points() };
+
+    const earned = typeof info.poin === "number"
+      ? info.poin
+      : (info.project ? this.POIN_PROJECT : this.POIN_TASK);
+
+    given[id] = 1;
+    this._set("smpPoin", given);
+
+    const total = this.points() + earned;
+    localStorage.setItem("codingPoints_" + this.user(), String(total));
+    this.logPoin(id, info.judul, earned, 0);
+    this.savePointsToServer(total);
+
+    return { already: false, earned, total };
+  },
+
+  // Sinkronkan status selesai dengan centang langkah di editor.
+  // Task yang SEMUA langkahnya sudah tercentang (smpSteps_<modul>_<nomor>) tapi belum tertandai selesai
+  // (mis. dikerjakan sebelum penyelesaian otomatis ada, atau status ikut terhapus saat sinkron server)
+  // → ditandai selesai lewat completeSmp (poin tetap hanya sekali per task). Hanya task yang sudah terbuka
+  // (task sebelumnya selesai); Final Project (kumpul) tidak ikut karena dikumpulkan manual.
+  // tracks: array jalur (window.LP_SMP / window.LP_SMAK). Mengembalikan jumlah task yang diperbarui.
+  syncSmpFromSteps(tracks) {
+    let changed = 0;
+    (tracks || []).forEach((t) => (t.nodes || []).forEach((n) => (n.tasks || []).forEach((k, i) => {
+      const total = Array.isArray(k.langkah) ? k.langkah.length : 0;
+      if (!total || k.kumpul) return;
+      const done = this._get("smpTasks", {});
+      if (done[n.id + ":" + i]) return;
+      if (i > 0 && !done[n.id + ":" + (i - 1)]) return;
+      let c = [];
+      try { c = JSON.parse(localStorage.getItem("smpSteps_" + n.id + "_" + i)) || []; } catch (e) { c = []; }
+      if (!Array.isArray(c)) return;
+      const ok = new Set(c.filter((x) => Number.isInteger(x) && x >= 0 && x < total)).size === total;
+      if (!ok) return;
+      this.completeSmp(n.id, i, { judul: (n.title || n.id) + " — " + (k.judul || "Task " + (i + 1)), project: !!k.project, poin: k.poin });
+      changed++;
+    })));
+    return changed;
+  },
+
+  // Label info di kartu task SMP & SMA/SMK (gaya yang sama dengan kartu task SD):
+  // jenis task • editor yang dipakai • status (Selesai / Sedang dikerjakan / Tersedia / Terkunci) • poin.
+  // op = task sudah terbuka, dn = task sudah selesai. Memakai kelas .badge dari belajar.css.
+  smpChips(node, k, i, op, dn) {
+    const jenis = k.kumpul ? "📤 Kumpul Final Project" : k.project ? "🏆 Project Akhir" : "🛠️ Praktik";
+    const tool = k.kumpul ? "" : '<span class="badge tool">' + (String(node.urlEditor || "").indexOf("3D") > -1 ? "🧊 3D Editor" : "💻 Text Editor") + "</span>";
+    let st = "tersedia", lb = "▶️ Tersedia";
+    if (dn) { st = "selesai"; lb = "✅ Selesai"; }
+    else if (!op) { st = "terkunci"; lb = "🔒 Terkunci"; }
+    else {
+      let c = [];
+      try { c = JSON.parse(localStorage.getItem("smpSteps_" + node.id + "_" + i)) || []; } catch (e) { c = []; }
+      if (Array.isArray(c) && c.length) { st = "dikerjakan"; lb = "✏️ Sedang dikerjakan"; }
+    }
+    const poin = typeof k.poin === "number" ? k.poin : (k.project ? this.POIN_PROJECT : this.POIN_TASK);
+    return '<div class="smp-chips"><span class="badge">' + jenis + "</span>" + tool +
+      '<span class="badge st-' + st + '">' + lb + '</span><span class="badge pts">⭐ ' + poin + " poin</span></div>";
+  },
+
+  // batalkan status selesai (poin yang sudah diberikan tidak ditarik, dan tidak diberikan lagi saat diselesaikan ulang)
+  undoSmp(nodeId, index) {
+    const id = nodeId + ":" + index;
+    const done = this._get("smpTasks", {});
+    delete done[id];
+    this._set("smpTasks", done);
+    this.saveProgressToServer(id, false);
   },
 
   // ============================================================
