@@ -26,17 +26,16 @@
   let lastBtn = null;
   // Tombol materi: tiap task punya halamanMateri (diisi di jalur-data-*.js). Kalau kosong → tampil "segera hadir".
   const mhref = (k) => k.halamanMateri + (k.halamanMateri.indexOf("?") > -1 ? "&" : "?") + "kembali=" + encodeURIComponent("/belajar-smk.html?p=" + node.id);
-  // Kunci materi: task belum bisa dimulai sebelum halaman materinya dibaca sampai selesai (lihat /shared/js/materi-gate.js).
-  // Task yang sudah selesai (Ulangi), Kumpulkan Final Project, dan task tanpa halaman materi tidak dikunci.
-  const gated = (k, dn) => !dn && !!window.MateriGate && window.MateriGate.locked(k);
-  const matBtn = (k, op, dn) => !op || k.kumpul ? "" : k.halamanMateri ? '<a class="btn ' + (gated(k, dn) ? "green" : "ghost") + ' mlink" href="' + esc(mhref(k)) + '">' + (gated(k, dn) ? "📺 Baca Materi" : "📺 Materi") + "</a>" : '<button class="btn grey mlink" type="button" disabled title="Materi segera hadir">📺 Segera hadir</button>';
-  const matCard = (k) => k.kumpul ? "" : k.halamanMateri ? '<a class="materi-link" href="' + esc(mhref(k)) + '"><span class="ml-icon">📺</span><span class="ml-text"><b>Lihat Materi</b><small>Belajar dulu sebelum mengerjakan</small></span><span class="ml-go">→</span></a>' : '<div class="materi-link soon" aria-disabled="true"><span class="ml-icon">📺</span><span class="ml-text"><b>Materi segera hadir</b><small>Materi untuk task ini sedang disiapkan</small></span></div>';
+  const matBtn = (k, op) => !op || k.kumpul ? "" : k.halamanMateri ? '<a class="btn ghost mlink" href="' + esc(mhref(k)) + '">📺 Materi</a>' : '<button class="btn grey mlink" type="button" disabled title="Materi segera hadir">📺 Segera hadir</button>';
+  const matCard = (k) => k.kumpul ? "" : k.halamanMateri ? '<a class="materi-link" href="' + esc(mhref(k)) + '"><span class="ml-icon">📺</span><span class="ml-text"><b>Lihat Materi</b><small>' + (LP.materiDibaca(k) ? "Belajar dulu sebelum mengerjakan" : "Wajib dibaca sampai selesai untuk membuka task ini") + '</small></span><span class="ml-go">→</span></a>' : '<div class="materi-link soon" aria-disabled="true"><span class="ml-icon">📺</span><span class="ml-text"><b>Materi segera hadir</b><small>Materi untuk task ini sedang disiapkan</small></span></div>';
 
   // Alamat editor untuk satu task. Panel task di editor membaca ?smp=<modul>&t=<nomor task>.
   const edHref = (i) => node.urlEditor + "?smp=" + node.id + "&t=" + i;
   // "Mulai →" LANGSUNG membuka editor (bukan popup). Popup hanya untuk Kumpulkan Final Project, karena butuh form link/catatan.
+  // Gerbang materi: sebelum materinya dibaca sampai selesai, tombol Mulai diganti "Baca materi dulu"
+  const mLock = (i) => LP.materiTerkunciSmp(node.id, i);
   const startBtn = (k, i, op, dn) => !op ? '<button class="btn grey" type="button" disabled>🔒 Terkunci</button>'
-    : gated(k, dn) ? '<button class="btn grey" type="button" disabled title="Baca materinya sampai selesai dulu, baru task ini bisa dimulai">📖 Baca materi dulu</button>'
+    : mLock(i) ? '<a class="btn green" href="' + esc(mhref(k)) + '">📖 Baca materi dulu</a>'
     : k.kumpul ? '<button class="btn ' + (dn ? "ghost" : "green") + '" type="button" data-k="' + i + '">' + (dn ? "Lihat pengumpulan" : "📤 Kumpulkan →") + "</button>"
     : '<a class="btn ' + (dn ? "ghost" : "green") + '" href="' + esc(edHref(i)) + '">' + (dn ? "Ulangi" : "Mulai →") + "</a>";
 
@@ -47,8 +46,8 @@
       '<div style="--c:' + mc + '"><div class="phead"><div class="pe">' + m.em[idx] + "</div><div><h2>" + esc(node.title) + "</h2><p>" + esc(node.deskripsi) + " Pertemuan " + node.pertemuan + " • " + esc(node.level) + '</p><div class="bar"><i style="width:' + pct + '%"></i></div><div class="bar-text">' + p.done + " dari " + p.total + " task selesai</div></div></div>" +
       '<section class="tcard"><h3>📖 Ringkasan &amp; Teori Singkat</h3><p class="desc">' + esc(node.ringkasan) + "</p><ul>" + node.teori.map((s) => "<li>" + esc(s) + "</li>").join("") + '</ul><div class="chips">' + node.materi.map((s) => '<span class="chip">' + esc(s) + "</span>").join("") + "</div></section>" +
       '<div class="path">' + node.tasks.map((k, i) => { const dn = S.isDone(node.id, i), op = i === 0 || S.isDone(node.id, i - 1), cu = i === cur;
-        return '<div class="node ' + (dn ? "done " : "") + (!op ? "locked " : "") + (cu ? "current" : "") + '"><div class="circle">' + (!op ? "🔒" : dn ? "✓" : i + 1) + '</div><div class="ncard"><div><div class="nlabel">' + (k.kumpul ? "🏆 KUMPULKAN FINAL PROJECT" : k.project ? "🏆 PROJECT AKHIR" : "TASK " + (i + 1)) + (cu ? (gated(k, dn) ? " • 📖 BACA MATERI DULU" : " • 👉 AYO MULAI!") : "") + "</div><h3>" + esc(k.judul) + "</h3><p>" + k.langkah.length + " langkah praktik</p>" + LP.smpChips(node, k, i, op, dn) + "</div>" +
-          '<div class="nacts">' + matBtn(k, op, dn) + startBtn(k, i, op, dn) + "</div></div></div>"; }).join("") + "</div></div>";
+        return '<div class="node ' + (dn ? "done " : "") + (!op ? "locked " : "") + (cu ? "current" : "") + '"><div class="circle">' + (!op ? "🔒" : dn ? "✓" : i + 1) + '</div><div class="ncard"><div><div class="nlabel">' + (k.kumpul ? "🏆 KUMPULKAN FINAL PROJECT" : k.project ? "🏆 PROJECT AKHIR" : "TASK " + (i + 1)) + (cu ? " • 👉 AYO MULAI!" : "") + "</div><h3>" + esc(k.judul) + "</h3><p>" + k.langkah.length + " langkah praktik</p>" + LP.smpChips(node, k, i, op, dn) + "</div>" +
+          '<div class="nacts">' + (mLock(i) ? "" : matBtn(k, op)) + startBtn(k, i, op, dn) + "</div></div></div>"; }).join("") + "</div></div>";
   }
   function modal(i) {
     const k = node.tasks[i], ov = document.createElement("div"); ov.className = "smk-overlay";
@@ -57,7 +56,7 @@
       ov.innerHTML = '<div class="smk-modal" role="dialog" aria-modal="true" aria-labelledby="mt" style="--c:' + col(tr, tr.nodes.indexOf(node)) + '"><button class="xbtn" data-x aria-label="Tutup">✕</button><h2 id="mt">' + (k.kumpul ? "Kumpulkan Final Project" : k.project ? "Project Akhir" : "Task " + (i + 1)) + ": " + esc(k.judul) + '</h2><p class="sub">' + esc(node.title) + " • Pertemuan " + node.pertemuan + "</p>" +
         "<h3>📖 Ringkasan &amp; Teori Singkat</h3><p>" + esc(node.ringkasan) + "</p><ul>" + node.teori.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul>" +
         matCard(k) + "<h3>🛠️ Instruksi Praktik</h3><ol>" + k.langkah.map((s) => "<li><b>Langkah " + (k.langkah.indexOf(s) + 1) + ":</b> " + esc(s) + "</li>").join("") + "</ol>" + (k.kumpul ? '<h3>📤 Kumpulkan Final Project</h3><label class="kf">Link karya (boleh dikosongkan jika mengisi catatan)<input type="url" data-f="link" placeholder="https://..." value="' + esc(sub.link || "") + '"></label><label class="kf">Catatan tentang karyamu<textarea data-f="note" rows="3" placeholder="Ceritakan singkat karya yang kamu kumpulkan">' + esc(sub.note || "") + '</textarea></label><p class="warn" data-warn hidden>⚠️ Isi link karya atau catatan dulu sebelum mengumpulkan.</p>' : "") + 
-        '<a class="btn" href="' + esc(edHref(i)) + '">Buka Editor ' + (node.urlEditor.indexOf("3D") > -1 ? "3D 🧊" : "💻") + '</a><div class="mfoot"><button class="btn ' + (dn ? "ghost" : "green") + '" data-done>' + (dn ? "↩ Batalkan selesai" : k.kumpul ? "📤 Kumpulkan sekarang" : "✓ Tandai task selesai") + '</button><button class="btn ghost" data-x>Tutup</button></div></div>'; };
+        (mLock(i) ? '<a class="btn green" href="' + esc(mhref(k)) + '">📖 Baca materi dulu</a>' : '<a class="btn" href="' + esc(edHref(i)) + '">Buka Editor ' + (node.urlEditor.indexOf("3D") > -1 ? "3D 🧊" : "💻") + '</a>') + '<div class="mfoot"><button class="btn ' + (dn ? "ghost" : "green") + '"' + (mLock(i) ? ' disabled title="Baca materinya sampai selesai dulu"' : "") + ' data-done>' + (mLock(i) ? "🔒 Baca materi dulu" : dn ? "↩ Batalkan selesai" : k.kumpul ? "📤 Kumpulkan sekarang" : "✓ Tandai task selesai") + '</button><button class="btn ghost" data-x>Tutup</button></div></div>'; };
     const close = () => { document.removeEventListener("keydown", key); ov.remove(); if (lastBtn && document.contains(lastBtn)) lastBtn.focus(); };
     const key = (e) => { if (e.key === "Escape") close(); else if (e.key === "Tab") { const f = [...ov.querySelectorAll("a,button")]; if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); } } };
     ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-x]")) close(); else if (e.target.closest("[data-done]")) { if (k.kumpul && !S.isDone(node.id, i)) { const u = LP.upload(sk); if (!String(u.link || "").trim() && !String(u.note || "").trim()) { ov.querySelector("[data-warn]").hidden = false; return; } } S.toggle(node.id, i); paintPoints(); draw(); render(); ov.querySelector("[data-done]").focus(); } });
@@ -69,9 +68,8 @@
   paintPoints();
   render();
   // Sinkronkan poin & progres dari server, lalu gambar ulang kalau berhasil
+  window.addEventListener("lp:points", () => paintPoints());   // poin dari server tiba / undo → segarkan
   const syncServer = () => LP.loadFromServer().then((ok) => { if (ok) { LP.syncSmpFromSteps(T); paintPoints(); render(); } }).catch(() => {});
-  // materi baru selesai dibaca (mis. di tab lain) → kartu task langsung terbuka
-  window.addEventListener("storage", (e) => { if (e.key && e.key.indexOf("materiRead_") === 0) render(); });
   syncServer();
   window.addEventListener("pageshow", (e) => { if (e.persisted) { paintPoints(); render(); syncServer(); } });
 })();

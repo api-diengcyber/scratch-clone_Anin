@@ -55,7 +55,6 @@
     info = LP.find(taskId);
     if (!info || info.task.kind !== "model3d") { location.replace("/SD/belajar.html" + (info ? "?task=" + taskId : "")); return; }
     if (!LP.isUnlocked(taskId)) { location.replace("/SD/belajar.html?p=" + info.pemb.id); return; }
-    if (window.MateriGate && !LP.isDone(taskId) && MateriGate.locked(info.task)) { location.replace("/SD/belajar.html?task=" + taskId); return; }   // materi belum ditonton sampai habis → balik
     task = info.task;
     $("backLink").href = "/SD/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar";
   } else if (projectId && LP.find(projectId)) {
@@ -286,12 +285,20 @@
     goalLis.forEach((li, i) => { li.classList.toggle("done", r[i]); li.firstChild.textContent = r[i] ? "✅" : "☐"; });
     if (r.every(Boolean) && !LP.isDone(taskId) && !doneNow) { doneNow = true; success(); }
   }
-  function success() {
+  async function success() {
     const nameLine = "Task " + task.no + " — " + task.title, nx = LP.next(taskId), buttons = [];
     if (nx) buttons.push({ label: nx.type === "project" ? "Lanjut ke Project Akhir 🏆" : "Task berikutnya →", cls: "mp-primary", fn: () => { location.href = LP.href(nx.id, "Editor3D"); } });
     buttons.push({ label: "Kembali ke jalur belajar", cls: "mp-secondary", fn: () => { location.href = "/SD/belajar.html?p=" + info.pemb.id; } }, { label: "Lanjut bereksperimen", cls: "mp-secondary" });
-    const r = LP.complete(taskId, true); refreshPoints();
-    popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: '<div class="mp-points"><b>+' + r.earned + '</b> poin</div>' + (r.bonus ? '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + r.bonus + '</div>' : "") + '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>", buttons });
+    const r = LP.complete(taskId, true);
+    if (r && r.blocked) {                       // gerbang materi: materi belum dibaca sampai selesai
+      return popup({ type: "info", emoji: "📖", title: "Baca materinya dulu ya!", name: nameLine,
+        html: '<p class="mp-info">Task ini baru bisa diselesaikan setelah kamu membaca materinya sampai selesai.</p>',
+        buttons: [{ label: "Baca Materi 📖", cls: "mp-primary", fn: () => { location.href = LP.materiHref(task, "/belajar.html?task=" + taskId); } },
+                  { label: "Nanti saja", cls: "mp-secondary" }] });
+    }
+    const s = await r.ready;                    // poin & bonus dari jawaban server
+    refreshPoints();
+    popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: '<div class="mp-points"><b>+' + s.earned + '</b> poin</div>' + (s.bonus ? '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + s.bonus + '</div>' : "") + '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>", buttons });
   }
   function missionCard() {
     const t = task || proj; if (!t) return;

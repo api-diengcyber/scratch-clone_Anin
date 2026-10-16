@@ -20,21 +20,18 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
 .ctl{display:flex;gap:8px;align-items:center;justify-content:center;padding:10px;background:#fff;flex-wrap:wrap}
 .ctl button{border:0;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;padding:9px 14px;border-radius:12px;cursor:pointer}.ctl button.on{background:#6d7eea;color:#fff}
 .dots{display:flex;gap:6px;margin:0 8px}.dots i{width:10px;height:10px;border-radius:50%;background:#d6dcf5}.dots i.on{background:#6d7eea}
-.gate{padding:10px 16px;text-align:center;font-weight:bold;font-size:14px;background:#fff7e0;color:#8a5a00}
-.gate.ok{background:#e6f8ee;color:#1e8f52}
-.go.off{background:#b8bfd6;box-shadow:none;cursor:not-allowed}
 </style></head><body>
 <div class="top"><img src="/Assets/logo.png" alt="Logo" onerror="this.style.display='none'"><b id="ttl">Materi</b><a id="back" href="/dashboard.html">← Kembali</a></div>
 <div class="player" id="pl"><div class="bar"><i id="fill"></i></div><div id="scenes" style="flex:1;display:flex;flex-direction:column"></div><div class="cap" id="cap">Memuat…</div>
-<div class="ctl"><button id="prev">◀</button><button id="play" class="on">⏸ Jeda</button><button id="next">▶</button><span class="dots" id="dots"></span><button id="voice">🔇 Suara</button></div><div class="gate" id="gate" role="status"></div></div>
-<script src="/kurikulum/data/jalur-data.js"></script><script src="/shared/js/materi-gate.js?v=2"></script><script src="/kurikulum/core/jalur-belajar.js"></script>
+<div class="ctl"><button id="prev">◀</button><button id="play" class="on">⏸ Jeda</button><button id="next">▶</button><span class="dots" id="dots"></span><button id="voice">🔇 Suara</button></div></div>
+<script src="/kurikulum/data/jalur-data.js?v=12"></script><script src="/kurikulum/core/jalur-belajar.js?v=16"></script>
 <script>
 (function(){
   var id=new URLSearchParams(location.search).get("task"),t,jl,tahap;
   window.LP.tahap.forEach(function(th){th.pembelajaran.forEach(function(p){p.tasks.forEach(function(x){if(x.id===id){t=x;jl=p;tahap=th}})})});
   var cap=document.getElementById("cap");
   if(!t){cap.textContent="Materi tidak ditemukan.";return}
-  document.getElementById("back").href=(window.MateriGate&&!MateriGate.isRead(location.href))?"/belajar.html?p="+jl.id:"/belajar.html?task="+id;document.getElementById("ttl").textContent=jl.emoji+" Materi • "+t.title;document.title="Materi: "+t.title;
+  document.getElementById("back").href="/belajar.html?task="+id;document.getElementById("ttl").textContent=jl.emoji+" Materi • "+t.title;document.title="Materi: "+t.title;
   var arr=function(x){return x?[].concat(x).filter(Boolean):[]};
   var learn=arr(t.materi),steps=arr(t.hint).length?arr(t.hint):arr(t.steps),ok=arr(t.sukses);
   var sc=[{h:t.title,e:jl.emoji,say:"Halo! Hari ini kita belajar "+t.title+". "+(t.desc||"")},
@@ -47,18 +44,8 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
   box.innerHTML=sc.map(function(s){return'<section class="scene"><h2>'+e(s.h)+'</h2>'+(s.e?'<div class="big">'+s.e+'</div>':"")+(s.l?'<ul class="list'+(s.g?" g":"")+'">'+s.l.map(function(x,i){return'<li style="animation-delay:'+(.6+i*1.4)+'s">'+e(x)+'</li>'}).join("")+'</ul>':"")+(s.go?'<a class="go" href="/belajar.html?task='+e(id)+'">Mulai Task 🚀</a>':"")+'</section>'}).join("");
   var S=[].slice.call(box.children),fill=document.getElementById("fill"),dots=document.getElementById("dots"),i=0,tm,playing=true,voice=false;
   S.forEach(function(){dots.appendChild(document.createElement("i"))});
-  // Kunci materi: task baru bisa dikerjakan kalau slide ini sudah ditonton sampai habis (lihat /shared/js/materi-gate.js)
-  var gateEl=document.getElementById("gate"),goBtn=box.querySelector("a.go"),gate=null;
-  function gateUi(s){
-    gateEl.className="gate"+(s.selesai?" ok":"");
-    gateEl.textContent=s.selesai?"✅ Materi selesai ditonton! Task-nya sudah terbuka.":!s.sampaiAkhir?"📖 Tonton sampai slide terakhir dulu ya, supaya task-nya terbuka.":"⏳ Hampir selesai — tunggu "+s.sisa+" detik lagi.";
-    if(goBtn)goBtn.classList.toggle("off",!s.selesai);
-  }
-  if(window.MateriGate)gate=MateriGate.slide(S.length,gateUi);
-  if(goBtn)goBtn.addEventListener("click",function(ev){if(gate&&!gate.state().selesai){ev.preventDefault();gateEl.scrollIntoView({block:"nearest"})}});
   function go(n){i=Math.max(0,Math.min(S.length-1,n));
     S.forEach(function(s,k){s.classList.toggle("on",k===i)});[].forEach.call(dots.children,function(d,k){d.classList.toggle("on",k===i)});
-    if(gate)gate.lihat(i);
     cap.textContent=sc[i].say;clearTimeout(tm);fill.classList.remove("run");void fill.offsetWidth;
     if(playing&&i<S.length-1){fill.classList.add("run");tm=setTimeout(function(){go(i+1)},8000)}
     if("speechSynthesis" in window){speechSynthesis.cancel();if(voice){var u=new SpeechSynthesisUtterance(sc[i].say);u.lang="id-ID";u.rate=.95;speechSynthesis.speak(u)}}}
@@ -67,4 +54,5 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
   document.getElementById("voice").onclick=function(){voice=!voice;this.textContent=voice?"🔊 Suara":"🔇 Suara";this.classList.toggle("on",voice);go(i)};
   go(0);
 })();
-</script></body></html>
+</script><script src="/shared/js/materi-gate.js?v=1"></script>
+</body></html>
