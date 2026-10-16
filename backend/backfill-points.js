@@ -1,7 +1,13 @@
-// backend/backfill-points.js — hitung ulang points.total dari progress x tasks.points.
-// Satu-kali (deploy fase 2). Hormati DB_PATH bila di-set.
+// backend/backfill-points.js — hitung ulang points.total dari progress.
+// Rumus: SUM(tasks.points task selesai) + FIRST_TRY_BONUS x (selesai & bonus_awarded).
+// Satu-kali (deploy fase bonus). Hormati DB_PATH bila di-set.
 // Jalankan: node backend/backfill-points.js
 const db = require("./database");
+
+const BONUS = (() => {
+    const v = Number(process.env.FIRST_TRY_BONUS);
+    return Number.isSafeInteger(v) && v >= 0 ? v : 5;
+})();
 
 const users = db.prepare(`
     SELECT DISTINCT username FROM progress
@@ -18,11 +24,12 @@ const fix = db.transaction((username, total) => {
 
 for (const username of users) {
     const row = db.prepare(`
-        SELECT COALESCE(SUM(CASE WHEN p.completed = 1 THEN t.points ELSE 0 END), 0) AS want
+        SELECT COALESCE(SUM(CASE WHEN p.completed = 1 THEN t.points ELSE 0 END), 0) AS base,
+               COALESCE(SUM(CASE WHEN p.completed = 1 AND p.bonus_awarded = 1 THEN 1 ELSE 0 END), 0) AS nbonus
         FROM progress p JOIN tasks t ON t.task_id = p.task_id
         WHERE p.username = ?
     `).get(username);
-    const want = row ? row.want : 0;
+    const want = (row ? row.base : 0) + (row ? row.nbonus : 0) * BONUS;
     const cur = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
     const have = cur ? cur.total : null;
     if (have !== want) {
@@ -32,6 +39,6 @@ for (const username of users) {
     }
 }
 
-console.log(`Backfill selesai: ${changed}/${users.length} user dikoreksi.`);
+console.log(`Backfill selesai (bonus=${BONUS}): ${changed}/${users.length} user dikoreksi.`);
 if (report.length) console.table(report);
 db.close();

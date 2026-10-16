@@ -34,5 +34,10 @@ Kode error: `400` input salah, `401` username/password salah / belum login / ses
 
 Menyelesaikan task (`POST /api/progress` → `completed: true`) otomatis mengkredit `tasks.points` (default task 10 / project 50, bisa per-task dari kurikulum); un-check mendebit kembali. Idempoten.
 
+Bonus percobaan pertama (semua task): selesai tanpa gagal tercatat (`POST /api/attempts/:username` `{ taskId }` per cek misi yang gagal) + belum pernah dapat bonus → tambah `FIRST_TRY_BONUS` (default 5, via env). Bonus hanya sekali seumur (user, task); un-check mendebit basis + bonus. Respons progress menyertakan `points` (total kini) dan `earned: { base, bonus }`.
+
+| POST | `/api/attempts/:username` | `{ taskId }` | `{ username, taskId, fails }` |
+| POST | `/api/dev/attempts` | `{ taskId }` | `{ username: "dev", taskId, fails }` |
+
 ## Lain-lain
 | GET | `/api/health` | - | `{ status: "ok" }` |

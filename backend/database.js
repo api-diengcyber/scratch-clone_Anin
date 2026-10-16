@@ -416,6 +416,28 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_materials_grade_module ON materials(grade, module_id);
 `);
 
+// Percobaan gagal per task (sumber bonus percobaan pertama, semua task).
+db.exec(`
+    CREATE TABLE IF NOT EXISTS attempts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        task_id TEXT NOT NULL,
+        fails INTEGER NOT NULL DEFAULT 0 CHECK (fails >= 0),
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(username, task_id),
+        FOREIGN KEY(username) REFERENCES users(username),
+        FOREIGN KEY(task_id) REFERENCES tasks(task_id)
+    )
+`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_attempts_username ON attempts(username);`);
+
+// Flag bonus per progres (bonus hanya sekali seumur task).
+const progressCols = db.prepare("PRAGMA table_info(progress)").all().map((c) => c.name);
+if (!progressCols.includes("bonus_awarded")) {
+    db.exec("ALTER TABLE progress ADD COLUMN bonus_awarded INTEGER NOT NULL DEFAULT 0 CHECK (bonus_awarded IN (0, 1))");
+    console.log("Migrasi kolom progress.bonus_awarded berhasil.");
+}
+
 console.log("Database berhasil terhubung.");
 console.log("Lokasi database:", dbPath);
 

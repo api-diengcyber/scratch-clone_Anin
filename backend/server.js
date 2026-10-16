@@ -538,9 +538,9 @@ if (process.env.NODE_ENV !== "production") {
 app.get("/api/dev/progress", requireDevelopmentMode, (req, res) => {
     try {
         const progress = db.prepare(`
-            SELECT task_id, completed, completed_at
-            FROM progress WHERE username = ? ORDER BY id ASC
-        `).all(DEV_USERNAME);
+            SELECT task_id, completed, completed_at, bonus_awarded
+                FROM progress WHERE username = ? ORDER BY id ASC
+            `).all(DEV_USERNAME);
         sendApiSuccess(res, { username: DEV_USERNAME, progress });
     } catch (error) {
         console.error("Gagal mengambil progress dev:", error);
@@ -557,23 +557,9 @@ app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
         const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
 
-        const devWas = db.prepare("SELECT completed FROM progress WHERE username = ? AND task_id = ?").get(DEV_USERNAME, String(taskId));
-        const devWasDone = !!devWas && devWas.completed === 1;
-        const completedAt = completed ? new Date().toISOString() : null;
-        db.prepare(`
-            INSERT INTO progress (username, task_id, completed, completed_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(username, task_id) DO UPDATE SET
-                completed = excluded.completed, completed_at = excluded.completed_at
-        `).run(DEV_USERNAME, taskId, completed ? 1 : 0, completedAt);
-        let devPoints = null;
-        if (devWasDone !== completed) {
-            devPoints = adjustPointsForProgress(DEV_USERNAME, String(taskId), completed);
-        } else {
-            const devRow = db.prepare("SELECT total FROM points WHERE username = ?").get(DEV_USERNAME);
-            devPoints = devRow ? devRow.total : 0;
-        }
-        sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed, points: devPoints }, "Progress disimpan");
+        const devResult = applyProgress(DEV_USERNAME, String(taskId), completed);
+        if (devResult.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+        sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed, points: devResult.points, earned: devResult.earned }, "Progress disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress dev:", error);
         sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
@@ -621,7 +607,7 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
         let progress;
         if (fGrade || fModule) {
             progress = db.prepare(`
-                SELECT p.task_id, p.completed, p.completed_at
+                SELECT p.task_id, p.completed, p.completed_at, p.bonus_awarded
                 FROM progress p JOIN tasks t ON t.task_id = p.task_id
                 WHERE p.username = ?
                   AND (? IS NULL OR t.grade = ?)
@@ -630,7 +616,7 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
             `).all(username, fGrade, fGrade, fModule, fModule);
         } else {
             progress = db.prepare(`
-                SELECT task_id, completed, completed_at
+                SELECT task_id, completed, completed_at, bonus_awarded
                 FROM progress WHERE username = ? ORDER BY id ASC
             `).all(username);
         }
@@ -642,20 +628,45 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
 });
 
 // ============================================================
+const _FB = Number(process.env.FIRST_TRY_BONUS);
+const FIRST_TRY_BONUS = Number.isSafeInteger(_FB) && _FB >= 0 ? _FB : 5;
+// Bonus percobaan pertama: berhasil tanpa gagal tercatat + belum pernah dapat bonus.
+// Berlaku semua task (termasuk project). Bonus hanya sekali seumur (user, task).
 // Poin dihitung SERVER dari task selesai (fase 2). Idempoten:
 // hanya selisih status false<->true yang mengkredit/mendebit.
-function adjustPointsForProgress(username, taskId, completed) {
+function applyProgress(username, taskId, completed) {
     const task = db.prepare("SELECT points FROM tasks WHERE task_id = ?").get(taskId);
-    const pts = task && Number.isSafeInteger(task.points) ? task.points : 10;
-    const apply = db.transaction(() => {
+    if (!task) return { error: "NOT_FOUND" };
+    const pts = Number.isSafeInteger(task.points) ? task.points : 10;
+    return db.transaction(() => {
+        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
+        const prev = db.prepare("SELECT completed, bonus_awarded FROM progress WHERE username = ? AND task_id = ?").get(username, taskId);
+        const wasDone = !!prev && prev.completed === 1;
+        const hadBonus = !!prev && prev.bonus_awarded === 1;
+        let earnedBase = 0, earnedBonus = 0, giveBonus = false;
+        if (!wasDone && completed) {
+            const fr = db.prepare("SELECT fails FROM attempts WHERE username = ? AND task_id = ?").get(username, taskId);
+            giveBonus = !hadBonus && (!fr || fr.fails === 0);
+            earnedBase = pts;
+            earnedBonus = giveBonus ? FIRST_TRY_BONUS : 0;
+        } else if (wasDone && !completed) {
+            earnedBase = -pts;
+            earnedBonus = hadBonus ? -FIRST_TRY_BONUS : 0;
+        }
+        const stamp = completed ? new Date().toISOString() : null;
+        db.prepare(`
+            INSERT INTO progress (username, task_id, completed, completed_at, bonus_awarded)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(username, task_id) DO UPDATE SET
+                completed = excluded.completed, completed_at = excluded.completed_at,
+                bonus_awarded = excluded.bonus_awarded
+        `).run(username, taskId, completed ? 1 : 0, stamp, (hadBonus || giveBonus) ? 1 : 0);
         db.prepare(`INSERT INTO points (username, total, updated_at) VALUES (?, 0, CURRENT_TIMESTAMP) ON CONFLICT(username) DO NOTHING`).run(username);
         const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
-        const total = row ? row.total : 0;
-        const next = completed ? total + pts : Math.max(0, total - pts);
+        const next = Math.max(0, (row ? row.total : 0) + earnedBase + earnedBonus);
         db.prepare(`UPDATE points SET total = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?`).run(next, username);
-        return next;
-    });
-    return apply();
+        return { completed, points: next, earned: { base: earnedBase, bonus: earnedBonus } };
+    })();
 }
 
 // SAVE PROGRESS (Per User - Auth Required)
@@ -668,25 +679,9 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
         if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
         if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
-        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
-        if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
-        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
-        const prev = db.prepare("SELECT completed FROM progress WHERE username = ? AND task_id = ?").get(username, String(taskId));
-        const wasDone = !!prev && prev.completed === 1;
-        db.prepare(`
-            INSERT INTO progress (username, task_id, completed, completed_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(username, task_id) DO UPDATE SET
-                completed = excluded.completed, completed_at = excluded.completed_at
-        `).run(username, String(taskId), completed ? 1 : 0, completed ? new Date().toISOString() : null);
-        let points = null;
-        if (wasDone !== completed) {
-            points = adjustPointsForProgress(username, String(taskId), completed);
-        } else {
-            const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
-            points = row ? row.total : 0;
-        }
-        sendApiSuccess(res, { username, taskId: String(taskId), completed, points }, "Progress berhasil disimpan");
+        const result = applyProgress(username, String(taskId), completed);
+        if (result.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+        sendApiSuccess(res, { username, taskId: String(taskId), completed, points: result.points, earned: result.earned }, "Progress berhasil disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress:", error);
         sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
@@ -694,6 +689,49 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
 });
 
 // ============================================================
+// ============================================================
+// RECORD ATTEMPT (gagal cek misi → sumber bonus percobaan pertama)
+// ============================================================
+
+app.post("/api/attempts/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
+    try {
+        const username = String(req.params.username || "").trim();
+        const { taskId } = req.body || {};
+        if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
+        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
+        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
+        if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
+        const rec = db.transaction(() => {
+            db.prepare(`INSERT INTO attempts (username, task_id, fails, updated_at) VALUES (?, ?, 0, CURRENT_TIMESTAMP) ON CONFLICT(username, task_id) DO NOTHING`).run(username, String(taskId));
+            db.prepare(`UPDATE attempts SET fails = fails + 1, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND task_id = ?`).run(username, String(taskId));
+            return db.prepare("SELECT fails FROM attempts WHERE username = ? AND task_id = ?").get(username, String(taskId));
+        })();
+        sendApiSuccess(res, { username, taskId: String(taskId), fails: rec.fails }, "Percobaan dicatat");
+    } catch (error) {
+        console.error("Gagal mencatat attempt:", error);
+        sendApiError(res, 500, "Gagal mencatat attempt", "INTERNAL_ERROR");
+    }
+});
+
+app.post("/api/dev/attempts", requireDevelopmentMode, (req, res) => {
+    try {
+        const { taskId } = req.body || {};
+        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
+        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
+        if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+        const rec = db.transaction(() => {
+            db.prepare(`INSERT INTO attempts (username, task_id, fails, updated_at) VALUES (?, ?, 0, CURRENT_TIMESTAMP) ON CONFLICT(username, task_id) DO NOTHING`).run(DEV_USERNAME, String(taskId));
+            db.prepare(`UPDATE attempts SET fails = fails + 1, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND task_id = ?`).run(DEV_USERNAME, String(taskId));
+            return db.prepare("SELECT fails FROM attempts WHERE username = ? AND task_id = ?").get(DEV_USERNAME, String(taskId));
+        })();
+        sendApiSuccess(res, { username: DEV_USERNAME, taskId: String(taskId), fails: rec.fails }, "Percobaan dicatat");
+    } catch (error) {
+        console.error("Gagal mencatat attempt dev:", error);
+        sendApiError(res, 500, "Gagal mencatat attempt", "INTERNAL_ERROR");
+    }
+});
+
 // GET POINTS (Per User - Auth Required)
 // ============================================================
 

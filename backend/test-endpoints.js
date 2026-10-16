@@ -146,30 +146,30 @@ const B = `http://localhost:${PORT}`;
     r = await fetch(`${B}/api/ai/tutor`, { method: "POST", headers: hdr, body: JSON.stringify({ message: "halo", smpTask: { nodeId: "ai1", taskIndex: 0, judul: "x", langkah: ["a"] } }) });
     if (r.status === 403) throw new Error("ai1 ikut ditolak");
   });
-  await t("complete mengkredit poin (10)", async () => {
+  await t("complete mengkredit poin (10+5)", async () => {
     let r = await fetch(`${B}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "pointer", password: "abcd1234" }) });
     let d = await j(r);
     const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
     r = await fetch(`${B}/api/progress/pointer`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:0", completed: true }) });
-    d = await j(r); eq(d.points, 10, "kredit");
+    d = await j(r); eq(d.points, 15, "kredit 10+5"); eq(d.earned.base, 10, "base"); eq(d.earned.bonus, 5, "bonus");
     r = await fetch(`${B}/api/points/pointer`, { headers: hdr }); d = await j(r);
-    eq(d.total, 10, "total");
+    eq(d.total, 15, "total 10+5");
   });
   await t("complete ganda tidak dobel", async () => {
     let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "pointer", password: "abcd1234" }) });
     let d = await j(r);
     const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
     r = await fetch(`${B}/api/progress/pointer`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:0", completed: true }) });
-    d = await j(r); eq(d.points, 10, "tetap");
+    d = await j(r); eq(d.points, 15, "tetap");
   });
-  await t("project mengkredit 50 + uncheck mendebit", async () => {
+  await t("project mengkredit 55 + uncheck mendebit", async () => {
     let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "pointer", password: "abcd1234" }) });
     let d = await j(r);
     const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
     r = await fetch(`${B}/api/progress/pointer`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", completed: true }) });
-    d = await j(r); eq(d.points, 60, "10+50");
+    d = await j(r); eq(d.points, 70, "15+55");
     r = await fetch(`${B}/api/progress/pointer`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:0", completed: false }) });
-    d = await j(r); eq(d.points, 50, "debit");
+    d = await j(r); eq(d.points, 55, "debit 15");
   });
   await t("POST points mentah -> 410", async () => {
     let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "pointer", password: "abcd1234" }) });
@@ -178,7 +178,38 @@ const B = `http://localhost:${PORT}`;
     r = await fetch(`${B}/api/points/pointer`, { method: "POST", headers: hdr, body: JSON.stringify({ total: 999999 }) });
     d = await j(r); eq(r.status, 410, "status"); eq(d.code, "GONE", "code");
     r = await fetch(`${B}/api/points/pointer`, { headers: hdr }); d = await j(r);
-    eq(d.total, 50, "total tak berubah");
+    eq(d.total, 55, "total tak berubah");
+  });
+  await t("gagal dulu -> tanpa bonus", async () => {
+    let r = await fetch(`${B}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "bonustest", password: "abcd1234" }) });
+    let d = await j(r);
+    const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
+    r = await fetch(`${B}/api/attempts/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:0" }) });
+    d = await j(r); eq(d.fails, 1, "fails");
+    r = await fetch(`${B}/api/progress/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:0", completed: true }) });
+    d = await j(r); eq(d.points, 10, "tanpa bonus"); eq(d.earned.bonus, 0, "bonus 0");
+  });
+  await t("bonus hanya sekali (uncheck lalu ulangi)", async () => {
+    let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "bonustest", password: "abcd1234" }) });
+    let d = await j(r);
+    const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
+    r = await fetch(`${B}/api/progress/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", completed: true }) });
+    d = await j(r); eq(d.points, 65, "10+55"); eq(d.earned.bonus, 5, "bonus project");
+    r = await fetch(`${B}/api/progress/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", completed: false }) });
+    d = await j(r); eq(d.points, 10, "debit 55"); eq(d.earned.bonus, -5, "debit bonus");
+    r = await fetch(`${B}/api/progress/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", completed: true }) });
+    d = await j(r); eq(d.points, 60, "tanpa bonus kedua"); eq(d.earned.bonus, 0, "bonus 0");
+  });
+  await t("attempts task ngawur -> 404", async () => {
+    let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "bonustest", password: "abcd1234" }) });
+    let d = await j(r);
+    const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };
+    r = await fetch(`${B}/api/attempts/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "ngawur:0" }) });
+    eq(r.status, 404, "status");
+  });
+  await t("dev attempts roundtrip", async () => {
+    let r = await fetch(`${B}/api/dev/attempts`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ taskId: "testmod:0" }) });
+    let d = await j(r); eq(d.fails, 1, "fails");
   });
   await t("filter progress ?grade=", async () => {
     let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "pointer", password: "abcd1234" }) });
