@@ -71,6 +71,7 @@
     info = LP.find(taskId);
     if (!info || info.task.kind !== "code") { window.location.replace("/belajar.html" + (info ? "?task=" + taskId : "")); return; }
     if (!LP.isUnlocked(taskId)) { window.location.replace("/belajar.html?p=" + info.pemb.id); return; }   // belum terbuka → balik
+    if (window.MateriGate && !LP.isDone(taskId) && MateriGate.locked(info.task)) { window.location.replace("/belajar.html?task=" + taskId); return; }   // materi belum ditonton sampai habis → balik
     task = info.task;
   }
 

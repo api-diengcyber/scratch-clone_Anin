@@ -55,6 +55,7 @@
     info = LP.find(taskId);
     if (!info || info.task.kind !== "model3d") { location.replace("/SD/belajar.html" + (info ? "?task=" + taskId : "")); return; }
     if (!LP.isUnlocked(taskId)) { location.replace("/SD/belajar.html?p=" + info.pemb.id); return; }
+    if (window.MateriGate && !LP.isDone(taskId) && MateriGate.locked(info.task)) { location.replace("/SD/belajar.html?task=" + taskId); return; }   // materi belum ditonton sampai habis → balik
     task = info.task;
     $("backLink").href = "/SD/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar";
   } else if (projectId && LP.find(projectId)) {

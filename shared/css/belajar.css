@@ -164,6 +164,7 @@ button { font: inherit; cursor: pointer; }
 .badge { margin-right: 6px; }
 .badge.st-terkunci { background: #eceff8; color: #8a93b4; }
 .badge.st-tersedia { background: #fff4d6; color: #a86a00; }
+.badge.st-baca { background: #e0ebff; color: #2f55c8; }
 .badge.st-selesai  { background: #e6f8ee; color: #1e8f52; }
 .badge.pts { background: #fff8e0; color: #a86a00; }
 .badge.reward { background: #f1e9ff; color: #6a42c9; }

@@ -42,6 +42,7 @@
   }
 
   const app = document.getElementById("app");
+  let curPemb = null;                              // id pembelajaran yang daftar tasknya sedang tampil (null = halaman lain)
   let tahap = LP.tahap[0];                         // tahap yang sedang dibuka (berubah sesuai task / jalur)
   const $points = document.getElementById("pointsValue");
   // Tampilkan saldo koin (total poin − hadiah yang dibeli), sama dengan dashboard & halaman Poin
@@ -76,8 +77,21 @@
     document.body.appendChild(ov);
   }
 
+  // ---------- KUNCI MATERI ----------
+  // Task SD baru bisa dikerjakan kalau materinya sudah ditonton sampai habis (lihat /shared/js/materi-gate.js).
+  // Task yang sudah selesai (Ulangi), Project Akhir, dan task tanpa halaman materi tidak dikunci.
+  const gated = (t) => !!window.MateriGate && !LP.isDone(t.id) && window.MateriGate.locked(t);
+  const materiHref = (t) => window.MateriGate.href(t);
+  function materiPopup(t) {
+    popup({ type: "info", emoji: "📖", title: "Baca materinya dulu ya!",
+      html: '<p class="mp-info">Tonton materi <b>' + esc(t.title) + '</b> sampai habis dulu, baru task-nya bisa dikerjakan.</p>',
+      buttons: [{ label: "📺 Buka Materi", cls: "mp-primary", fn: () => { window.location.href = materiHref(t); } },
+                { label: "Nanti saja", cls: "mp-secondary" }] });
+  }
+
   // ---------- 1. PETA TAHAP ----------
   function showTahap() {
+    curPemb = null;
     if (tahap.mode === "pilih-jalur") return showJalur();   // Tahap 2: anak memilih satu jalur
     const prog = LP.progressOfTahap(tahap);
     const pct = Math.round((prog.done / prog.total) * 100);
@@ -109,6 +123,7 @@
 
   // ---------- 1b. PILIH JALUR (Tahap 2) ----------
   function showJalur() {
+    curPemb = null;
     const chosen = LP.chosen(tahap.id);
     const cards = tahap.pembelajaran.map((pb) => {
       const p = LP.progressOf(pb);
@@ -208,6 +223,7 @@
   function showPemb(pbId) {
     const pb = findPemb(pbId);
     if (!pb) return showTahap();
+    curPemb = pbId;
     tahap = tahapOf(pb);
     if (tahap.mode === "pilih-jalur") LP.choose(tahap.id, pb.id);   // ingat jalur yang dipilih
     const p = LP.progressOf(pb);
@@ -223,13 +239,15 @@
       const cls = ["node", done ? "done" : "", !open ? "locked" : "", current ? "current" : "", isProject ? "trophy" : ""].join(" ");
       const circle = !open ? "🔒" : isProject ? (done ? "✓" : "🏆") : (done ? "✓" : t.no);
       const label = isProject ? "PROJECT AKHIR" : "TASK " + t.no + " • " + t.label.toUpperCase();
+      const kunciMateri = open && !done && gated(t);
       const btn = !open ? '<button class="btn grey" data-id="' + t.id + '">🔒 Terkunci</button>'
+        : kunciMateri ? '<button class="btn grey" data-id="' + t.id + '" data-materi="1">📖 Baca materi dulu</button>'
         : done ? '<button class="btn ghost" data-id="' + t.id + '">' + (isProject ? "Lihat Project" : "Ulangi") + "</button>"
         : '<button class="btn ' + (isProject ? "gold" : "green") + '" data-id="' + t.id + '">' + (isProject ? (LP.projectStatus(t.id) === "dikerjakan" ? "Lanjutkan Project 🏆" : "Mulai Project 🏆") : "Mulai →") + "</button>";
       // tombol materi (opsional): hanya task yang punya `halamanMateri` di jalur-data.js, dan hanya kalau task sudah terbuka
-      const materiBtn = (t.halamanMateri && open) ? '<a class="btn ghost mlink" href="' + esc(t.halamanMateri) + '">📺 Materi</a>' : "";
+      const materiBtn = (t.halamanMateri && open) ? '<a class="btn ' + (kunciMateri ? "green" : "ghost") + ' mlink" href="' + esc(t.halamanMateri) + '">' + (kunciMateri ? "📺 Baca Materi" : "📺 Materi") + "</a>" : "";
       return '<div class="' + cls + '"><div class="circle">' + circle + "</div>" +
-        '<div class="ncard"><div><div class="nlabel">' + label + (current ? " • 👉 AYO MULAI!" : "") + "</div>" +
+        '<div class="ncard"><div><div class="nlabel">' + label + (current ? (kunciMateri ? " • 📖 BACA MATERI DULU" : " • 👉 AYO MULAI!") : "") + "</div>" +
         "<h3>" + esc(t.title) + "</h3><p>" + esc(t.desc) + "</p>" +
         '<span class="badge">' + tipe.icon + " " + tipe.nama + "</span>" + toolChip(t) + statusChip(t) + pointChip(t) + "</div>" + '<div class="nacts">' + materiBtn + btn + "</div></div></div>";
     }).join("");
@@ -262,16 +280,20 @@
 
   // task yang memakai editor (Block Editor / Text Editor) dibuka di halaman editornya; selain itu dibuka di sini
   function openItem(id) {
-    if (LP.editorOf(LP.find(id).task)) window.location.href = LP.href(id, false);
+    const f = LP.find(id);
+    if (LP.isUnlocked(id) && gated(f.task)) return materiPopup(f.task);   // materi belum ditonton sampai habis
+    if (LP.editorOf(f.task)) window.location.href = LP.href(id, false);
     else showTask(id);
   }
 
   // ---------- 3. DETAIL TASK ----------
   function showTask(id) {
+    curPemb = null;
     const f = LP.find(id);
     if (!f) return showTahap();
     tahap = f.tahap;
     if (!LP.isUnlocked(id)) return showPemb(f.pemb.id);
+    if (gated(f.task)) { showPemb(f.pemb.id); return materiPopup(f.task); }   // dibuka lewat alamat langsung / tombol Mulai Task sebelum materi selesai
     const t = f.task, pb = f.pemb, tipe = LP.TIPE[t.type], done = LP.isDone(id);
     const saved = LP.upload(id);
     const isProject = t.type === "project";
@@ -533,6 +555,10 @@
   }
 
   // ---------- MULAI ----------
+  // materi baru selesai ditonton (mis. di tab lain / kembali dari halaman materi) → daftar task langsung terbuka
+  const segarkan = () => { if (curPemb) showPemb(curPemb); };
+  window.addEventListener("storage", (e) => { if (e.key && e.key.indexOf("materiRead_") === 0) segarkan(); });
+  window.addEventListener("pageshow", (e) => { if (e.persisted) { refreshPoints(); segarkan(); } });
   const params = new URLSearchParams(window.location.search);
   const startTask = params.get("task"), startP = params.get("p"), startT = params.get("t");
   if (startTask && LP.find(startTask)) showTask(startTask);

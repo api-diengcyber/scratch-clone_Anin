@@ -28,8 +28,26 @@
 
   load(
     "/kurikulum/data/jalur-data-smp.js?v=1",
-    () => load("/kurikulum/data/jalur-data-smak.js?v=1", start)
+    () => load("/kurikulum/data/jalur-data-smak.js?v=1", () => load("/shared/js/materi-gate.js?v=2", prepare))
   );
+
+  // Alamat halaman materi tiap task SMP bisa ditimpa dari API (sama seperti di halaman modul SMP), jadi ambil dulu
+  // supaya pengecekan "materi sudah dibaca?" memakai alamat yang sama dengan yang dibuka siswa. SMA/SMK memakai data statis.
+  function prepare() {
+    const nd = (() => {
+      for (const t of window.LP_SMP || []) { const n = t.nodes.find((x) => x.id === nid); if (n) return n; }
+      return null;
+    })();
+    if (!nd) return start();
+    fetch("/api/materials/SMP/" + encodeURIComponent(nid))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        const list = body ? (Array.isArray(body) ? body : (body.materials || [])) : [];
+        list.forEach((m) => { const t = nd.tasks[Number(m.lesson_index)]; if (t && m.path) t.halamanMateri = m.path; });
+      })
+      .catch(() => {})
+      .then(start);
+  }
 
   function start() {
 
@@ -106,6 +124,14 @@
       ".smpP .note{background:rgba(52,192,111,.16);color:#7dffa6;border-radius:10px;padding:8px 10px;margin-top:8px;font-weight:700}" +
       ".smpP .chip{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;background:rgba(52,192,111,.2);color:#7dffa6;font-size:12px;font-weight:700}" +
       ".smpP.min{width:auto;padding:8px 12px}" +
+      // Lapisan kunci materi: menutup seluruh editor sampai materi task dibaca sampai selesai
+      ".smpLock{position:fixed;inset:0;z-index:2147483000;background:rgba(10,14,40,.95);display:flex;align-items:center;justify-content:center;" +
+        "padding:18px;font:16px/1.5 'Trebuchet MS',Arial,sans-serif;color:#e8ecff}" +
+      ".smpLock .bx{max-width:440px;width:100%;background:#161c47;border:2px solid " + tr.c + ";border-radius:20px;padding:24px;text-align:center}" +
+      ".smpLock h3{margin:6px 0 8px;font-size:21px}.smpLock p{margin:0 0 14px}" +
+      ".smpLock a{display:block;margin-top:10px;padding:12px;border-radius:12px;font-weight:700;text-decoration:none}" +
+      ".smpLock .go{background:#34c06f;color:#fff}.smpLock .bk{background:#eef1ff;color:#3d4bb8}" +
+      ".smpLock a:focus-visible{outline:3px solid #8fa2ff;outline-offset:2px}" +
       "@media (max-width:640px){.smpP{top:auto;bottom:10px;left:10px;right:10px;width:auto;max-height:46vh}}";
     document.head.appendChild(st);
 
@@ -218,9 +244,49 @@
     };
 
     // ============================================================
+    // KUNCI MATERI — task belum bisa dikerjakan sebelum materinya dibaca sampai selesai
+    // ============================================================
+    // Dipanggil dari draw(), jadi berlaku juga saat siswa pindah task lewat tombol ◀ ▶ di panel.
+    // Task yang sudah selesai, Final Project, dan task tanpa halaman materi tidak dikunci (aturan ada di MateriGate).
+    let lockEl = null;
+    const matLocked = () => !isDone(ti) && !!window.MateriGate && window.MateriGate.locked(node.tasks[ti]);
+    function guard() {
+      if (!matLocked()) {
+        if (lockEl) { lockEl.remove(); lockEl = null; }
+        return;
+      }
+      const k = node.tasks[ti];
+      const fresh = !lockEl;
+      if (fresh) {
+        lockEl = document.createElement("div");
+        lockEl.className = "smpLock";
+        lockEl.setAttribute("role", "alertdialog");
+        lockEl.setAttribute("aria-modal", "true");
+        lockEl.setAttribute("aria-labelledby", "smpLockT");
+        // fokus dikunci di dua tautan ini selama lapisan tampil
+        lockEl.addEventListener("keydown", (e) => {
+          if (e.key !== "Tab") return;
+          const a = [...lockEl.querySelectorAll("a")];
+          const i = a.indexOf(document.activeElement);
+          e.preventDefault();
+          a[(i + (e.shiftKey ? a.length - 1 : 1)) % a.length].focus();
+        });
+        document.body.appendChild(lockEl);
+      }
+      lockEl.innerHTML =
+        '<div class="bx"><div style="font-size:44px" aria-hidden="true">📖</div>' +
+        '<h3 id="smpLockT">Baca materinya dulu, ya!</h3>' +
+        "<p>Task <b>" + esc(k.judul) + "</b> baru bisa dikerjakan setelah materinya dibaca sampai selesai.</p>" +
+        '<a class="go" href="' + esc(window.MateriGate.href(k, modUrl)) + '">📺 Baca Materi</a>' +
+        '<a class="bk" href="' + modUrl + '">← Kembali ke modul</a></div>';
+      if (fresh) { const g = lockEl.querySelector(".go"); if (g) g.focus(); }
+    }
+
+    // ============================================================
     // DRAW
     // ============================================================
     function draw() {
+      guard();
       if (shut) {
         p.className = "smpP min";
         p.innerHTML = '<button data-o aria-label="Buka panel task">📋 Task aktif</button>';
@@ -302,6 +368,10 @@
         return;
       }
     });
+
+    // Materi baru selesai dibaca di tab lain, atau halaman ini dipulihkan dari cache browser → cek ulang kuncinya.
+    window.addEventListener("storage", (e) => { if (e.key && e.key.indexOf("materiRead_") === 0) guard(); });
+    window.addEventListener("pageshow", (e) => { if (e.persisted) guard(); });
 
     // Kalau status berubah di tab lain (mis. halaman modul), panel ikut segar.
     window.addEventListener("storage", (e) => { if (e.key === doneKey()) { while (ti > 0 && !isOpen(ti)) ti--; draw(); } });

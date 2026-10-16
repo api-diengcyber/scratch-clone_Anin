@@ -44,6 +44,9 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
 .ctl{display:flex;gap:8px;align-items:center;justify-content:center;padding:10px;background:#fff}
 .ctl button{border:0;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;padding:9px 14px;border-radius:12px;cursor:pointer}.ctl button.on{background:#6d7eea;color:#fff}
 .dots{display:flex;gap:6px;margin:0 8px}.dots i{width:10px;height:10px;border-radius:50%;background:#d6dcf5}.dots i.on{background:#6d7eea}
+.gate{padding:10px 16px;text-align:center;font-weight:bold;font-size:14px;background:#fff7e0;color:#8a5a00}
+.gate.ok{background:#e6f8ee;color:#1e8f52}
+.go.off{background:#b8bfd6;box-shadow:none;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -58,7 +61,9 @@ h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
   <section class="scene s6"><h2>Kamu Siap! 🎉</h2><ul class="check"><li>✅ Tambah 1 benda</li><li>✅ Putar pandanganmu</li></ul><a class="go" href="/tools/Editor3D/index.html?task=g2-t1">Mulai Task 1 🧊</a></section>
   <div class="cap" id="cap"></div>
   <div class="ctl"><button id="prev">◀</button><button id="play" class="on">⏸ Jeda</button><button id="next">▶</button><span class="dots" id="dots"></span><button id="voice">🔇 Suara</button></div>
+  <div class="gate" id="gate" role="status"></div>
 </div>
+<script src="/shared/js/materi-gate.js?v=2"></script>
 <script>
 const say=["Halo! Hari ini kita kenalan dengan dunia 3D. Yuk, kita mulai!",
 "Benda 3D punya tiga ukuran: lebar, tinggi, dan panjang. Karena itu bendanya terlihat nyata, seperti mainan balok.",
@@ -69,9 +74,19 @@ const say=["Halo! Hari ini kita kenalan dengan dunia 3D. Yuk, kita mulai!",
 const sc=[...document.querySelectorAll(".scene")],cap=document.getElementById("cap"),fill=document.getElementById("fill"),dots=document.getElementById("dots");
 let i=0,t,playing=true,voice=false;
 sc.forEach(()=>dots.appendChild(document.createElement("i")));
+// Kunci materi: task baru bisa dikerjakan kalau slide ini sudah ditonton sampai habis (lihat /shared/js/materi-gate.js)
+const gateEl=document.getElementById("gate"),goBtn=document.querySelector("a.go");
+function gateUi(s){
+  gateEl.className="gate"+(s.selesai?" ok":"");
+  gateEl.textContent=s.selesai?"✅ Materi selesai ditonton! Task-nya sudah terbuka.":!s.sampaiAkhir?"📖 Tonton sampai slide terakhir dulu ya, supaya task-nya terbuka.":"⏳ Hampir selesai — tunggu "+s.sisa+" detik lagi.";
+  if(goBtn)goBtn.classList.toggle("off",!s.selesai);
+}
+const gate=window.MateriGate?MateriGate.slide(sc.length,gateUi):null;
+if(goBtn)goBtn.addEventListener("click",ev=>{if(gate&&!gate.state().selesai){ev.preventDefault();gateEl.scrollIntoView({block:"nearest"})}});
 function go(n){
   i=Math.max(0,Math.min(sc.length-1,n));
   sc.forEach((s,k)=>s.classList.toggle("on",k===i)); [...dots.children].forEach((d,k)=>d.classList.toggle("on",k===i));
+  if(gate)gate.lihat(i);
   cap.textContent=say[i]; clearTimeout(t); fill.classList.remove("run"); void fill.offsetWidth;
   if(playing&&i<sc.length-1){fill.classList.add("run");t=setTimeout(()=>go(i+1),8000)}
   if("speechSynthesis" in window){speechSynthesis.cancel();if(voice){const u=new SpeechSynthesisUtterance(say[i]);u.lang="id-ID";u.rate=.95;speechSynthesis.speak(u)}}

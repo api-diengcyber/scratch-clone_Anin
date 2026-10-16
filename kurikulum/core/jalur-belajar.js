@@ -542,6 +542,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     let st = "tersedia", lb = "▶️ Tersedia";
     if (dn) { st = "selesai"; lb = "✅ Selesai"; }
     else if (!op) { st = "terkunci"; lb = "🔒 Terkunci"; }
+    else if (window.MateriGate && window.MateriGate.locked(k)) { st = "baca"; lb = "📖 Baca materi dulu"; }   // materi belum dibaca sampai selesai
     else {
       let c = [];
       try { c = JSON.parse(localStorage.getItem("smpSteps_" + node.id + "_" + i)) || []; } catch (e) { c = []; }

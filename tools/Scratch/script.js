@@ -10034,7 +10034,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   if (taskId && hasLP) {
     const info = LP.find(taskId);
     if (!info || !EDITOR_GOALS[taskId]) return;
-    if (!LP.isUnlocked(taskId)) {               // task belum terbuka → balik ke jalur belajar
+    if (!LP.isUnlocked(taskId) || (window.MateriGate && !LP.isDone(taskId) && MateriGate.locked(info.task))) {   // task belum terbuka / materi belum selesai ditonton → balik ke jalur belajar
       window.location.replace("/SD/belajar.html?task=" + taskId);   // halaman belajar menampilkan info "Masih terkunci"
       return;
     }

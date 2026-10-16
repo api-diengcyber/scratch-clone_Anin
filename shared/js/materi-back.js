@@ -16,6 +16,14 @@
   var grade = /^\/SMK\//i.test(path) ? "smk" : /^\/SMP\//i.test(path) ? "smp" : "";
   if (!grade) return;
 
+  // Kunci materi: tandai materi ini "selesai dibaca" kalau siswa sudah menggulir sampai bawah + cukup lama di halaman.
+  // Task yang memakai materi ini baru bisa dimulai setelah itu (lihat /shared/js/materi-gate.js).
+  if (!window.MateriGate) {
+    var mg = document.createElement("script");
+    mg.src = "/shared/js/materi-gate.js?v=2";
+    document.head.appendChild(mg);
+  }
+
   var home = grade === "smk" ? "/belajar-smk.html" : "/belajar-smp.html";
   var SAFE = /^\/belajar-(smp|smk)\.html(\?[\w=&.%-]*)?$/;     // hanya boleh kembali ke halaman belajar (cegah open-redirect)
 
