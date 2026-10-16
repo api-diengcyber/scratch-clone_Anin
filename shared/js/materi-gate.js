@@ -1,197 +1,141 @@
-// Kunci "materi harus dibaca sampai selesai" untuk jalur SD, SMP & SMA/SMK.
+// ============================================================
+// GERBANG MATERI — pelacak "sudah dibaca sampai selesai"
+// Dimuat di SEMUA halaman materi (SD, SMP, SMA/SMK):
+//   <script src="/shared/js/materi-gate.js"></script>   (di akhir <body>)
 //
-// Satu file, dua peran:
-//   1. API  window.MateriGate  — dipakai halaman modul (belajar-smp / belajar-smk), kartu task, dan panel task di editor
-//      untuk tahu apakah sebuah task masih terkunci karena materinya belum selesai dibaca.
-//   2. Pelacak baca — otomatis aktif di halaman materi (/SMP/materi/... dan /SMK/materi/...). Materi dianggap
-//      SELESAI DIBACA kalau siswa (a) sudah menggulir sampai bagian paling bawah DAN (b) sudah cukup lama berada di
-//      halaman itu (sebanding dengan panjang teks, 10–30 detik, hanya dihitung saat tab terlihat).
-//      Ini pendekatan praktis, bukan bukti 100% bahwa anak benar-benar membaca.
+// Dua jenis halaman materi, dikenali otomatis:
+//   • Halaman gulir (SMP & SMA/SMK)  → harus digulir sampai bawah DAN dibaca cukup lama.
+//   • Halaman slide (SD: .scene)     → semua slide harus sempat ditampilkan DAN cukup lama.
 //
-// Status disimpan di localStorage per akun:  materiRead_<username>  =  { "<alamat halaman materi>": waktu }
-// Kuncinya adalah ALAMAT halaman materi (huruf kecil, tanpa query), jadi beberapa task yang memakai satu halaman
-// materi yang sama (mis. satu modul satu halaman) otomatis terbuka bersama-sama.
+// Kalau syarat terpenuhi, alamat halaman dicatat di localStorage "materiRead_<user>".
+// Mesin LP (kurikulum/core/jalur-belajar.js → LP.materiDibaca) membaca catatan yang SAMA,
+// sehingga task baru bisa dikerjakan setelah materinya selesai dibaca.
 //
-// Task TANPA halaman materi ("Materi segera hadir") dan Kumpulkan Final Project TIDAK dikunci,
-// karena tidak ada yang bisa dibaca.
+// PENTING: fungsi materiKey() di sini harus selalu sama dengan LP.materiKey().
+// ============================================================
 (function () {
-  "use strict";
-  if (window.MateriGate) return;
+  if (window.__materiGate) return;
+  window.__materiGate = true;
 
-  var DETIK_MIN = 10, DETIK_MAX = 30, KATA_PER_DETIK = 15;
+  // ---------- PENGATURAN (ubah di sini) ----------
+  var DETIK_PER_KATA = 1 / 15;     // halaman gulir: waktu baca minimal = jumlah kata / 15 detik ...
+  var MIN_DETIK = 8;               // ... tapi tidak kurang dari ini
+  var MAX_DETIK = 30;              // ... dan tidak lebih dari ini
+  var DETIK_PER_SLIDE = 2.5;       // halaman slide: waktu minimal per slide
+  var MARGIN_BAWAH = 60;           // dianggap "sudah sampai bawah" kalau sisa gulir kurang dari ini (px)
+  var SAFE_BACK = /^\/belajar(-smp|-smk)?\.html(\?[\w=&.%:-]*)?$/;   // hanya boleh kembali ke halaman belajar
 
-  // ---------- penyimpanan ----------
+  // ---------- penyimpanan (sama dengan LP._get/_set) ----------
   function user() {
-    return localStorage.getItem("username") || localStorage.getItem("scratch_user") || "tamu";
+    try { return localStorage.getItem("username") || localStorage.getItem("scratch_user") || "tamu"; } catch (e) { return "tamu"; }
   }
   function storeKey() { return "materiRead_" + user(); }
-  function load() {
+  function readMap() {
+    try { return JSON.parse(localStorage.getItem(storeKey())) || {}; } catch (e) { return {}; }
+  }
+  // kunci = alamat halaman (tanpa query), kecuali ?task= (dipakai materi SD: /SD/materi/sd.html?task=<id>)
+  function materiKey(url) {
     try {
-      var v = JSON.parse(localStorage.getItem(storeKey()));
-      return v && typeof v === "object" && !Array.isArray(v) ? v : {};
-    } catch (e) { return {}; }
+      var u = new URL(url, location.origin), p = decodeURIComponent(u.pathname), t = u.searchParams.get("task");
+      return p + (t ? "?task=" + t : "");
+    } catch (e) { return String(url || ""); }
   }
-  function save(map) {
-    try { localStorage.setItem(storeKey(), JSON.stringify(map)); return true; } catch (e) { return false; }
+  var KEY = materiKey(location.href);
+
+  function sudahDibaca() { return !!readMap()[KEY]; }
+  function tandaiDibaca() {
+    var m = readMap();
+    if (m[KEY]) return true;
+    m[KEY] = new Date().toISOString();
+    try { localStorage.setItem(storeKey(), JSON.stringify(m)); } catch (e) { return false; }
+    try { window.dispatchEvent(new CustomEvent("materi:dibaca", { detail: { key: KEY } })); } catch (e) {}
+    return true;
   }
+  window.MateriGate = { key: KEY, sudahDibaca: sudahDibaca, materiKey: materiKey };
 
-  // alamat → kunci: hanya path, tanpa query/hash, huruf kecil, URL-decoded
-  function norm(href) {
-    if (!href) return "";
-    var u;
-    try { u = new URL(String(href), location.origin); } catch (e) { return ""; }
-    var p = u.pathname;
-    try { p = decodeURIComponent(p); } catch (e) {}
-    p = p.toLowerCase();
-    // Materi SD: satu halaman pemutar (sd.html) dipakai semua task, dibedakan lewat ?task=<id>
-    var t = u.searchParams.get("task");
-    if (t && /^\/sd\/materi\//.test(p)) p += "?task=" + t.toLowerCase();
-    return p;
-  }
-
-  // ---------- API ----------
-  var API = {
-    key: norm,
-    isRead: function (href) { var k = norm(href); return !!k && !!load()[k]; },
-    mark: function (href) {
-      var k = norm(href);
-      if (!k) return false;
-      var m = load(); m[k] = Date.now();
-      return save(m);
-    },
-    // task ini punya materi yang wajib dibaca?
-    needs: function (task) { return !!(task && !task.kumpul && task.halamanMateri); },
-    // task ini TERKUNCI karena materinya belum selesai dibaca?
-    locked: function (task) { return API.needs(task) && !API.isRead(task.halamanMateri); },
-    // alamat halaman materi + tombol kembali ke halaman asal
-    href: function (task, kembali) {
-      var h = String((task && task.halamanMateri) || "");
-      if (!h) return "";
-      return kembali ? h + (h.indexOf("?") > -1 ? "&" : "?") + "kembali=" + encodeURIComponent(kembali) : h;
-    }
-  };
-  // Untuk halaman materi SD yang berupa slideshow. Materi dianggap SELESAI DIBACA kalau siswa sudah sampai di slide
-  // terakhir DAN sudah menonton cukup lama (±3 detik per slide, minimal 10 detik, hanya dihitung saat tab terlihat),
-  // supaya tidak bisa dilewati hanya dengan menekan tombol ▶ berkali-kali.
-  //   var g = MateriGate.slide(jumlahSlide, function (s) { ...perbarui tampilan... });
-  //   g.lihat(indexSlideYangTampil);      // panggil setiap pindah slide
-  // Callback menerima { selesai, sampaiAkhir, sisa } (sisa = detik menonton yang masih kurang).
-  API.slide = function (total, ui) {
-    var key = location.href, detik = 0, akhir = false, selesai = API.isRead(key);
-    var perlu = Math.max(DETIK_MIN, 3 * Math.max(0, total - 1));
-    function state() { return { selesai: selesai, sampaiAkhir: akhir, sisa: Math.max(0, perlu - detik) }; }
-    function cek() {
-      if (!selesai && akhir && detik >= perlu) { selesai = true; API.mark(key); }
-      if (ui) ui(state());
-    }
-    setInterval(function () { if (!document.hidden && !selesai) { detik++; cek(); } }, 1000);
-    if (ui) ui(state());
-    return {
-      lihat: function (i) { if (i >= total - 1) akhir = true; cek(); },
-      state: state
-    };
-  };
-
-  window.MateriGate = API;
-
-  // ============================================================
-  // PELACAK BACA — hanya di halaman materi SMP / SMA-SMK
-  // ============================================================
-  var path = location.pathname;
-  try { path = decodeURIComponent(path); } catch (e) {}
-  // Materi SD berbentuk slideshow (tidak digulir), jadi pelacak gulir di bawah TIDAK dipakai di sana:
-  // halaman materi SD menandai sendiri lewat MateriGate.mark() setelah siswa menonton sampai slide terakhir.
-  if (!/^\/(smp|smk)\/materi\//i.test(path)) return;
-
-  function start() {
-    var key = norm(location.href);
-    if (!key || document.getElementById("materiGate")) return;
-
-    var kata = ((document.body && document.body.innerText) || "").trim().split(/\s+/).length;
-    var perlu = Math.max(DETIK_MIN, Math.min(DETIK_MAX, Math.round(kata / KATA_PER_DETIK)));
-
-    // ---------- gaya + bar ----------
-    var st = document.createElement("style");
-    st.textContent =
-      "#materiGate{position:fixed;left:0;right:0;bottom:0;z-index:55;background:#0f172a;color:#fff;" +
-        "font:600 14px/1.4 'Plus Jakarta Sans','Trebuchet MS',Arial,sans-serif;box-shadow:0 -6px 20px rgba(0,0,0,.25)}" +
-      "#materiGate .mg-in{max-width:860px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}" +
-      "#materiGate .mg-txt{flex:1 1 220px;min-width:0}" +
-      "#materiGate .mg-track{flex:1 1 140px;height:8px;border-radius:8px;background:rgba(255,255,255,.2);overflow:hidden}" +
-      "#materiGate .mg-track i{display:block;height:100%;width:0;background:#fbbf24;transition:width .4s}" +
-      "#materiGate.ok{background:#047857}" +
-      "#materiGate.ok .mg-track i{background:#a7f3d0}" +
-      "#materiGate a{background:#fff;color:#047857;text-decoration:none;font-weight:800;padding:8px 14px;border-radius:12px;white-space:nowrap}" +
-      "#materiGate a:focus-visible{outline:3px solid #fde68a;outline-offset:2px}";
-    document.head.appendChild(st);
-
+  // ---------- tampilan ----------
+  function init() {
+    // halaman slide = punya elemen .scene (SD). Dicek tiap kali, karena slide sd.html dibuat sesudah halaman dimuat.
+    function isSlide() { return !!document.getElementById("scenes") || document.querySelectorAll(".scene").length > 0; }
     var bar = document.createElement("div");
-    bar.id = "materiGate";
-    bar.innerHTML = '<div class="mg-in"><div class="mg-txt"></div><div class="mg-track"><i></i></div><a hidden></a></div>';
+    bar.setAttribute("style", "position:fixed;top:0;left:0;height:5px;width:0;background:#10b981;z-index:2147483000;transition:width .25s;pointer-events:none");
+    var pill = document.createElement("div");
+    pill.setAttribute("role", "status");
+    pill.setAttribute("aria-live", "polite");
+    pill.setAttribute("style", "position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483000;max-width:92vw;" +
+      "background:#1e293b;color:#fff;padding:9px 16px;border-radius:999px;font:700 13px/1.3 'Plus Jakarta Sans',Arial,sans-serif;" +
+      "box-shadow:0 6px 18px rgba(0,0,0,.28);display:flex;gap:10px;align-items:center;white-space:nowrap");
     document.body.appendChild(bar);
-    document.body.style.paddingBottom = "96px";   // supaya baris terakhir materi tidak tertutup bar
+    document.body.appendChild(pill);
 
-    var txt = bar.querySelector(".mg-txt"), fill = bar.querySelector("i"), go = bar.querySelector("a");
-
-    function kembaliHref() {
-      var b = document.getElementById("btnKembali");
-      return (b && b.getAttribute("href")) || "/";
+    // alamat kembali ke halaman belajar: ?kembali= → tombol kembali yang sudah ada di halaman
+    function backHref() {
+      var kb = new URLSearchParams(location.search).get("kembali");
+      if (kb && SAFE_BACK.test(kb)) return kb;
+      var el = document.getElementById("btnKembali") || document.getElementById("back");
+      var h = el && el.getAttribute("href");
+      return h && SAFE_BACK.test(h) ? h : "";
     }
-    function tampilSelesai(pesan) {
-      bar.className = "ok";
-      bar.setAttribute("role", "status");
-      txt.textContent = pesan;
-      fill.style.width = "100%";
-      var b = document.getElementById("btnKembali");
-      go.textContent = ((b && b.textContent) || "Kembali").replace(/^[←\s]+/, "") + " →";
-      go.setAttribute("href", kembaliHref());
-      go.hidden = false;
-      // alamat tombol kembali bisa baru ditentukan beberapa saat kemudian oleh materi-back.js
-      go.addEventListener("click", function () { go.setAttribute("href", kembaliHref()); });
+    function selesaiUI() {
+      bar.style.width = "100%";
+      var h = backHref();
+      pill.style.background = "#047857";
+      pill.innerHTML = "<span>✅ Materi selesai dibaca! Task sudah terbuka.</span>" +
+        (h ? '<a href="' + h.replace(/"/g, "&quot;") + '" style="background:#fff;color:#047857;text-decoration:none;padding:5px 12px;border-radius:999px">Ke task →</a>' : "");
     }
 
-    // sudah pernah dibaca → cukup beri tahu
-    if (API.isRead(key)) { tampilSelesai("✅ Materi ini sudah kamu baca. Task-nya sudah bisa dikerjakan."); return; }
+    if (sudahDibaca()) { selesaiUI(); pill.firstChild.textContent = "✅ Materi sudah kamu baca"; return; }
 
-    // ---------- pelacak ----------
-    var detik = 0, maxPct = 0, timer = null;
+    var terbaca = 0;               // detik halaman benar-benar terbuka & terlihat
+    var sampaiBawah = false;       // halaman gulir: pernah mencapai bawah
+    var dilihat = {};              // halaman slide: nomor slide yang sudah tampil
+    var jumlahSlide = 0, perlu = MIN_DETIK, dihitung = false;
 
-    function pctNow() {
-      var d = document.documentElement, b = document.body;
-      var h = Math.max(d.scrollHeight, b.scrollHeight), vh = window.innerHeight || d.clientHeight;
-      var max = h - vh;
-      if (max <= 24) return 100;                       // halaman pendek: tidak ada yang perlu digulir
-      var y = window.pageYOffset || d.scrollTop || 0;
-      if (max - y <= 24) return 100;                   // sudah di dasar halaman
-      return Math.max(0, Math.min(100, Math.round(y / max * 100)));
-    }
-    function selesai() {
-      if (timer) { clearInterval(timer); timer = null; }
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      API.mark(location.href);
-      tampilSelesai("✅ Materi selesai dibaca! Sekarang task-nya terbuka.");
-    }
-    function gambar() {
-      var pctWaktu = Math.round(Math.min(detik, perlu) / perlu * 100);
-      fill.style.width = Math.min(maxPct, pctWaktu) + "%";
-      if (maxPct < 100) {
-        txt.textContent = "📖 Baca sampai bagian paling bawah dulu (" + maxPct + "%)";
-      } else if (detik < perlu) {
-        txt.textContent = "⏳ Hampir selesai — baca pelan-pelan, " + (perlu - detik) + " detik lagi";
+    function hitungKebutuhan() {
+      if (isSlide()) {
+        jumlahSlide = document.querySelectorAll(".scene").length;
+        perlu = jumlahSlide * DETIK_PER_SLIDE;
+        dihitung = jumlahSlide > 0;
       } else {
-        selesai();
+        var kata = ((document.body.innerText || "").match(/\S+/g) || []).length;
+        perlu = Math.min(MAX_DETIK, Math.max(MIN_DETIK, Math.round(kata * DETIK_PER_KATA)));
+        dihitung = true;
       }
     }
-    function onScroll() { var p = pctNow(); if (p > maxPct) { maxPct = p; gambar(); } }
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    timer = setInterval(function () { if (!document.hidden) { detik++; gambar(); } }, 1000);
-    maxPct = pctNow();
-    gambar();
+    function tick() {
+      if (!dihitung) hitungKebutuhan();
+      if (!dihitung) return;                       // slide belum selesai dibuat
+      if (!document.hidden) terbaca += 0.5;
+
+      var pctBaca, kurang;
+      if (isSlide()) {
+        var sc = document.querySelectorAll(".scene");
+        for (var i = 0; i < sc.length; i++) if (sc[i].classList.contains("on")) dilihat[i] = 1;
+        var n = Object.keys(dilihat).length;
+        pctBaca = Math.round(n / sc.length * 100);
+        if (n < sc.length) kurang = "👀 Lihat semua slide (" + n + "/" + sc.length + ")";
+      } else {
+        var root = document.documentElement;
+        var sisa = root.scrollHeight - (window.scrollY + window.innerHeight);
+        if (sisa <= MARGIN_BAWAH) sampaiBawah = true;
+        var total = Math.max(1, root.scrollHeight - window.innerHeight);
+        pctBaca = sampaiBawah ? 100 : Math.min(99, Math.round(window.scrollY / total * 100));
+        if (!sampaiBawah) kurang = "📖 Baca sampai bawah (" + pctBaca + "%)";
+      }
+      bar.style.width = pctBaca + "%";
+
+      var sisaDetik = Math.ceil(perlu - terbaca);
+      if (!kurang && sisaDetik > 0) kurang = "⏳ Baca dengan teliti… " + sisaDetik + " dtk lagi";
+      if (kurang) { pill.textContent = kurang; return; }
+
+      clearInterval(timer);
+      if (tandaiDibaca()) selesaiUI();
+      else pill.textContent = "⚠️ Gagal menyimpan. Penyimpanan browser penuh atau dimatikan.";
+    }
+    var timer = setInterval(tick, 500);
+    tick();
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-  else start();
+  if (document.body) init(); else document.addEventListener("DOMContentLoaded", init);
 })();

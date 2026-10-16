@@ -68,7 +68,7 @@ window.LP_DATA = {
   // ---------- POIN (ubah angka di sini) ----------
   POIN_TASK: 10,        // setiap task selesai
   POIN_PROJECT: 50,     // Project Akhir
-  BONUS_PERTAMA: 5,     // bonus task interactive yang langsung berhasil di percobaan pertama
+  // Bonus percobaan pertama (+5) TIDAK dihitung di sini: server yang menentukan (nol kegagalan tercatat + belum pernah didapat)
 
   LABEL: ["Kenalan", "Mencoba", "Berkreasi", "Mengembangkan", "Menggabungkan"],
   TIPE: {

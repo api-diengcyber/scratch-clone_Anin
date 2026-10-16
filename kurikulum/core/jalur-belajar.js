@@ -139,6 +139,52 @@ const LP = Object.assign({}, window.LP_DATA, {
   },
 
   // ============================================================
+  // GERBANG MATERI — task baru boleh dikerjakan setelah materinya dibaca sampai selesai
+  // ------------------------------------------------------------
+  // Halaman materi (shared/js/materi-gate.js) mencatat "sudah dibaca sampai selesai" di
+  // localStorage "materiRead_<user>". Kunci catatan = alamat halaman materi (path, ditambah
+  // ?task= untuk materi SD). Fungsi materiKey() harus SAMA dengan yang ada di materi-gate.js.
+  // Aturan:
+  //   • task tanpa halaman materi, dan Final Project (kumpul), tidak digembok;
+  //   • task yang SUDAH selesai tidak digembok (progres lama aman, boleh diulang);
+  //   • penyelesaian ditolak di LP.complete / LP.completeSmp (hasilnya { blocked: true }),
+  //     jadi semua jalur (tombol, editor, alamat langsung) ikut terblokir.
+  // ============================================================
+  materiKey(url) {
+    try {
+      const u = new URL(url, location.origin), t = u.searchParams.get("task");
+      return decodeURIComponent(u.pathname) + (t ? "?task=" + t : "");
+    } catch (e) { return String(url || ""); }
+  },
+  materiDibaca(task) {
+    if (!task || !task.halamanMateri) return true;
+    return !!this._get("materiRead", {})[this.materiKey(task.halamanMateri)];
+  },
+  materiTerkunci(task, sudahSelesai) {
+    return !!(task && task.halamanMateri && !task.kumpul) && !sudahSelesai && !this.materiDibaca(task);
+  },
+  // alamat halaman materi + ?kembali= (halaman belajar tempat asal; hanya alamat internal yang diterima materi-gate.js)
+  materiHref(task, kembali) {
+    const u = task.halamanMateri;
+    return u + (u.indexOf("?") > -1 ? "&" : "?") + "kembali=" + encodeURIComponent(kembali);
+  },
+  // task SD berdasarkan id ("g1-t1")
+  materiTerkunciId(id) {
+    const f = this.find(id);
+    return !!f && this.materiTerkunci(f.task, this.isDone(id));
+  },
+  // task SMP / SMA-SMK berdasarkan modul + nomor task
+  _smpTask(nodeId, index) {
+    const all = [].concat(window.LP_SMP || [], window.LP_SMAK || []);
+    for (const t of all) for (const n of (t.nodes || [])) if (n.id === nodeId) return (n.tasks || [])[index] || null;
+    return null;
+  },
+  materiTerkunciSmp(nodeId, index) {
+    const sudah = !!this._get("smpTasks", {})[nodeId + ":" + index];
+    return this.materiTerkunci(this._smpTask(nodeId, index), sudah);
+  },
+
+  // ============================================================
   // DATABASE SYNC
   // ============================================================
 
@@ -223,12 +269,20 @@ const LP = Object.assign({}, window.LP_DATA, {
     }
   },
 
+  // Simpan status task ke server. Jawaban server (kontrak baru):
+  //   { points: <total poin terbaru>, earned: { base, bonus } }
+  // Mengembalikan { ok, points, earned } (points/earned bernilai null kalau server tidak mengirimnya), atau false bila gagal.
   async saveProgressToServer(id, completed) {
     const username = this.user();
     const token = localStorage.getItem("authToken");
 
     if (!token || username === "tamu") {
       return false;
+    }
+
+    // laporan kegagalan yang masih di jalan harus tiba DULU, supaya server menghitung bonus dengan benar
+    if (completed === true && this._pend.length) {
+      await Promise.allSettled(this._pend.slice());
     }
 
     try {
@@ -248,7 +302,16 @@ const LP = Object.assign({}, window.LP_DATA, {
         throw new Error("Gagal menyimpan progress.");
       }
 
-      return true;
+      let body = {};
+      try { body = await response.json(); } catch (e) { body = {}; }
+      const d = (body && typeof body.points !== "number" && body.data && typeof body.data === "object") ? body.data : (body || {});
+      const e = d.earned && typeof d.earned === "object" ? d.earned : null;
+
+      return {
+        ok: true,
+        points: typeof d.points === "number" ? d.points : null,
+        earned: e ? { base: Number(e.base) || 0, bonus: Number(e.bonus) || 0 } : null
+      };
 
     } catch (error) {
       console.error(
@@ -260,40 +323,47 @@ const LP = Object.assign({}, window.LP_DATA, {
     }
   },
 
-  async savePointsToServer(total) {
+  // Laporkan SATU kegagalan cek misi ke server (tombol Run / bendera ditekan, syarat belum terpenuhi).
+  // Hanya untuk task (id wajib ada); mode bebas tanpa task tidak melapor. Sukses TIDAK dilaporkan di sini
+  // (dilaporkan lewat progress). Server memakai jumlah kegagalan ini untuk bonus percobaan pertama.
+  // Mengembalikan Promise<jumlah gagal sejauh ini | null>. Tidak pernah melempar error.
+  laporGagal(id) {
     const username = this.user();
     const token = localStorage.getItem("authToken");
+    if (!id || !token || username === "tamu") return Promise.resolve(null);
 
-    if (!token || username === "tamu") {
-      return false;
+    const p = fetch("/api/attempts/" + encodeURIComponent(username), {
+      method: "POST",
+      headers: this.authHeaders(),
+      body: JSON.stringify({ taskId: String(id) })
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b) => (b && typeof b.fails === "number" ? b.fails : null))
+      .catch(() => null);
+
+    this._pend.push(p);
+    p.then(() => { const i = this._pend.indexOf(p); if (i > -1) this._pend.splice(i, 1); });
+    return p;
+  },
+  _pend: [],   // laporan gagal yang belum selesai terkirim
+
+  // Terapkan jawaban server ke tampilan: points = total terbaru (MENGGANTIKAN angka lokal),
+  // earned.base / earned.bonus = rincian untuk teks dan animasi. Poin TIDAK lagi dihitung di sini.
+  // Kalau server tidak terjangkau (atau mode tamu) → hanya poin dasar, tanpa bonus.
+  _terapkan(id, judul, res, base) {
+    let earned, bonus, total;
+    if (res && typeof res.points === "number") {
+      total = res.points;
+      earned = res.earned ? res.earned.base : base;
+      bonus = res.earned ? res.earned.bonus : 0;
+    } else {
+      earned = base; bonus = 0; total = this.points() + base;
     }
-
-    try {
-      const response = await fetch(
-        "/api/points/" + encodeURIComponent(username),
-        {
-          method: "POST",
-          headers: this.authHeaders(),
-          body: JSON.stringify({
-            total: Math.floor(Number(total) || 0)
-          })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Gagal menyimpan points.");
-      }
-
-      return true;
-
-    } catch (error) {
-      console.error(
-        "Gagal menyimpan points ke database:",
-        error
-      );
-
-      return false;
-    }
+    localStorage.setItem("codingPoints_" + this.user(), String(total));
+    const rec = this._get("poinEarned", {}); rec[id] = { base: earned, bonus: bonus }; this._set("poinEarned", rec);   // untuk undo
+    this.logPoin(id, judul, earned, bonus);
+    try { window.dispatchEvent(new CustomEvent("lp:points", { detail: { total: total } })); } catch (e) {}
+    return { earned: earned, bonus: bonus, total: total };
   },
 
   progress() {
@@ -316,10 +386,12 @@ const LP = Object.assign({}, window.LP_DATA, {
     return this._get("codingAttempts", {})[id] || 0;
   },
 
+  // percobaan gagal: hitungan lokal (untuk teks "percobaan ke-N" dan laporan) + laporkan ke server
   addAttempt(id) {
     const a = this._get("codingAttempts", {});
     a[id] = (a[id] || 0) + 1;
     this._set("codingAttempts", a);
+    this.laporGagal(id);
     return a[id];
   },
 
@@ -421,91 +493,73 @@ const LP = Object.assign({}, window.LP_DATA, {
     return "/SD/belajar.html?task=" + id;
   },
 
-  // tandai selesai + beri poin (hanya sekali). Mengembalikan { already, earned, bonus, total }
-   complete(id, firstTry) {
+  // tandai selesai. Poin & bonus ditentukan SERVER: tunggu `await r.ready` → { earned, bonus, total }.
+  // Mengembalikan { already, ready } atau { blocked } bila materinya belum dibaca.
+  complete(id, firstTry) {   // firstTry tidak dipakai lagi: bonus ditentukan SERVER dari jumlah kegagalan yang dilaporkan
     const f = this.find(id);
 
     if (!f) return null;
+
+    // gerbang materi: materi belum dibaca sampai selesai → task belum boleh diselesaikan
+    if (this.materiTerkunci(f.task, this.isDone(id))) {
+      return { blocked: true, alasan: "materi", already: false, earned: 0, bonus: 0, total: this.points() };
+    }
 
     if (this.isDone(id)) {
       return {
         already: true,
         earned: 0,
         bonus: 0,
-        total: this.points()
+        total: this.points(),
+        ready: Promise.resolve({ earned: 0, bonus: 0, total: this.points() })
       };
     }
 
-    const earned = this.poinOf(f.task);
-
-    const bonus =
-      (firstTry && f.task.type === "interactive")
-        ? this.BONUS_PERTAMA
-        : 0;
+    const base = this.poinOf(f.task);
 
     const done = this.progress();
-
     done[id] = true;
-
     this._set("codingCompleted", done);
 
-    const total =
-      this.points() + earned + bonus;
+    // Poin & bonus datang dari jawaban server (bukan hitungan lokal). Tunggu `ready` sebelum menampilkan angka:
+    //   const r = LP.complete(id); const s = await r.ready;  → s = { earned, bonus, total }
+    // `earned` / `total` di objek ini hanya perkiraan sementara (poin dasar), JANGAN dipakai untuk tampilan akhir.
+    const ready = this.saveProgressToServer(id, true).then((res) => this._terapkan(id, f.task.title, res, base));
 
-    localStorage.setItem(
-      "codingPoints_" + this.user(),
-      String(total)
-    );
-
-    this.logPoin(id, f.task.title, earned, bonus);   // catat ke riwayat poin
-
-    // ==========================================================
-    // SIMPAN KE DATABASE
-    // ==========================================================
-
-    this.saveProgressToServer(id, true);
-    this.savePointsToServer(total);
-
-    return {
-      already: false,
-      earned,
-      bonus,
-      total
-    };
+    return { already: false, earned: base, bonus: 0, total: this.points(), ready };
   },
 
   // ============================================================
   // TASK SMP & SMA/SMK — tandai selesai + beri poin
   // ============================================================
-  // Status selesai disimpan di "smpTasks" (id "modul:nomor"). Poin diberikan SEKALI per task
-  // (dicatat di "smpPoin"), jadi membatalkan lalu menyelesaikan lagi tidak menambah poin.
+  // Status selesai disimpan di "smpTasks" (id "modul:nomor"). Poin & bonus ditentukan SERVER (lihat _terapkan):
+  // undo mendebit poin dasar + bonus, menyelesaikan ulang hanya memberi poin dasar.
   // info: { judul, project (Project Akhir → POIN_PROJECT), poin (angka khusus, opsional) }
-  // Mengembalikan { already, earned, total }.
+  // Mengembalikan { already, ready } atau { blocked }; `await r.ready` → { earned, bonus, total }.
   completeSmp(nodeId, index, info) {
     info = info || {};
     const id = nodeId + ":" + index;
 
+    // gerbang materi: materi belum dibaca sampai selesai → task belum boleh diselesaikan
+    if (this.materiTerkunciSmp(nodeId, index)) {
+      return { blocked: true, alasan: "materi", already: false, earned: 0, total: this.points() };
+    }
+
     const done = this._get("smpTasks", {});
+    if (done[id]) {
+      return { already: true, earned: 0, total: this.points(), ready: Promise.resolve({ earned: 0, bonus: 0, total: this.points() }) };
+    }
     done[id] = 1;
     this._set("smpTasks", done);
-    this.saveProgressToServer(id, true);
 
-    const given = this._get("smpPoin", {});
-    if (given[id]) return { already: true, earned: 0, total: this.points() };
-
-    const earned = typeof info.poin === "number"
+    const base = typeof info.poin === "number"
       ? info.poin
       : (info.project ? this.POIN_PROJECT : this.POIN_TASK);
 
-    given[id] = 1;
-    this._set("smpPoin", given);
+    // Poin & bonus dari jawaban server. Layar diperbarui lewat event "lp:points" (dan `ready` untuk yang mau menunggu).
+    const ready = this.saveProgressToServer(id, true).then((res) => this._terapkan(id, info.judul, res, base));
 
-    const total = this.points() + earned;
-    localStorage.setItem("codingPoints_" + this.user(), String(total));
-    this.logPoin(id, info.judul, earned, 0);
-    this.savePointsToServer(total);
-
-    return { already: false, earned, total };
+    return { already: false, earned: base, total: this.points(), ready };
   },
 
   // Sinkronkan status selesai dengan centang langkah di editor.
@@ -522,6 +576,7 @@ const LP = Object.assign({}, window.LP_DATA, {
       const done = this._get("smpTasks", {});
       if (done[n.id + ":" + i]) return;
       if (i > 0 && !done[n.id + ":" + (i - 1)]) return;
+      if (this.materiTerkunci(k, false)) return;     // materi belum dibaca → tidak boleh selesai otomatis
       let c = [];
       try { c = JSON.parse(localStorage.getItem("smpSteps_" + n.id + "_" + i)) || []; } catch (e) { c = []; }
       if (!Array.isArray(c)) return;
@@ -542,7 +597,6 @@ const LP = Object.assign({}, window.LP_DATA, {
     let st = "tersedia", lb = "▶️ Tersedia";
     if (dn) { st = "selesai"; lb = "✅ Selesai"; }
     else if (!op) { st = "terkunci"; lb = "🔒 Terkunci"; }
-    else if (window.MateriGate && window.MateriGate.locked(k)) { st = "baca"; lb = "📖 Baca materi dulu"; }   // materi belum dibaca sampai selesai
     else {
       let c = [];
       try { c = JSON.parse(localStorage.getItem("smpSteps_" + node.id + "_" + i)) || []; } catch (e) { c = []; }
@@ -553,13 +607,29 @@ const LP = Object.assign({}, window.LP_DATA, {
       '<span class="badge st-' + st + '">' + lb + '</span><span class="badge pts">⭐ ' + poin + " poin</span></div>";
   },
 
-  // batalkan status selesai (poin yang sudah diberikan tidak ditarik, dan tidak diberikan lagi saat diselesaikan ulang)
+  // batalkan status selesai. Server mendebit poin dasar + bonus; menyelesaikan ulang hanya memberi poin dasar (bonus hangus).
   undoSmp(nodeId, index) {
     const id = nodeId + ":" + index;
     const done = this._get("smpTasks", {});
     delete done[id];
     this._set("smpTasks", done);
-    this.saveProgressToServer(id, false);
+
+    const rec = this._get("poinEarned", {}), lama = rec[id];
+    delete rec[id];
+    this._set("poinEarned", rec);
+
+    // Server mendebit poin dasar + bonus. Tampilan ikut dikurangi: pakai total dari server bila ada,
+    // kalau tidak, kurangi sebesar yang tercatat saat task ini diselesaikan.
+    return this.saveProgressToServer(id, false).then((res) => {
+      let total = null;
+      if (res && typeof res.points === "number") total = res.points;
+      else if (lama) total = Math.max(0, this.points() - ((lama.base || 0) + (lama.bonus || 0)));
+      if (total !== null) {
+        localStorage.setItem("codingPoints_" + this.user(), String(total));
+        try { window.dispatchEvent(new CustomEvent("lp:points", { detail: { total: total } })); } catch (e) {}
+      }
+      return { total: total === null ? this.points() : total };
+    });
   },
 
   // ============================================================

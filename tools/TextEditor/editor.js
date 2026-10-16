@@ -71,7 +71,6 @@
     info = LP.find(taskId);
     if (!info || info.task.kind !== "code") { window.location.replace("/belajar.html" + (info ? "?task=" + taskId : "")); return; }
     if (!LP.isUnlocked(taskId)) { window.location.replace("/belajar.html?p=" + info.pemb.id); return; }   // belum terbuka → balik
-    if (window.MateriGate && !LP.isDone(taskId) && MateriGate.locked(info.task)) { window.location.replace("/belajar.html?task=" + taskId); return; }   // materi belum ditonton sampai habis → balik
     task = info.task;
   }
 
@@ -451,7 +450,15 @@
     if (isRun()) await execute(); else render();
     // Task SMP / SMA-SMK: program Python yang sudah jalan diperiksa → langkah yang sesuai dicentang otomatis
     if (mode === "python" && lastRun && window.SMPTaskPanel && typeof window.SMPTaskPanel.autoCheck === "function") {
-      try { window.SMPTaskPanel.autoCheck({ language: "python", code: code.python, output: lastRun.output, error: lastRun.error }); } catch (e) { console.warn("autoCheck gagal:", e); }
+      let maju = false;
+      try { maju = !!window.SMPTaskPanel.autoCheck({ language: "python", code: code.python, output: lastRun.output, error: lastRun.error }); } catch (e) { console.warn("autoCheck gagal:", e); }
+      // Task SMP / SMA-SMK: ▶ Jalankan ditekan tapi tidak ada langkah baru yang terpenuhi (atau programnya error)
+      // = cek misi gagal → lapor ke server (dipakai untuk bonus percobaan pertama). Task yang sudah selesai tidak dilaporkan.
+      try {
+        const st = typeof window.SMPTaskPanel.getTask === "function" ? window.SMPTaskPanel.getTask() : null;
+        const sid = st && st.nodeId + ":" + st.taskIndex;
+        if (!maju && sid && !LP._get("smpTasks", {})[sid]) LP.laporGagal(sid);
+      } catch (e) { console.warn("lapor gagal SMP:", e); }
     }
     if (!task) return;                                    // mode bebas: hanya preview / hasil
     const before = evaluate();
@@ -477,7 +484,7 @@
       unmet: unmet, buttons: [{ label: "Coba lagi", cls: "mp-primary" }] });
   }
 
-  function success(already) {
+  async function success(already) {
     const nameLine = "Task " + task.no + " — " + task.title;
     const nx = LP.next(taskId);
     const buttons = [];
@@ -489,9 +496,16 @@
         html: '<p class="mp-info">Kamu sudah pernah menyelesaikan task ini, jadi tidak ada tambahan poin.</p>', buttons: buttons });
     }
     const r = LP.complete(taskId, LP.attempts(taskId) === 0);
+    if (r && r.blocked) {                       // gerbang materi: materi belum dibaca sampai selesai
+      return popup({ type: "info", emoji: "📖", title: "Baca materinya dulu ya!", name: nameLine,
+        html: '<p class="mp-info">Task ini baru bisa diselesaikan setelah kamu membaca materinya sampai selesai.</p>',
+        buttons: [{ label: "Baca Materi 📖", cls: "mp-primary", fn: () => { window.location.href = LP.materiHref(task, "/belajar.html?task=" + taskId); } },
+                  { label: "Nanti saja", cls: "mp-secondary" }] });
+    }
+    const s = await r.ready;                    // poin & bonus dari jawaban server
     refreshPoints();
-    let html = '<div class="mp-points"><b>+' + r.earned + "</b> poin</div>";
-    if (r.bonus) html += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + r.bonus + "</div>";
+    let html = '<div class="mp-points"><b>+' + s.earned + "</b> poin</div>";
+    if (s.bonus) html += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + s.bonus + "</div>";
     html += '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>";
     popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: html, buttons: buttons });
   }

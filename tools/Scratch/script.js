@@ -10034,7 +10034,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   if (taskId && hasLP) {
     const info = LP.find(taskId);
     if (!info || !EDITOR_GOALS[taskId]) return;
-    if (!LP.isUnlocked(taskId) || (window.MateriGate && !LP.isDone(taskId) && MateriGate.locked(info.task))) {   // task belum terbuka / materi belum selesai ditonton → balik ke jalur belajar
+    if (!LP.isUnlocked(taskId)) {               // task belum terbuka → balik ke jalur belajar
       window.location.replace("/SD/belajar.html?task=" + taskId);   // halaman belajar menampilkan info "Masih terkunci"
       return;
     }
@@ -10050,7 +10050,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     backHref = "/SD/belajar.html?p=" + info.pemb.id;
     backLabel = "Kembali ke jalur belajar";
     pointsBase = LP.poinOf(info.task);
-    pointsBonus = LP.BONUS_PERTAMA;
+    pointsBonus = 0;                            // bonus task Jalur Belajar ditentukan server (lihat LP.complete)
   } else {
     if (!mission) return;                       // tanpa parameter = mode bebas
     levelKey = grade + "-" + level;
@@ -10215,7 +10215,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   }
 
   // ---------- SELESAI ----------
-  function completeMission(firstTry) {
+  async function completeMission(firstTry) {
     if (finished) return;
     finished = true;
 
@@ -10227,7 +10227,13 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
       if (isLPTask) {
         // task Jalur Belajar: lewat LP.complete supaya poin, riwayat, dan database ikut tersimpan (sama seperti editor lain)
         const r = LP.complete(levelKey, !!(firstTry && mission.goals));
-        earned = r.earned; bonus = r.bonus;
+        if (r && r.blocked) {                   // gerbang materi: materi belum dibaca sampai selesai
+          finished = false;
+          alert("📖 Baca materinya sampai selesai dulu ya, baru task ini bisa diselesaikan.");
+          return;
+        }
+        const s = await r.ready;                // poin & bonus dari jawaban server
+        earned = s.earned; bonus = s.bonus;
       } else {
         earned = pointsBase;
         bonus = (firstTry && mission.goals) ? pointsBonus : 0;
