@@ -5,6 +5,22 @@ dotenv.config({
     path: path.join(__dirname, ".env")
 });
 
+const pino = require("pino");
+const logger = pino({
+    level: process.env.LOG_LEVEL || "info",
+    base: { service: "dcc-backend" }
+});
+
+// Global error handlers (before express)
+process.on("uncaughtException", (err) => {
+    logger.fatal({ err }, "Uncaught exception");
+    process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+    logger.fatal({ reason }, "Unhandled rejection");
+});
+
 const express = require("express");
 const { askTutor, hasApiKey } = require("./ai-tutor-api");
 const cors = require("cors");
@@ -103,6 +119,24 @@ if (process.env.NODE_ENV === "production" && FRONTEND_ORIGIN) {
     }
 }
 app.use(express.json({ limit: "1mb" }));
+
+// Request ID + structured logging per request
+app.use((req, res, next) => {
+    req.id = require("crypto").randomUUID().slice(0, 8);
+    res.setHeader("X-Request-ID", req.id);
+    const start = Date.now();
+    res.on("finish", () => {
+        try {
+            const ms = Date.now() - start;
+            const log = res.statusCode >= 400 ? logger.warn : logger.info;
+            log({ reqId: req.id, method: req.method, path: req.path, status: res.statusCode, ms },
+                `${req.method} ${req.path} ${res.statusCode} ${ms}ms`);
+        } catch (e) {
+            // Logger errors should never crash the request
+        }
+    });
+    next();
+});
 
 // ============================================================
 // FRONTEND FILE SERVER
@@ -869,7 +903,7 @@ setInterval(() => {
 // ============================================================
 // START SERVER
 // ============================================================
-app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
     console.log("");
     console.log("==========================================");
     console.log("  DIENG CYBER CODING - SERVER");
@@ -880,6 +914,12 @@ app.listen(PORT, () => {
     console.log(`Belajar  : http://localhost:${PORT}/belajar.html`);
     console.log(`API      : http://localhost:${PORT}/api`);
     console.log("");
-    console.log("Server siap digunakan.");
+    logger.info("Server siap digunakan.");
     console.log("");
+});
+
+server.on("error", (err) => {
+    logger.fatal({ err }, "Server listen error");
+    console.error("SERVER LISTEN ERROR:", err);
+    process.exit(1);
 });
