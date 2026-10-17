@@ -33,7 +33,7 @@ function waitReady() {
   return new Promise((resolve, reject) => {
     const t0 = Date.now();
     const iv = setInterval(() => {
-      if (out.includes("Server siap digunakan")) { clearInterval(iv); resolve(); }
+      if (out.includes("Server siap digunakan") || out.includes("Server siap digunakan.")) { clearInterval(iv); resolve(); }
       else if (Date.now() - t0 > 90000) { clearInterval(iv); reject(new Error("Server tidak siap. Output:\n" + out)); }
     }, 200);
   });
