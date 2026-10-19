@@ -46,7 +46,7 @@
   const $points = document.getElementById("pointsValue");
   // Tampilkan saldo koin (total poin − hadiah yang dibeli), sama dengan dashboard & halaman Poin
   const refreshPoints = () => { $points.textContent = LP.saldo(); };
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const esc = window.DCUtils.esc;
   refreshPoints();
 
   // ---------- POPUP (berhasil / gagal / info — satu desain) ----------

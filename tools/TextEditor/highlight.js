@@ -5,7 +5,7 @@
 // ============================================================
 (function () {
 
-  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esc = window.DCUtils.esc;
   const span = (cls, s) => s ? '<span class="tk-' + cls + '">' + esc(s) + "</span>" : "";
 
   // ---------- HTML ----------

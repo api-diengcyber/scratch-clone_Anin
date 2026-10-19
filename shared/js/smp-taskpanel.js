@@ -15,8 +15,7 @@
 
   if (!nid) return;
 
-  const esc = (t) =>
-    String(t).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  const esc = window.DCUtils.esc;
 
   const load = (src, cb) => {
     const s = document.createElement("script");
@@ -27,8 +26,8 @@
   };
 
   load(
-    "/kurikulum/data/jalur-data-smp.js?v=1",
-    () => load("/kurikulum/data/jalur-data-smak.js?v=1", start)
+    "/kurikulum/data/jalur-data-smp.js?v=20261019",
+    () => load("/kurikulum/data/jalur-data-smak.js?v=20261019", start)
   );
 
   function start() {
@@ -421,7 +420,6 @@
         // Gambar ulang panel supaya checkbox berubah.
         draw();
 
-        console.log("✅ SMP checklist diperbarui:", { nodeId: nid, taskIndex: ti, steps: results, checked });
         return true;
       }
     };
@@ -434,11 +432,6 @@
       bl.href = modUrl;
       bl.textContent = "← Kembali ke modul";
     }
-
-    // ============================================================
-    // DEBUG
-    // ============================================================
-    console.log("✅ SMPTaskPanel siap:", window.SMPTaskPanel.getTask());
 
     // ============================================================
     // INITIAL RENDER

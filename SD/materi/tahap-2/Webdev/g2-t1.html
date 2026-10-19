@@ -4,50 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Materi: Kenalan dengan 3D • Dieng Cyber Coding</title>
-<style>
-*{box-sizing:border-box}html,body{height:100%}
-body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);display:flex;flex-direction:column;align-items:center;padding:12px}
-.top{width:min(860px,100%);display:flex;align-items:center;gap:10px;margin-bottom:8px}.top img{width:34px;height:34px;object-fit:contain}.top b{flex:1}
-.top a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:8px 12px;border-radius:12px;font-weight:bold;font-size:13px}
-.player{width:min(860px,100%);flex:1;max-height:560px;min-height:380px;background:#fff;border-radius:24px;box-shadow:0 8px 24px rgba(60,80,140,.15);position:relative;overflow:hidden;display:flex;flex-direction:column}
-.bar{height:6px;background:#e3e9ff}.bar i{display:block;height:100%;width:0;background:#6d7eea}.bar i.run{animation:fill 8s linear forwards}@keyframes fill{to{width:100%}}
-.scene{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;text-align:center}.scene.on{display:flex}
-h2{margin:0;font-size:clamp(22px,4vw,34px);color:#5a6bd8}
-.stage{perspective:700px;height:170px;display:flex;align-items:center;justify-content:center}
-.cube{width:90px;height:90px;position:relative;transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(35deg)}
-.cube i{position:absolute;inset:0;border:3px solid #fff9;background:#ff6b6b}
-.cube i:nth-child(1){transform:translateZ(45px)}.cube i:nth-child(2){transform:rotateY(180deg) translateZ(45px);filter:brightness(.7)}
-.cube i:nth-child(3){transform:rotateY(90deg) translateZ(45px);filter:brightness(.85)}.cube i:nth-child(4){transform:rotateY(-90deg) translateZ(45px);filter:brightness(.85)}
-.cube i:nth-child(5){transform:rotateX(90deg) translateZ(45px);filter:brightness(1.15)}.cube i:nth-child(6){transform:rotateX(-90deg) translateZ(45px);filter:brightness(.6)}
-.s1 .cube{animation:spin 5s linear infinite}@keyframes spin{from{transform:rotateX(-22deg) rotateY(0)}to{transform:rotateX(-22deg) rotateY(360deg)}}
-.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.chip{background:#fff4d6;color:#a86a00;font-weight:bold;padding:8px 14px;border-radius:16px;opacity:0;transform:scale(.5)}
-.s2.on .chip{animation:pop .5s forwards}.s2.on .chip:nth-child(1){animation-delay:.8s}.s2.on .chip:nth-child(2){animation-delay:2.4s}.s2.on .chip:nth-child(3){animation-delay:4s}
-@keyframes pop{to{opacity:1;transform:scale(1)}}
-.mock{width:min(420px,92%);border:3px solid #e3e9ff;border-radius:16px;overflow:hidden;position:relative;background:#f5f8ff}
-.mock .tb{display:flex;gap:6px;padding:8px;background:#fff}.mock .tb span{background:#eef1ff;color:#4a5bc8;font-size:13px;font-weight:bold;padding:6px 9px;border-radius:10px}
-.mock .vp{height:150px;display:flex;align-items:center;justify-content:center;background:linear-gradient(#cfe8ff 45%,#8fd18f 45%);perspective:600px}
-.s3.on .tb span:nth-child(1){animation:press .4s 2.4s forwards}@keyframes press{to{background:#6d7eea;color:#fff}}
-.s3 .cube{width:60px;height:60px;opacity:0}.s3 .cube i{transform-origin:center}.s3.on .cube{animation:born .5s 2.6s forwards}@keyframes born{from{opacity:0;scale:.2}to{opacity:1;scale:1}}
-.s3 .cube i:nth-child(1){transform:translateZ(30px)}.s3 .cube i:nth-child(2){transform:rotateY(180deg) translateZ(30px)}.s3 .cube i:nth-child(3){transform:rotateY(90deg) translateZ(30px)}.s3 .cube i:nth-child(4){transform:rotateY(-90deg) translateZ(30px)}.s3 .cube i:nth-child(5){transform:rotateX(90deg) translateZ(30px)}.s3 .cube i:nth-child(6){transform:rotateX(-90deg) translateZ(30px)}
-.hand{position:absolute;font-size:28px;pointer-events:none}
-.s3.on .hand{animation:toBtn 2.2s .2s forwards;right:10px;top:70px}@keyframes toBtn{to{right:calc(100% - 50px);top:12px}}
-.s4 .cube,.s5 .cube{width:70px;height:70px}.s4 .cube i,.s5 .cube i{}
-.s4 .cube i:nth-child(n),.s5 .cube i:nth-child(n){}
-.s4.on .cube{animation:drag 4s 1s ease-in-out forwards}@keyframes drag{from{transform:rotateX(-22deg) rotateY(35deg)}to{transform:rotateX(-22deg) rotateY(215deg)}}
-.s4.on .hand{animation:swipe 4s 1s ease-in-out forwards;left:25%;top:80px}@keyframes swipe{to{left:65%}}
-.s5.on .cube{animation:zoom 5s 1s ease-in-out forwards}@keyframes zoom{0%{scale:1}40%{scale:1.9}75%{scale:.6}100%{scale:1}}
-.wheel{font-size:44px;animation:bob 1s infinite alternate}@keyframes bob{to{transform:translateY(-12px)}}
-.check{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:18px;font-weight:bold}.check li{background:#e6f8ee;color:#1e8f52;padding:10px 18px;border-radius:14px;opacity:0}
-.s6.on .check li{animation:pop .5s forwards}.s6.on .check li:nth-child(1){animation-delay:.6s}.s6.on .check li:nth-child(2){animation-delay:1.6s}
-.go{display:inline-block;margin-top:6px;background:#34c06f;color:#fff;font-weight:bold;font-size:18px;text-decoration:none;padding:12px 26px;border-radius:18px;box-shadow:0 4px 0 rgba(0,0,0,.15)}
-.cap{padding:12px 20px;background:#f3f5fd;font-size:clamp(15px,2.4vw,19px);min-height:68px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.45}
-.ctl{display:flex;gap:8px;align-items:center;justify-content:center;padding:10px;background:#fff}
-.ctl button{border:0;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;padding:9px 14px;border-radius:12px;cursor:pointer}.ctl button.on{background:#6d7eea;color:#fff}
-.dots{display:flex;gap:6px;margin:0 8px}.dots i{width:10px;height:10px;border-radius:50%;background:#d6dcf5}.dots i.on{background:#6d7eea}
-</style>
+<link rel="stylesheet" href="/shared/css/materi-3d.css?v=20261019">
+  <script src="/shared/js/auth-guard.js?v=20261019"></script>
 </head>
 <body>
-<div class="top"><img src="/Assets/logo.png" alt="Logo Dieng Cyber" onerror="this.style.display='none'"><b>🧊 Materi • Kenalan dengan 3D</b><a href="/belajar.html?task=g2-t1">← Kembali</a></div>
+<div class="top"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" onerror="this.style.display='none'"><b>🧊 Materi • Kenalan dengan 3D</b><a href="/belajar.html?task=g2-t1">← Kembali</a></div>
 <div class="player">
   <div class="bar"><i id="fill"></i></div>
   <section class="scene s1"><h2>Kenalan dengan 3D</h2><div class="stage"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></section>
@@ -81,7 +42,7 @@ document.getElementById("play").onclick=function(){playing=!playing;this.textCon
 document.getElementById("voice").onclick=function(){voice=!voice;this.textContent=voice?"🔊 Suara":"🔇 Suara";this.classList.toggle("on",voice);go(i)};
 go(0);
 </script>
-  <script src="/shared/js/icons.js?v=2"></script>
-<script src="/shared/js/materi-gate.js?v=1"></script>
+  <script src="/shared/js/icons.js?v=20261019"></script>
+<script src="/shared/js/materi-gate.js?v=20261019"></script>
 </body>
 </html>

@@ -9211,9 +9211,6 @@ if (clearWsBtn) {
       e.preventDefault();
       e.stopPropagation();
       resetProjectState();
-      console.log(
-        "Workspace berhasil dibersihkan."
-      );
     }
   );
 }
@@ -9344,59 +9341,6 @@ renderStage();
 renderStageVariableMonitors();
 renderSensingMonitors();
 renderReporterMonitors();
-// ============================================================
-// DEBUG
-// ============================================================
-console.log(
-  "Scratch project berhasil dimuat."
-);
-
-console.log(
-  "Responsive touch system:",
-  "aktif"
-);
-
-console.log(
-  "Initial direction:",
-  state.sprite.direction
-);
-
-console.log(
-  "Initial sprite:",
-  "menghadap ATAS"
-);
-
-console.log(
-  "Looks system:",
-  "say, think, costume, size, show/hide, graphic effects, layer, backdrop"
-);
-
-console.log(
-  "Costumes:",
-  costumeList
-);
-
-console.log(
-  "Backdrops:",
-  backdropList
-);
-
-console.log(
-  "Graphic effects:",
-  GRAPHIC_EFFECT_NAMES
-);
-
-console.log(
-  "Dropdown system:",
-  "BODY portal aktif"
-);
-
-console.log(
-  "Mobile drag:",
-  "pointer drag aktif"
-);
-
-
 // ============================================================
 // SPRITE & BACKDROP LIBRARY (ala Scratch)
 // ============================================================

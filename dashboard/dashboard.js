@@ -1,6 +1,7 @@
 (async function () {
 
   const authToken = localStorage.getItem('authToken');
+  const esc = window.DCUtils.esc;
 
   if (!authToken) {
     window.location.replace('/index.html');
@@ -104,7 +105,7 @@ function tahapBlock(th) {
 
   let text, btn;
   if (pilih) {
-    text = tp.chosen ? `Jalurmu: ${tp.chosen.emoji} ${tp.chosen.judul} • ${tp.done} dari ${tp.total} langkah selesai` : 'Kamu belum memilih jalur';
+    text = tp.chosen ? `Jalurmu: ${esc(tp.chosen.emoji)} ${esc(tp.chosen.judul)} • ${tp.done} dari ${tp.total} langkah selesai` : 'Kamu belum memilih jalur';
     btn = !tp.chosen ? 'Pilih Jalurmu →' : tp.done === tp.total ? 'Lihat Lagi 🎉' : 'Lanjutkan Belajar →';
   } else {
     text = `${tp.done} dari ${tp.total} langkah selesai`;
@@ -124,9 +125,9 @@ function tahapBlock(th) {
     const isMine = chosenId === pb.id;
     return `<a class="tg-card ${p.done === p.total ? 'complete' : ''} ${isMine ? 'mine' : ''}" href="/belajar.html?p=${pb.id}" style="--c:${pb.warna}; --d:${i * 0.07}s">
       ${isMine ? '<span class="tg-chip">⭐ Jalurmu</span>' : ''}
-      <div class="tg-emoji">${pb.emoji}</div>
-      <h3>${pb.judul}</h3>
-      <p>${pilih ? pb.tagline : pb.desc}</p>
+      <div class="tg-emoji">${esc(pb.emoji)}</div>
+      <h3>${esc(pb.judul)}</h3>
+      <p>${esc(pilih ? pb.tagline : pb.desc)}</p>
       <div class="tg-dots">${dots}</div>
       <span class="tg-status">${status}</span>
     </a>`;
@@ -136,9 +137,9 @@ function tahapBlock(th) {
     <div class="tahap-banner ${pilih || th.no === 2 ? 't2' : ''}">
       <div class="tb-bubbles"><i></i><i></i><i></i><i></i></div>
       <div class="tb-left">
-        <span class="tb-age">Untuk usia <b>${th.usia}</b></span>
-        <h2>${th.nama}</h2>
-        <p>${th.slogan || th.desc}</p>
+        <span class="tb-age">Untuk usia <b>${esc(th.usia)}</b></span>
+        <h2>${esc(th.nama)}</h2>
+        <p>${esc(th.slogan || th.desc)}</p>
         <div class="tb-track">
           <div class="tb-bar"><i style="width:${pct}%"></i></div>
           <span class="tb-rocket" style="left:calc(${pct}% * 0.94)">🚀</span>

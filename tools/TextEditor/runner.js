@@ -74,7 +74,7 @@
 
     function ensure() {
       if (worker) return worker;
-      const w = new Worker(new URL("py-worker.js?v=1", HERE));
+      const w = new Worker(new URL("py-worker.js?v=20261019", HERE));
       w.onmessage = (ev) => onMsg(w, ev.data || {});
       w.onerror = (ev) => {                                    // biasanya: script Pyodide gagal diunduh (offline)
         if (w !== worker) return;

@@ -17,6 +17,14 @@
   if (window.__materiGate) return;
   window.__materiGate = true;
 
+  // Jaring pengaman: halaman materi wajib login. Normalnya /shared/js/auth-guard.js sudah dimuat di <head>;
+  // kalau ada halaman materi baru yang lupa memasangnya, gerbang ini memuatnya sendiri.
+  if (!window.__authGuard) {
+    var ag = document.createElement("script");
+    ag.src = "/shared/js/auth-guard.js?v=20261019";
+    document.head.appendChild(ag);
+  }
+
   // ---------- PENGATURAN (ubah di sini) ----------
   var DETIK_PER_KATA = 1 / 15;     // halaman gulir: waktu baca minimal = jumlah kata / 15 detik ...
   var MIN_DETIK = 8;               // ... tapi tidak kurang dari ini

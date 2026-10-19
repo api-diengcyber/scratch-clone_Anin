@@ -19,7 +19,7 @@
   var sdId = q.get("task"), nid = q.get("smp"), reqT = parseInt(q.get("t"), 10) || 0;
   if (!sdId && !nid) return;
 
-  function esc(t) { return String(t).replace(/[&<>"]/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]; }); }
+  var esc = window.DCUtils.esc;
   function load(src, cb) {
     var s = document.createElement("script");
     s.src = src; s.onload = cb; s.onerror = cb;
@@ -32,7 +32,7 @@
     var siap = window.LP && typeof window.LP.materiTerkunci === "function" && (sdId || (window.LP_SMP && window.LP_SMAK));
     if (siap) return periksa();
     if (++tries === 8 && window.LP && nid) {            // data SMP/SMAK belum ada → muat sendiri
-      load("/kurikulum/data/jalur-data-smp.js?v=1", function () { load("/kurikulum/data/jalur-data-smak.js?v=1", tunggu); });
+      load("/kurikulum/data/jalur-data-smp.js?v=20261019", function () { load("/kurikulum/data/jalur-data-smak.js?v=20261019", tunggu); });
       return;
     }
     if (tries < 16) setTimeout(tunggu, 250);

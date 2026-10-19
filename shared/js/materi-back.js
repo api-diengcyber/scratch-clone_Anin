@@ -20,7 +20,7 @@
   // Task yang memakai materi ini baru bisa dimulai setelah itu (lihat /shared/js/materi-gate.js).
   if (!window.MateriGate) {
     var mg = document.createElement("script");
-    mg.src = "/shared/js/materi-gate.js?v=2";
+    mg.src = "/shared/js/materi-gate.js?v=20261019";
     document.head.appendChild(mg);
   }
 
@@ -59,7 +59,7 @@
 
   // ---------- 2. alamat paling tepat dari data kurikulum ----------
   var s = document.createElement("script");
-  s.src = grade === "smk" ? "/kurikulum/data/jalur-data-smak.js?v=2" : "/kurikulum/data/jalur-data-smp.js?v=2";
+  s.src = grade === "smk" ? "/kurikulum/data/jalur-data-smak.js?v=20261019" : "/kurikulum/data/jalur-data-smp.js?v=20261019";
   s.onload = function () {
     var data = (grade === "smk" ? window.LP_SMAK : window.LP_SMP) || [];
     var low = path.toLowerCase(), found = null;

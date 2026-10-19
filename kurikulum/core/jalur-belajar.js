@@ -760,7 +760,6 @@ const LP = Object.assign({}, window.LP_DATA, {
       });
     }));
     if (masalah.length) console.warn("LP.validate: " + masalah.length + " catatan", masalah);
-    else console.log("LP.validate: semua data jalur belajar lengkap ✅");
     return masalah;
   }
 });

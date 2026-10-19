@@ -44,7 +44,7 @@
   }
 
   const $ = (id) => document.getElementById(id);
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const esc = window.DCUtils.esc;
   if (typeof LP === "undefined") { document.body.textContent = "Data jalur belajar belum termuat."; return; }
   if (typeof THREE === "undefined") { $("vp").innerHTML = '<p style="padding:20px">⚠️ Mesin 3D belum termuat. Pastikan komputer terhubung ke internet, lalu muat ulang halaman.</p>'; return; }
 

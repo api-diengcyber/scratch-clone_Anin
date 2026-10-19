@@ -7,7 +7,7 @@
     python: { n: "Tahap 1 — Python Start", e: "🐍", cls: "s1", slogan: "Dari print() pertama sampai game 2D dan Hackathon!", em: ["🐍", "🔀", "🧮", "🏗️", "🎮", "🏆"] },
     ai: { n: "Tahap 2 — AI & Creative Tech", e: "🤖", cls: "s2", slogan: "Kuasai prompt, tools AI, dan buat portofolio webmu!", em: ["💬", "🌐", "🧰", "🎨", "📖", "🗂️"] },
     d3: { n: "Tahap 3 — Game Dev 3D Lanjutan", e: "🧊", cls: "s3", slogan: "Bangun dunia 3D, karakter, fisika, dan game utuh!", em: ["🌍", "🕹️", "⚙️", "👾", "⚡", "🎬"] } };
-  const esc = (t) => String(t).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  const esc = window.DCUtils.esc;
   const S = { map: () => LP._get("smpTasks", {}), isDone: (n, i) => !!S.map()[n + ":" + i],
     // selesai → beri poin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
     toggle(n, i) {

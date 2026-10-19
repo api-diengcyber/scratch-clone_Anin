@@ -1,6 +1,7 @@
 
 {
   "scripts": {
+    "bump:version": "node scripts/set-version.js",
     "build:css": "tailwindcss -i ./shared/css/tailwind.input.css -o ./shared/css/tailwind.generated.css --minify",
     "watch:css": "tailwindcss -i ./shared/css/tailwind.input.css -o ./shared/css/tailwind.generated.css --watch"
   },

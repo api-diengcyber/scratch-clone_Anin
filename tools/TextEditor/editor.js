@@ -61,7 +61,7 @@
   }
 
   const $ = (id) => document.getElementById(id);
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const esc = window.DCUtils.esc;
 
   // ---------- TASK atau MODE BEBAS ----------
   const params = new URLSearchParams(window.location.search);
@@ -599,7 +599,6 @@
       }
     };
 
-    console.log("✅ DCCEditor siap:", window.DCCEditor);
 
     applyModeUI();
     warmup();

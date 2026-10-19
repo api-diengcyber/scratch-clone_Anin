@@ -106,25 +106,7 @@
   // ------------------------------------------------------------
 
   function escapeHtml(text) {
-
-    return String(text)
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      )
-      .replace(
-        />/g,
-        "&gt;"
-      )
-      .replace(
-        /"/g,
-        "&quot;"
-      );
-
+    return window.DCUtils.esc(text);
   }
 
   function addMessage(
@@ -320,15 +302,6 @@
 
     const smpTask =
       getSmpTask();
-
-    // ----------------------------------------------------------
-    // DEBUG DATA SEBELUM REQUEST
-    // ----------------------------------------------------------
-
-    console.log(
-      "📋 Task SMP yang dikirim:",
-      smpTask
-    );
 
     // Add auth header (required by backend)
     const token = localStorage.getItem("authToken");
@@ -604,17 +577,7 @@
 
       });
 
-    console.log(
-      "🤖 Steps dari AI:",
-      result.steps
-    );
 
-    console.log(
-      editorApplied
-        ? "📝 Checklist setelah Terapkan ke editor:"
-        : "📋 Checklist setelah evaluasi prompt:",
-      finalSteps
-    );
 
     window.SMPTaskPanel.setSteps(
       finalSteps

@@ -5,14 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Koin Belajar • Dieng Cyber Coding</title>
-  <link rel="icon" type="image/png" href="/Assets/logo.png">
+  <link rel="icon" type="image/webp" href="/Assets/logo.webp">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/shared/css/frames.css?v=1">
-  <link rel="stylesheet" href="/shared/css/tailwind.generated.css?v=12">
+  <link rel="stylesheet" href="/shared/css/frames.css?v=20261019">
+  <link rel="stylesheet" href="/shared/css/tailwind.generated.css?v=20261019">
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -296,10 +296,11 @@
     &copy; Dieng Cyber Coding &bull; Platform Belajar Koding Interaktif untuk Generasi Juara
   </footer>
 
-  <script src="/kurikulum/data/jalur-data.js?v=12"></script>
-  <script src="/kurikulum/core/jalur-belajar.js?v=16"></script>
-  <script src="/shared/js/avatar-frame.js?v=1"></script>
+  <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+  <script src="/shared/js/avatar-frame.js?v=20261019"></script>
 
+  <script src="/shared/js/utils.js?v=20261019"></script>
   <script>
   (function () {
     if (!localStorage.getItem("authToken")) {
@@ -309,13 +310,7 @@
 
     const $ = (id) => document.getElementById(id);
 
-    const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[char]));
+    const esc = window.DCUtils.esc;
 
     if (typeof window.LP === "undefined") {
       $("panel").innerHTML = `

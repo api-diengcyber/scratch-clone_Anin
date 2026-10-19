@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Laporan Saya • Dieng Cyber Coding</title>
-  <link rel="icon" type="image/png" href="/Assets/logo.png">
+  <link rel="icon" type="image/webp" href="/Assets/logo.webp">
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);min-height:100vh}
 .eh{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#fff;border-bottom:3px solid #e3e9ff}.eh img{width:34px;height:34px;object-fit:contain}.eh b{flex:1}
@@ -32,7 +32,7 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 </style>
 </head>
 <body>
-<header class="eh"><img src="/Assets/logo.png" alt="Logo Dieng Cyber"><b>📊 Laporan Saya</b><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> poin</span></header>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber"><b>📊 Laporan Saya</b><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> poin</span></header>
 <main>
   <section class="card hi"><h2 id="hello">Halo!</h2><p>Ini perjalanan belajarmu sejauh ini. Terus semangat ya! 🚀</p><div class="sum" id="sum"></div></section>
   <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2 (berhasil dalam 1 percobaan = nilai tinggi), bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
@@ -41,13 +41,14 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
   <section class="card"><h3>🏅 Lencana</h3><div class="badges" id="badges"></div></section>
   <section class="card"><h3>💌 Pesan dari Kak Mentor</h3><div class="note" id="note"></div><button class="note-btn" id="noteBtn">✏️ Tulis / ubah pesan (untuk mentor)</button><div id="noteEdit" hidden><textarea id="noteTa" maxlength="400" placeholder="Tulis pesan untuk anak ini…"></textarea><button class="note-btn" id="noteSave">Simpan pesan</button></div></section>
 </main>
-<script src="/kurikulum/data/jalur-data.js?v=12"></script>
-<script src="/kurikulum/core/jalur-belajar.js?v=16"></script>
+<script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
+<script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+<script src="/shared/js/utils.js?v=20261019"></script>
 <script>
 if (localStorage.getItem("isLoggedIn") !== "true") location.replace("/index.html");
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const esc = window.DCUtils.esc;
 const stage = (d, t) => !d ? "🌰 Belum dicoba" : d === t ? "🌳 Hebat, selesai!" : d / t < .5 ? "🌱 Baru tumbuh" : "🌿 Sedang tumbuh";
 
 // ---------- kumpulkan data ----------
@@ -115,10 +116,10 @@ function render() {
   const rc = $("recs"); saran(jalur).forEach((s) => { const d = el("div", "rec", "<span>" + s.e + "</span><p>" + esc(s.t) + "</p>"); if (s.id) { const a = el("a", "", s.b); a.href = LP.href(s.id, ""); d.appendChild(a); } rc.appendChild(d); });
   const tb = $("tahap");
   LP_DATA.tahap.forEach((th) => {
-    tb.appendChild(el("h4", "", th.emoji + " " + esc(th.nama))).style.margin = "14px 0 8px";
+    tb.appendChild(el("h4", "", esc(th.emoji) + " " + esc(th.nama))).style.margin = "14px 0 8px";
     const g = el("div", "grid"); tb.appendChild(g);
     jalur.filter((j) => j.th === th).forEach((j) => {
-      const c = el("div", "j" + (j.mine ? " mine" : ""), '<div class="top"><div class="em">' + j.pb.emoji + '</div><div><h4>' + esc(j.pb.judul) + (j.mine ? '<span class="tag">⭐ pilihanmu</span>' : "") + "</h4><small>" + j.done + " dari " + j.total + ' langkah</small></div></div><div class="track"><i style="width:' + (j.total ? Math.round(j.done / j.total * 100) : 0) + '%"></i></div><div class="stage">' + stage(j.done, j.total) + "</div>");
+      const c = el("div", "j" + (j.mine ? " mine" : ""), '<div class="top"><div class="em">' + esc(j.pb.emoji) + '</div><div><h4>' + esc(j.pb.judul) + (j.mine ? '<span class="tag">⭐ pilihanmu</span>' : "") + "</h4><small>" + j.done + " dari " + j.total + ' langkah</small></div></div><div class="track"><i style="width:' + (j.total ? Math.round(j.done / j.total * 100) : 0) + '%"></i></div><div class="stage">' + stage(j.done, j.total) + "</div>");
       c.style.setProperty("--c", j.pb.warna); g.appendChild(c);
     });
   });
@@ -132,6 +133,6 @@ function render() {
 (LP.loadFromServer ? LP.loadFromServer().catch(() => false) : Promise.resolve(false)).then(() => render());
 window.addEventListener("pageshow", (e) => { if (e.persisted) $("pts").textContent = LP.saldo ? LP.saldo() : LP.points(); });
 </script>
-  <script src="/shared/js/icons.js?v=2"></script>
+  <script src="/shared/js/icons.js?v=20261019"></script>
 </body>
 </html>

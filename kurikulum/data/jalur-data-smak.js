@@ -165,6 +165,7 @@
     "pl1:2": "/SMK/materi/Python/pl1-t3.html",
     "pl1:3": "/SMK/materi/Python/pl1-t4.html",
     "pl1:4": "/SMK/materi/Python/pl1-t5.html",
+    "pl1:5": "/SMK/materi/Python/pl1-t6.html",
     "pl2:0": "/SMK/materi/Python/pl2-t1.html",
     "pl2:1": "/SMK/materi/Python/pl2-t2.html",
     "pl2:2": "/SMK/materi/Python/pl2-t3.html",

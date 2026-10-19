@@ -8,7 +8,7 @@
     pl: { n: "Tahap 1 — Python Lanjutan & Algoritma", cls: "s4", usia: "15–18 tahun", slogan: "Struktur data, algoritma, file, dan OOP sampai aplikasi Python utuh!", em: ["📦", "🔎", "🔁", "💾", "🧱", "🏆"] },
     wb: { n: "Tahap 2 — Web Development Advanced", cls: "s5", usia: "15–18 tahun", slogan: "Dari layout responsif sampai aplikasi web interaktif!", em: ["🧭", "📱", "⚡", "🗂️", "🧩", "🚀"] },
     da: { n: "Tahap 3 — Data & AI Terapan", cls: "s6", usia: "15–18 tahun", slogan: "Olah data, pahami machine learning, dan pakai AI dengan bijak!", em: ["🔍", "📈", "📉", "🤖", "⚖️", "🎓"] } };
-  const esc = (t) => String(t).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  const esc = window.DCUtils.esc;
 
   // Progres (milik SMA/SMK sendiri)
   const map = () => LP._get("smpTasks", {});
