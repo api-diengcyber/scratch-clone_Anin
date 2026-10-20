@@ -3,7 +3,7 @@
   const N = (url, id, title, deskripsi, pertemuan, level, ringkasan, teori, materi, tasks) => ({ id, title, deskripsi, pertemuan, level, ringkasan, teori, materi,
     tasks: tasks.map((t) => Object.assign({ judul: t[0], langkah: t[1] }, t[2] === "p" ? { project: true } : t[2] === "k" ? { project: true, kumpul: true } : {})), urlEditor: url });
   window.LP_SMP = [
-    { id: "python", c: "#3d8bf5", nama: "Python Start", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "python", c: "#3d8bf5", nama: "Python Start", lencana: "🐍 Lencana Programmer Python", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Dari print() pertama sampai game 2D dan Hackathon.", proyek: "Game 2D buatan sendiri + karya tim", nodes: [
       N(TXT, "py1", "Dasar Python & Variabel", "print, variabel, tipe data, input.", "1–6", "Pemula", "Python membaca kode baris demi baris. Variabel adalah kotak bernama untuk menyimpan nilai.",
         ["print() menampilkan teks","Tipe data: int, float, str","input() selalu menghasilkan teks"], ["print","variabel","tipe data","input"],
@@ -55,7 +55,7 @@
         [
           ["Kumpulkan Game 2D Final", ["Selesaikan game 2D-mu sampai bisa dimainkan dari awal sampai Game Over","Ambil screenshot layar game dan siapkan kode utamanya","Isi link karya atau catatan tentang game-mu di kolom pengumpulan","Klik tombol selesai untuk mengumpulkan"], "k"]])
     ] },
-    { id: "ai", c: "#8f6bff", nama: "AI & Creative Tech", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "ai", c: "#8f6bff", nama: "AI & Creative Tech", lencana: "🤖 Lencana Kreator AI", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Prompt engineering, 14 tools AI, dan portofolio web.", proyek: "Portofolio website online", nodes: [
       N(TXT, "ai1", "Prompt Engineering", "Menulis prompt yang jelas dan terarah.", "1–6", "Pemula", "Prompt yang baik punya peran, tugas, konteks, dan format hasil.",
         ["Beri peran pada AI","Sebut konteks dan batasan","Perbaiki prompt bertahap"], ["peran","konteks","format","iterasi"],
@@ -107,7 +107,7 @@
         [
           ["Kumpulkan Website Portofolio", ["Pastikan website portofoliomu sudah rapi dan semua bagiannya terbaca","Publikasikan websitenya dan salin alamat linknya","Isi link portofolio atau catatan tentang karyamu di kolom pengumpulan","Klik tombol selesai untuk mengumpulkan"], "k"]])
     ] },
-    { id: "d3", c: "#ff9f1c", nama: "Game Dev 3D Lanjutan", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "d3", c: "#ff9f1c", nama: "Game Dev 3D Lanjutan", lencana: "🎮 Lencana Game Developer 3D", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Dunia 3D, kontrol karakter, fisika, dan game utuh.", proyek: "Game 3D untuk Showcase", nodes: [
       N(D3, "d1", "World Building & Transformasi", "Sumbu X Y Z dan menyusun dunia.", "1–6", "Menengah", "Setiap benda 3D punya posisi, rotasi, dan skala pada sumbu X, Y, Z.",
         ["X kiri-kanan, Y atas-bawah, Z depan-belakang","Posisi, rotasi, skala","Susun dunia dari bentuk dasar"], ["sumbu","transformasi","menyusun dunia"],

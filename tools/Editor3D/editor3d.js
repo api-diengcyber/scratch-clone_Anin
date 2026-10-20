@@ -56,6 +56,7 @@
     if (!info || info.task.kind !== "model3d") { location.replace("/SD/belajar.html" + (info ? "?task=" + taskId : "")); return; }
     if (!LP.isUnlocked(taskId)) { location.replace("/SD/belajar.html?p=" + info.pemb.id); return; }
     task = info.task;
+    if (LP.mulaiTask) LP.mulaiTask(taskId);   // mulai hitung waktu pengerjaan
     $("backLink").href = "/SD/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar";
   } else if (projectId && LP.find(projectId)) {
     proj = LP.find(projectId).task;

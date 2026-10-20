@@ -72,6 +72,7 @@
     if (!info || info.task.kind !== "code") { window.location.replace("/belajar.html" + (info ? "?task=" + taskId : "")); return; }
     if (!LP.isUnlocked(taskId)) { window.location.replace("/belajar.html?p=" + info.pemb.id); return; }   // belum terbuka → balik
     task = info.task;
+    if (LP.mulaiTask) LP.mulaiTask(taskId);   // mulai hitung waktu pengerjaan
   }
 
   const BEBAS = {

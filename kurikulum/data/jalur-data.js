@@ -49,7 +49,7 @@
 //   kumpul:  ["cara mengumpulkan", ...] (khusus proyek)
 //   lencana: "🏆 nama hadiah"           (khusus proyek)
 //
-// Catatan: task `editor` baru butuh syarat cek blok di Scratch/script.js (EDITOR_GOALS).
+// Catatan: task `editor` baru butuh syarat cek blok di Scratch/src/15-mission.js (EDITOR_GOALS).
 // ============================================================
 
 (function () {

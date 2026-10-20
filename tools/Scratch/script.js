@@ -9985,6 +9985,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     const nxt = LP.next(taskId);
     mission = { title: info.task.title, challenge: info.task.desc, hint: info.task.hint, goals: EDITOR_GOALS[taskId] };
     levelKey = taskId;
+    if (LP.mulaiTask) LP.mulaiTask(taskId);   // mulai hitung waktu pengerjaan
     tag = "🎯 TASK " + info.task.no + " • " + info.task.label;
     nameLine = "Task " + info.task.no + " — " + info.task.title;
     doneTitle = "Hore, berhasil!";

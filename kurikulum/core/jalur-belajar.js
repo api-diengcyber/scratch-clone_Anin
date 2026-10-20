@@ -395,6 +395,61 @@ const LP = Object.assign({}, window.LP_DATA, {
     return a[id];
   },
 
+  // ============================================================
+  // WAKTU PENGERJAAN TASK (untuk laporan kecenderungan minat)
+  // ------------------------------------------------------------
+  // Dihitung dari WAKTU AKTIF saja: tab terlihat dan ada aktivitas (klik / ketik / geser)
+  // dalam IDLE_MS terakhir. Anak yang meninggalkan tab atau melamun tidak menambah waktu.
+  // Akumulasi lintas halaman (halaman belajar -> editor) disimpan di "codingTime_<user>" { id: detik }.
+  // Berhenti otomatis saat task selesai (lihat complete()).
+  // ============================================================
+  IDLE_MS: 60000,
+  waktu(id) { return Number(this._get("codingTime", {})[id]) || 0; },   // detik; 0 = belum ada data
+
+  mulaiTask(id) {
+    if (!id || this.isDone(id) || !this.find(id)) return;
+    this._flushWaktu();
+    const now = Date.now();
+    this._wk = { id: id, last: now, act: now, acc: 0 };
+    if (this._wkInit) return;
+    this._wkInit = true;
+    const tandai = () => { if (this._wk) this._wk.act = Date.now(); };
+    ["pointerdown", "keydown", "scroll", "mousemove", "touchstart"].forEach((ev) => window.addEventListener(ev, tandai, { passive: true, capture: true }));
+    setInterval(() => this._tickWaktu(), 1000);
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) this._flushWaktu();
+      else if (this._wk) { this._wk.last = Date.now(); this._wk.act = Date.now(); }
+    });
+    window.addEventListener("pagehide", () => this._flushWaktu());
+  },
+  _tickWaktu() {
+    const w = this._wk;
+    if (!w || document.hidden) return;
+    this._tickWaktuTanpaFlush(w);
+    if (w.acc >= 5000) this._flushWaktu();
+  },
+  _flushWaktu() {
+    const w = this._wk;
+    if (!w) return;
+    if (!document.hidden) this._tickWaktuTanpaFlush(w);
+    if (w.acc <= 0) return;
+    const t = this._get("codingTime", {});
+    t[w.id] = Math.round(((Number(t[w.id]) || 0) + w.acc / 1000) * 10) / 10;
+    this._set("codingTime", t);
+    w.acc = 0;
+  },
+  _tickWaktuTanpaFlush(w) {
+    const now = Date.now(), dt = now - w.last;
+    w.last = now;
+    if (now - w.act <= this.IDLE_MS) w.acc += dt;
+  },
+  _akhiriWaktu(id) {
+    this._flushWaktu();
+    if (this._wk && this._wk.id === id) this._wk = null;
+  },
+  _wk: null,
+  _wkInit: false,
+
   upload(id) {
     return this._get("codingUploads", {})[id] || {};
   },
@@ -514,6 +569,8 @@ const LP = Object.assign({}, window.LP_DATA, {
         ready: Promise.resolve({ earned: 0, bonus: 0, total: this.points() })
       };
     }
+
+    this._akhiriWaktu(id);   // kunci waktu pengerjaan task ini
 
     const base = this.poinOf(f.task);
 

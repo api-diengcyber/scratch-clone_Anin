@@ -288,6 +288,7 @@
     if (LP.materiTerkunciId(id)) { showPemb(f.pemb.id); return popupMateri(f.task); }   // gerbang materi
     const t = f.task, pb = f.pemb, tipe = LP.TIPE[t.type], done = LP.isDone(id);
     const saved = LP.upload(id);
+    if (!done && t.type !== "project" && LP.mulaiTask) LP.mulaiTask(id);   // mulai hitung waktu pengerjaan
     const isProject = t.type === "project";
     let body = "";
 

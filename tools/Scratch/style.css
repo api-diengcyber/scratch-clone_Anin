@@ -15,6 +15,9 @@ body {
 }
 
 body {
+  /* Zoom halaman (pinch) tetap boleh untuk pengguna yang butuh. Hanya zoom dobel-ketuk yang dimatikan.
+     Area editor (.script-area, blok, palet) punya touch-action sendiri supaya seret blok tidak ikut zoom / geser halaman. */
+  touch-action: manipulation;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   background-color: #e9f1f7;
   color: #575e75;
@@ -730,6 +733,7 @@ body {
 }
 
 #stage {
+  touch-action: manipulation;   /* tap sprite tidak memicu zoom dobel-ketuk */
   display: block;
 
   width: 480px;

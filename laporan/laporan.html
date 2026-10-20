@@ -20,7 +20,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .stage{font-weight:bold;font-size:13px}.tag{font-size:11px;background:#fff4d6;color:#a86a00;border-radius:10px;padding:2px 8px;margin-left:6px}
 .rec{display:flex;gap:12px;align-items:center;background:#f3f5fd;border-radius:16px;padding:12px 14px;margin-bottom:8px}.rec span{font-size:26px}.rec p{margin:0;flex:1;line-height:1.45}
 .rec a{background:#34c06f;color:#fff;text-decoration:none;font-weight:bold;padding:9px 14px;border-radius:14px;white-space:nowrap;font-size:14px}
-.badges{display:flex;gap:10px;flex-wrap:wrap}.b{background:#fff4d6;border-radius:16px;padding:10px 14px;font-weight:bold}.b.lock{background:#eef1ff;color:#9aa3c4}
+.badges{display:flex;gap:10px;flex-wrap:wrap}.b{background:#fff4d6;border-radius:16px;padding:10px 14px;font-weight:bold}.b.lock{background:#eef1ff;color:#9aa3c4}.b small{display:block;font-weight:normal;font-size:12px;color:#6b7494;margin-top:2px}.bg-h{margin:14px 0 8px;font-size:14px;color:#6b7494}.bg-h:first-child{margin-top:0}
 .note{background:#fffbea;border-left:8px solid #ffc94d;border-radius:14px;padding:12px 14px;line-height:1.5;white-space:pre-wrap}
 .note-btn{margin-top:8px;border:0;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;font-size:13px;padding:7px 12px;border-radius:12px;cursor:pointer}
 .mc{display:flex;gap:14px;align-items:flex-end}.col{flex:1;text-align:center}
@@ -28,6 +28,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .bar i{width:100%;background:var(--c);border-radius:22px;display:grid;place-items:center;transition:height .5s}.bar b{color:#fff;font-size:18px;text-shadow:0 1px 3px #0003}
 .cn{margin-top:8px;font-weight:bold;font-size:14px}.col.top .bar{outline:4px solid var(--c);outline-offset:3px}
 @media(max-width:480px){.bar{height:150px}.eh{flex-wrap:wrap;padding:10px 14px}.eh a{padding:8px 12px;font-size:13px}.chip{font-size:13px;padding:7px 12px}main{padding:12px}.card{padding:14px}.rec{flex-wrap:wrap}.rec a{width:100%;text-align:center}.mc{gap:8px}}@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+.tw{overflow-x:auto}.tb{width:100%;border-collapse:collapse;font-size:14px}.tb th{text-align:left;color:#6b7494;font-size:12px;padding:6px 8px;border-bottom:2px solid #eef1ff}.tb td{padding:8px;border-bottom:1px solid #eef1ff;vertical-align:top}.tb small{color:#8a93b3}
 textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;border-radius:12px;padding:8px;font:inherit}
 </style>
 </head>
@@ -35,14 +36,17 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 <header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber"><b>📊 Laporan Saya</b><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> poin</span></header>
 <main>
   <section class="card hi"><h2 id="hello">Halo!</h2><p>Ini perjalanan belajarmu sejauh ini. Terus semangat ya! 🚀</p><div class="sum" id="sum"></div></section>
-  <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2 (berhasil dalam 1 percobaan = nilai tinggi), bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
+  <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
+  <section class="card"><h3>⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
   <section class="card"><h3>💡 Saran untukmu</h3><div id="recs"></div></section>
   <section class="card"><h3>🌱 Perkembangan di setiap jalur</h3><div id="tahap"></div></section>
-  <section class="card"><h3>🏅 Lencana</h3><div class="badges" id="badges"></div></section>
+  <section class="card"><h3>🏅 Lencana</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Lencana didapat kalau <b>semua task</b> di satu jalur selesai <b>dan</b> Project Akhir / Capstone-nya juga selesai.</p><div id="badges"></div></section>
   <section class="card"><h3>💌 Pesan dari Kak Mentor</h3><div class="note" id="note"></div><button class="note-btn" id="noteBtn">✏️ Tulis / ubah pesan (untuk mentor)</button><div id="noteEdit" hidden><textarea id="noteTa" maxlength="400" placeholder="Tulis pesan untuk anak ini…"></textarea><button class="note-btn" id="noteSave">Simpan pesan</button></div></section>
 </main>
 <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
 <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+<script src="/kurikulum/data/jalur-data-smp.js?v=20261019"></script>
+<script src="/kurikulum/data/jalur-data-smak.js?v=20261019"></script>
 <script src="/shared/js/utils.js?v=20261019"></script>
 <script>
 if (localStorage.getItem("isLoggedIn") !== "true") location.replace("/index.html");
@@ -79,21 +83,42 @@ function saran(jalur) {
 }
 
 // ---------- kecenderungan minat: nilai keterampilan dari task Tahap 2 (bukan nama jalur) ----------
-// Tiap task diberi bobot ke bidang yang dilatih. Nilai task = 1 / (1 + jumlah gagal): 1x percobaan = 100%, 2x = 50%, 3x = 33%.
+// Nilai tiap task = gabungan DUA hal:
+//   1) Percobaan : 1 / (1 + jumlah gagal)  → 1x percobaan = 100%, 2x = 50%, 3x = 33%
+//   2) Kecepatan : target / waktu aktif    → secepat/lebih cepat dari target = 100%, 2x lebih lama = 50% (minimal 20%)
+// Nilai task = W_COBA × percobaan + W_CEPAT × kecepatan. Makin sedikit gagal dan makin cepat → minat makin tinggi.
+// Task yang dikerjakan sebelum pencatatan waktu aktif (tidak ada data waktu) dinilai dari percobaan saja.
 const BIDANG = { P: { k: "Programming", e: "💻", c: "#4c7dff" }, M: { k: "Menggambar", e: "🎨", c: "#ec5fa8" }, D: { k: "Desain", e: "🧊", c: "#84b816" } };
-// urutan = urutan task di jalur. Atur bobot di sini (task 3D belum mencatat percobaan, jadi belum dihitung).
+const W_COBA = 0.65, W_CEPAT = 0.35, CEPAT_MIN = 0.2, TARGET_DEFAULT = 300;   // bobot & batas bawah kecepatan; target bawaan 300 detik
+// urutan = urutan task di jalur. Atur bobot bidang (BOBOT) dan waktu target dalam DETIK (TARGET) di sini.
+// (Task 3D belum mencatat percobaan, jadi belum dihitung.)
 const BOBOT = {
   g1: [{ P: 1, M: 1 }, { P: 1 }, { P: 1 }, { P: 1 }, { P: 1 }, { D: 1, M: .5 }],  // Game: kostum/ulang, gerak, variabel, waktu, percabangan, dekor panggung
   g3: [{ P: 1, D: 1 }, { P: 1 }, { D: 1, P: .5 }, { P: 1 }, { P: 1, D: 1 }]  // Web: HTML+warna, kerangka, CSS, menu/section, situs statis
 };
+const TARGET = {
+  g1: [240, 240, 300, 300, 420, 240],   // Game (Scratch)
+  g3: [600, 420, 480, 480, 600]          // Web (Text Editor)
+};
 const DIUKUR = ["editor", "code", "quiz"];
-function renderMinat(jalur) {
-  const tot = { P: [0, 0], M: [0, 0], D: [0, 0] };   // [jumlah bobot x nilai, jumlah bobot]
+const fmtWaktu = (s) => { s = Math.round(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const nilaiCepat = (detik, target) => Math.max(CEPAT_MIN, Math.min(1, target / detik));
+// daftar task terukur: percobaan, waktu, dan nilai gabungan masing-masing
+function nilaiTask(jalur) {
+  const out = [];
   jalur.forEach((j) => (BOBOT[j.pb.id] || []).forEach((w, i) => {
     const t = j.pb.tasks[i]; if (!t || !DIUKUR.includes(t.kind) || !LP.isDone(t.id)) return;
-    const q = 1 / (1 + LP.attempts(t.id));
-    Object.keys(w).forEach((b) => { tot[b][0] += w[b] * q; tot[b][1] += w[b]; });
+    const coba = 1 / (1 + LP.attempts(t.id));
+    const detik = LP.waktu ? LP.waktu(t.id) : 0, target = (TARGET[j.pb.id] || [])[i] || TARGET_DEFAULT;
+    const cepat = detik > 0 ? nilaiCepat(detik, target) : null;
+    out.push({ t, w, gagal: LP.attempts(t.id), detik, target, coba, cepat, nilai: cepat === null ? coba : W_COBA * coba + W_CEPAT * cepat });
   }));
+  return out;
+}
+function renderMinat(jalur) {
+  const rows = nilaiTask(jalur);
+  const tot = { P: [0, 0], M: [0, 0], D: [0, 0] };   // [jumlah bobot x nilai, jumlah bobot]
+  rows.forEach((r) => Object.keys(r.w).forEach((b) => { tot[b][0] += r.w[b] * r.nilai; tot[b][1] += r.w[b]; }));
   const m = Object.keys(BIDANG).map((b) => Object.assign({ b, pct: tot[b][1] >= 2 ? Math.round(tot[b][0] / tot[b][1] * 100) : null }, BIDANG[b]));
   const ada = m.filter((x) => x.pct !== null).sort((a, b) => b.pct - a.pct);
   const top = ada.length >= 2 && ada[0].pct - ada[1].pct >= 10 ? ada[0] : null;
@@ -102,15 +127,52 @@ function renderMinat(jalur) {
     c.style.setProperty("--c", x.c); $("minatCols").appendChild(c);
   });
   const box = $("arah"), cat = " (Task 3D belum ikut dihitung karena editor 3D belum mencatat percobaan.)";
-  if (!top) { box.innerHTML = "<span>🔎</span><p>" + (ada.length < 2 ? "Belum cukup data. Anak perlu menyelesaikan lebih banyak task Tahap 2 di beberapa bidang." : "Belum ada bidang yang menonjol.") + cat + "</p>"; return; }
-  box.innerHTML = "<span>" + top.e + "</span><p>Condong ke <b>" + top.k + "</b>. Rekomendasi: jalur <b>" + top.k + "</b> di tahap selanjutnya. Dukung ananda mendalami bidang ini dan tanyakan bagian mana yang paling seru." + cat + "</p>";
+  if (!top) { box.innerHTML = "<span>🔎</span><p>" + (ada.length < 2 ? "Belum cukup data. Anak perlu menyelesaikan lebih banyak task Tahap 2 di beberapa bidang." : "Belum ada bidang yang menonjol.") + cat + "</p>"; }
+  else box.innerHTML = "<span>" + top.e + "</span><p>Condong ke <b>" + top.k + "</b>. Rekomendasi: jalur <b>" + top.k + "</b> di tahap selanjutnya. Dukung ananda mendalami bidang ini dan tanyakan bagian mana yang paling seru.</p>";
+  renderRincian(rows);
+}
+// rincian per task: transparan untuk mentor / orang tua
+function renderRincian(rows) {
+  const box = $("rincian");
+  if (!rows.length) { box.innerHTML = '<p style="margin:0;color:#6b7494;font-size:14px">Belum ada task Tahap 2 yang selesai.</p>'; return; }
+  const tr = rows.map((r) => "<tr><td>" + esc(r.t.title) + "</td><td>" + (r.gagal === 0 ? "✅ 1x" : (r.gagal + 1) + "x") + "</td><td>" +
+    (r.detik > 0 ? fmtWaktu(r.detik) + ' <small>(target ' + fmtWaktu(r.target) + ")</small>" : "–") + "</td><td><b>" + Math.round(r.nilai * 100) + "%</b></td></tr>").join("");
+  box.innerHTML = '<div class="tw"><table class="tb"><thead><tr><th>Task</th><th>Percobaan</th><th>Waktu aktif</th><th>Nilai</th></tr></thead><tbody>' + tr + "</tbody></table></div>" +
+    '<p style="margin:10px 0 0;color:#6b7494;font-size:13px">Nilai = ' + Math.round(W_COBA * 100) + "% percobaan + " + Math.round(W_CEPAT * 100) + "% kecepatan. Tanda – berarti waktu belum tercatat (task selesai sebelum pencatatan waktu ada), nilainya dari percobaan saja.</p>";
+}
+
+// ---------- lencana: terbuka kalau SEMUA task di jalur selesai DAN Project Akhir / Capstone selesai ----------
+const GRADE_NAMA = { sd: "SD", smp: "SMP", smak: "SMA/SMK" };
+const GRADE_BOLEH = (() => { try { const g = JSON.parse(localStorage.getItem("allowedGrades")); if (Array.isArray(g) && g.length) return g; } catch (e) {} return ["sd", "smp", "smak"]; })();   // sama seperti dashboard
+function statusLencana(grade, judul, nama, done, total, capDone, istilah) {
+  const sisa = total - done, ok = total > 0 && capDone && sisa === 0;
+  const hint = ok ? "" : capDone ? istilah + " selesai, tinggal " + sisa + " task lagi"
+    : sisa === 1 ? "Tinggal " + istilah + "-nya!"
+    : done + " dari " + total + " langkah. Selesaikan semua task dan " + istilah;
+  return { grade, judul, nama, ok, hint };
+}
+function lencanaList(jalur) {
+  const out = [];
+  if (GRADE_BOLEH.includes("sd")) jalur.forEach((j) => out.push(statusLencana("sd", j.pb.judul, j.pb.project.lencana || "🏅 Lencana " + j.pb.judul, j.done, j.total, LP.isDone(j.pb.project.id), "Project Akhir")));
+  const sel = LP._get("smpTasks", {});   // task SMP & SMA/SMK: id "modul:nomor"
+  [["smp", window.LP_SMP], ["smak", window.LP_SMAK]].forEach(([g, tracks]) => {
+    if (!GRADE_BOLEH.includes(g)) return;
+    (tracks || []).forEach((tr) => {
+      let total = 0, done = 0, capId = null, lastId = null;
+      (tr.nodes || []).forEach((nd) => nd.tasks.forEach((t, i) => {
+        const id = nd.id + ":" + i; total++; lastId = id; if (sel[id]) done++; if (t.kumpul) capId = id;
+      }));
+      out.push(statusLencana(g, tr.nama, tr.lencana || "🏅 Lencana " + tr.nama, done, total, !!sel[capId || lastId], "Capstone"));
+    });
+  });
+  return out;
 }
 
 // ---------- tampilkan ----------
 function render() {
   const jalur = buildReport(), user = LP.user();
   $("hello").textContent = "Halo, " + user + "! 👋"; $("pts").textContent = LP.saldo ? LP.saldo() : LP.points();   // saldo, sama dengan dashboard & halaman poin
-  const dn = jalur.reduce((s, j) => s + j.done, 0), lenc = jalur.filter((j) => LP.isDone(j.pb.project.id));
+  const dn = jalur.reduce((s, j) => s + j.done, 0), daftarLencana = lencanaList(jalur), lenc = daftarLencana.filter((x) => x.ok);
   $("sum").innerHTML = "<div>✅ " + dn + " langkah selesai</div><div>🏅 " + lenc.length + " lencana</div><div>🌿 " + jalur.filter((j) => j.done).length + " jalur dicoba</div>";
   renderMinat(jalur);
   const rc = $("recs"); saran(jalur).forEach((s) => { const d = el("div", "rec", "<span>" + s.e + "</span><p>" + esc(s.t) + "</p>"); if (s.id) { const a = el("a", "", s.b); a.href = LP.href(s.id, ""); d.appendChild(a); } rc.appendChild(d); });
@@ -123,7 +185,12 @@ function render() {
       c.style.setProperty("--c", j.pb.warna); g.appendChild(c);
     });
   });
-  jalur.forEach((j) => { const ok = LP.isDone(j.pb.project.id); $("badges").appendChild(el("div", "b" + (ok ? "" : " lock"), ok ? esc(j.pb.project.lencana || "🏅 " + j.pb.judul) : "🔒 Selesaikan " + esc(j.pb.judul))); });
+  ["sd", "smp", "smak"].forEach((g) => {
+    const items = daftarLencana.filter((x) => x.grade === g); if (!items.length) return;
+    const h = el("div", "bg-h", "<b>" + GRADE_NAMA[g] + "</b> · " + items.filter((x) => x.ok).length + " dari " + items.length + " lencana"), wrap = el("div", "badges");
+    items.forEach((x) => wrap.appendChild(el("div", "b" + (x.ok ? "" : " lock"), x.ok ? esc(x.nama) : "🔒 " + esc(x.judul) + "<small>" + esc(x.hint) + "</small>")));
+    $("badges").appendChild(h); $("badges").appendChild(wrap);
+  });
   const k = "mentorNote_" + user, show = () => { $("note").textContent = localStorage.getItem(k) || "Belum ada pesan. Kak Mentor akan menulis pesan semangat di sini 💌"; };
   show();
   $("noteBtn").onclick = () => { $("noteEdit").hidden = !$("noteEdit").hidden; $("noteTa").value = localStorage.getItem(k) || ""; };

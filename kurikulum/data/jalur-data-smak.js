@@ -3,7 +3,7 @@
   const N = (url, id, title, deskripsi, pertemuan, level, ringkasan, teori, materi, tasks) => ({ id, title, deskripsi, pertemuan, level, ringkasan, teori, materi,
     tasks: tasks.map((t) => Object.assign({ judul: t[0], langkah: t[1] }, t[2] === "p" ? { project: true } : t[2] === "k" ? { project: true, kumpul: true } : {})), urlEditor: url });
   window.LP_SMAK = [
-    { id: "pl", grade: "smak", c: "#0f8b8d", nama: "Python Lanjutan & Algoritma", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "pl", grade: "smak", c: "#0f8b8d", nama: "Python Lanjutan & Algoritma", lencana: "🧮 Lencana Master Algoritma", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Lanjutan Python Start: struktur data, algoritma, file, OOP, dan aplikasi Python utuh.", proyek: "Aplikasi Python buatan sendiri", nodes: [
       N(TXT, "pl1", "Struktur Data: List, Dict & Set", "list, tuple, dict, set, dan kapan memakainya.", "1–6", "Menengah", "Struktur data adalah cara menyimpan banyak nilai sekaligus. Memilih yang tepat membuat program lebih singkat dan cepat.",
         ["list menyimpan urutan yang bisa diubah","dict menyimpan pasangan kunci dan nilai","set menyimpan nilai unik tanpa urutan"], ["list","tuple","dict","set"],
@@ -54,7 +54,7 @@
         [
           ["Kumpulkan Aplikasi Python Capstone", ["Pastikan aplikasi Python-mu berjalan tanpa error pada skenario utama","Siapkan kode utama dan screenshot hasil menjalankannya","Isi link kode atau catatan tentang aplikasimu di kolom pengumpulan","Klik tombol selesai untuk mengumpulkan"], "k"]])
     ] },
-    { id: "wb", grade: "smak", c: "#e11d48", nama: "Web Development Advanced", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "wb", grade: "smak", c: "#e11d48", nama: "Web Development Advanced", lencana: "🌐 Lencana Web Developer Pro", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Lanjutan Web HTML/CSS dan Portofolio Web: dari layout responsif sampai aplikasi web interaktif.", proyek: "Aplikasi web interaktif yang siap dipamerkan", nodes: [
       N(TXT, "wb1", "HTML Semantik & Layout CSS", "header, main, section, flexbox, grid.", "1–6", "Menengah", "HTML semantik memberi arti pada tiap bagian halaman. Flexbox dan grid mengatur tata letak tanpa trik yang rumit.",
         ["Tag semantik: header, nav, main, section, footer","Flexbox mengatur satu baris atau satu kolom","Grid mengatur baris dan kolom sekaligus"], ["semantik","flexbox","grid","box model"],
@@ -106,7 +106,7 @@
         [
           ["Kumpulkan Aplikasi Web Capstone", ["Pastikan aplikasi web-mu berjalan baik di HP dan komputer","Publikasikan atau siapkan file proyeknya, lalu salin alamat linknya","Isi link aplikasi atau catatan tentang karyamu di kolom pengumpulan","Klik tombol selesai untuk mengumpulkan"], "k"]])
     ] },
-    { id: "da", grade: "smak", c: "#6d28d9", nama: "Data & AI Terapan", meta: "36 Pertemuan · 90 Menit/Sesi",
+    { id: "da", grade: "smak", c: "#6d28d9", nama: "Data & AI Terapan", lencana: "📊 Lencana Data & AI Explorer", meta: "36 Pertemuan · 90 Menit/Sesi",
       ringkas: "Lanjutan AI & Creative Tech: mengolah data, memahami machine learning, dan memakai AI dengan bertanggung jawab.", proyek: "Proyek analisis data atau model AI sederhana", nodes: [
       N(TXT, "da1", "Berpikir dengan Data", "mengumpulkan, merapikan, dan membaca data.", "1–6", "Menengah", "Data adalah bahan baku keputusan. Data yang berantakan harus dibersihkan dulu sebelum dianalisis.",
         ["Data punya baris (kasus) dan kolom (atribut)","Data kotor: kosong, ganda, atau salah ketik","Pertanyaan yang jelas menentukan data yang dikumpulkan"], ["baris dan kolom","data bersih","survei","tabel"],

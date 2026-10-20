@@ -2,10 +2,14 @@
 {
   "scripts": {
     "bump:version": "node scripts/set-version.js",
+    "build": "npm run build:css && npm run build:scratch",
     "build:css": "tailwindcss -i ./shared/css/tailwind.input.css -o ./shared/css/tailwind.generated.css --minify",
+    "build:scratch": "node scripts/build-scratch.js",
+    "watch:scratch": "node scripts/build-scratch.js --watch",
     "watch:css": "tailwindcss -i ./shared/css/tailwind.input.css -o ./shared/css/tailwind.generated.css --watch"
   },
   "devDependencies": {
+    "esbuild": "^0.27.0",
     "tailwindcss": "^3.4.17"
   }
 }
