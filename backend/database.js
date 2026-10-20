@@ -60,6 +60,18 @@ if (!existingUserColumns.includes("password_hash")) {
 if (!existingUserColumns.includes("password_salt")) {
     db.exec("ALTER TABLE users ADD COLUMN password_salt TEXT");
 }
+if (!existingUserColumns.includes("allowed_grades")) {
+    db.exec("ALTER TABLE users ADD COLUMN allowed_grades TEXT");
+}
+if (!existingUserColumns.includes("full_name")) {
+    db.exec("ALTER TABLE users ADD COLUMN full_name TEXT");
+}
+if (!existingUserColumns.includes("bio")) {
+    db.exec("ALTER TABLE users ADD COLUMN bio TEXT");
+}
+if (!existingUserColumns.includes("avatar_url")) {
+    db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT");
+}
 
 // Unique indexes (hanya untuk non-null, non-empty)
 db.exec(`
@@ -423,6 +435,7 @@ db.exec(`
         username TEXT NOT NULL,
         task_id TEXT NOT NULL,
         fails INTEGER NOT NULL DEFAULT 0 CHECK (fails >= 0),
+        time_spent INTEGER NOT NULL DEFAULT 0 CHECK (time_spent >= 0),
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(username, task_id),
         FOREIGN KEY(username) REFERENCES users(username),
@@ -430,6 +443,13 @@ db.exec(`
     )
 `);
 db.exec(`CREATE INDEX IF NOT EXISTS idx_attempts_username ON attempts(username);`);
+
+// Migrasi kolom attempts.time_spent (aman dijalankan berulang)
+const attemptCols = db.prepare("PRAGMA table_info(attempts)").all().map((c) => c.name);
+if (!attemptCols.includes("time_spent")) {
+    db.exec("ALTER TABLE attempts ADD COLUMN time_spent INTEGER NOT NULL DEFAULT 0 CHECK (time_spent >= 0)");
+    console.log("Migrasi kolom attempts.time_spent berhasil.");
+}
 
 // Flag bonus per progres (bonus hanya sekali seumur task).
 const progressCols = db.prepare("PRAGMA table_info(progress)").all().map((c) => c.name);
