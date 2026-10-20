@@ -244,6 +244,25 @@ const B = `http://localhost:${PORT}`;
     let m2 = await fetch(`${B}/api/auth/me`, { headers: { Authorization: "Bearer " + token } });
     eq(m2.status, 401, "me pasca-logout");
   });
+  await t("health database connected", async () => {
+    const r = await fetch(`${B}/api/health`); const d = await j(r);
+    eq(r.status, 200, "status"); eq(d.database, "connected", "database connected");
+  });
+  await t("POST attempts with timeSpent", async () => {
+    const hdr = { Authorization: "Bearer dummytoken", "Content-Type": "application/json" };
+    const r = await fetch(`${B}/api/dev/attempts`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", timeSpent: 120 }) });
+    const d = await j(r); eq(r.status, 200, "status"); eq(d.fails, 1, "fails"); eq(d.timeSpent, 120, "timeSpent");
+  });
+  await t("POST attempts timeSpent accumulated", async () => {
+    const hdr = { Authorization: "Bearer dummytoken", "Content-Type": "application/json" };
+    const r = await fetch(`${B}/api/dev/attempts`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", timeSpent: 60 }) });
+    const d = await j(r); eq(r.status, 200, "status"); eq(d.fails, 2, "fails incremented"); eq(d.timeSpent, 180, "timeSpent accumulated");
+  });
+  await t("security headers present", async () => {
+    const r = await fetch(`${B}/api/health`);
+    eq(r.headers.get("x-content-type-options"), "nosniff", "nosniff header");
+    eq(r.headers.get("x-frame-options"), "DENY", "DENY header");
+  });
 
   const fails = results.filter((r) => r[0] === "FAIL");
   console.log("");
