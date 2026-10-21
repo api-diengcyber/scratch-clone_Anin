@@ -211,6 +211,16 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; line-height: normal; }
 .menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 12px; background: #eef1ff; color: #5a6bd8; font-size: 18px; line-height: 1; cursor: pointer; transition: background .15s; }
 .menu-btn:hover { background: #e1e6ff; }
 .menu-btn:focus-visible { outline: 3px solid #b8c2ff; outline-offset: 2px; }
+.menu-btn .menu-ico { display: inline-flex; }
+.menu-btn .menu-ico svg { width: 1.1em; height: 1.1em; display: block; }
+.menu-btn [hidden] { display: none !important; }
+/* Mode foto profil: tombol jadi lingkaran transparan; bingkai hadiah (AvatarFrame) dipasang ke .menu-avatar-box */
+.menu-btn.has-avatar { background: transparent; border-radius: 50%; overflow: visible; }
+.menu-btn .af-wrap { width: 100%; height: 100%; }
+.menu-btn .menu-avatar-box { box-sizing: border-box; display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #cfd6ff; transition: box-shadow .15s; }
+.menu-btn:hover .menu-avatar-box { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #aeb9ff; }
+.menu-btn[aria-expanded="true"] .menu-avatar-box { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #5a6bd8; }
+.menu-btn .menu-avatar-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .user-menu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: 270px; max-width: calc(100vw - 24px); padding: 8px; background: #fff; border: 1px solid #e3e8f3; border-radius: 18px; box-shadow: 0 14px 34px rgba(60, 80, 140, .18); text-align: left; animation: umIn .14s ease-out; }
 .user-menu[hidden] { display: none; }

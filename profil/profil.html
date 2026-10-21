@@ -197,6 +197,7 @@
   <!-- Data & mesin poin (sama seperti dashboard) supaya bingkai yang dipakai ikut tampil -->
   <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
   <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+  <script src="/shared/js/avatar-default.js?v=20261019"></script>
   <script src="/shared/js/avatar-frame.js?v=20261019"></script>
   <script>
     // ---------- Wajib login (sama seperti dashboard) ----------
@@ -225,25 +226,19 @@
 
     let toastTimeout = null;
 
-    // ---------- Simpan / baca profil (per akun, di browser ini) ----------
+    // ---------- Baca profil ----------
+    // Tampilan awal dari cache lokal (cepat), lalu dimutakhirkan dari GET /api/profile (lihat bawah).
+    // Menyimpan lewat PUT /api/profile (LP.saveProfile) — data utama ada di server, bukan di browser.
     function loadProfile() {
       try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch (e) { return {}; }
     }
-    function saveProfile(data) {
-      try {
-        localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
-        return true;
-      } catch (e) {
-        return false;   // penyimpanan penuh / diblokir
-      }
-    }
     function robotUrl(seed) {
-      return 'https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(seed);
+      return DefaultAvatar.robot(seed);   // robot lokal (data URL), bukan dicebear: diblokir CSP server
     }
 
     // Status profil yang sedang ditampilkan (avatar baru belum tersimpan sampai klik Simpan)
     const profile = loadProfile();
-    let currentAvatar = profile.avatar || robotUrl('DiengCoder-' + currentUser);
+    let currentAvatar = DefaultAvatar.normalize(profile.avatar) || robotUrl('DiengCoder-' + currentUser);
 
     function setAvatar(url) {
       currentAvatar = url;
@@ -276,6 +271,19 @@
     bioInput.value = profile.bio || '';
     setAvatar(currentAvatar);
     paintNames(profile.fullName || '');
+
+    // Ambil profil terbaru dari server. Form baru diisi ulang kalau pengguna belum mengetik / memilih foto,
+    // supaya ketikannya tidak tertimpa.
+    let disentuh = false, avatarDiubah = false;
+    [fullNameInput, emailInput, bioInput].forEach((el) => el.addEventListener('input', () => { disentuh = true; }));
+    LP.loadProfile().then((p) => {
+      if (!p || disentuh) return;
+      fullNameInput.value = p.fullName || '';
+      emailInput.value = p.email || '';
+      bioInput.value = p.bio || '';
+      if (p.avatar && !avatarDiubah) setAvatar(DefaultAvatar.normalize(p.avatar));
+      paintNames(p.fullName || '');
+    });
 
     // ---------- Notifikasi ----------
     function showNotification(msg, type = 'success') {
@@ -326,6 +334,12 @@
       const file = e.target.files[0];
       if (!file) return;
 
+      if (!file.type || file.type.indexOf('image/') !== 0) {
+        showNotification('File harus berupa gambar (JPG, PNG, atau WEBP).', 'error');
+        avatarInput.value = '';
+        return;
+      }
+
       if (file.size > 2 * 1024 * 1024) {
         showNotification('Ukuran file foto terlalu besar (maksimal 2 MB).', 'error');
         avatarInput.value = '';
@@ -333,11 +347,13 @@
       }
 
       shrinkImage(file, 256, (dataUrl) => {
+        avatarInput.value = '';   // supaya memilih file yang sama lagi tetap memicu event change
         if (!dataUrl) {
           showNotification('Foto tidak bisa dibaca. Coba pilih file gambar lain ya.', 'error');
           return;
         }
         setAvatar(dataUrl);
+        avatarDiubah = true;
         showNotification('Foto dipilih! Klik "Simpan Perubahan Profil" supaya tersimpan.', 'info');
       });
     });
@@ -345,10 +361,11 @@
     btnRandomAvatar.addEventListener('click', () => {
       const randomSeed = 'DiengCoder-' + Math.random().toString(36).substring(2, 9);
       setAvatar(robotUrl(randomSeed));
+      avatarDiubah = true;
       showNotification('Karakter robot baru dipilih! Klik "Simpan Perubahan Profil" supaya tersimpan.', 'info');
     });
 
-    profileForm.addEventListener('submit', (e) => {
+    profileForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fullNameVal = fullNameInput.value.trim();
 
@@ -357,19 +374,23 @@
         return;
       }
 
-      const ok = saveProfile({
+      const tombol = profileForm.querySelector('[type="submit"]');
+      if (tombol) tombol.disabled = true;   // cegah klik ganda selama menyimpan
+      const hasil = await LP.saveProfile({
         fullName: fullNameVal,
         email: emailInput.value.trim(),
         bio: bioInput.value.trim(),
         avatar: currentAvatar
       });
+      if (tombol) tombol.disabled = false;
 
-      if (!ok) {
-        showNotification('Profil gagal disimpan (penyimpanan browser penuh). Coba pakai foto yang lebih kecil.', 'error');
+      if (!hasil.ok) {
+        showNotification(hasil.error, 'error');
         return;
       }
 
-      paintNames(fullNameVal);
+      disentuh = false; avatarDiubah = false;
+      paintNames(hasil.profile.fullName || fullNameVal);
       showNotification('Data profil berhasil disimpan!');
     });
   </script>

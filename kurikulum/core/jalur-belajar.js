@@ -210,14 +210,22 @@ const LP = Object.assign({}, window.LP_DATA, {
     }
 
     try {
-      const [progressRes, pointsRes] = await Promise.all([
+      // laporan gagal yang masih di jalan harus tiba DULU, supaya angka dari server sudah memuat laporan itu
+      if (this._pend.length) await Promise.allSettled(this._pend.slice());
+
+      const [progressRes, pointsRes, attemptsRes] = await Promise.all([
         fetch("/api/progress/" + encodeURIComponent(username), {
           headers: this.authHeaders()
         }),
 
         fetch("/api/points/" + encodeURIComponent(username), {
           headers: this.authHeaders()
-        })
+        }),
+
+        // percobaan gagal + waktu per task. Tidak fatal: kalau gagal, progres & poin tetap tersinkron.
+        fetch("/api/attempts/" + encodeURIComponent(username), {
+          headers: this.authHeaders()
+        }).catch(() => null)
       ]);
 
       if (!progressRes.ok || !pointsRes.ok) {
@@ -257,6 +265,12 @@ const LP = Object.assign({}, window.LP_DATA, {
         String(Number(pointsTotal) || 0)
       );
 
+      if (attemptsRes && attemptsRes.ok) {
+        let attemptsData = null;
+        try { attemptsData = await attemptsRes.json(); } catch (e) { attemptsData = null; }
+        if (attemptsData) this._terapkanAttempts(attemptsData);
+      }
+
       return true;
 
     } catch (error) {
@@ -266,6 +280,98 @@ const LP = Object.assign({}, window.LP_DATA, {
       );
 
       return false;
+    }
+  },
+
+  // ============================================================
+  // JENJANG YANG DIIZINKAN & PROFIL (sumber: server)
+  // ------------------------------------------------------------
+  // Dipakai dashboard, laporan, dan halaman profil. Hasil server disalin ke cache localStorage per akun
+  // ("allowedGrades_<user>", "profile_<user>") supaya halaman bisa langsung tampil, dan tetap jalan
+  // dengan data terakhir bila server sedang tidak terjangkau. Semua fungsi load*/save* tidak pernah melempar error.
+  // ============================================================
+
+  // Server memakai kode "SD" | "SMP" | "SMK"; tab dashboard / laporan memakai "sd" | "smp" | "smak".
+  GRADE_SERVER: { SD: "sd", SMP: "smp", SMK: "smak" },
+
+  // jenjang yang boleh dibuka (cache terakhir dari server). Belum ada data → semua jenjang.
+  allowedGrades() {
+    const g = this._get("allowedGrades", null);
+    return Array.isArray(g) && g.length ? g : ["sd", "smp", "smak"];
+  },
+
+  // GET /api/user/allowed-grades → simpan ke cache. Mengembalikan array kode tab, atau null bila gagal.
+  async loadAllowedGrades() {
+    if (!localStorage.getItem("authToken")) return null;
+    try {
+      const r = await fetch("/api/user/allowed-grades", { headers: this.authHeaders() });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const b = await r.json();
+      const list = Array.isArray(b.grades) ? b.grades : (b.data && b.data.grades);
+      const grades = (Array.isArray(list) ? list : [])
+        .map((g) => this.GRADE_SERVER[String(g).toUpperCase()])
+        .filter(Boolean);
+      if (!grades.length) return null;
+      this._set("allowedGrades", grades);
+      return grades;
+    } catch (error) {
+      console.error("Gagal mengambil jenjang yang diizinkan:", error);
+      return null;
+    }
+  },
+
+  // profil terakhir yang diketahui: { fullName, email, bio, avatar } (cache lokal)
+  profil() { return this._get("profile", {}); },
+
+  // GET /api/profile → perbarui cache. Nilai server menang; kolom yang BELUM PERNAH diisi di server (null)
+  // memakai nilai lokal lama, jadi profil yang dulu hanya tersimpan di browser tidak hilang.
+  async loadProfile() {
+    if (!localStorage.getItem("authToken")) return null;
+    try {
+      const r = await fetch("/api/profile", { headers: this.authHeaders() });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const b = await r.json();
+      const s = b.profile || (b.data && b.data.profile);
+      if (!s) throw new Error("Respons profil tidak lengkap.");
+      const lokal = this.profil();
+      const pilih = (dariServer, dariLokal) => (dariServer !== null && dariServer !== undefined ? dariServer : (dariLokal || ""));
+      const profil = {
+        fullName: pilih(s.fullName, lokal.fullName),
+        email: pilih(s.email, lokal.email),
+        bio: pilih(s.bio, lokal.bio),
+        avatar: pilih(s.avatarUrl, lokal.avatar)
+      };
+      try { this._set("profile", profil); } catch (e) {}   // penyimpanan penuh: tetap kembalikan datanya
+      return profil;
+    } catch (error) {
+      console.error("Gagal mengambil profil dari server:", error);
+      return null;
+    }
+  },
+
+  // PUT /api/profile. data: { fullName, email, bio, avatar }.
+  // Mengembalikan { ok: true, profile } atau { ok: false, error } (pesan siap ditampilkan).
+  async saveProfile(data) {
+    if (!localStorage.getItem("authToken")) return { ok: false, error: "Kamu belum masuk. Silakan login lagi." };
+    try {
+      const body = { fullName: data.fullName, bio: data.bio, avatarUrl: data.avatar };
+      if (data.email) body.email = data.email;   // server menolak email tanpa "@" (termasuk kosong), jadi email kosong tidak dikirim
+      const r = await fetch("/api/profile", { method: "PUT", headers: this.authHeaders(), body: JSON.stringify(body) });
+      let b = {};
+      try { b = await r.json(); } catch (e) { b = {}; }
+      if (!r.ok) return { ok: false, error: b.message || "Profil gagal disimpan (kode " + r.status + ")." };
+      const s = b.profile || (b.data && b.data.profile) || {};
+      const profil = {
+        fullName: s.fullName || data.fullName || "",
+        email: s.email || "",
+        bio: s.bio || "",
+        avatar: s.avatarUrl || data.avatar || ""
+      };
+      try { this._set("profile", profil); } catch (e) {}
+      return { ok: true, profile: profil };
+    } catch (error) {
+      console.error("Gagal menyimpan profil ke server:", error);
+      return { ok: false, error: "Server tidak terjangkau. Periksa koneksi internetmu lalu coba lagi." };
     }
   },
 
@@ -332,20 +438,73 @@ const LP = Object.assign({}, window.LP_DATA, {
     const token = localStorage.getItem("authToken");
     if (!id || !token || username === "tamu") return Promise.resolve(null);
 
+    // Server MENJUMLAHKAN timeSpent ke total task ini, jadi yang dikirim hanya selisih waktu
+    // sejak laporan terakhir (bukan total waktu), supaya tidak terhitung dobel.
+    const detik = this._waktuBelumTerkirim(id);
+    this._catatWaktuTerkirim(id, detik);
+
     const p = fetch("/api/attempts/" + encodeURIComponent(username), {
       method: "POST",
       headers: this.authHeaders(),
-      body: JSON.stringify({ taskId: String(id) })
+      body: JSON.stringify({ taskId: String(id), timeSpent: detik })
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((b) => (b && typeof b.fails === "number" ? b.fails : null))
-      .catch(() => null);
+      .then((b) => {
+        if (b && typeof b.fails === "number") return b.fails;
+        this._catatWaktuTerkirim(id, -detik);   // gagal terkirim: kembalikan, akan ikut terkirim di laporan berikutnya
+        return null;
+      })
+      .catch(() => { this._catatWaktuTerkirim(id, -detik); return null; });
 
     this._pend.push(p);
     p.then(() => { const i = this._pend.indexOf(p); if (i > -1) this._pend.splice(i, 1); });
     return p;
   },
   _pend: [],   // laporan gagal yang belum selesai terkirim
+
+  // Waktu (detik, bilangan bulat) yang sudah terkumpul di perangkat ini tetapi belum dikirim ke server.
+  // "codingTimeSent_<user>" { id: detik } = total waktu yang sudah tercatat di server untuk task itu.
+  // Bagian pecahan (< 1 detik) tidak hilang: ia tetap tersisa dan ikut terkirim di laporan berikutnya.
+  _waktuBelumTerkirim(id) {
+    this._flushWaktu();   // pastikan waktu yang sedang berjalan ikut terhitung
+    const terkirim = Number(this._get("codingTimeSent", {})[id]) || 0;
+    return Math.max(0, Math.floor(this.waktu(id) - terkirim));
+  },
+  _catatWaktuTerkirim(id, detik) {
+    if (!detik) return;
+    const t = this._get("codingTimeSent", {});
+    t[id] = Math.max(0, (Number(t[id]) || 0) + detik);
+    this._set("codingTimeSent", t);
+  },
+
+  // Terapkan jawaban GET /api/attempts/:username ke cache lokal. LP.attempts() dan LP.waktu() membaca
+  // cache ini, jadi setelah sinkronisasi keduanya mengikuti data server (mis. di perangkat baru).
+  // Memakai nilai TERBESAR antara lokal dan server: kegagalan / waktu yang belum sempat terkirim
+  // (mis. saat offline) tidak hilang, dan server yang lebih lengkap tetap menang.
+  _terapkanAttempts(body) {
+    const rows = Array.isArray(body.attempts) ? body.attempts
+      : (body.data && Array.isArray(body.data.attempts) ? body.data.attempts : []);
+    if (!rows.length) return;
+
+    this._flushWaktu();   // simpan dulu waktu yang sedang berjalan sebelum cache dibaca
+    const att = this._get("codingAttempts", {});
+    const tm = this._get("codingTime", {});
+    const terkirim = this._get("codingTimeSent", {});
+
+    rows.forEach((row) => {
+      if (!row || !row.task_id) return;
+      const id = String(row.task_id);
+      const fails = Number(row.fails) || 0;
+      const detik = Number(row.time_spent) || 0;
+      att[id] = Math.max(Number(att[id]) || 0, fails);
+      tm[id] = Math.max(Number(tm[id]) || 0, detik);
+      terkirim[id] = detik;   // yang sudah ada di server; selisihnya ke waktu lokal = belum terkirim
+    });
+
+    this._set("codingAttempts", att);
+    this._set("codingTime", tm);
+    this._set("codingTimeSent", terkirim);
+  },
 
   // Terapkan jawaban server ke tampilan: points = total terbaru (MENGGANTIKAN angka lokal),
   // earned.base / earned.bonus = rincian untuk teks dan animasi. Poin TIDAK lagi dihitung di sini.

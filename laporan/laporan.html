@@ -148,7 +148,7 @@ function renderRincian(rows) {
 
 // ---------- lencana: terbuka kalau SEMUA task di jalur selesai DAN Project Akhir / Capstone selesai ----------
 const GRADE_NAMA = { sd: "SD", smp: "SMP", smak: "SMA/SMK" };
-const GRADE_BOLEH = (() => { try { const g = JSON.parse(localStorage.getItem("allowedGrades")); if (Array.isArray(g) && g.length) return g; } catch (e) {} return ["sd", "smp", "smak"]; })();   // sama seperti dashboard
+let GRADE_BOLEH = LP.allowedGrades();   // sama seperti dashboard; dimutakhirkan dari server sebelum render (lihat bawah)
 function statusLencana(grade, judul, nama, done, total, capDone, istilah) {
   const sisa = total - done, ok = total > 0 && capDone && sisa === 0;
   const hint = ok ? "" : capDone ? istilah + " selesai, tinggal " + sisa + " task lagi"
@@ -202,7 +202,10 @@ function render() {
   $("noteSave").onclick = () => { localStorage.setItem(k, $("noteTa").value.trim()); $("noteEdit").hidden = true; show(); };
 }
 // ambil poin & progres terbaru dari server dulu (seperti dashboard), baru tampilkan
-(LP.loadFromServer ? LP.loadFromServer().catch(() => false) : Promise.resolve(false)).then(() => render());
+Promise.all([
+  LP.loadFromServer ? LP.loadFromServer().catch(() => false) : false,
+  LP.loadAllowedGrades ? LP.loadAllowedGrades() : null
+]).then(() => { GRADE_BOLEH = LP.allowedGrades(); render(); });
 window.addEventListener("pageshow", (e) => { if (e.persisted) $("pts").textContent = LP.saldo ? LP.saldo() : LP.points(); });
 </script>
   <script src="/shared/js/icons.js?v=20261019"></script>

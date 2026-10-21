@@ -32,8 +32,13 @@
     localStorage.setItem('scratch_user', user.username);
     localStorage.setItem('isLoggedIn', 'true');
     
-    if (typeof LP !== "undefined" && typeof LP.loadFromServer === "function") {
-      await LP.loadFromServer();
+    // progres + poin, jenjang yang diizinkan, dan profil diambil sekaligus dari server (masing-masing tidak melempar error)
+    if (typeof LP !== "undefined") {
+      await Promise.all([
+        typeof LP.loadFromServer === "function" ? LP.loadFromServer() : null,
+        typeof LP.loadAllowedGrades === "function" ? LP.loadAllowedGrades() : null,
+        typeof LP.loadProfile === "function" ? LP.loadProfile() : null
+      ]);
     }
 
   } catch (error) {
@@ -61,29 +66,54 @@ const shownName = profile.fullName || (savedUser ? '@' + savedUser : '@' + curre
 $('displayUsername').textContent = shownName;
 
 const avatarBox = $('avatarLetter');
-if (profile.avatar) {
+// avatar robot lama (URL dicebear) diganti robot lokal karena CSP server memblokir gambar luar
+const avatarSrc = window.DefaultAvatar ? DefaultAvatar.normalize(profile.avatar) : profile.avatar;
+if (avatarSrc) {
   const img = document.createElement('img');
-  img.src = profile.avatar;
+  img.src = avatarSrc;
   img.alt = 'Foto profil';
+  // kalau gambar gagal dimuat, kembali ke huruf awal username supaya kotaknya tidak kosong
+  img.onerror = () => { avatarBox.textContent = (savedUser || currentUser || 'A').charAt(0).toUpperCase(); };
   avatarBox.textContent = '';
   avatarBox.appendChild(img);
+
+  // foto yang sama juga dipasang di tombol navbar (kalau gagal dimuat, kembali ke ikon burger)
+  const navImg = $('menuAvatar');
+  const navBox = $('menuAvatarBox');
+  navImg.onerror = () => {
+    const wrap = navBox.parentNode.classList.contains('af-wrap') ? navBox.parentNode : navBox;   // ikut sembunyikan bingkai
+    wrap.hidden = true;
+    $('menuIcon').hidden = false;
+    $('menuBtn').classList.remove('has-avatar');
+  };
+  navImg.src = avatarSrc;
+  navBox.hidden = false;
+  $('menuIcon').hidden = true;
+  $('menuBtn').classList.add('has-avatar');
 } else {
   avatarBox.textContent = (savedUser || currentUser || 'A').charAt(0).toUpperCase();
 }
 
 if (LP.hadiahAktif) {
   const act = LP.hadiahAktif();
-  if (act.bingkai && window.AvatarFrame) AvatarFrame.apply(avatarBox, act.bingkai, { size: 44 });
+  if (act.bingkai && window.AvatarFrame) {
+    AvatarFrame.apply(avatarBox, act.bingkai, { size: 44 });
+    // bingkai yang sama untuk foto di tombol navbar (hanya kalau fotonya sedang tampil)
+    if (!$('menuAvatarBox').hidden) AvatarFrame.apply($('menuAvatarBox'), act.bingkai, { size: 42 });
+  }
   if (act.gelar) $('displayUsername').textContent += ' · ' + act.gelar.emoji + ' ' + act.gelar.nama;
 }
 
 // ---------- Burger menu ----------
 const menuBtn = $('menuBtn');
+const menuIcon = $('menuIcon');
 const userMenu = $('userMenu');
+const ICON_BURGER = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+const ICON_CLOSE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 function setMenu(open) {
   userMenu.hidden = !open;
   menuBtn.setAttribute('aria-expanded', String(open));
-  menuBtn.querySelector('i').className = open ? 'fas fa-xmark' : 'fas fa-bars';
+  menuIcon.innerHTML = open ? ICON_CLOSE : ICON_BURGER;   // ikon hanya terlihat kalau belum ada foto profil
 }
 menuBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(userMenu.hidden); });
 document.addEventListener('click', e => { if (!userMenu.hidden && !userMenu.contains(e.target)) setMenu(false); });
@@ -179,13 +209,9 @@ document.querySelectorAll('.grade-tab').forEach(tab => tab.addEventListener('cli
   renderGrade(tab.dataset.grade);
 }));
 // ---------- Batasan jenjang per user ----------
-// Frontend siap: tab jenjang yang tidak diizinkan disembunyikan. Sumber datanya masih placeholder.
-// TODO (temanmu/backend): isi localStorage 'allowedGrades' saat login, mis. ["sd"] untuk anak SD.
-function allowedGrades() {
-  try { const g = JSON.parse(localStorage.getItem('allowedGrades')); if (Array.isArray(g) && g.length) return g; } catch (e) {}
-  return ['sd', 'smp', 'smak'];
-}
-const allowed = allowedGrades();
+// Tab jenjang yang tidak diizinkan disembunyikan. Daftarnya dari GET /api/user/allowed-grades (diambil di atas
+// lewat LP.loadAllowedGrades); kalau server tidak terjangkau dipakai cache terakhir, atau semua jenjang bila belum ada.
+const allowed = LP.allowedGrades();
 document.querySelectorAll('.grade-tab').forEach(t => { if (!allowed.includes(t.dataset.grade)) t.remove(); });
 const tabsLeft = document.querySelectorAll('.grade-tab');
 if (tabsLeft.length < 2) document.querySelector('.grade-section').style.display = 'none';   // 1 jenjang: tidak perlu pemilih
