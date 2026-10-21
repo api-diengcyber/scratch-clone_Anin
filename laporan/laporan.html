@@ -88,19 +88,23 @@ function saran(jalur) {
 //   2) Kecepatan : target / waktu aktif    → secepat/lebih cepat dari target = 100%, 2x lebih lama = 50% (minimal 20%)
 // Nilai task = W_COBA × percobaan + W_CEPAT × kecepatan. Makin sedikit gagal dan makin cepat → minat makin tinggi.
 // Task yang dikerjakan sebelum pencatatan waktu aktif (tidak ada data waktu) dinilai dari percobaan saja.
+// Jalur 3D & Roblox (g2) dicek otomatis lewat kartu misi, tidak ada "gagal", jadi dinilai dari KECEPATAN saja
+// dan baru ikut dihitung kalau waktunya tercatat.
 const BIDANG = { P: { k: "Programming", e: "💻", c: "#4c7dff" }, M: { k: "Menggambar", e: "🎨", c: "#ec5fa8" }, D: { k: "Desain", e: "🧊", c: "#84b816" } };
 const W_COBA = 0.65, W_CEPAT = 0.35, CEPAT_MIN = 0.2, TARGET_DEFAULT = 300;   // bobot & batas bawah kecepatan; target bawaan 300 detik
 // urutan = urutan task di jalur. Atur bobot bidang (BOBOT) dan waktu target dalam DETIK (TARGET) di sini.
-// (Task 3D belum mencatat percobaan, jadi belum dihitung.)
 const BOBOT = {
   g1: [{ P: 1, M: 1 }, { P: 1 }, { P: 1 }, { P: 1 }, { P: 1 }, { D: 1, M: .5 }],  // Game: kostum/ulang, gerak, variabel, waktu, percabangan, dekor panggung
-  g3: [{ P: 1, D: 1 }, { P: 1 }, { D: 1, P: .5 }, { P: 1 }, { P: 1, D: 1 }]  // Web: HTML+warna, kerangka, CSS, menu/section, situs statis
+  g3: [{ P: 1, D: 1 }, { P: 1 }, { D: 1, P: .5 }, { P: 1 }, { P: 1, D: 1 }],  // Web: HTML+warna, kerangka, CSS, menu/section, situs statis
+  g2: [{ D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }]  // 3D & Roblox: 8 task, semua ke bidang Desain
 };
 const TARGET = {
   g1: [240, 240, 300, 300, 420, 240],   // Game (Scratch)
-  g3: [600, 420, 480, 480, 600]          // Web (Text Editor)
+  g3: [600, 420, 480, 480, 600],         // Web (Text Editor)
+  g2: [120, 150, 150, 240, 240, 150, 240, 240]   // 3D & Roblox (Editor 3D)
 };
-const DIUKUR = ["editor", "code", "quiz"];
+const DIUKUR = ["editor", "code", "quiz", "model3d"];
+const SAJA_WAKTU = ["g2"];   // jalur yang dinilai dari waktu saja
 const fmtWaktu = (s) => { s = Math.round(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 const nilaiCepat = (detik, target) => Math.max(CEPAT_MIN, Math.min(1, target / detik));
 // daftar task terukur: percobaan, waktu, dan nilai gabungan masing-masing
@@ -108,17 +112,18 @@ function nilaiTask(jalur) {
   const out = [];
   jalur.forEach((j) => (BOBOT[j.pb.id] || []).forEach((w, i) => {
     const t = j.pb.tasks[i]; if (!t || !DIUKUR.includes(t.kind) || !LP.isDone(t.id)) return;
-    const coba = 1 / (1 + LP.attempts(t.id));
+    const gagal = LP.attempts(t.id), coba = 1 / (1 + gagal), waktuSaja = SAJA_WAKTU.includes(j.pb.id);
     const detik = LP.waktu ? LP.waktu(t.id) : 0, target = (TARGET[j.pb.id] || [])[i] || TARGET_DEFAULT;
     const cepat = detik > 0 ? nilaiCepat(detik, target) : null;
-    out.push({ t, w, gagal: LP.attempts(t.id), detik, target, coba, cepat, nilai: cepat === null ? coba : W_COBA * coba + W_CEPAT * cepat });
+    const nilai = waktuSaja ? cepat : (cepat === null ? coba : W_COBA * coba + W_CEPAT * cepat);   // null = belum bisa dinilai
+    out.push({ t, w, waktuSaja, gagal, detik, target, coba, cepat, nilai });
   }));
   return out;
 }
 function renderMinat(jalur) {
   const rows = nilaiTask(jalur);
   const tot = { P: [0, 0], M: [0, 0], D: [0, 0] };   // [jumlah bobot x nilai, jumlah bobot]
-  rows.forEach((r) => Object.keys(r.w).forEach((b) => { tot[b][0] += r.w[b] * r.nilai; tot[b][1] += r.w[b]; }));
+  rows.filter((r) => r.nilai !== null).forEach((r) => Object.keys(r.w).forEach((b) => { tot[b][0] += r.w[b] * r.nilai; tot[b][1] += r.w[b]; }));
   const m = Object.keys(BIDANG).map((b) => Object.assign({ b, pct: tot[b][1] >= 2 ? Math.round(tot[b][0] / tot[b][1] * 100) : null }, BIDANG[b]));
   const ada = m.filter((x) => x.pct !== null).sort((a, b) => b.pct - a.pct);
   const top = ada.length >= 2 && ada[0].pct - ada[1].pct >= 10 ? ada[0] : null;
@@ -126,7 +131,7 @@ function renderMinat(jalur) {
     const c = el("div", "col" + (top && top === x ? " top" : ""), '<div class="bar"><i style="height:' + Math.max(x.pct || 0, 14) + '%"><b>' + (x.pct === null ? "–" : x.pct + "%") + '</b></i></div><div class="cn">' + x.e + " " + x.k + "</div>");
     c.style.setProperty("--c", x.c); $("minatCols").appendChild(c);
   });
-  const box = $("arah"), cat = " (Task 3D belum ikut dihitung karena editor 3D belum mencatat percobaan.)";
+  const box = $("arah"), cat = "";
   if (!top) { box.innerHTML = "<span>🔎</span><p>" + (ada.length < 2 ? "Belum cukup data. Anak perlu menyelesaikan lebih banyak task Tahap 2 di beberapa bidang." : "Belum ada bidang yang menonjol.") + cat + "</p>"; }
   else box.innerHTML = "<span>" + top.e + "</span><p>Condong ke <b>" + top.k + "</b>. Rekomendasi: jalur <b>" + top.k + "</b> di tahap selanjutnya. Dukung ananda mendalami bidang ini dan tanyakan bagian mana yang paling seru.</p>";
   renderRincian(rows);
@@ -134,11 +139,11 @@ function renderMinat(jalur) {
 // rincian per task: transparan untuk mentor / orang tua
 function renderRincian(rows) {
   const box = $("rincian");
-  if (!rows.length) { box.innerHTML = '<p style="margin:0;color:#6b7494;font-size:14px">Belum ada task Tahap 2 yang selesai.</p>'; return; }
-  const tr = rows.map((r) => "<tr><td>" + esc(r.t.title) + "</td><td>" + (r.gagal === 0 ? "✅ 1x" : (r.gagal + 1) + "x") + "</td><td>" +
-    (r.detik > 0 ? fmtWaktu(r.detik) + ' <small>(target ' + fmtWaktu(r.target) + ")</small>" : "–") + "</td><td><b>" + Math.round(r.nilai * 100) + "%</b></td></tr>").join("");
+  if (!rows.length) { box.innerHTML = '<p style="margin:0;color:#6b7494;font-size:14px">Belum ada task Tahap 2 (Game, Web, atau 3D &amp; Roblox) yang selesai.</p>'; return; }
+  const tr = rows.map((r) => "<tr><td>" + esc(r.t.title) + "</td><td>" + (r.waktuSaja ? "–" : r.gagal === 0 ? "✅ 1x" : (r.gagal + 1) + "x") + "</td><td>" +
+    (r.detik > 0 ? fmtWaktu(r.detik) + ' <small>(target ' + fmtWaktu(r.target) + ")</small>" : "–") + "</td><td><b>" + (r.nilai === null ? "–" : Math.round(r.nilai * 100) + "%") + "</b></td></tr>").join("");
   box.innerHTML = '<div class="tw"><table class="tb"><thead><tr><th>Task</th><th>Percobaan</th><th>Waktu aktif</th><th>Nilai</th></tr></thead><tbody>' + tr + "</tbody></table></div>" +
-    '<p style="margin:10px 0 0;color:#6b7494;font-size:13px">Nilai = ' + Math.round(W_COBA * 100) + "% percobaan + " + Math.round(W_CEPAT * 100) + "% kecepatan. Tanda – berarti waktu belum tercatat (task selesai sebelum pencatatan waktu ada), nilainya dari percobaan saja.</p>";
+    '<p style="margin:10px 0 0;color:#6b7494;font-size:13px">Nilai = ' + Math.round(W_COBA * 100) + "% percobaan + " + Math.round(W_CEPAT * 100) + "% kecepatan. Tanda – berarti waktu belum tercatat (task selesai sebelum pencatatan waktu ada), nilainya dari percobaan saja. Task 3D dicek otomatis (tidak ada kata gagal), jadi dinilai dari waktu saja dan baru dihitung kalau waktunya tercatat.</p>";
 }
 
 // ---------- lencana: terbuka kalau SEMUA task di jalur selesai DAN Project Akhir / Capstone selesai ----------
