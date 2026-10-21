@@ -65,6 +65,17 @@ function sanitizeString(str, maxLen = 1000) {
     if (typeof str !== "string") return "";
     return str.slice(0, maxLen).trim();
 }
+
+// Email disimpan lowercase supaya "Budi@Mail.com" dan "budi@mail.com" dianggap sama.
+function normalizeEmail(email) {
+    return sanitizeString(email, 255).toLowerCase();
+}
+
+// Validasi bentuk email sederhana: ada teks, @, domain, dan titik di domain.
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 // Grade canonical: SD/SMP/SMK (huruf besar). Seeds + frontend SMP memakai huruf besar.
 const VALID_GRADES = ["SD", "SMP", "SMK"];
 function normalizeGrade(g) { return sanitizeString(g, 16).toUpperCase(); }
@@ -414,49 +425,79 @@ app.get("/api/modules/:grade", (req, res) => {
 // ============================================================
 
 app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
-    const username = sanitizeString(req.body.username, 32);
-    const password = req.body.password;
+    const body = req.body || {};
+    const emailInput = normalizeEmail(body.email);
+    const usernameInput = sanitizeString(body.username, 32);
+    const identifier = emailInput || usernameInput;
+    const password = body.password;
 
-    const validation = validateRequired(req.body, ["username", "password"]);
-    if (validation) return sendApiError(res, 400, validation, "VALIDATION_ERROR");
-    if (username.length > 32) return sendApiError(res, 400, "Username maksimal 32 karakter", "VALIDATION_ERROR");
+    if (!identifier) {
+        return sendApiError(res, 400, "Email atau username wajib diisi", "VALIDATION_ERROR");
+    }
+    if (usernameInput.length > 32) return sendApiError(res, 400, "Username maksimal 32 karakter", "VALIDATION_ERROR");
+    if (emailInput && !isValidEmail(emailInput)) return sendApiError(res, 400, "Email tidak valid", "VALIDATION_ERROR");
     if (typeof password !== "string" || password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
 
-    const attemptKey = req.ip + "|" + username;
+    const loginByEmail = Boolean(emailInput);
+    const attemptKey = req.ip + "|" + (loginByEmail ? "email:" : "user:") + identifier.toLowerCase();
 
     if (auth.isBlocked(attemptKey)) {
         return sendApiError(res, 429, "Terlalu banyak percobaan. Coba lagi 15 menit lagi.", "RATE_LIMITED");
     }
 
-    const user = db.prepare(`
-        SELECT username, password_hash, password_salt
-        FROM users
-        WHERE username = ?
-    `).get(username);
+    const user = loginByEmail
+        ? db.prepare(`
+            SELECT username, email, password_hash, password_salt, firebase_uid
+            FROM users
+            WHERE email = ? COLLATE NOCASE
+        `).get(identifier)
+        : db.prepare(`
+            SELECT username, email, password_hash, password_salt, firebase_uid
+            FROM users
+            WHERE username = ?
+        `).get(identifier);
 
     let status = "login";
 
     if (!user) {
         auth.recordFail(attemptKey);
-        return sendApiError(res, 401, "Username atau password salah", "INVALID_CREDENTIALS");
+        return sendApiError(res, 401, "Email/username atau password salah", "INVALID_CREDENTIALS");
     }
 
     if (!user.password_hash) {
-        // Akun lama dari sebelum sistem password dibuat
+        // Akun Firebase (punya email/firebase_uid) tidak boleh "diklaim" lewat login biasa:
+        // siapa pun yang tahu emailnya bisa membajak akun. Pemilik harus login Firebase dulu,
+        // lalu mengatur password lewat POST /api/auth/change-password.
+        if (user.email || user.firebase_uid) {
+            auth.recordFail(attemptKey);
+            return sendApiError(
+                res,
+                401,
+                "Akun ini belum punya password. Login lewat Firebase dulu, lalu atur password.",
+                "PASSWORD_NOT_SET"
+            );
+        }
+
+        // Akun legacy (sebelum sistem password dibuat) boleh mengklaim password saat login pertama.
         const { salt, hash } = auth.hashPassword(password);
         db.prepare(`
             UPDATE users SET password_hash = ?, password_salt = ? WHERE username = ?
-        `).run(hash, salt, username);
+        `).run(hash, salt, user.username);
         status = "claimed";
     } else if (!auth.verifyPassword(password, user.password_salt, user.password_hash)) {
         auth.recordFail(attemptKey);
-        return sendApiError(res, 401, "Username atau password salah", "INVALID_CREDENTIALS");
+        return sendApiError(res, 401, "Email/username atau password salah", "INVALID_CREDENTIALS");
     }
 
     auth.clearFails(attemptKey);
 
-    const token = auth.createSession(username);
-    sendApiSuccess(res, { username, token, status }, "Login berhasil");
+    const token = auth.createSession(user.username);
+    sendApiSuccess(res, {
+        username: user.username,
+        email: user.email || null,
+        token,
+        status
+    }, "Login berhasil");
 });
 
 // ============================================================
@@ -497,9 +538,9 @@ app.post("/api/auth/firebase-login", async (req, res) => {
 // ============================================================
 
 app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
-    const email = sanitizeString(req.body.email, 255);
-    const usernameInput = sanitizeString(req.body.username, 32);
-    const password = req.body.password;
+    const email = normalizeEmail(req.body && req.body.email);
+    const usernameInput = sanitizeString(req.body && req.body.username, 32);
+    const password = req.body && req.body.password;
 
     // Terima email (baru) atau username (legacy). Satu di antaranya wajib.
     if (!email && !usernameInput) {
@@ -511,11 +552,11 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
     let finalEmail = email || null;
 
     if (email) {
-        if (!email.includes("@")) {
+        if (!isValidEmail(email)) {
             return sendApiError(res, 400, "Email tidak valid", "VALIDATION_ERROR");
         }
-        // Cek apakah email sudah terdaftar
-        const existingEmail = db.prepare("SELECT 1 FROM users WHERE email = ?").get(email);
+        // Cek apakah email sudah terdaftar (case-insensitive).
+        const existingEmail = db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email);
         if (existingEmail) {
             return sendApiError(res, 409, "Email sudah terdaftar", "EMAIL_EXISTS");
         }
@@ -546,10 +587,19 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
 
     // Buat user baru
     const { salt, hash } = auth.hashPassword(password);
-    db.prepare(`
-        INSERT INTO users (username, email, password_hash, password_salt)
-        VALUES (?, ?, ?, ?)
-    `).run(username, finalEmail, hash, salt);
+    try {
+        db.prepare(`
+            INSERT INTO users (username, email, password_hash, password_salt)
+            VALUES (?, ?, ?, ?)
+        `).run(username, finalEmail, hash, salt);
+    } catch (error) {
+        // Jaga-jaga kalau ada request bersamaan yang lolos cek duplikat.
+        if (String(error.code || "").startsWith("SQLITE_CONSTRAINT")) {
+            const code = /email/i.test(error.message) ? "EMAIL_EXISTS" : "USERNAME_EXISTS";
+            return sendApiError(res, 409, code === "EMAIL_EXISTS" ? "Email sudah terdaftar" : "Username sudah terdaftar", code);
+        }
+        throw error;
+    }
 
     const token = auth.createSession(username);
     sendApiSuccess(res, { username, token, email: finalEmail }, "Registrasi berhasil", 201);
@@ -596,12 +646,70 @@ app.post("/api/auth/firebase-register", async (req, res) => {
 // ============================================================
 
 app.get("/api/auth/me", auth.requireAuth, (req, res) => {
-    sendApiSuccess(res, { username: req.user });
+    const user = db.prepare(`
+        SELECT username, email, full_name, password_hash
+        FROM users WHERE username = ?
+    `).get(req.user);
+
+    sendApiSuccess(res, {
+        username: req.user,
+        email: (user && user.email) || null,
+        fullName: (user && user.full_name) || null,
+        hasPassword: Boolean(user && user.password_hash)
+    });
 });
 
 app.post("/api/auth/logout", auth.requireAuth, (req, res) => {
     auth.deleteSession(req.token);
     sendApiSuccess(res, {}, "Logout berhasil");
+});
+
+// ============================================================
+// AUTH - CHANGE PASSWORD
+// ============================================================
+// Pengganti "reset password" ala Firebase: user yang sudah login bisa
+// mengatur/mengganti password DB-nya tanpa perlu email service.
+app.post("/api/auth/change-password", auth.requireAuth, rateLimitMiddleware(10), (req, res) => {
+    const body = req.body || {};
+    const currentPassword = body.currentPassword;
+    const newPassword = body.newPassword;
+
+    if (typeof newPassword !== "string" || newPassword.length < 4) {
+        return sendApiError(res, 400, "Password baru minimal 4 karakter", "VALIDATION_ERROR");
+    }
+    if (newPassword.length > 128) {
+        return sendApiError(res, 400, "Password baru maksimal 128 karakter", "VALIDATION_ERROR");
+    }
+
+    const user = db.prepare(`
+        SELECT password_hash, password_salt FROM users WHERE username = ?
+    `).get(req.user);
+    if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
+
+    const pwKey = req.ip + "|pw:" + req.user;
+    if (auth.isBlocked(pwKey)) {
+        return sendApiError(res, 429, "Terlalu banyak percobaan. Coba lagi 15 menit lagi.", "RATE_LIMITED");
+    }
+
+    // Kalau sudah punya password, wajib verifikasi password lama.
+    if (user.password_hash) {
+        if (typeof currentPassword !== "string" || !auth.verifyPassword(currentPassword, user.password_salt, user.password_hash)) {
+            auth.recordFail(pwKey);
+            return sendApiError(res, 401, "Password saat ini salah", "INVALID_CREDENTIALS");
+        }
+    }
+
+    auth.clearFails(pwKey);
+
+    const { salt, hash } = auth.hashPassword(newPassword);
+    db.prepare(`
+        UPDATE users SET password_hash = ?, password_salt = ? WHERE username = ?
+    `).run(hash, salt, req.user);
+
+    // Sesi di perangkat lain dicabut; sesi yang sedang dipakai tetap hidup.
+    auth.deleteOtherSessions(req.user, req.token);
+
+    sendApiSuccess(res, { username: req.user }, "Password berhasil diubah");
 });
 
 // ============================================================
@@ -636,13 +744,24 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
     try {
         const body = req.body || {};
         const fullName = typeof body.fullName === "string" ? body.fullName.slice(0, 100).trim() : undefined;
-        const email = typeof body.email === "string" ? body.email.slice(0, 255).trim() : undefined;
+        // Email kosong diabaikan (tidak menghapus email lama).
+        const email = typeof body.email === "string" && body.email.trim() ? normalizeEmail(body.email) : undefined;
         const bio = typeof body.bio === "string" ? body.bio.slice(0, 1000).trim() : undefined;
         const avatarUrl = typeof body.avatarUrl === "string" ? body.avatarUrl.slice(0, 500000) : undefined;
         const avatar = typeof body.avatar === "string" ? body.avatar.slice(0, 500000) : undefined;
 
-        if (email !== undefined && !email.includes("@")) {
+        if (email !== undefined && !isValidEmail(email)) {
             return sendApiError(res, 400, "Email tidak valid", "VALIDATION_ERROR");
+        }
+
+        if (email !== undefined) {
+            const taken = db.prepare(`
+                SELECT 1 FROM users
+                WHERE email = ? COLLATE NOCASE AND username <> ?
+            `).get(email, req.user);
+            if (taken) {
+                return sendApiError(res, 409, "Email sudah dipakai akun lain", "EMAIL_EXISTS");
+            }
         }
 
         db.prepare(`

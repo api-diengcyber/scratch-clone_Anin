@@ -9,17 +9,24 @@ Kecuali `/api/auth/login` dan `/api/health`, setiap permintaan wajib membawa hea
 
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
-| POST | `/api/auth/login` | `{ username, password }` | `{ token, username, status }` |
-| GET  | `/api/auth/me` | - | `{ username }` |
+| POST | `/api/auth/register` | `{ email, password }` atau `{ username, password }` | `{ token, username, email }` |
+| POST | `/api/auth/login` | `{ email, password }` atau `{ username, password }` | `{ token, username, email, status }` |
+| GET  | `/api/auth/me` | - | `{ username, email, fullName, hasPassword }` |
+| POST | `/api/auth/change-password` | `{ currentPassword?, newPassword }` | `{ username }` |
 | POST | `/api/auth/logout` | - | `{ message }` |
 
-`status` pada login:
-- `claimed` : username lama (punya data, belum punya password); password yang diketik jadi passwordnya.
-- `login`   : login biasa.
+Catatan auth:
 
-Username yang belum ada tidak otomatis dibuat lewat login. `claimed` hanya dipakai untuk akun lama yang sudah ada di database tetapi belum memiliki password.
+- Login menerima **email atau username**. Email tidak peka huruf besar/kecil, dan disimpan dalam bentuk lowercase.
+- Register dengan `email` akan otomatis membuat `username` dari bagian sebelum `@` (contoh `budi.santoso@mail.com` → `budisantoso`). Jika bentrok, diberi akhiran angka.
+- `status` pada login:
+  - `claimed` : akun legacy (belum punya email/Firebase dan belum punya password); password yang diketik saat login pertama menjadi passwordnya.
+  - `login`   : login biasa.
+- Akun Firebase (punya `email`/`firebase_uid` tetapi belum punya password) **tidak bisa diklaim lewat login biasa**. Pemilik harus login lewat Firebase dulu, lalu memanggil `POST /api/auth/change-password` untuk mengatur password DB.
+- `POST /api/auth/change-password` mewajibkan `currentPassword` bila akun sudah punya password. Sesi di perangkat lain otomatis dicabut; sesi yang sedang dipakai tetap aktif.
+- Profil (`PUT /api/profile`) juga menerima `email`; email yang sudah dipakai akun lain ditolak `409 EMAIL_EXISTS`.
 
-Kode error: `400` input salah, `401` username/password salah / belum login / sesi habis, `403` membuka data user lain, `429` terlalu banyak percobaan login (blok 15 menit).
+Kode error: `400` input salah, `401` email/username atau password salah / belum login / sesi habis, `403` membuka data user lain, `409` email/username sudah terdaftar, `429` terlalu banyak percobaan (blok 15 menit).
 
 ## Data (hanya boleh milik user yang sedang login)
 
@@ -36,8 +43,20 @@ Menyelesaikan task (`POST /api/progress` → `completed: true`) otomatis mengkre
 
 Bonus percobaan pertama (semua task): selesai tanpa gagal tercatat (`POST /api/attempts/:username` `{ taskId }` per cek misi yang gagal) + belum pernah dapat bonus → tambah `FIRST_TRY_BONUS` (default 5, via env). Bonus hanya sekali seumur (user, task); un-check mendebit basis + bonus. Respons progress menyertakan `points` (total kini) dan `earned: { base, bonus }`.
 
-| POST | `/api/attempts/:username` | `{ taskId }` | `{ username, taskId, fails }` |
-| POST | `/api/dev/attempts` | `{ taskId }` | `{ username: "dev", taskId, fails }` |
+| POST | `/api/attempts/:username` | `{ taskId, timeSpent? }` | `{ username, taskId, fails, timeSpent, earned }` |
+| GET | `/api/attempts/:username` | - | `{ attempts: [{ task_id, fails, time_spent, updated_at }] }` |
+| POST | `/api/dev/attempts` | `{ taskId, timeSpent? }` | `{ username: "dev", taskId, fails, timeSpent }` |
+
+`timeSpent` (detik) dijumlahkan ke total waktu aktif per task. `earned` berisi poin bonus yang dikreditkan bila ini percobaan pertama yang gagal (biasanya `0`).
+
+## Profil & preferensi
+
+| Method | Alamat | Isi (body) | Hasil |
+|---|---|---|---|
+| GET | `/api/profile` | - | `{ profile: { username, email, fullName, bio, avatarUrl, ... } }` |
+| PUT | `/api/profile` | `{ fullName?, email?, bio?, avatarUrl? }` | `{ profile: { ... } }` |
+| GET | `/api/user/allowed-grades` | - | `{ grades: ["SD","SMP","SMK"] }` |
+| PUT | `/api/user/allowed-grades` | `{ grades: ["SD","SMP"] }` | `{ grades }` |
 
 ## Lain-lain
 | GET | `/api/health` | - | `{ status: "ok" }` |

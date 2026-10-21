@@ -83,6 +83,17 @@ function deleteSession(token) {
     db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha256(token));
 }
 
+// Cabut semua sesi user, kecuali token yang sedang dipakai (kalau ada).
+// Dipakai setelah ganti password supaya sesi lama di perangkat lain ikut mati.
+function deleteOtherSessions(username, keepToken) {
+    if (keepToken) {
+        db.prepare("DELETE FROM sessions WHERE username = ? AND token_hash <> ?")
+            .run(username, sha256(keepToken));
+    } else {
+        db.prepare("DELETE FROM sessions WHERE username = ?").run(username);
+    }
+}
+
 // ============================================================
 // ERROR HELPER (consistent with server.js)
 // ============================================================
@@ -171,6 +182,7 @@ module.exports = {
     verifyFirebaseToken,
     createSession,
     deleteSession,
+    deleteOtherSessions,
     requireAuth,
     requireSameUser,
     isBlocked,
