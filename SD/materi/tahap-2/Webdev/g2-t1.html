@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/js/theme.js?v=20261019"></script>
 <title>Materi: Kenalan dengan 3D • Dieng Cyber Coding</title>
 <link rel="stylesheet" href="/shared/css/materi-3d.css?v=20261019">
   <script src="/shared/js/auth-guard.js?v=20261019"></script>
 </head>
 <body>
-<div class="top"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" onerror="this.style.display='none'"><b>🧊 Materi • Kenalan dengan 3D</b><a href="/belajar.html?task=g2-t1">← Kembali</a></div>
+<div class="top"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"><h1>🧊 Materi • Kenalan dengan 3D</h1><a href="/belajar.html?task=g2-t1">← Kembali</a></div>
 <div class="player">
   <div class="bar"><i id="fill"></i></div>
   <section class="scene s1"><h2>Kenalan dengan 3D</h2><div class="stage"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></section>
@@ -18,7 +19,7 @@
   <section class="scene s5"><h2>Dekat dan Jauh</h2><div class="mock"><div class="vp" style="height:190px"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div class="wheel">🖱️</div></section>
   <section class="scene s6"><h2>Kamu Siap! 🎉</h2><ul class="check"><li>✅ Tambah 1 benda</li><li>✅ Putar pandanganmu</li></ul><a class="go" href="/tools/Editor3D/index.html?task=g2-t1">Mulai Task 1 🧊</a></section>
   <div class="cap" id="cap"></div>
-  <div class="ctl"><button id="prev">◀</button><button id="play" class="on">⏸ Jeda</button><button id="next">▶</button><span class="dots" id="dots"></span><button id="voice">🔇 Suara</button></div>
+  <div class="ctl"><button type="button" id="prev">◀</button><button type="button" id="play" class="on">⏸ Jeda</button><button type="button" id="next">▶</button><span class="dots" id="dots"></span><button type="button" id="voice">🔇 Suara</button></div>
 </div>
 <script>
 const say=["Halo! Hari ini kita kenalan dengan dunia 3D. Yuk, kita mulai!",
@@ -37,10 +38,10 @@ function go(n){
   if(playing&&i<sc.length-1){fill.classList.add("run");t=setTimeout(()=>go(i+1),8000)}
   if("speechSynthesis" in window){speechSynthesis.cancel();if(voice){const u=new SpeechSynthesisUtterance(say[i]);u.lang="id-ID";u.rate=.95;speechSynthesis.speak(u)}}
 }
-document.getElementById("prev").onclick=()=>go(i-1);document.getElementById("next").onclick=()=>go(i+1);
-document.getElementById("play").onclick=function(){playing=!playing;this.textContent=playing?"⏸ Jeda":"▶ Putar";this.classList.toggle("on",playing);go(i)};
-document.getElementById("voice").onclick=function(){voice=!voice;this.textContent=voice?"🔊 Suara":"🔇 Suara";this.classList.toggle("on",voice);go(i)};
-go(0);
+document.getElementById("prev").addEventListener("click",()=>go(i-1));document.getElementById("next").addEventListener("click",()=>go(i+1));
+document.getElementById("play").addEventListener("click",function(){playing=!playing;this.textContent=playing?"⏸ Jeda":"▶ Putar";this.classList.toggle("on",playing);go(i)});
+document.getElementById("voice").addEventListener("click",function(){voice=!voice;this.textContent=voice?"🔊 Suara":"🔇 Suara";this.classList.toggle("on",voice);go(i)});
+document.querySelectorAll(".top img").forEach(im=>{const h=()=>{im.hidden=true};im.addEventListener("error",h);if(im.complete&&!im.naturalWidth)h()});go(0);
 </script>
   <script src="/shared/js/icons.js?v=20261019"></script>
 <script src="/shared/js/materi-gate.js?v=20261019"></script>

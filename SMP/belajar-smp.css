@@ -6,7 +6,7 @@
 a.pcard { text-decoration: none; color: inherit; }
 .smp a.pcard:focus-visible { outline: 3px solid #5a6bd8; outline-offset: 2px; }
 .smp .phead { display: flex; gap: 16px; align-items: center; background: #fff; border-radius: 26px; padding: 20px 22px; box-shadow: 0 8px 20px rgba(60,80,140,.1); border-left: 8px solid var(--c); }
-.smp .phead .pe { font-size: 52px; } .smp .phead h2 { margin: 0 0 4px; } .smp .phead p { margin: 0 0 6px; color: #6b7494; } .smp .phead .bar { background: #e6e9f5; } .smp .phead .bar i { background: var(--c); } .smp .phead .bar-text { color: #6b7494; }
+.smp .phead .pe { font-size: 52px; } .smp .phead h1, .smp .phead h2 { margin: 0 0 4px; } .smp .phead p { margin: 0 0 6px; color: #6b7494; } .smp .phead .bar { background: #e6e9f5; } .smp .phead .bar i { background: var(--c); } .smp .phead .bar-text { color: #6b7494; }
 .smp .tcard { margin: 16px 0 6px; } .smp .tcard h3 { margin: 0 0 6px; } .smp .tcard ul { margin: 6px 0; padding-left: 22px; line-height: 1.55; }
 .smp .btn { background: var(--c, #6d7eea); } .smp .btn.ghost { background: #eef1ff; color: #5a6bd8; } .smp .btn.grey { background: #c9cfe4; } .smp .btn.green { background: #34c06f; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; } .chip { background: #eef1ff; color: #4a5bd0; border-radius: 12px; padding: 5px 10px; font-size: 13px; font-weight: bold; }

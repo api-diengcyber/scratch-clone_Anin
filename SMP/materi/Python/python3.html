@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>Task 3: Tipe Data - Python Dasar SMP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -154,10 +155,10 @@ menang = <span class="code-bool">True</span>       <span class="code-comment"># 
       <div class="playground">
         <h3>Simulasi Langsung Task 3: Detektor Tipe Data</h3>
         <div class="input-group">
-          <label>Ketikkan sesuatu (angka, kata, atau True/False):</label>
+          <label for="t3_val">Ketikkan sesuatu (angka, kata, atau True/False):</label>
           <input type="text" id="t3_val" value="Semarang">
         </div>
-        <button class="btn-run" onclick="cekTipeData()">Periksa Tipe Data</button>
+        <button class="btn-run" id="btnRun" type="button">Periksa Tipe Data</button>
         <div class="output-screen" id="t3_res">> Hasil deteksi akan muncul di sini...</div>
       </div>
     </div>
@@ -176,6 +177,7 @@ menang = <span class="code-bool">True</span>       <span class="code-comment"># 
         `> Nilai: "${v}"<br>` +
         `> Terdeteksi sebagai: &lt;class '${tipe}'&gt;`;
     }
+    document.getElementById('btnRun').addEventListener('click', cekTipeData);
   </script>
 <script src="/shared/js/materi-back.js?v=20261019"></script>
 <script src="/shared/js/materi-gate.js?v=20261019"></script>

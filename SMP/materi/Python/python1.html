@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>Materi Python Dasar - Variabel, Tipe Data & Input/Output</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -193,16 +194,16 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
         <p style="font-size: 0.9rem; margin-bottom: 15px; color: #c7d2fe;">Uji coba alur program Langkah 1, 2, dan 3 langsung di form ini:</p>
         
         <div class="input-group">
-          <label>Contoh 1: Masukkan Nama</label>
+          <label for="simNama">Contoh 1: Masukkan Nama</label>
           <input type="text" id="simNama" placeholder="Contoh: Rian">
         </div>
 
         <div class="input-group">
-          <label>Contoh 3: Masukkan Umur (input())</label>
+          <label for="simUmur">Contoh 3: Masukkan Umur (input())</label>
           <input type="number" id="simUmur" placeholder="Contoh: 14">
         </div>
 
-        <button class="btn-run" onclick="jalankanSimulasi()">Jalankan Program (Run)</button>
+        <button class="btn-run" id="btnRun" type="button">Jalankan Program (Run)</button>
 
         <div class="output-screen" id="simOutput">
           &gt; Hasil eksekusi print() akan muncul di sini...
@@ -223,6 +224,7 @@ umur_tahun_depan = umur_angka + <span class="code-num">1</span>
                          `> ${nama} berusia ${umur} tahun!<br>` +
                          `> [Tipe Data] Variabel nama: str | input umur dibaca sebagai: str`;
     }
+    document.getElementById('btnRun').addEventListener('click', jalankanSimulasi);
   </script>
 <script src="/shared/js/materi-back.js?v=20261019"></script>
 <script src="/shared/js/materi-gate.js?v=20261019"></script>

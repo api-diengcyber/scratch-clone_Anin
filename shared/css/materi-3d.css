@@ -1,7 +1,7 @@
 /* Gaya halaman materi SD Tahap 2 (3D/Roblox/Gamedev/Webdev g2-t1). */
 *{box-sizing:border-box}html,body{height:100%}
 body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);display:flex;flex-direction:column;align-items:center;padding:12px}
-.top{width:min(860px,100%);display:flex;align-items:center;gap:10px;margin-bottom:8px}.top img{width:34px;height:34px;object-fit:contain}.top b{flex:1}
+.top{width:min(860px,100%);display:flex;align-items:center;gap:10px;margin-bottom:8px}.top img{width:34px;height:34px;object-fit:contain}.top b{flex:1}.top h1{flex:1;margin:0;font-size:inherit}
 .top a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:8px 12px;border-radius:12px;font-weight:bold;font-size:13px}
 .player{width:min(860px,100%);flex:1;max-height:560px;min-height:380px;background:#fff;border-radius:24px;box-shadow:0 8px 24px rgba(60,80,140,.15);position:relative;overflow:hidden;display:flex;flex-direction:column}
 .bar{height:6px;background:#e3e9ff}.bar i{display:block;height:100%;width:0;background:#6d7eea}.bar i.run{animation:fill 8s linear forwards}@keyframes fill{to{width:100%}}

@@ -249,7 +249,7 @@
     app.innerHTML =
       crumbs([tahapCrumb(), { go: "pemb", text: pb.emoji + " " + esc(pb.judul) }]) +
       '<div style="--c:' + pb.warna + '">' +
-      '<div class="phead"><div class="pe">' + pb.emoji + "</div><div><h2>" + esc(pb.judul) + "</h2><p>" + esc(pb.desc) + "</p>" +
+      '<div class="phead"><div class="pe">' + pb.emoji + "</div><div><h1>" + esc(pb.judul) + "</h1><p>" + esc(pb.desc) + "</p>" +
         '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
         '<div class="bar-text">' + p.done + " dari " + p.total + " selesai</div></div>" +
         (tahap.mode === "pilih-jalur" ? '<button class="btn ghost swap" id="swapBtn" type="button">🔄 Ganti jalur</button>' : "") + "</div>" +
@@ -337,7 +337,7 @@
       crumbs([tahapCrumb(), { go: "pemb", text: pb.emoji + " " + esc(pb.judul) }, { go: "task", text: isProject ? "🏆 Project" : "🧩 Task " + t.no }]) +
       '<div class="tcard" style="--c:' + pb.warna + '">' +
         '<div class="nlabel">' + (isProject ? "PROJECT AKHIR" : "TASK " + t.no + " • " + t.label.toUpperCase()) + "</div>" +
-        "<h2>" + esc(t.title) + '</h2><span class="badge">' + (isProject ? LP.JENIS[LP.jenisOf(t)].icon + " " + LP.JENIS[LP.jenisOf(t)].nama + " — " + LP.JENIS[LP.jenisOf(t)].info : tipe.icon + " " + tipe.nama + " — " + tipe.info) + "</span>" + toolChip(t) +
+        "<h1>" + esc(t.title) + '</h1><span class="badge">' + (isProject ? LP.JENIS[LP.jenisOf(t)].icon + " " + LP.JENIS[LP.jenisOf(t)].nama + " — " + LP.JENIS[LP.jenisOf(t)].info : tipe.icon + " " + tipe.nama + " — " + tipe.info) + "</span>" + toolChip(t) +
           (isProject ? '<span id="pStatus">' + statusChip(t) + "</span>" : statusChip(t)) + pointChip(t) +
         (isProject && t.lencana ? '<span class="badge reward">' + esc(t.lencana) + "</span>" : "") +
         '<p class="desc" style="margin-top:12px">' + esc(t.desc) + "</p>" +

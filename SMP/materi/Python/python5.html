@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>Task 5: Cetak Rapi - Python Dasar SMP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,15 +120,15 @@ jumlah = <span class="code-num">4</span>
         <h3>Simulasi Langsung Task 5: Kartu Profil Otomatis</h3>
         <div class="input-row">
           <div class="input-group">
-            <label>Nama Siswa:</label>
+            <label for="t5_nama">Nama Siswa:</label>
             <input type="text" id="t5_nama" value="Dimas">
           </div>
           <div class="input-group">
-            <label>Poin Game:</label>
+            <label for="t5_poin">Poin Game:</label>
             <input type="number" id="t5_poin" value="50">
           </div>
         </div>
-        <button class="btn-run" onclick="cetakRapi()">Cetak dengan f-string</button>
+        <button class="btn-run" id="btnRun" type="button">Cetak dengan f-string</button>
         <div class="output-screen" id="t5_res">> Klik tombol untuk generate teks rapi...</div>
       </div>
     </div>
@@ -145,6 +146,7 @@ jumlah = <span class="code-num">4</span>
         `-> Poin saat ini: ${poin} | Poin bonus ganda: ${poin * 2}<br>` +
         `====================================`;
     }
+    document.getElementById('btnRun').addEventListener('click', cetakRapi);
   </script>
 <script src="/shared/js/materi-back.js?v=20261019"></script>
 <script src="/shared/js/materi-gate.js?v=20261019"></script>

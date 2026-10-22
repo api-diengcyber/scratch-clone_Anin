@@ -235,6 +235,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; line-height: normal; }
 
 .um-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 12px; border: 0; border-radius: 12px; background: none; color: #3d4670; font: inherit; font-size: 14px; font-weight: bold; text-decoration: none; text-align: left; cursor: pointer; }
 .um-item:hover, .um-item:focus-visible { background: #f1f3ff; color: #5a6bd8; outline: none; }
+.um-theme .dc-sw { margin-left: auto; }
 .um-logout { color: #d33; }
 .um-logout:hover, .um-logout:focus-visible { background: #fff0f0; color: #c22; }
 

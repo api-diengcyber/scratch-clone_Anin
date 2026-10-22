@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>3D Editor • Dieng Cyber Coding</title>
+  <meta name="description" content="Editor 3D Dieng Cyber Coding: tambah, geser, ubah ukuran, dan putar benda 3D langsung di browser, lalu selesaikan misimu.">
   <link rel="stylesheet" href="/tools/TextEditor/editor.css?v=20261019">
   <style>
     .eh-title{display:flex;align-items:center;gap:8px}.eh-title img{width:30px;height:30px;object-fit:contain}
@@ -31,15 +33,15 @@
 <body>
   <header class="eh">
     <a class="eh-back" id="backLink" href="/dashboard.html">← Dashboard</a>
-    <div class="eh-title"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber"> 3D Editor</div>
+    <h1 class="eh-title"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"> 3D Editor</h1>
     <div class="points-chip">⭐ <b id="pointsValue">0</b> poin</div>
   </header>
   <section class="mission" id="mission" hidden></section>
   <div class="tb">
-    <div class="grp"><b>ALAT</b><button data-tool="select" class="on">👆 Pilih</button><button data-tool="move">✋ Geser</button><button data-tool="scale">📏 Ukuran</button><button data-tool="rotate">🔄 Putar</button></div>
-    <div class="grp"><b>TAMBAH</b><button data-ins="box">🟦 Balok</button><button data-ins="sphere">⚪ Bola</button><button data-ins="cyl">🥫 Tabung</button><button data-ins="cone">🔺 Kerucut</button><button data-ins="spawn">⭐ Tempat Muncul</button></div>
-    <div class="grp"><button data-act="dup">📋 Gandakan</button><button data-act="del">🗑️ Hapus</button><button data-act="undo">↩️</button><button data-act="redo">↪️</button></div>
-    <div class="grp"><button class="play" id="playBtn" data-act="play">▶ Main</button><button data-act="shot">📸 Screenshot</button></div>
+    <div class="grp"><b>ALAT</b><button type="button" data-tool="select" class="on">👆 Pilih</button><button type="button" data-tool="move">✋ Geser</button><button type="button" data-tool="scale">📏 Ukuran</button><button type="button" data-tool="rotate">🔄 Putar</button></div>
+    <div class="grp"><b>TAMBAH</b><button type="button" data-ins="box">🟦 Balok</button><button type="button" data-ins="sphere">⚪ Bola</button><button type="button" data-ins="cyl">🥫 Tabung</button><button type="button" data-ins="cone">🔺 Kerucut</button><button type="button" data-ins="spawn">⭐ Tempat Muncul</button></div>
+    <div class="grp"><button type="button" data-act="dup">📋 Gandakan</button><button type="button" data-act="del">🗑️ Hapus</button><button type="button" data-act="undo">↩️</button><button type="button" data-act="redo">↪️</button></div>
+    <div class="grp"><button type="button" class="play" id="playBtn" data-act="play">▶ Main</button><button type="button" data-act="shot">📸 Screenshot</button></div>
   </div>
   <main class="work">
     <div id="vp"><div id="tip"></div></div>

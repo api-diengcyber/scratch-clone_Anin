@@ -70,6 +70,7 @@
     var pill = document.createElement("div");
     pill.setAttribute("role", "status");
     pill.setAttribute("aria-live", "polite");
+    pill.className = "dc-keep";   // tetap gelap di Mode Gelap (lihat /shared/js/theme.js)
     pill.setAttribute("style", "position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483000;max-width:92vw;" +
       "background:#1e293b;color:#fff;padding:9px 16px;border-radius:999px;font:700 13px/1.3 'Plus Jakarta Sans',Arial,sans-serif;" +
       "box-shadow:0 6px 18px rgba(0,0,0,.28);display:flex;gap:10px;align-items:center;white-space:nowrap");

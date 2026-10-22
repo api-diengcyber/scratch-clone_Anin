@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>Task 2: Tebak Angka - Python Dasar SMP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,10 +132,10 @@
       <div class="playground">
         <h3>Simulasi Langsung Task 2 (Angka Rahasia = 7)</h3>
         <div class="input-group">
-          <label>Tebak Angka (1-10):</label>
+          <label for="t2_tebak">Tebak Angka (1-10):</label>
           <input type="number" id="t2_tebak" value="5">
         </div>
-        <button class="btn-run" onclick="ujiTebakan()">Kirim Tebakan</button>
+        <button class="btn-run" id="btnRun" type="button">Kirim Tebakan</button>
         <div class="output-screen" id="t2_res">> Tebak angkanya dan lihat reaksinya...</div>
       </div>
     </div>
@@ -152,6 +153,7 @@
       }
       document.getElementById('t2_res').innerHTML = `> Evaluasi: ${hasil}`;
     }
+    document.getElementById('btnRun').addEventListener('click', ujiTebakan);
   </script>
 <script src="/shared/js/materi-back.js?v=20261019"></script>
 <script src="/shared/js/materi-gate.js?v=20261019"></script>

@@ -1,0 +1,268 @@
+/* ============================================================
+   MODE GELAP MANUAL — warna ditentukan satu per satu (tanpa filter invert).
+
+   Dipakai oleh halaman yang memasang  <html data-dark="manual">  :
+   login (index), register, dashboard, dan halaman belajar SD / SMP / SMK.
+   Di halaman itu theme.js TIDAK membalik warna lagi, jadi:
+     - tombol berwarna tetap berteks putih,
+     - emoji, banner gradasi, dan kotak ikon tetap cerah.
+
+   Mau mengubah warna? Cukup ubah variabel --d-* di blok pertama.
+   Dimuat SESUDAH style.css / belajar.css (urutan <link> menentukan).
+   ============================================================ */
+
+html[data-theme="dark"] {
+  color-scheme: dark;                 /* kolom input, scrollbar, checkbox ikut gelap */
+
+  --d-bg:        #0e1322;             /* latar halaman */
+  --d-bg-2:      #131a2e;             /* latar gradasi bawah */
+  --d-surface:   #1a2138;             /* kartu, header, modal */
+  --d-surface-2: #232b47;             /* kotak di dalam kartu, chip, input */
+  --d-surface-3: #2d3758;             /* hover / garis progres */
+  --d-line:      #2e3860;             /* garis tepi */
+  --d-text:      #e9edfb;
+  --d-text-2:    #b4bddb;             /* teks pendukung */
+  --d-text-3:    #8e99bd;             /* teks redup (label kecil) */
+  --d-accent:    #8e9dff;             /* tautan / aksen di atas gelap */
+  --d-accent-bg: #28315c;             /* latar chip & tombol ghost */
+  --d-gold-bg:   #3b2f12;
+  --d-gold:      #ffd36b;
+  --d-green-bg:  #123a27;
+  --d-green:     #55e29a;
+  --d-red-bg:    #3f1d24;
+  --d-red:       #ff8f86;
+  --d-blue-bg:   #1c3159;
+  --d-blue:      #8db8ff;
+  --d-purple-bg: #2f2559;
+  --d-purple:    #c1a8ff;
+  --d-shadow:    0 8px 22px rgba(0, 0, 0, .38);
+}
+
+/* ---------- Dasar halaman ---------- */
+html[data-theme="dark"] body { background: var(--d-bg); color: var(--d-text); }
+html[data-theme="dark"] body.smp,
+html[data-theme="dark"] body.smk,
+html[data-theme="dark"] .belajar-body { background: var(--d-bg); }
+/* halaman belajar punya gradasi latar sendiri */
+html[data-theme="dark"] body:has(> header.bh) { background: linear-gradient(180deg, var(--d-bg) 0%, var(--d-bg-2) 100%); background-attachment: fixed; }
+html[data-theme="dark"] a { color: inherit; }
+
+/* ============================================================
+   LOGIN & REGISTER
+   ============================================================ */
+html[data-theme="dark"] .card { background: var(--d-surface); border-color: var(--d-line); box-shadow: var(--d-shadow); }
+html[data-theme="dark"] .card h1 { color: var(--d-text); }
+html[data-theme="dark"] .card p { color: var(--d-text-3); }
+html[data-theme="dark"] .card label { color: var(--d-text-2); }
+html[data-theme="dark"] .card input { background: var(--d-surface-2); border-color: var(--d-line); color: var(--d-text); }
+html[data-theme="dark"] .card input::placeholder { color: var(--d-text-3); }
+html[data-theme="dark"] .card input:focus { outline-color: var(--d-accent); }
+html[data-theme="dark"] .toggle-password { color: var(--d-text-3); }
+html[data-theme="dark"] .toggle-password:hover { color: var(--d-text); }
+html[data-theme="dark"] .error { color: var(--d-red); }
+html[data-theme="dark"] .success { color: var(--d-green); }
+html[data-theme="dark"] .btn-submit { background: #6d7eea; color: #fff; }
+html[data-theme="dark"] .btn-submit:hover { background: #5f70dd; }
+html[data-theme="dark"] .register-link, html[data-theme="dark"] .login-link { color: var(--d-text-3); }
+html[data-theme="dark"] .register-link a, html[data-theme="dark"] .login-link a { color: var(--d-accent); }
+/* logo punya latar putih supaya tetap terbaca */
+html[data-theme="dark"] .brand-icon { background: #fff; }
+
+/* ============================================================
+   DASHBOARD  (style.css)
+   ============================================================ */
+html[data-theme="dark"] .header { background: var(--d-surface); border-bottom-color: var(--d-line); }
+html[data-theme="dark"] .brand h1 { color: var(--d-text); }
+html[data-theme="dark"] .brand p,
+html[data-theme="dark"] .profile span { color: var(--d-text-3); }
+html[data-theme="dark"] .points-chip { background: var(--d-gold-bg); color: var(--d-gold); }
+html[data-theme="dark"] a.points-chip:hover { box-shadow: 0 4px 12px rgba(255, 211, 107, .18); }
+
+html[data-theme="dark"] .menu-btn { background: var(--d-accent-bg); color: var(--d-accent); }
+html[data-theme="dark"] .menu-btn:hover { background: var(--d-surface-3); }
+html[data-theme="dark"] .menu-btn.has-avatar { background: transparent; }
+html[data-theme="dark"] .menu-btn .menu-avatar-box { box-shadow: 0 0 0 2px var(--d-surface), 0 0 0 4px var(--d-line); }
+html[data-theme="dark"] .menu-btn:hover .menu-avatar-box { box-shadow: 0 0 0 2px var(--d-surface), 0 0 0 4px #5b6bb8; }
+html[data-theme="dark"] .menu-btn[aria-expanded="true"] .menu-avatar-box { box-shadow: 0 0 0 2px var(--d-surface), 0 0 0 4px var(--d-accent); }
+
+html[data-theme="dark"] .user-menu { background: var(--d-surface); border-color: var(--d-line); box-shadow: 0 14px 34px rgba(0, 0, 0, .55); }
+html[data-theme="dark"] .um-user { border-bottom-color: var(--d-line); }
+html[data-theme="dark"] .um-info strong { color: var(--d-text); }
+html[data-theme="dark"] .um-info span { color: var(--d-text-3); }
+html[data-theme="dark"] .um-item { color: var(--d-text-2); }
+html[data-theme="dark"] .um-item:hover, html[data-theme="dark"] .um-item:focus-visible { background: var(--d-surface-2); color: var(--d-accent); }
+html[data-theme="dark"] .um-logout { color: var(--d-red); }
+html[data-theme="dark"] .um-logout:hover, html[data-theme="dark"] .um-logout:focus-visible { background: var(--d-red-bg); color: #ffb0a9; }
+html[data-theme="dark"] .dc-sw { background: #46517a; }
+
+html[data-theme="dark"] .hero { background: linear-gradient(110deg, var(--d-surface), #1d2745); border-color: var(--d-line); box-shadow: var(--d-shadow); }
+html[data-theme="dark"] .hero h2 { color: var(--d-text); }
+html[data-theme="dark"] .hero p { color: var(--d-text-2); }
+html[data-theme="dark"] .hero-badge { background: var(--d-surface-2); box-shadow: 0 8px 20px rgba(0, 0, 0, .4); }
+html[data-theme="dark"] .hero-badge small { color: var(--d-text-2); }
+html[data-theme="dark"] .eyebrow { color: var(--d-accent); }
+html[data-theme="dark"] .section-title h2, html[data-theme="dark"] .learning-head h2 { color: var(--d-text); }
+html[data-theme="dark"] .level-count { background: var(--d-accent-bg); color: var(--d-accent); }
+
+html[data-theme="dark"] .grade-tab { background: var(--d-surface); border-color: var(--d-line); color: var(--d-text); }
+html[data-theme="dark"] .grade-tab:hover { border-color: #4a5896; }
+html[data-theme="dark"] .grade-tab span { background: var(--d-accent-bg); }
+html[data-theme="dark"] .grade-tab small { color: var(--d-text-3); }
+html[data-theme="dark"] .grade-tab.active { border-color: #8e9dff; background: #1f2848; box-shadow: 0 7px 20px rgba(113, 129, 236, .28); }
+
+html[data-theme="dark"] .learning-area { background: var(--d-surface); border-color: var(--d-line); }
+html[data-theme="dark"] .learning-head p { color: var(--d-text-2); }
+html[data-theme="dark"] .progress-box { background: var(--d-surface-2); }
+html[data-theme="dark"] .progress-box span, html[data-theme="dark"] .pb-text span { color: var(--d-text-3); }
+html[data-theme="dark"] .pb-text strong { color: var(--d-accent); }
+html[data-theme="dark"] .progress { background: var(--d-surface-3); }
+html[data-theme="dark"] .level-card { background: var(--d-surface); border-color: var(--d-line); }
+html[data-theme="dark"] .level-number { background: var(--d-accent-bg); color: var(--d-accent); }
+html[data-theme="dark"] .level-card.done .level-number { background: var(--d-green-bg); color: var(--d-green); }
+html[data-theme="dark"] .level-card h3 { color: var(--d-text); }
+html[data-theme="dark"] .level-card p { color: var(--d-text-3); }
+html[data-theme="dark"] .level-tag { background: var(--d-surface-2); color: var(--d-text-2); }
+html[data-theme="dark"] .level-btn:disabled { background: #3a4263; color: #8e99bd; }
+
+html[data-theme="dark"] .modal-card { background: var(--d-surface); color: var(--d-text); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
+html[data-theme="dark"] .modal-card > p { color: var(--d-text-2); }
+html[data-theme="dark"] .close { background: var(--d-surface-2); color: var(--d-text-2); }
+html[data-theme="dark"] .material-box, html[data-theme="dark"] .challenge-box { background: var(--d-surface-2); }
+html[data-theme="dark"] .material-box p, html[data-theme="dark"] .challenge-box p { color: var(--d-text-2); }
+
+/* kartu tahap / modul */
+html[data-theme="dark"] .tg-card { background: var(--d-surface); color: var(--d-text); box-shadow: 0 8px 20px rgba(0, 0, 0, .34); }
+html[data-theme="dark"] .tg-card:hover { box-shadow: 0 14px 28px rgba(0, 0, 0, .5); }
+html[data-theme="dark"] .tg-card p { color: var(--d-text-2); }
+html[data-theme="dark"] .tg-dots i { background: var(--d-surface-3); }
+html[data-theme="dark"] .tg-dots i.on { background: #3ed17f; }
+html[data-theme="dark"] .tg-dots i.trophy { background: none; }
+html[data-theme="dark"] .tg-chip { background: var(--d-gold-bg); color: var(--d-gold); }
+html[data-theme="dark"] .tg-emoji { box-shadow: 0 5px 0 rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .tahap-banner { box-shadow: 0 14px 30px rgba(0, 0, 0, .45); }
+html[data-theme="dark"] .coming-soon { background: var(--d-surface); border-color: var(--d-line); }
+html[data-theme="dark"] .coming-soon h3 { color: var(--d-text); }
+html[data-theme="dark"] .coming-soon p { color: var(--d-text-2); }
+
+/* ============================================================
+   HALAMAN BELAJAR  (belajar.css + SMP / SMK)
+   ============================================================ */
+html[data-theme="dark"] .bh { background: var(--d-surface); border-bottom-color: var(--d-line); }
+html[data-theme="dark"] .bh-back { background: var(--d-accent-bg); color: var(--d-accent); }
+html[data-theme="dark"] .bh-title { color: var(--d-text); }
+html[data-theme="dark"] .crumbs button { background: var(--d-surface); color: var(--d-accent); box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .crumbs span { color: var(--d-text-3); }
+
+html[data-theme="dark"] .tahap-hero { box-shadow: 0 10px 24px rgba(0, 0, 0, .45); }
+html[data-theme="dark"] .sec-title { color: var(--d-text); }
+html[data-theme="dark"] .flow { color: var(--d-text-2); }
+html[data-theme="dark"] .flow b { background: var(--d-surface); color: var(--d-text); box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .flow span { color: var(--d-text-3); }
+
+html[data-theme="dark"] .pcard,
+html[data-theme="dark"] .jcard { background: var(--d-surface); color: var(--d-text); box-shadow: 0 8px 20px rgba(0, 0, 0, .34); }
+html[data-theme="dark"] .pcard:hover { box-shadow: 0 14px 26px rgba(0, 0, 0, .5); }
+html[data-theme="dark"] .jcard:hover { box-shadow: 0 16px 30px rgba(0, 0, 0, .55); }
+html[data-theme="dark"] .pcard p, html[data-theme="dark"] .j-tag, html[data-theme="dark"] .pcount { color: var(--d-text-2); }
+html[data-theme="dark"] .pcard .pe { box-shadow: 0 6px 12px rgba(0, 0, 0, .4); }
+html[data-theme="dark"] .j-emoji { box-shadow: 0 6px 0 rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .j-topics li { background: var(--d-surface-2); color: var(--d-text-2); }
+html[data-theme="dark"] .j-chip { background: var(--d-gold-bg); color: var(--d-gold); }
+html[data-theme="dark"] .dots i { background: var(--d-surface-3); }
+html[data-theme="dark"] .dots i.on { background: #3ed17f; }
+html[data-theme="dark"] .dots i.trophy { background: var(--d-surface-3); }
+html[data-theme="dark"] .dots i.trophy.on { background: #ffcf40; }
+html[data-theme="dark"] .go { color: #fff; }
+
+html[data-theme="dark"] .phead,
+html[data-theme="dark"] .smp .phead,
+html[data-theme="dark"] .smk .phead { background: var(--d-surface); box-shadow: 0 8px 20px rgba(0, 0, 0, .34); }
+html[data-theme="dark"] .phead p, html[data-theme="dark"] .phead .bar-text,
+html[data-theme="dark"] .smp .phead p, html[data-theme="dark"] .smk .phead p,
+html[data-theme="dark"] .smp .phead .bar-text, html[data-theme="dark"] .smk .phead .bar-text { color: var(--d-text-2); }
+html[data-theme="dark"] .phead .bar,
+html[data-theme="dark"] .smp .phead .bar, html[data-theme="dark"] .smk .phead .bar { background: var(--d-surface-3); }
+
+/* jalur (peta langkah) */
+html[data-theme="dark"] .node:not(:last-child)::before { background: var(--d-surface-3); }
+html[data-theme="dark"] .node.done:not(:last-child)::before { background: #3ed17f; }
+html[data-theme="dark"] .circle { background: var(--d-surface); }
+html[data-theme="dark"] .node.done .circle { background: #34c06f; border-color: #34c06f; color: #fff; }
+html[data-theme="dark"] .node.locked .circle { background: var(--d-surface-2); border-color: var(--d-line); color: var(--d-text-3); }
+html[data-theme="dark"] .ncard { background: var(--d-surface); box-shadow: 0 6px 16px rgba(0, 0, 0, .32); }
+html[data-theme="dark"] .node.current .ncard { border-color: #ffb347; }
+html[data-theme="dark"] .nlabel { color: var(--d-text-3); }
+html[data-theme="dark"] .ncard p { color: var(--d-text-2); }
+html[data-theme="dark"] .badge { background: var(--d-surface-2); color: var(--d-text-2); }
+html[data-theme="dark"] .badge.st-terkunci, html[data-theme="dark"] .badge.st-belum { background: var(--d-surface-2); color: var(--d-text-3); }
+html[data-theme="dark"] .badge.st-tersedia, html[data-theme="dark"] .badge.st-dikerjakan,
+html[data-theme="dark"] .badge.pts { background: var(--d-gold-bg); color: var(--d-gold); }
+html[data-theme="dark"] .badge.st-baca, html[data-theme="dark"] .badge.tool { background: var(--d-blue-bg); color: var(--d-blue); }
+html[data-theme="dark"] .badge.st-selesai, html[data-theme="dark"] .badge.st-dikumpulkan { background: var(--d-green-bg); color: var(--d-green); }
+html[data-theme="dark"] .badge.reward { background: var(--d-purple-bg); color: var(--d-purple); }
+
+/* tombol: warna latar tetap, teks tetap putih */
+html[data-theme="dark"] .btn { background: #6d7eea; color: #fff; box-shadow: 0 4px 0 rgba(0, 0, 0, .4); }
+html[data-theme="dark"] .btn.green { background: #34c06f; color: #fff; }
+html[data-theme="dark"] .btn.gold { background: #ffb02e; color: #3d2900; }
+html[data-theme="dark"] .btn.grey { background: #3a4263; color: #8e99bd; box-shadow: none; }
+html[data-theme="dark"] .btn.ghost { background: var(--d-accent-bg); color: var(--d-accent); box-shadow: none; }
+html[data-theme="dark"] .mlink { background: var(--d-blue-bg); color: var(--d-blue); }
+html[data-theme="dark"] .mlink:hover { background: #24407a; }
+html[data-theme="dark"] .smp .btn, html[data-theme="dark"] .smk .btn { background: var(--c, #6d7eea); color: #fff; }
+html[data-theme="dark"] .smp .btn.ghost, html[data-theme="dark"] .smk .btn.ghost { background: var(--d-accent-bg); color: var(--d-accent); }
+html[data-theme="dark"] .smp .btn.grey, html[data-theme="dark"] .smk .btn.grey { background: #3a4263; color: #8e99bd; }
+html[data-theme="dark"] .smp .btn.green, html[data-theme="dark"] .smk .btn.green { background: #34c06f; color: #fff; }
+html[data-theme="dark"] .smp .btn.mlink, html[data-theme="dark"] .smk .btn.mlink,
+html[data-theme="dark"] .smp a.btn.mlink, html[data-theme="dark"] .smk a.btn.mlink { background: var(--d-blue-bg); color: var(--d-blue); }
+html[data-theme="dark"] a.btn:focus-visible, html[data-theme="dark"] button.btn:focus-visible { outline-color: #b4a6ff; }
+
+/* detail task */
+html[data-theme="dark"] .tcard { background: var(--d-surface); box-shadow: var(--d-shadow); }
+html[data-theme="dark"] .tcard > p.desc { color: var(--d-text-2); }
+html[data-theme="dark"] .done-note { background: var(--d-green-bg); color: var(--d-green); }
+html[data-theme="dark"] .box { background: var(--d-surface-2); }
+html[data-theme="dark"] .box.tip, html[data-theme="dark"] .box.kumpul { background: #33290f; }
+html[data-theme="dark"] .box.materi { background: #172a4a; }
+html[data-theme="dark"] .box.ok, html[data-theme="dark"] .box.mulai { background: var(--d-green-bg); color: #8ff0bd; }
+html[data-theme="dark"] .box.bad { background: var(--d-red-bg); color: var(--d-red); }
+html[data-theme="dark"] .box.goal { background: var(--d-purple-bg); color: #d3c2ff; }
+html[data-theme="dark"] .box.reward-box { background: var(--d-gold-bg); color: #ffe19a; }
+html[data-theme="dark"] .opt { background: var(--d-surface-2); border-color: var(--d-line); color: var(--d-text); }
+html[data-theme="dark"] .opt:has(input:checked) { border-color: #8e9dff; background: var(--d-accent-bg); }
+html[data-theme="dark"] .upload input[type=text],
+html[data-theme="dark"] .upload textarea { background: var(--d-surface-2); border-color: var(--d-line); color: var(--d-text); }
+html[data-theme="dark"] .upload input::placeholder, html[data-theme="dark"] .upload textarea::placeholder { color: var(--d-text-3); }
+html[data-theme="dark"] .preview { border-color: var(--d-line); }
+html[data-theme="dark"] .file-info { color: var(--d-purple); }
+
+/* tombol "Lihat Materi" */
+html[data-theme="dark"] .materi-link { background: var(--d-surface); color: var(--d-text); border-color: #2f4577; box-shadow: 0 6px 0 #1b2a4d; }
+html[data-theme="dark"] .materi-link:hover { border-color: #8e9dff; }
+html[data-theme="dark"] .materi-link:active { box-shadow: 0 2px 0 #1b2a4d; }
+html[data-theme="dark"] .ml-text b { color: #aab6ff; }
+html[data-theme="dark"] .ml-text small { color: var(--d-text-2); }
+html[data-theme="dark"] .ml-go { color: var(--d-accent); }
+html[data-theme="dark"] .materi-link.soon { background: var(--d-surface-2); box-shadow: none; }
+
+/* popup misi & modal SMP/SMK */
+html[data-theme="dark"] .mission-popup,
+html[data-theme="dark"] .smp-modal,
+html[data-theme="dark"] .smk-modal { background: var(--d-surface); color: var(--d-text); box-shadow: 0 20px 50px rgba(0, 0, 0, .65); }
+html[data-theme="dark"] .mission-popup h2 { color: var(--d-text); }
+html[data-theme="dark"] .mission-popup.fail h2 { color: var(--d-red); }
+html[data-theme="dark"] .mission-popup.info h2 { color: var(--d-blue); }
+html[data-theme="dark"] .mp-name, html[data-theme="dark"] .mp-info,
+html[data-theme="dark"] .smp-modal .sub, html[data-theme="dark"] .smk-modal .sub { color: var(--d-text-2); }
+html[data-theme="dark"] .mp-points { color: var(--d-gold); }
+html[data-theme="dark"] .mp-bonus { background: var(--d-gold-bg); color: var(--d-gold); }
+html[data-theme="dark"] .mp-unmet { background: var(--d-red-bg); color: var(--d-red); }
+html[data-theme="dark"] .mp-secondary, html[data-theme="dark"] .xbtn { background: var(--d-accent-bg); color: var(--d-accent); }
+html[data-theme="dark"] .mp-all { color: var(--d-green); }
+html[data-theme="dark"] .mp-primary { color: #fff; }
+html[data-theme="dark"] .chip { background: var(--d-accent-bg); color: #b4bfff; }
+
+/* ---------- Cetak tetap terang ---------- */
+@media print {
+  html[data-theme="dark"] body { background: #fff; color: #000; }
+}

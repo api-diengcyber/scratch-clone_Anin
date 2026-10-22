@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/js/theme.js?v=20261019"></script>
 <title>Laporan Saya • Dieng Cyber Coding</title>
+<meta name="description" content="Laporan belajar Dieng Cyber Coding: kecenderungan minat, rincian nilai per task, perkembangan tiap jalur, lencana, dan pesan dari mentor.">
   <link rel="icon" type="image/webp" href="/Assets/logo.webp">
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);min-height:100vh}
-.eh{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#fff;border-bottom:3px solid #e3e9ff}.eh img{width:34px;height:34px;object-fit:contain}.eh b{flex:1}
+.eh{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#fff;border-bottom:3px solid #e3e9ff}.eh img{width:34px;height:34px;object-fit:contain}.eh h1{flex:1;margin:0;font-size:inherit}
 .eh a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:9px 14px;border-radius:14px;font-weight:bold;font-size:14px}.chip{background:#fff4d6;color:#a86a00;padding:8px 14px;border-radius:20px;font-weight:bold;font-size:14px}
 main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .card{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 6px 16px rgba(60,80,140,.1)}.card h3{margin:0 0 10px;font-size:18px}
@@ -33,7 +35,7 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 </style>
 </head>
 <body>
-<header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber"><b>📊 Laporan Saya</b><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> poin</span></header>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"><h1>📊 Laporan Saya</h1><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> poin</span></header>
 <main>
   <section class="card hi"><h2 id="hello">Halo!</h2><p>Ini perjalanan belajarmu sejauh ini. Terus semangat ya! 🚀</p><div class="sum" id="sum"></div></section>
   <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
@@ -41,7 +43,7 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
   <section class="card"><h3>💡 Saran untukmu</h3><div id="recs"></div></section>
   <section class="card"><h3>🌱 Perkembangan di setiap jalur</h3><div id="tahap"></div></section>
   <section class="card"><h3>🏅 Lencana</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Lencana didapat kalau <b>semua task</b> di satu jalur selesai <b>dan</b> Project Akhir / Capstone-nya juga selesai.</p><div id="badges"></div></section>
-  <section class="card"><h3>💌 Pesan dari Kak Mentor</h3><div class="note" id="note"></div><button class="note-btn" id="noteBtn">✏️ Tulis / ubah pesan (untuk mentor)</button><div id="noteEdit" hidden><textarea id="noteTa" maxlength="400" placeholder="Tulis pesan untuk anak ini…"></textarea><button class="note-btn" id="noteSave">Simpan pesan</button></div></section>
+  <section class="card"><h3>💌 Pesan dari Kak Mentor</h3><div class="note" id="note"></div><button type="button" class="note-btn" id="noteBtn">✏️ Tulis / ubah pesan (untuk mentor)</button><div id="noteEdit" hidden><textarea id="noteTa" maxlength="400" placeholder="Tulis pesan untuk anak ini…"></textarea><button type="button" class="note-btn" id="noteSave">Simpan pesan</button></div></section>
 </main>
 <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
 <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>

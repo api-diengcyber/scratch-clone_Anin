@@ -46,7 +46,7 @@ button { font: inherit; cursor: pointer; }
 /* ----- Jalur ----- */
 .phead { display: flex; gap: 16px; align-items: center; background: #fff; border-radius: 26px; padding: 20px 22px; box-shadow: 0 8px 20px rgba(60,80,140,.1); border-left: 10px solid var(--c); }
 .phead .pe { width: 70px; height: 70px; border-radius: 22px; background: var(--c); display: grid; place-items: center; font-size: 40px; flex: none; }
-.phead h2 { margin: 0 0 4px; font-size: 24px; }
+.phead h1, .phead h2 { margin: 0 0 4px; font-size: 24px; }
 .phead p { margin: 0; color: #6b7494; font-size: 14px; }
 .phead .bar { background: #e6e9f5; max-width: 320px; }
 .phead .bar i { background: var(--c); }
@@ -78,7 +78,7 @@ button { font: inherit; cursor: pointer; }
 
 /* ----- Detail task ----- */
 .tcard { background: #fff; border-radius: 28px; padding: 24px 26px; box-shadow: 0 8px 22px rgba(60,80,140,.1); }
-.tcard h2 { margin: 4px 0 8px; font-size: 26px; }
+.tcard h1, .tcard h2 { margin: 4px 0 8px; font-size: 26px; }
 .tcard > p.desc { margin: 0 0 14px; font-size: 16px; line-height: 1.55; color: #4a5378; }
 .done-note { background: #e6f8ee; color: #1e8f52; border-radius: 16px; padding: 12px 16px; font-weight: bold; margin-bottom: 14px; }
 .box { background: #f6f8ff; border-radius: 18px; padding: 14px 18px; margin: 14px 0; }

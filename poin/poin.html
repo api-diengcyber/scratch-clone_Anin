@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>Koin Belajar • Dieng Cyber Coding</title>
+  <meta name="description" content="Koin Belajar Dieng Cyber Coding: lihat poin dan lencanamu, lalu tukar dengan bingkai avatar dan gelar di Toko Hadiah.">
   <link rel="icon" type="image/webp" href="/Assets/logo.webp">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -285,7 +287,7 @@
         <span id="toastMsg">Pemberitahuan</span>
       </div>
 
-      <button type="button" onclick="closeToast()"
+      <button type="button" id="toastClose"
         class="text-slate-400 hover:text-slate-700 font-bold text-xs ml-3 px-1.5 py-0.5">
         ✕
       </button>
@@ -347,7 +349,7 @@
       const profile = loadProfile();
 
       if (profile.avatar) {
-        return `<img src="${esc(profile.avatar)}" alt="Foto profil">`;
+        return `<img src="${esc(profile.avatar)}" alt="Foto profil" width="112" height="112">`;
       }
 
       const username = LP.user() || "A";
@@ -398,6 +400,7 @@
     window.closeToast = () => {
       $("toastNotification").classList.add("hidden");
     };
+    $("toastClose").addEventListener("click", window.closeToast);
 
     function renderAvatarWithFrame(inner, frameId, size, fontSize) {
       const frame = EXTRA_FRAMES.find(item => item.id === frameId) || null;

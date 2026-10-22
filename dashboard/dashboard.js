@@ -118,6 +118,8 @@ function setMenu(open) {
 menuBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(userMenu.hidden); });
 document.addEventListener('click', e => { if (!userMenu.hidden && !userMenu.contains(e.target)) setMenu(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !userMenu.hidden) { setMenu(false); menuBtn.focus(); } });
+// Mode Gelap: saklar di menu (logika & penyimpanan ada di /shared/js/theme.js)
+if (window.DCTheme) DCTheme.bind($('themeItem'));
 
 // Samakan dengan halaman Poin: tampilkan saldo koin (total poin − hadiah yang sudah dibeli)
 const refreshSaldo = () => { $('pointsValue').textContent = Number(LP.saldo ? LP.saldo() : totalPoints) || 0; };

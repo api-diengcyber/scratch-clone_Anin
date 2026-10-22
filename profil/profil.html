@@ -3,7 +3,9 @@
 <head>
  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
   <title>Pengaturan Profil - Dieng Cyber Coding</title>
+  <meta name="description" content="Atur profil Dieng Cyber Coding: ganti foto atau karakter, ubah data diri, dan tulis catatan belajarmu.">
   <link rel="icon" type="image/webp" href="/Assets/logo.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,7 +49,7 @@
           <p class="text-xs text-slate-400 font-medium">Akun Siswa Aktif</p>
         </div>
         <div id="navAvatarBox" class="w-10 h-10 rounded-full overflow-hidden bg-sky-100 border-2 border-brand-500 shadow-xs flex-shrink-0">
-          <img id="navAvatarPreview" src="" alt="Mini Avatar" class="w-full h-full object-cover">
+          <img id="navAvatarPreview" src="" alt="Mini Avatar" width="40" height="40" class="w-full h-full object-cover">
         </div>
       </div>
     </div>
@@ -70,7 +72,7 @@
         <span id="toastIcon" class="text-xl">✨</span>
         <span id="toastMessage">Pesan sistem</span>
       </div>
-      <button type="button" onclick="closeToast()" class="text-slate-400 hover:text-slate-700 font-bold text-xs px-2 py-1">✕</button>
+      <button type="button" id="toastClose" class="text-slate-400 hover:text-slate-700 font-bold text-xs px-2 py-1">✕</button>
     </div>
   </div>
 
@@ -90,7 +92,7 @@
         <!-- Avatar Wrapper -->
         <div class="relative group my-2">
           <div id="avatarBox" class="w-36 h-36 rounded-full overflow-hidden border-4 border-white ring-4 ring-sky-100 shadow-md bg-gradient-to-tr from-sky-100 to-indigo-100 flex items-center justify-center">
-            <img id="avatarImage"
+            <img id="avatarImage" width="144" height="144"
                  src=""
                  alt="Foto Profil Siswa"
                  class="w-full h-full object-cover">
@@ -184,6 +186,25 @@
             </div>
           </form>
         </section>
+
+        <!-- Tampilan: saklar Mode Gelap (logika di /shared/js/theme.js) -->
+        <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs mt-6">
+          <div class="border-b border-slate-100 pb-4 mb-5">
+            <h2 class="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-sky-100 text-brand-600 flex items-center justify-center text-sm">🎨</span>
+              Tampilan
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Pilih tampilan yang nyaman untuk matamu. Pilihan ini berlaku di semua halaman belajar.</p>
+          </div>
+          <button type="button" id="themeSwitch" role="switch" aria-checked="false"
+                  class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 text-left transition-all">
+            <span>
+              <span class="block text-sm font-bold text-slate-800">🌙 Mode Gelap</span>
+              <span class="block text-xs text-slate-500 mt-1">Latar gelap yang nyaman dipakai malam hari</span>
+            </span>
+            <span class="dc-sw" aria-hidden="true"></span>
+          </button>
+        </section>
       </div>
 
     </div>
@@ -212,6 +233,7 @@
     const avatarImage = document.getElementById('avatarImage');
     const navAvatarPreview = document.getElementById('navAvatarPreview');
     const btnRandomAvatar = document.getElementById('btnRandomAvatar');
+    if (window.DCTheme) DCTheme.bind(document.getElementById('themeSwitch'));   // saklar Mode Gelap
     const profileForm = document.getElementById('profileForm');
     const toast = document.getElementById('toastNotification');
     const toastMessage = document.getElementById('toastMessage');
@@ -309,6 +331,8 @@
     function closeToast() {
       toast.classList.add('hidden');
     }
+
+    document.getElementById('toastClose').addEventListener('click', closeToast);
 
     // ---------- Foto: perkecil dulu agar muat di penyimpanan browser ----------
     function shrinkImage(file, size, cb) {

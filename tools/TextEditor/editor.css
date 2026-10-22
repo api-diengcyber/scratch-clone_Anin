@@ -9,7 +9,7 @@ button { font: inherit; cursor: pointer; }
 /* ----- header ----- */
 .eh { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 18px; background: #fff; border-bottom: 3px solid #e3e9ff; flex: none; }
 .eh-back { text-decoration: none; background: #eef1ff; color: #5a6bd8; padding: 9px 14px; border-radius: 14px; font-weight: bold; font-size: 14px; }
-.eh-title { font-weight: bold; font-size: 16px; }
+.eh-title { font-weight: bold; font-size: 16px; margin: 0; }
 .points-chip { background: #fff4d6; color: #a86a00; padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; white-space: nowrap; }
 
 /* ----- kartu misi ----- */

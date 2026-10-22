@@ -17,3 +17,8 @@ a.pcard { text-decoration: none; color: inherit; }
 .smk-modal ul, .smk-modal ol { margin: 6px 0; padding-left: 22px; line-height: 1.6; } .smk-modal a.btn { display: inline-block; text-decoration: none; margin-top: 8px; }
 .mfoot { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; } .xbtn { float: right; border: 0; background: #eef1ff; color: #5a6bd8; border-radius: 12px; padding: 6px 12px; }
 @media (prefers-reduced-motion: reduce) { .smk * { animation: none !important; transition: none !important; } }
+.materi-link.soon { cursor: default; border-style: dashed; background: #f5f7fc; box-shadow: none; opacity: .75; }
+.materi-link.soon:hover, .materi-link.soon:active { transform: none; border-color: #cfe0ff; box-shadow: none; }
+.materi-link.soon .ml-icon { filter: grayscale(1); }
+.smk a.btn.mlink, .smk button.btn.mlink { display: inline-block; text-decoration: none; }
+.smk-modal .materi-link { margin: 14px 0 8px; }
