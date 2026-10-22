@@ -27,9 +27,16 @@ const cors = require("cors");
 
 const db = require("./database");
 const auth = require("./auth");
+const shop = require("./shop-catalog");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Di balik reverse proxy hosting (Railway/Render/VPS + Nginx), tanpa ini
+// req.ip selalu IP proxy → rate limit login jadi satu bucket untuk semua user.
+if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
+}
 
 // ============================================================
 // API ERROR HELPER
@@ -198,7 +205,18 @@ app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://dieng-cyber-coding.firebaseapp.com;");
+    res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+        "img-src 'self' data: blob: https://cdn.jsdelivr.net; " +
+        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
+        "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://dieng-cyber-coding.firebaseapp.com https://cdn.jsdelivr.net; " +
+        "worker-src 'self' blob: https://cdn.jsdelivr.net; " +
+        "child-src 'self' blob: https://cdn.jsdelivr.net; " +
+        "frame-src 'self' https://dieng-cyber-coding.firebaseapp.com;"
+    );
     next();
 });
 
@@ -719,7 +737,7 @@ app.post("/api/auth/change-password", auth.requireAuth, rateLimitMiddleware(10),
 app.get("/api/profile", auth.requireAuth, (req, res) => {
     try {
         const user = db.prepare(`
-            SELECT username, email, full_name, bio, avatar_url, firebase_uid, created_at
+            SELECT username, email, full_name, bio, avatar_url, equipped_frame, equipped_title, firebase_uid, created_at
             FROM users WHERE username = ?
         `).get(req.user);
         if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
@@ -730,6 +748,8 @@ app.get("/api/profile", auth.requireAuth, (req, res) => {
                 fullName: user.full_name,
                 bio: user.bio,
                 avatarUrl: user.avatar_url,
+                equippedFrame: user.equipped_frame,
+                equippedTitle: user.equipped_title,
                 firebaseUid: user.firebase_uid,
                 createdAt: user.created_at,
             }
@@ -774,7 +794,7 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
         `).run(fullName, email, bio, avatarUrl, avatar, req.user);
 
         const updated = db.prepare(`
-            SELECT username, email, full_name, bio, avatar_url, firebase_uid, created_at
+            SELECT username, email, full_name, bio, avatar_url, equipped_frame, equipped_title, firebase_uid, created_at
             FROM users WHERE username = ?
         `).get(req.user);
 
@@ -785,6 +805,8 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
                 fullName: updated.full_name,
                 bio: updated.bio,
                 avatarUrl: updated.avatar_url,
+                equippedFrame: updated.equipped_frame,
+                equippedTitle: updated.equipped_title,
                 firebaseUid: updated.firebase_uid,
                 createdAt: updated.created_at,
             }
@@ -837,6 +859,156 @@ app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
     } catch (error) {
         console.error("Gagal menyimpan allowed-grades:", error);
         sendApiError(res, 500, "Gagal menyimpan allowed-grades", "INTERNAL_ERROR");
+    }
+});
+
+// ============================================================
+// TOKO HADIAH — KOIN BELAJAR (bingkai avatar & gelar)
+// ============================================================
+// Model saldo sama dengan frontend (LP.saldo):
+//   saldo = max(0, total poin - harga item yang sudah dibeli)
+// `points.total` TIDAK dikurangi saat belanja supaya level & riwayat tetap utuh.
+// Harga disimpan sebagai snapshot di user_items saat pembelian.
+
+function getShopState(username) {
+    const pointsRow = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
+    const earned = pointsRow ? Number(pointsRow.total) || 0 : 0;
+
+    const ownedRows = db.prepare(`
+        SELECT item_id, harga FROM user_items WHERE username = ? ORDER BY id ASC
+    `).all(username);
+    const owned = ownedRows.map((row) => row.item_id);
+    const spent = ownedRows.reduce((sum, row) => sum + (Number(row.harga) || 0), 0);
+
+    const user = db.prepare(`
+        SELECT equipped_frame, equipped_title FROM users WHERE username = ?
+    `).get(username);
+
+    return {
+        owned,
+        equipped: {
+            bingkai: (user && user.equipped_frame) || null,
+            gelar: (user && user.equipped_title) || null
+        },
+        earned,
+        spent,
+        balance: Math.max(0, earned - spent)
+    };
+}
+
+function shopColumnFor(jenis) {
+    return jenis === "bingkai" ? "equipped_frame" : "equipped_title";
+}
+
+// Katalog item (id, jenis, nama, harga, frameClass, desc, orn).
+// Frontend boleh memakai ini sebagai pengganti LP.HADIAH yang di-hardcode.
+app.get("/api/shop/items", auth.requireAuth, (req, res) => {
+    sendApiSuccess(res, { items: shop.SHOP_ITEMS });
+});
+
+// Status toko user: katalog + item dimiliki + yang dipakai + saldo koin.
+app.get("/api/shop", auth.requireAuth, (req, res) => {
+    try {
+        sendApiSuccess(res, {
+            items: shop.SHOP_ITEMS,
+            ...getShopState(req.user)
+        });
+    } catch (error) {
+        console.error("Gagal mengambil data toko:", error);
+        sendApiError(res, 500, "Gagal mengambil data toko", "INTERNAL_ERROR");
+    }
+});
+
+app.post("/api/shop/buy", auth.requireAuth, rateLimitMiddleware(30), (req, res) => {
+    try {
+        const itemId = sanitizeString(req.body && req.body.itemId, 64);
+        if (!itemId) return sendApiError(res, 400, "itemId wajib diisi", "VALIDATION_ERROR");
+
+        const item = shop.findItem(itemId);
+        if (!item) return sendApiError(res, 404, "Hadiah tidak ditemukan", "ITEM_NOT_FOUND");
+
+        // Transaksi: cek kepemilikan + saldo + catat pembelian + pasang item.
+        const result = db.transaction(() => {
+            const owned = db.prepare(`
+                SELECT 1 FROM user_items WHERE username = ? AND item_id = ?
+            `).get(req.user, item.id);
+            if (owned) {
+                return { error: { status: 409, code: "ALREADY_OWNED", message: "Hadiah ini sudah kamu punya." } };
+            }
+
+            const state = getShopState(req.user);
+            if (state.balance < item.harga) {
+                return {
+                    error: {
+                        status: 400,
+                        code: "INSUFFICIENT_COINS",
+                        message: `Koin belajar belum cukup. Butuh ${item.harga}, saldo kamu ${state.balance}.`
+                    }
+                };
+            }
+
+            db.prepare(`
+                INSERT INTO user_items (username, item_id, jenis, harga)
+                VALUES (?, ?, ?, ?)
+            `).run(req.user, item.id, item.jenis, item.harga);
+
+            // Sama seperti frontend: item yang dibeli langsung dipasang.
+            db.prepare(`
+                UPDATE users SET ${shopColumnFor(item.jenis)} = ? WHERE username = ?
+            `).run(item.id, req.user);
+
+            return { state: getShopState(req.user) };
+        })();
+
+        if (result.error) {
+            return sendApiError(res, result.error.status, result.error.message, result.error.code);
+        }
+        sendApiSuccess(res, result.state, "Hadiah berhasil dibeli");
+    } catch (error) {
+        console.error("Gagal membeli hadiah:", error);
+        sendApiError(res, 500, "Gagal membeli hadiah", "INTERNAL_ERROR");
+    }
+});
+
+app.post("/api/shop/equip", auth.requireAuth, (req, res) => {
+    try {
+        const itemId = sanitizeString(req.body && req.body.itemId, 64);
+        if (!itemId) return sendApiError(res, 400, "itemId wajib diisi", "VALIDATION_ERROR");
+
+        const item = shop.findItem(itemId);
+        if (!item) return sendApiError(res, 404, "Hadiah tidak ditemukan", "ITEM_NOT_FOUND");
+
+        const owned = db.prepare(`
+            SELECT 1 FROM user_items WHERE username = ? AND item_id = ?
+        `).get(req.user, item.id);
+        if (!owned) return sendApiError(res, 400, "Kamu belum memiliki hadiah ini", "NOT_OWNED");
+
+        db.prepare(`
+            UPDATE users SET ${shopColumnFor(item.jenis)} = ? WHERE username = ?
+        `).run(item.id, req.user);
+
+        sendApiSuccess(res, { equipped: getShopState(req.user).equipped }, "Hadiah dipasang");
+    } catch (error) {
+        console.error("Gagal memasang hadiah:", error);
+        sendApiError(res, 500, "Gagal memasang hadiah", "INTERNAL_ERROR");
+    }
+});
+
+app.post("/api/shop/unequip", auth.requireAuth, (req, res) => {
+    try {
+        const jenis = sanitizeString(req.body && req.body.jenis, 16);
+        if (!shop.SHOP_TYPES.includes(jenis)) {
+            return sendApiError(res, 400, "jenis harus 'bingkai' atau 'gelar'", "VALIDATION_ERROR");
+        }
+
+        db.prepare(`
+            UPDATE users SET ${shopColumnFor(jenis)} = NULL WHERE username = ?
+        `).run(req.user);
+
+        sendApiSuccess(res, { equipped: getShopState(req.user).equipped }, "Hadiah dilepas");
+    } catch (error) {
+        console.error("Gagal melepas hadiah:", error);
+        sendApiError(res, 500, "Gagal melepas hadiah", "INTERNAL_ERROR");
     }
 });
 
@@ -1075,8 +1247,14 @@ app.get("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, r
     try {
         const username = String(req.params.username || "").trim();
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-        const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
-        sendApiSuccess(res, { username, total: row ? row.total : 0 });
+        const state = getShopState(username);
+        sendApiSuccess(res, {
+            username,
+            total: state.earned,
+            earned: state.earned,
+            spent: state.spent,
+            balance: state.balance
+        });
     } catch (error) {
         console.error("Gagal mengambil points:", error);
         sendApiError(res, 500, "Gagal mengambil points", "INTERNAL_ERROR");

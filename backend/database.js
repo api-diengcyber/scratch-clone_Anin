@@ -72,6 +72,12 @@ if (!existingUserColumns.includes("bio")) {
 if (!existingUserColumns.includes("avatar_url")) {
     db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT");
 }
+if (!existingUserColumns.includes("equipped_frame")) {
+    db.exec("ALTER TABLE users ADD COLUMN equipped_frame TEXT");
+}
+if (!existingUserColumns.includes("equipped_title")) {
+    db.exec("ALTER TABLE users ADD COLUMN equipped_title TEXT");
+}
 
 // Unique indexes (hanya untuk non-null, non-empty)
 db.exec(`
@@ -84,6 +90,25 @@ db.exec(`
     ON users(firebase_uid)
     WHERE firebase_uid IS NOT NULL AND firebase_uid <> ''
 `);
+
+// ============================================================
+// ITEM TOKO (Koin Belajar) — bingkai avatar & gelar
+// ============================================================
+// Harga disimpan saat pembelian (snapshot), sehingga perubahan harga
+// di katalog tidak mengubah saldo yang sudah pernah dibelanjakan.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS user_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        jenis TEXT NOT NULL CHECK (jenis IN ('bingkai', 'gelar')),
+        harga INTEGER NOT NULL CHECK (harga >= 0),
+        purchased_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(username, item_id),
+        FOREIGN KEY(username) REFERENCES users(username)
+    )
+`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_user_items_username ON user_items(username);`);
 
 // ============================================================
 // SESSIONS (tiket login — simpan HASH token)

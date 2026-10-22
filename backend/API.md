@@ -1,7 +1,7 @@
 # API Dieng Cyber Coding
 
 Semua alamat diawali `http://localhost:3000`.
-Kecuali `/api/auth/login` dan `/api/health`, setiap permintaan wajib membawa header:
+Kecuali `/api/auth/login`, `/api/auth/register`, dan `/api/health`, setiap permintaan wajib membawa header:
 
     Authorization: Bearer <token>
 
@@ -35,8 +35,7 @@ Kode error: `400` input salah, `401` email/username atau password salah / belum 
 | GET  | `/api/progress/:username` | - | `[{ task_id, completed, completed_at }]` |
 | GET  | `/api/progress/:username?grade=SMP&module=py1` | - | sama, difilter via JOIN tasks |
 | POST | `/api/progress/:username` | `{ taskId, completed }` | `{ message, ... }` |
-| GET  | `/api/points/:username` | - | `{ username, total }` |
-| GET  | `/api/points/:username` | - | `{ username, total }` (dihitung server) |
+| GET  | `/api/points/:username` | - | `{ username, total, earned, spent, balance }` |
 | POST | `/api/points/:username` | - | `410 GONE` — total dihitung server dari task selesai |
 
 Menyelesaikan task (`POST /api/progress` → `completed: true`) otomatis mengkredit `tasks.points` (default task 10 / project 50, bisa per-task dari kurikulum); un-check mendebit kembali. Idempoten.
@@ -53,10 +52,39 @@ Bonus percobaan pertama (semua task): selesai tanpa gagal tercatat (`POST /api/a
 
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
-| GET | `/api/profile` | - | `{ profile: { username, email, fullName, bio, avatarUrl, ... } }` |
+| GET | `/api/profile` | - | `{ profile: { username, email, fullName, bio, avatarUrl, equippedFrame, equippedTitle, ... } }` |
 | PUT | `/api/profile` | `{ fullName?, email?, bio?, avatarUrl? }` | `{ profile: { ... } }` |
 | GET | `/api/user/allowed-grades` | - | `{ grades: ["SD","SMP","SMK"] }` |
 | PUT | `/api/user/allowed-grades` | `{ grades: ["SD","SMP"] }` | `{ grades }` |
+
+## Koin Belajar & Toko Hadiah
+
+Istilah UI: **Koin Belajar** = saldo yang bisa dibelanjakan (dashboard kanan atas).
+
+```
+saldo = max(0, total poin - harga item yang sudah dibeli)
+```
+
+`points.total` **tidak berkurang** saat berbelanja — total tetap dipakai untuk level. Harga item disimpan sebagai snapshot saat pembelian, jadi perubahan harga katalog tidak mengubah saldo lama.
+
+| Method | Alamat | Isi (body) | Hasil |
+|---|---|---|---|
+| GET | `/api/shop/items` | - | `{ items: [{ id, jenis, nama, harga, ... }] }` |
+| GET | `/api/shop` | - | `{ items, owned, equipped: { bingkai, gelar }, earned, spent, balance }` |
+| POST | `/api/shop/buy` | `{ itemId }` | `{ owned, equipped, earned, spent, balance }` |
+| POST | `/api/shop/equip` | `{ itemId }` | `{ equipped }` |
+| POST | `/api/shop/unequip` | `{ jenis: "bingkai"\|"gelar" }` | `{ equipped }` |
+
+Aturan:
+
+- `buy` langsung memasang item yang dibeli (sama seperti `LP.beli` di frontend).
+- Item yang sudah dimiliki → `409 ALREADY_OWNED`.
+- Saldo kurang → `400 INSUFFICIENT_COINS`.
+- Item tidak dikenal → `404 ITEM_NOT_FOUND`.
+- Memasang item yang belum dimiliki → `400 NOT_OWNED`.
+- Beli tidak bisa dibatalkan/refund. Jika task di-uncheck setelah belanja, saldo mentok di `0` (tidak minus).
+
+**Sinkronisasi katalog:** `backend/shop-catalog.js` adalah salinan server-side dari `LP.HADIAH` di `kurikulum/core/jalur-belajar.js`. Id, jenis, dan harga harus sama persis. Kalau frontend menambah/mengubah item, backend wajib ikut diperbarui.
 
 ## Lain-lain
 | GET | `/api/health` | - | `{ status: "ok" }` |

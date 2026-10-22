@@ -262,6 +262,27 @@ const B = `http://localhost:${PORT}`;
     const r = await fetch(`${B}/api/health`);
     eq(r.headers.get("x-content-type-options"), "nosniff", "nosniff header");
     eq(r.headers.get("x-frame-options"), "DENY", "DENY header");
+    const csp = r.headers.get("content-security-policy") || "";
+    for (const token of [
+      "cdn.jsdelivr.net",            // Pyodide, php-wasm, ikon emoji
+      "cdnjs.cloudflare.com",        // Font Awesome, MDB, three.js
+      "fonts.googleapis.com",        // CSS Google Fonts
+      "fonts.gstatic.com",           // file Google Fonts
+      "'wasm-unsafe-eval'",          // kompilasi WebAssembly
+      "worker-src 'self' blob:",     // Web Worker Pyodide/php-wasm
+    ]) eq(csp.includes(token), true, `CSP memuat ${token}`);
+  });
+  await t("static: /backend/.env tidak tersaji -> 404", async () => {
+    const r = await fetch(`${B}/backend/.env`);
+    eq(r.status, 404, "status");
+  });
+  await t("static: file sqlite tidak tersaji -> 404", async () => {
+    const r = await fetch(`${B}/backend/database.sqlite`);
+    eq(r.status, 404, "status");
+  });
+  await t("static: /.git tidak tersaji -> 404", async () => {
+    const r = await fetch(`${B}/.git/config`);
+    eq(r.status, 404, "status");
   });
 
   const fails = results.filter((r) => r[0] === "FAIL");
