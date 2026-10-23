@@ -818,7 +818,7 @@ const LP = Object.assign({}, window.LP_DATA, {
       try { c = JSON.parse(localStorage.getItem("smpSteps_" + node.id + "_" + i)) || []; } catch (e) { c = []; }
       if (Array.isArray(c) && c.length) { st = "dikerjakan"; lb = "✏️ Sedang dikerjakan"; }
     }
-    const poin = typeof k.poin === "number" ? k.poin : (k.project ? this.POIN_PROJECT : this.POIN_TASK);
+    const koin = typeof k.poin === "number" ? k.poin : (k.project ? this.POIN_PROJECT : this.POIN_TASK);
     return '<div class="smp-chips"><span class="badge">' + jenis + "</span>" + tool +
       '<span class="badge st-' + st + '">' + lb + '</span><span class="badge pts">⭐ ' + koin + " koin</span></div>";
   },
