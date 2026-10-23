@@ -24,6 +24,7 @@ process.on("unhandledRejection", (reason, promise) => {
 const express = require("express");
 const { askTutor, hasApiKey } = require("./ai-tutor-api");
 const cors = require("cors");
+const compression = require("compression");
 
 const db = require("./database");
 const auth = require("./auth");
@@ -32,10 +33,18 @@ const shop = require("./shop-catalog");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Jangan bocorkan teknologi server.
+app.disable("x-powered-by");
+
 // Di balik reverse proxy hosting (Railway/Render/VPS + Nginx), tanpa ini
 // req.ip selalu IP proxy → rate limit login jadi satu bucket untuk semua user.
 if (process.env.NODE_ENV === "production") {
-    app.set("trust proxy", 1);
+    // 1 = Nginx/Caddy langsung; 2 = Cloudflare + Nginx.
+    const rawTrustProxy = process.env.TRUST_PROXY;
+    const trustProxyHops = rawTrustProxy === undefined || rawTrustProxy === ""
+        ? 1
+        : Number(rawTrustProxy);
+    app.set("trust proxy", Number.isInteger(trustProxyHops) && trustProxyHops >= 0 ? trustProxyHops : 1);
 }
 
 // ============================================================
@@ -136,6 +145,15 @@ if (process.env.NODE_ENV === "production" && FRONTEND_ORIGIN) {
         console.warn("[WARN] CORS terbuka (*) di production. Set FRONTEND_ORIGIN untuk membatasi.");
     }
 }
+// Kompresi response teks (HTML/CSS/JS/JSON) agar lebih cepat di jaringan lambat.
+app.use(compression({ threshold: 1024 }));
+
+// Respons API yang membawa token jangan disimpan di cache browser/proxy.
+app.use("/api", (req, res, next) => {
+    if (req.headers.authorization) res.setHeader("Cache-Control", "no-store");
+    next();
+});
+
 app.use(express.json({ limit: "1mb" }));
 
 // Request ID + structured logging per request
@@ -242,9 +260,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Gambar/font tidak berubah tiap request: cache 1 jam, tapi HTML/CSS/JS tetap
+// revalidasi supaya perubahan tampilan langsung terlihat.
+const STATIC_CACHE_EXT = /\.(?:png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf)$/i;
 app.use(
     express.static(PROJECT_ROOT, {
-        index: false
+        index: false,
+        setHeaders(res, filePath) {
+            if (STATIC_CACHE_EXT.test(filePath)) {
+                res.setHeader("Cache-Control", "public, max-age=3600");
+            }
+        }
     })
 );
 
@@ -1397,6 +1423,10 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     logger.info("Server siap digunakan.");
     console.log("");
 });
+
+// Di balik reverse proxy, koneksi keep-alive jangan ditutup lebih cepat dari proxy.
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
 
 server.on("error", (err) => {
     logger.fatal({ err }, "Server listen error");

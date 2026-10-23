@@ -19,7 +19,7 @@
 (function () {
 
   // ---------- PENGATURAN (ubah di sini) ----------
-  const PHP_URL = "https://cdn.jsdelivr.net/npm/php-wasm/PhpWeb.mjs";   // untuk mengunci versi: ".../php-wasm@x.y.z/PhpWeb.mjs"
+  const PHP_URL = "https://cdn.jsdelivr.net/npm/php-wasm@0.2.0/PhpWeb.mjs";   // versi dikunci agar CDN tidak mengganti mesin di belakang layar
   const PY_TIMEOUT_MS = 20000;                                          // program Python dihentikan kalau jalan lebih lama dari ini
   const MAX_OUTPUT = 200000;                                            // batas jumlah karakter output (cegah print tanpa akhir)
 

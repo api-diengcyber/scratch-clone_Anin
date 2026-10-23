@@ -1,9 +1,20 @@
 const crypto = require("crypto");
 const db = require("./database");
 
-const {
-    firebaseAuth
-} = require("./firebase-admin");
+// Firebase dimuat hanya saat endpoint Firebase dipakai. Tanpa ini, server
+// menunggu inisialisasi Firebase/Firestore di setiap boot (lambat di hosting).
+let firebaseAuthCache;
+
+function getFirebaseAuth() {
+    if (firebaseAuthCache !== undefined) return firebaseAuthCache;
+    try {
+        firebaseAuthCache = require("./firebase-admin").firebaseAuth || null;
+    } catch (e) {
+        console.warn("[WARN] Firebase Admin gagal dimuat:", e.message);
+        firebaseAuthCache = null;
+    }
+    return firebaseAuthCache;
+}
 
 // Tiket login berlaku 30 hari.
 const SESSION_DAYS = 30;
@@ -36,6 +47,7 @@ async function verifyFirebaseToken(idToken) {
         throw new Error("Firebase ID token tidak tersedia.");
     }
 
+    const firebaseAuth = getFirebaseAuth();
     if (!firebaseAuth) throw new Error("Login Firebase belum dikonfigurasi di server.");
     const decoded = await firebaseAuth.verifyIdToken(idToken);
 

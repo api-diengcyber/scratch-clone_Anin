@@ -104,14 +104,6 @@
     </div>
   </div>
 <script type="module">
-  import {
-    auth
-  } from "/shared/js/firebase.js";
-
-  import {
-    signInWithEmailAndPassword
-  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-
   const loginForm = document.getElementById("loginForm");
   const loginError = document.getElementById("loginError");
   const passwordInput = document.getElementById("password");
@@ -174,34 +166,12 @@
 
     try {
       // ==================================================
-      // LOGIN FIREBASE
-      // ==================================================
-
-      const credential =
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-
-      const firebaseUser =
-        credential.user;
-
-      // ==================================================
-      // AMBIL FIREBASE ID TOKEN
-      // ==================================================
-
-      const idToken =
-        await firebaseUser.getIdToken();
-
-      // ==================================================
-      // TUKARKAN ID TOKEN MENJADI
-      // SESSION TOKEN BACKEND
+      // LOGIN DATABASE
       // ==================================================
 
       const response =
         await fetch(
-          "/api/auth/firebase-login",
+          "/api/auth/login",
           {
             method: "POST",
 
@@ -212,20 +182,26 @@
 
             body:
               JSON.stringify({
-                idToken
+                email,
+                password
               })
           }
         );
 
       const data =
-        await response.json();
+        await response
+          .json()
+          .catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(
           data.message ||
-          "Login backend gagal."
+          "Login gagal."
         );
       }
+
+      const username =
+        data.username || email;
 
       // ==================================================
       // SIMPAN SESSION BACKEND
@@ -237,13 +213,18 @@
       );
 
       localStorage.setItem(
+        "username",
+        username
+      );
+
+      localStorage.setItem(
         "email",
-        data.email
+        data.email || email
       );
 
       localStorage.setItem(
         "scratch_user",
-        data.email
+        username
       );
 
       localStorage.setItem(
@@ -261,50 +242,19 @@
 
     } catch (error) {
       console.error(
-        "Firebase login error:",
+        "Login error:",
         error
       );
 
       let message =
+        error.message ||
         "Login gagal.";
 
       if (
-        error.code ===
-        "auth/invalid-credential"
+        error instanceof TypeError
       ) {
         message =
-          "Email atau password salah.";
-      }
-
-      else if (
-        error.code ===
-        "auth/user-not-found"
-      ) {
-        message =
-          "Akun tidak ditemukan.";
-      }
-
-      else if (
-        error.code ===
-        "auth/wrong-password"
-      ) {
-        message =
-          "Password salah.";
-      }
-
-      else if (
-        error.code ===
-        "auth/invalid-email"
-      ) {
-        message =
-          "Format email tidak valid.";
-      }
-
-      else if (
-        error.message
-      ) {
-        message =
-          error.message;
+          "Backend tidak dapat dihubungi. Coba lagi.";
       }
 
       loginError.textContent =
