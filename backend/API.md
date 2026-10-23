@@ -46,7 +46,7 @@ Bonus percobaan pertama (semua task): selesai tanpa gagal tercatat (`POST /api/a
 | GET | `/api/attempts/:username` | - | `{ attempts: [{ task_id, fails, time_spent, updated_at }] }` |
 | POST | `/api/dev/attempts` | `{ taskId, timeSpent? }` | `{ username: "dev", taskId, fails, timeSpent }` |
 
-`timeSpent` (detik) dijumlahkan ke total waktu aktif per task. `earned` berisi poin bonus yang dikreditkan bila ini percobaan pertama yang gagal (biasanya `0`).
+`timeSpent` (detik) dijumlahkan ke total waktu aktif per task. `earned` berisi koin bonus yang dikreditkan bila ini percobaan pertama yang gagal (biasanya `0`).
 
 ## Profil & preferensi
 
@@ -62,7 +62,7 @@ Bonus percobaan pertama (semua task): selesai tanpa gagal tercatat (`POST /api/a
 Istilah UI: **Koin Belajar** = saldo yang bisa dibelanjakan (dashboard kanan atas).
 
 ```
-saldo = max(0, total poin - harga item yang sudah dibeli)
+saldo = max(0, total koin - harga item yang sudah dibeli)
 ```
 
 `points.total` **tidak berkurang** saat berbelanja — total tetap dipakai untuk level. Harga item disimpan sebagai snapshot saat pembelian, jadi perubahan harga katalog tidak mengubah saldo lama.

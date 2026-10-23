@@ -9,7 +9,7 @@
 //     Warnanya ditentukan satu per satu di dark.css, tanpa filter, jadi tombol
 //     berwarna tetap berteks putih dan emoji tetap cerah.
 //
-//  2) OTOMATIS (halaman lain: materi, poin, laporan, profil, tools)
+//  2) OTOMATIS (halaman lain: materi, koin, laporan, profil, tools)
 //     Warna halaman dibalik lewat satu aturan CSS (filter), jadi tidak perlu
 //     mengubah CSS tiap halaman. Gambar, video, canvas, iframe, banner berwarna,
 //     dan bingkai avatar dibalik sekali lagi supaya warnanya tetap asli.

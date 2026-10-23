@@ -2,7 +2,7 @@
 (function () {
   const T = window.LP_SMAK || [], S = window.SMAK, M = window.SMAK_META, LP = window.LP, app = document.getElementById("app"), q = new URLSearchParams(location.search);
   const esc = window.DCUtils.esc;
-  const paintPoints = () => { document.getElementById("pointsValue").textContent = LP.saldo(); };   // saldo = sama dengan dashboard & halaman Poin
+  const paintPoints = () => { document.getElementById("pointsValue").textContent = LP.saldo(); };   // saldo = sama dengan dashboard & halaman Koin
   paintPoints();
   const tr = T.find((t) => t.nodes.some((n) => n.id === q.get("p"))), node = tr && tr.nodes.find((n) => n.id === q.get("p"));
   const crumbs = (a) => '<div class="crumbs">' + a.map((c, i) => (i ? "<span>›</span>" : "") + '<button data-href="' + c[1] + '">' + c[0] + "</button>").join("") + "</div>";
@@ -67,8 +67,8 @@
   LP.syncSmpFromSteps(T);   // task yang semua langkahnya sudah tercentang → tandai selesai
   paintPoints();
   render();
-  // Sinkronkan poin & progres dari server, lalu gambar ulang kalau berhasil
-  window.addEventListener("lp:points", () => paintPoints());   // poin dari server tiba / undo → segarkan
+  // Sinkronkan koin & progres dari server, lalu gambar ulang kalau berhasil
+  window.addEventListener("lp:points", () => paintPoints());   // koin dari server tiba / undo → segarkan
   const syncServer = () => LP.loadFromServer().then((ok) => { if (ok) { LP.syncSmpFromSteps(T); paintPoints(); render(); } }).catch(() => {});
   syncServer();
   window.addEventListener("pageshow", (e) => { if (e.persisted) { paintPoints(); render(); syncServer(); } });

@@ -2,7 +2,7 @@
 (function () {
   const T = window.LP_SMP || [], S = window.SMP, M = window.SMP_META, LP = window.LP, app = document.getElementById("app"), q = new URLSearchParams(location.search);
   const esc = window.DCUtils.esc;
-  const paintPoints = () => { document.getElementById("pointsValue").textContent = LP.saldo(); };   // saldo = sama dengan dashboard & halaman Poin
+  const paintPoints = () => { document.getElementById("pointsValue").textContent = LP.saldo(); };   // saldo = sama dengan dashboard & halaman Koin
   paintPoints();
   const tr = T.find((t) => t.nodes.some((n) => n.id === q.get("p"))), node = tr && tr.nodes.find((n) => n.id === q.get("p"));
 
@@ -164,7 +164,7 @@
   }
   app.addEventListener("click", (e) => { const c = e.target.closest("[data-href]"), b = e.target.closest("[data-k]"); if (c && c.dataset.href !== "#") location.href = c.dataset.href; else if (b && !b.disabled) { lastBtn = b; modal(+b.dataset.k); } });
       async function init() {
-    const sync = LP.loadFromServer().catch(() => false);   // ambil poin & progres terbaru dari server
+    const sync = LP.loadFromServer().catch(() => false);   // ambil koin & progres terbaru dari server
     await loadMaterialsFromAPI();
     await loadTasksFromAPI();
     await sync;
@@ -173,7 +173,7 @@
     render();
   }
 
-  window.addEventListener("lp:points", () => paintPoints());   // poin dari server tiba / undo → segarkan
+  window.addEventListener("lp:points", () => paintPoints());   // koin dari server tiba / undo → segarkan
 
   init();
 

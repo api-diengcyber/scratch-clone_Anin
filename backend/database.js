@@ -437,7 +437,7 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
     }
 }
 
-// Nilai poin per task (fase 2). Default ikut jenis; seed menyegarkan dari kurikulum.
+// Nilai koin per task (fase 2). Default ikut jenis; seed menyegarkan dari kurikulum.
 const taskCols = db.prepare("PRAGMA table_info(tasks)").all().map((c) => c.name);
 if (!taskCols.includes("points")) {
     db.exec("ALTER TABLE tasks ADD COLUMN points INTEGER NOT NULL DEFAULT 10");

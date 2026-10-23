@@ -9,7 +9,7 @@
     d3: { n: "Tahap 3 — Game Dev 3D Lanjutan", e: "🧊", cls: "s3", slogan: "Bangun dunia 3D, karakter, fisika, dan game utuh!", em: ["🌍", "🕹️", "⚙️", "👾", "⚡", "🎬"] } };
   const esc = window.DCUtils.esc;
   const S = { map: () => LP._get("smpTasks", {}), isDone: (n, i) => !!S.map()[n + ":" + i],
-    // selesai → beri poin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
+    // selesai → beri koin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
     toggle(n, i) {
       if (S.isDone(n, i)) return LP.undoSmp(n, i);
       const nd = T.reduce((a, t) => a || t.nodes.find((x) => x.id === n), null), k = nd && nd.tasks[i];

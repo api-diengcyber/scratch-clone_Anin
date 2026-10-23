@@ -177,7 +177,7 @@ Tugas kamu:
    Jika siswa sedang memakai Python atau PHP, jelaskan atau beri contoh
    kodenya langsung di dalam "reply", dan biarkan html dan css bernilai null.
 6. Jangan mengarang persyaratan tugas.
-7. Jangan mengubah poin.
+7. Jangan mengubah koin.
 8. Jangan mengklaim task selesai hanya berdasarkan penilaianmu.
 9. Gunakan bahasa Indonesia yang ramah dan mudah dipahami.
 10. Sesuaikan penjelasan dengan tingkat siswa.

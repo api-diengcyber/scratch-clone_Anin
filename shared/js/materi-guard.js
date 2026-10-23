@@ -9,7 +9,7 @@
 //
 // Tanpa ?task= / ?smp= (mode bebas) editor tetap terbuka seperti biasa.
 // Ini lapisan tampilan. Penolakan yang sebenarnya ada di LP.complete / LP.completeSmp
-// (kurikulum/core/jalur-belajar.js), jadi poin tidak bisa didapat tanpa membaca materi.
+// (kurikulum/core/jalur-belajar.js), jadi koin tidak bisa didapat tanpa membaca materi.
 //
 // Dimuat di akhir <body> editor, SESUDAH jalur-data.js dan jalur-belajar.js:
 //   <script src="/shared/js/materi-guard.js"></script>

@@ -2,7 +2,7 @@
 // DATA KONTEN JALUR BELAJAR — Dieng Cyber Coding
 // ------------------------------------------------------------
 // FILE INI HANYA BERISI KONTEN. Untuk menambah / mengubah task,
-// cukup edit file ini. Mesin (status, poin, kunci) ada di jalur-belajar.js.
+// cukup edit file ini. Mesin (status, koin, kunci) ada di jalur-belajar.js.
 //
 // Struktur:  Tahap → Pembelajaran/Jalur → Task 1..N → Project Akhir
 //
@@ -65,7 +65,7 @@ const luar   = (...a) => { const [o, [title, desc, steps, checklist]] = pisah(a)
 const proyek = (...a) => { const [o, [title, desc, steps, checklist]] = pisah(a);  return Object.assign({ type: "project", title, desc, steps, checklist }, o); };
 
 window.LP_DATA = {
-  // ---------- POIN (ubah angka di sini) ----------
+  // ---------- KOIN (ubah angka di sini) ----------
   POIN_TASK: 10,        // setiap task selesai
   POIN_PROJECT: 50,     // Project Akhir
   // Bonus percobaan pertama (+5) TIDAK dihitung di sini: server yang menentukan (nol kegagalan tercatat + belum pernah didapat)

@@ -15,7 +15,7 @@ process.env.DB_PATH = TMPDB;
 process.env.PORT = String(PORT);
 process.env.NODE_ENV = "test";
 
-// Seed minimal: 2 task @100 poin → total 210 setelah bonus percobaan pertama.
+// Seed minimal: 2 task @100 koin → total 210 setelah bonus percobaan pertama.
 const db = require("./database");
 db.prepare("INSERT OR IGNORE INTO modules (grade, module_id) VALUES (?, ?)").run("SMP", "shopmod");
 const insertTask = db.prepare(`

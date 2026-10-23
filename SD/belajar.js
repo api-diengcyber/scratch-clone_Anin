@@ -30,7 +30,7 @@
     localStorage.setItem("scratch_user", user.username);
     localStorage.setItem("isLoggedIn", "true");
 
-    // Samakan poin & progres dengan server (sama seperti dashboard dan halaman Poin)
+    // Samakan koin & progres dengan server (sama seperti dashboard dan halaman Koin)
     if (typeof LP !== "undefined" && typeof LP.loadFromServer === "function") {
       await LP.loadFromServer();
     }
@@ -44,7 +44,7 @@
   const app = document.getElementById("app");
   let tahap = LP.tahap[0];                         // tahap yang sedang dibuka (berubah sesuai task / jalur)
   const $points = document.getElementById("pointsValue");
-  // Tampilkan saldo koin (total poin − hadiah yang dibeli), sama dengan dashboard & halaman Poin
+  // Tampilkan saldo koin (total koin − hadiah yang dibeli), sama dengan dashboard & halaman Koin
   const refreshPoints = () => { $points.textContent = LP.saldo(); };
   const esc = window.DCUtils.esc;
   refreshPoints();
@@ -146,7 +146,7 @@
     window.scrollTo(0, 0);
   }
 
-  // ---------- label status & poin (dipakai di daftar task dan detail task) ----------
+  // ---------- label status & koin (dipakai di daftar task dan detail task) ----------
   function statusChip(t) {
     if (t.type === "project" && LP.isUnlocked(t.id)) {          // Project Akhir: Belum dikerjakan / Sedang dikerjakan / Sudah dikumpulkan
       const ps = LP.projectStatus(t.id), pst = LP.PROJECT_STATUS[ps];
@@ -190,7 +190,7 @@
         buttons: [{ label: "Siap!", cls: "mp-primary", fn: () => { const el = document.getElementById("stepsBox"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); } }] });
     });
   }
-  function pointChip(t) { return '<span class="badge pts">⭐ ' + LP.poinOf(t) + " poin</span>"; }
+  function pointChip(t) { return '<span class="badge pts">⭐ ' + LP.poinOf(t) + " koin</span>"; }
   function listBox(title, items, cls, tag) {
     if (!items || !items.length) return "";
     tag = tag || "ul";
@@ -342,8 +342,8 @@
         (isProject && t.lencana ? '<span class="badge reward">' + esc(t.lencana) + "</span>" : "") +
         '<p class="desc" style="margin-top:12px">' + esc(t.desc) + "</p>" +
         (done ? (isProject
-          ? '<div class="done-note">📤 Project sudah dikumpulkan' + (saved.tgl ? " pada " + new Date(saved.tgl).toLocaleString("id-ID") : "") + '. Kamu boleh memperbarui hasilnya, tapi poin tidak bertambah.</div>'
-          : '<div class="done-note">✅ Task ini sudah selesai! Mengulang tidak memberi poin tambahan.</div>') : "") +
+          ? '<div class="done-note">📤 Project sudah dikumpulkan' + (saved.tgl ? " pada " + new Date(saved.tgl).toLocaleString("id-ID") : "") + '. Kamu boleh memperbarui hasilnya, tapi koin tidak bertambah.</div>'
+          : '<div class="done-note">✅ Task ini sudah selesai! Mengulang tidak memberi koin tambahan.</div>') : "") +
         body + '<div class="actions">' + mainBtn + '<button class="btn ghost" id="backBtn">← Kembali ke jalur</button></div></div>';
 
     // crumbs "task" tidak perlu pindah halaman
@@ -371,7 +371,7 @@
     const startLabel = J.folder ? (u.mulai ? "Lanjutkan di " + J.nama + " ▶" : J.mulai) : (u.mulai ? "✅ Sudah dimulai (lihat petunjuk)" : J.mulai);
 
     return '<div class="box goal"><h4>🎯 Tujuan project</h4>' + esc(t.tujuan || t.desc) + "</div>" +
-      '<div class="box reward-box"><h4>🎁 Hadiah</h4>⭐ <b>' + LP.poinOf(t) + " poin</b>" + (t.lencana ? " + " + esc(t.lencana) : "") + "</div>" +
+      '<div class="box reward-box"><h4>🎁 Hadiah</h4>⭐ <b>' + LP.poinOf(t) + " koin</b>" + (t.lencana ? " + " + esc(t.lencana) : "") + "</div>" +
       '<div class="box mulai"><h4>🚀 Mulai mengerjakan</h4><p class="mp-info" style="text-align:left;margin-top:0">' + petunjuk + "</p>" +
         '<button type="button" class="btn green" id="startBtn">' + startLabel + "</button></div>" +
       '<div class="box"><h4>📝 Langkah-langkah</h4><ol>' + t.steps.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ol></div>" +
@@ -461,9 +461,9 @@
     if (LP.editorOf(t)) return openItem(id);
     if (t.type === "project") return submitProject(f);
 
-    if (LP.isDone(id)) {                        // sudah pernah selesai → tidak ada poin tambahan
+    if (LP.isDone(id)) {                        // sudah pernah selesai → tidak ada koin tambahan
       return popup({ type: "info", emoji: "✅", title: "Task ini sudah selesai!",
-        html: '<p class="mp-info">Kamu sudah menyelesaikannya, jadi mengulang lagi <b>tidak memberi poin tambahan</b>.</p>',
+        html: '<p class="mp-info">Kamu sudah menyelesaikannya, jadi mengulang lagi <b>tidak memberi koin tambahan</b>.</p>',
         buttons: [{ label: "Kembali ke jalur", cls: "mp-primary", fn: () => showPemb(f.pemb.id) }] });
     }
 
@@ -508,10 +508,10 @@
     }
     LP.saveUpload(id, { tgl: Date.now() });
 
-    if (LP.isDone(id)) {                        // sudah pernah dikumpulkan → hanya memperbarui, tanpa poin tambahan
+    if (LP.isDone(id)) {                        // sudah pernah dikumpulkan → hanya memperbarui, tanpa koin tambahan
       refreshStatus(id);
       return popup({ type: "ok", emoji: "📤", title: "Pengumpulan diperbarui!",
-        html: '<p class="mp-info">Hasil project-mu sudah diperbarui. Poin tidak bertambah karena project ini sudah pernah dikumpulkan.</p>',
+        html: '<p class="mp-info">Hasil project-mu sudah diperbarui. Koin tidak bertambah karena project ini sudah pernah dikumpulkan.</p>',
         buttons: [{ label: "Kembali ke jalur", cls: "mp-primary", fn: () => showPemb(f.pemb.id) }] });
     }
     success(f);
@@ -528,16 +528,16 @@
   async function success(f) {
     const t = f.task, pb = f.pemb;
     const r = LP.complete(t.id, LP.attempts(t.id) === 0);
-    if (r && r.blocked) return popupMateri(t);               // materi belum dibaca → tidak ada poin
-    const s = await r.ready;                                 // poin & bonus dari jawaban server
+    if (r && r.blocked) return popupMateri(t);               // materi belum dibaca → tidak ada koin
+    const s = await r.ready;                                 // koin & bonus dari jawaban server
     refreshPoints();
     const nx = LP.next(t.id);
     const isProject = t.type === "project";
 
     let html = isProject ? '<p class="mp-info"><b>Project-mu berhasil dikirim!</b> Kerja bagus, karyamu sudah dikumpulkan. 🎉</p>' : "";
-    html += '<div class="mp-points"><b>+' + s.earned + "</b> poin</div>";
+    html += '<div class="mp-points"><b>+' + s.earned + "</b> koin</div>";
     if (s.bonus) html += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + s.bonus + "</div>";
-    html += '<p class="mp-info">Total poinmu: <b>⭐ ' + s.total + "</b></p>";
+    html += '<p class="mp-info">Total koinmu: <b>⭐ ' + s.total + "</b></p>";
     if (isProject && t.lencana) html += '<div class="mp-bonus">' + esc(t.lencana) + " didapat!</div>";
     if (isProject) html += '<div class="mp-all">🎓 Pembelajaran "' + esc(pb.judul) + '" selesai!</div>';
 

@@ -866,7 +866,7 @@ app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
 // TOKO HADIAH — KOIN BELAJAR (bingkai avatar & gelar)
 // ============================================================
 // Model saldo sama dengan frontend (LP.saldo):
-//   saldo = max(0, total poin - harga item yang sudah dibeli)
+//   saldo = max(0, total koin - harga item yang sudah dibeli)
 // `points.total` TIDAK dikurangi saat belanja supaya level & riwayat tetap utuh.
 // Harga disimpan sebagai snapshot di user_items saat pembelian.
 
@@ -1121,7 +1121,7 @@ const _FB = Number(process.env.FIRST_TRY_BONUS);
 const FIRST_TRY_BONUS = Number.isSafeInteger(_FB) && _FB >= 0 ? _FB : 5;
 // Bonus percobaan pertama: berhasil tanpa gagal tercatat + belum pernah dapat bonus.
 // Berlaku semua task (termasuk project). Bonus hanya sekali seumur (user, task).
-// Poin dihitung SERVER dari task selesai (fase 2). Idempoten:
+// Koin dihitung SERVER dari task selesai (fase 2). Idempoten:
 // hanya selisih status false<->true yang mengkredit/mendebit.
 function applyProgress(username, taskId, completed) {
     const task = db.prepare("SELECT points FROM tasks WHERE task_id = ?").get(taskId);
@@ -1266,9 +1266,9 @@ app.get("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, r
 // ============================================================
 
 app.post("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
-    // Fase 2: total poin dihitung server dari task selesai (adjustPointsForProgress).
+    // Fase 2: total koin dihitung server dari task selesai (adjustPointsForProgress).
     // Tulis manual dimatikan; testing pakai POST /api/dev/points (non-production).
-    return sendApiError(res, 410, "Total poin dihitung server dari task selesai. Gunakan POST /api/progress.", "GONE");
+    return sendApiError(res, 410, "Total koin dihitung server dari task selesai. Gunakan POST /api/progress.", "GONE");
 });
 
 // ============================================================

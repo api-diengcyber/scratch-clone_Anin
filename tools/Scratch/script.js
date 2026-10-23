@@ -9691,13 +9691,13 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
 
 
 // ============================================================
-// MISI LEVEL, CEK OTOMATIS, DAN POIN
+// MISI LEVEL, CEK OTOMATIS, DAN KOIN
 // ============================================================
 
 (function initMission() {
 
-  // ---------- PENGATURAN POIN ----------
-  const POINTS_BASE  = 30;   // poin dasar setiap level selesai
+  // ---------- PENGATURAN KOIN ----------
+  const POINTS_BASE  = 30;   // koin dasar setiap level selesai
   const POINTS_BONUS = 10;   // bonus jika selesai di percobaan pertama
 
   // ---------- DATA MISI ----------
@@ -9776,7 +9776,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
     },
     smp: {
       1: { title: "Event & Input", challenge: "Buat karakter bergerak menggunakan tombol panah." },
-      2: { title: "Variabel Skor", challenge: "Buat skor yang bertambah saat pemain mendapat poin." },
+      2: { title: "Variabel Skor", challenge: "Buat skor yang bertambah saat pemain mendapat koin." },
       3: { title: "Percabangan", challenge: "Jika skor mencapai 5, tampilkan pesan kemenangan." },
       4: { title: "Perulangan", challenge: "Buat objek bergerak berulang tanpa menulis blok berkali-kali." },
       5: { title: "Game dengan Skor", challenge: "Buat game dengan skor, kondisi menang, dan tombol mulai." }
@@ -10061,8 +10061,8 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   });
 
   const isLPTask = !!(hasLP && taskId && LP.find(taskId));
-  const shownPoints = () => (isLPTask && LP.saldo) ? LP.saldo() : getPoints();   // sama dengan dashboard & halaman poin
-  function refreshPoints() { q(".mission-points").textContent = "⭐ " + shownPoints() + " poin"; }
+  const shownPoints = () => (isLPTask && LP.saldo) ? LP.saldo() : getPoints();   // sama dengan dashboard & halaman koin
+  function refreshPoints() { q(".mission-points").textContent = "⭐ " + shownPoints() + " koin"; }
   refreshPoints();
   if (isLPTask && LP.loadFromServer) LP.loadFromServer().then((ok) => { if (ok) refreshPoints(); }).catch(() => {});
 
@@ -10076,7 +10076,7 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
   if (getCompleted()[levelKey]) {               // sudah pernah selesai
     const note = document.createElement("div");
     note.className = "mission-done-note";
-    note.textContent = "✅ Sudah selesai! Mengulang tidak memberi poin tambahan.";
+    note.textContent = "✅ Sudah selesai! Mengulang tidak memberi koin tambahan.";
     q(".mission-body").insertBefore(note, q(".mission-hint"));
   }
 
@@ -10170,14 +10170,14 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
 
     if (!already) {
       if (isLPTask) {
-        // task Jalur Belajar: lewat LP.complete supaya poin, riwayat, dan database ikut tersimpan (sama seperti editor lain)
+        // task Jalur Belajar: lewat LP.complete supaya koin, riwayat, dan database ikut tersimpan (sama seperti editor lain)
         const r = LP.complete(levelKey, !!(firstTry && mission.goals));
         if (r && r.blocked) {                   // gerbang materi: materi belum dibaca sampai selesai
           finished = false;
           alert("📖 Baca materinya sampai selesai dulu ya, baru task ini bisa diselesaikan.");
           return;
         }
-        const s = await r.ready;                // poin & bonus dari jawaban server
+        const s = await r.ready;                // koin & bonus dari jawaban server
         earned = s.earned; bonus = s.bonus;
       } else {
         earned = pointsBase;
@@ -10199,11 +10199,11 @@ const ASSET_LIBRARY = {"sprites":[{"id":"bear","name":"Beruang","tags":["Hewan"]
 
     let lines = "";
     if (already) {
-      lines = '<p class="mp-info">Misi ini sudah selesai. Kamu boleh mencoba lagi, tetapi poin tidak bertambah.</p>';
+      lines = '<p class="mp-info">Misi ini sudah selesai. Kamu boleh mencoba lagi, tetapi koin tidak bertambah.</p>';
     } else {
-      lines = '<div class="mp-points"><b>+' + earned + '</b> poin</div>';
+      lines = '<div class="mp-points"><b>+' + earned + '</b> koin</div>';
       if (bonus) lines += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + bonus + '</div>';
-      lines += '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + shownPoints() + '</b></p>';
+      lines += '<p class="mp-info">Koinmu sekarang: <b>⭐ ' + shownPoints() + '</b></p>';
     }
 
     ov.innerHTML =

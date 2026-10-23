@@ -146,7 +146,7 @@ const B = `http://localhost:${PORT}`;
     r = await fetch(`${B}/api/ai/tutor`, { method: "POST", headers: hdr, body: JSON.stringify({ message: "halo", smpTask: { nodeId: "ai1", taskIndex: 0, judul: "x", langkah: ["a"] } }) });
     if (r.status === 403) throw new Error("ai1 ikut ditolak");
   });
-  await t("complete mengkredit poin (10+5)", async () => {
+  await t("complete mengkredit koin (10+5)", async () => {
     let r = await fetch(`${B}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "pointer", password: "abcd1234" }) });
     let d = await j(r);
     const hdr = { Authorization: "Bearer " + d.token, "Content-Type": "application/json" };

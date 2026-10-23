@@ -1,7 +1,7 @@
 // ============================================================
 // MESIN JALUR BELAJAR — Dieng Cyber Coding
 // Konten (tahap, jalur, task, project) ada di jalur-data.js.
-// File ini mengurus: status, kunci berurutan, poin, progres, penyimpanan.
+// File ini mengurus: status, kunci berurutan, koin, progres, penyimpanan.
 // Dipakai oleh: belajar.html, dashboard.html, Scratch/index.html
 // (jalur-data.js harus dimuat SEBELUM file ini)
 // ============================================================
@@ -34,7 +34,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   //   physical → halaman instruksi + unggah foto/video, dikerjakan di dunia nyata
   // Jika `praktik` tidak diisi: kind "editor" → block, kind "code" → text, type "external" → external, kuis → tanpa praktik.
   // Mode block/text pada task kuis/external membuka editor dalam MODE BEBAS (tanpa cek otomatis);
-  // task tetap diselesaikan lewat kuis / checklist-nya seperti biasa, jadi poin & kunci berurutan tidak berubah.
+  // task tetap diselesaikan lewat kuis / checklist-nya seperti biasa, jadi koin & kunci berurutan tidak berubah.
   PRAKTIK: {
     block:    { icon: "🧩", nama: "Block Editor",    folder: "/tools/Scratch" },
     text:     { icon: "💻", nama: "Text Editor",     folder: "/tools/TextEditor" },
@@ -113,7 +113,7 @@ const LP = Object.assign({}, window.LP_DATA, {
 
   // ============================================================
   // PENYIMPANAN (per username) — kunci localStorage SAMA dengan versi sebelumnya,
-  // jadi progres & poin anak yang sudah ada tidak hilang.
+  // jadi progres & koin anak yang sudah ada tidak hilang.
   // ============================================================
     user() {
     return localStorage.getItem("username")
@@ -222,7 +222,7 @@ const LP = Object.assign({}, window.LP_DATA, {
           headers: this.authHeaders()
         }),
 
-        // percobaan gagal + waktu per task. Tidak fatal: kalau gagal, progres & poin tetap tersinkron.
+        // percobaan gagal + waktu per task. Tidak fatal: kalau gagal, progres & koin tetap tersinkron.
         fetch("/api/attempts/" + encodeURIComponent(username), {
           headers: this.authHeaders()
         }).catch(() => null)
@@ -250,7 +250,7 @@ const LP = Object.assign({}, window.LP_DATA, {
       this._set("codingCompleted", completed);
 
       // Task SMP & SMA/SMK memakai id "modul:nomor" (mis. py1:0). Pulihkan juga ke smpTasks
-      // (status selesai) dan smpPoin (poin sudah pernah diberikan) supaya tidak hilang / dobel di perangkat lain.
+      // (status selesai) dan smpPoin (koin sudah pernah diberikan) supaya tidak hilang / dobel di perangkat lain.
       const smpDone = this._get("smpTasks", {}), smpGiven = this._get("smpPoin", {});
       progressRows.forEach((row) => {
         if (!row || String(row.task_id).indexOf(":") < 1) return;
@@ -376,7 +376,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   },
 
   // Simpan status task ke server. Jawaban server (kontrak baru):
-  //   { points: <total poin terbaru>, earned: { base, bonus } }
+  //   { points: <total koin terbaru>, earned: { base, bonus } }
   // Mengembalikan { ok, points, earned } (points/earned bernilai null kalau server tidak mengirimnya), atau false bila gagal.
   async saveProgressToServer(id, completed) {
     const username = this.user();
@@ -507,8 +507,8 @@ const LP = Object.assign({}, window.LP_DATA, {
   },
 
   // Terapkan jawaban server ke tampilan: points = total terbaru (MENGGANTIKAN angka lokal),
-  // earned.base / earned.bonus = rincian untuk teks dan animasi. Poin TIDAK lagi dihitung di sini.
-  // Kalau server tidak terjangkau (atau mode tamu) → hanya poin dasar, tanpa bonus.
+  // earned.base / earned.bonus = rincian untuk teks dan animasi. Koin TIDAK lagi dihitung di sini.
+  // Kalau server tidak terjangkau (atau mode tamu) → hanya koin dasar, tanpa bonus.
   _terapkan(id, judul, res, base) {
     let earned, bonus, total;
     if (res && typeof res.points === "number") {
@@ -649,7 +649,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     return this.isUnlocked(id) ? "tersedia" : "terkunci";
   },
 
-  // poin dasar sebuah task (bisa diatur per task lewat `poin` di jalur-data.js)
+  // koin dasar sebuah task (bisa diatur per task lewat `koin` di jalur-data.js)
   poinOf(task) {
     if (typeof task.poin === "number") return task.poin;
     return task.type === "project" ? this.POIN_PROJECT : this.POIN_TASK;
@@ -680,7 +680,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     const done = list.filter(t => this.isDone(t.id)).length;
     return { done, total: list.length, taskDone: pemb.tasks.filter(t => this.isDone(t.id)).length, projectDone: this.isDone(pemb.project.id) };
   },
-  // total poin yang bisa didapat di satu pembelajaran (tanpa bonus)
+  // total koin yang bisa didapat di satu pembelajaran (tanpa bonus)
   poinTotal(pemb) { return this.items(pemb).reduce((s, t) => s + this.poinOf(t), 0); },
 
   // pilihan jalur (khusus tahap bermode "pilih-jalur", misalnya Tahap 2)
@@ -707,7 +707,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     return "/SD/belajar.html?task=" + id;
   },
 
-  // tandai selesai. Poin & bonus ditentukan SERVER: tunggu `await r.ready` → { earned, bonus, total }.
+  // tandai selesai. Koin & bonus ditentukan SERVER: tunggu `await r.ready` → { earned, bonus, total }.
   // Mengembalikan { already, ready } atau { blocked } bila materinya belum dibaca.
   complete(id, firstTry) {   // firstTry tidak dipakai lagi: bonus ditentukan SERVER dari jumlah kegagalan yang dilaporkan
     const f = this.find(id);
@@ -737,20 +737,20 @@ const LP = Object.assign({}, window.LP_DATA, {
     done[id] = true;
     this._set("codingCompleted", done);
 
-    // Poin & bonus datang dari jawaban server (bukan hitungan lokal). Tunggu `ready` sebelum menampilkan angka:
+    // Koin & bonus datang dari jawaban server (bukan hitungan lokal). Tunggu `ready` sebelum menampilkan angka:
     //   const r = LP.complete(id); const s = await r.ready;  → s = { earned, bonus, total }
-    // `earned` / `total` di objek ini hanya perkiraan sementara (poin dasar), JANGAN dipakai untuk tampilan akhir.
+    // `earned` / `total` di objek ini hanya perkiraan sementara (koin dasar), JANGAN dipakai untuk tampilan akhir.
     const ready = this.saveProgressToServer(id, true).then((res) => this._terapkan(id, f.task.title, res, base));
 
     return { already: false, earned: base, bonus: 0, total: this.points(), ready };
   },
 
   // ============================================================
-  // TASK SMP & SMA/SMK — tandai selesai + beri poin
+  // TASK SMP & SMA/SMK — tandai selesai + beri koin
   // ============================================================
-  // Status selesai disimpan di "smpTasks" (id "modul:nomor"). Poin & bonus ditentukan SERVER (lihat _terapkan):
-  // undo mendebit poin dasar + bonus, menyelesaikan ulang hanya memberi poin dasar.
-  // info: { judul, project (Project Akhir → POIN_PROJECT), poin (angka khusus, opsional) }
+  // Status selesai disimpan di "smpTasks" (id "modul:nomor"). Koin & bonus ditentukan SERVER (lihat _terapkan):
+  // undo mendebit koin dasar + bonus, menyelesaikan ulang hanya memberi koin dasar.
+  // info: { judul, project (Project Akhir → POIN_PROJECT), koin (angka khusus, opsional) }
   // Mengembalikan { already, ready } atau { blocked }; `await r.ready` → { earned, bonus, total }.
   completeSmp(nodeId, index, info) {
     info = info || {};
@@ -772,7 +772,7 @@ const LP = Object.assign({}, window.LP_DATA, {
       ? info.poin
       : (info.project ? this.POIN_PROJECT : this.POIN_TASK);
 
-    // Poin & bonus dari jawaban server. Layar diperbarui lewat event "lp:points" (dan `ready` untuk yang mau menunggu).
+    // Koin & bonus dari jawaban server. Layar diperbarui lewat event "lp:points" (dan `ready` untuk yang mau menunggu).
     const ready = this.saveProgressToServer(id, true).then((res) => this._terapkan(id, info.judul, res, base));
 
     return { already: false, earned: base, total: this.points(), ready };
@@ -781,7 +781,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   // Sinkronkan status selesai dengan centang langkah di editor.
   // Task yang SEMUA langkahnya sudah tercentang (smpSteps_<modul>_<nomor>) tapi belum tertandai selesai
   // (mis. dikerjakan sebelum penyelesaian otomatis ada, atau status ikut terhapus saat sinkron server)
-  // → ditandai selesai lewat completeSmp (poin tetap hanya sekali per task). Hanya task yang sudah terbuka
+  // → ditandai selesai lewat completeSmp (koin tetap hanya sekali per task). Hanya task yang sudah terbuka
   // (task sebelumnya selesai); Final Project (kumpul) tidak ikut karena dikumpulkan manual.
   // tracks: array jalur (window.LP_SMP / window.LP_SMAK). Mengembalikan jumlah task yang diperbarui.
   syncSmpFromSteps(tracks) {
@@ -805,7 +805,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   },
 
   // Label info di kartu task SMP & SMA/SMK (gaya yang sama dengan kartu task SD):
-  // jenis task • editor yang dipakai • status (Selesai / Sedang dikerjakan / Tersedia / Terkunci) • poin.
+  // jenis task • editor yang dipakai • status (Selesai / Sedang dikerjakan / Tersedia / Terkunci) • koin.
   // op = task sudah terbuka, dn = task sudah selesai. Memakai kelas .badge dari belajar.css.
   smpChips(node, k, i, op, dn) {
     const jenis = k.kumpul ? "📤 Kumpul Final Project" : k.project ? "🏆 Project Akhir" : "🛠️ Praktik";
@@ -820,10 +820,10 @@ const LP = Object.assign({}, window.LP_DATA, {
     }
     const poin = typeof k.poin === "number" ? k.poin : (k.project ? this.POIN_PROJECT : this.POIN_TASK);
     return '<div class="smp-chips"><span class="badge">' + jenis + "</span>" + tool +
-      '<span class="badge st-' + st + '">' + lb + '</span><span class="badge pts">⭐ ' + poin + " poin</span></div>";
+      '<span class="badge st-' + st + '">' + lb + '</span><span class="badge pts">⭐ ' + koin + " koin</span></div>";
   },
 
-  // batalkan status selesai. Server mendebit poin dasar + bonus; menyelesaikan ulang hanya memberi poin dasar (bonus hangus).
+  // batalkan status selesai. Server mendebit koin dasar + bonus; menyelesaikan ulang hanya memberi koin dasar (bonus hangus).
   undoSmp(nodeId, index) {
     const id = nodeId + ":" + index;
     const done = this._get("smpTasks", {});
@@ -834,7 +834,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     delete rec[id];
     this._set("poinEarned", rec);
 
-    // Server mendebit poin dasar + bonus. Tampilan ikut dikurangi: pakai total dari server bila ada,
+    // Server mendebit koin dasar + bonus. Tampilan ikut dikurangi: pakai total dari server bila ada,
     // kalau tidak, kurangi sebesar yang tercatat saat task ini diselesaikan.
     return this.saveProgressToServer(id, false).then((res) => {
       let total = null;
@@ -849,7 +849,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   },
 
   // ============================================================
-  // RIWAYAT POIN, LEVEL, DAN TUKAR POIN (dipakai halaman /poin/poin.html)
+  // RIWAYAT KOIN, LEVEL, DAN TUKAR KOIN (dipakai halaman /poin/poin.html)
   // ============================================================
 
   // catat satu baris riwayat (dipanggil dari complete() dan dari editor Scratch)
@@ -861,7 +861,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   // riwayat terbaru dulu
   riwayat() { return this._get("pointLog", []).slice().reverse(); },
 
-  // tingkatan berdasarkan TOTAL poin (total tidak pernah turun walau poin dibelanjakan)
+  // tingkatan berdasarkan TOTAL koin (total tidak pernah turun walau koin dibelanjakan)
   LEVEL: [
     { min: 0,   emoji: "🌱", nama: "Pemula" },
     { min: 50,  emoji: "🧭", nama: "Penjelajah Kode" },
@@ -877,8 +877,8 @@ const LP = Object.assign({}, window.LP_DATA, {
     return { no: i + 1, now: now, next: next, pct: next ? Math.round((total - now.min) / (next.min - now.min) * 100) : 100 };
   },
 
-  // hadiah yang bisa ditukar dengan poin. jenis: "bingkai" (bingkai foto profil) | "gelar" (julukan di bawah nama)
-  // Satu-satunya daftar hadiah: dipakai dashboard, halaman poin, dan profil.
+  // hadiah yang bisa ditukar dengan koin. jenis: "bingkai" (bingkai foto profil) | "gelar" (julukan di bawah nama)
+  // Satu-satunya daftar hadiah: dipakai dashboard, halaman koin, dan profil.
   // frameClass = gaya di /shared/css/frames.css, orn = hiasan (p: posisi, a: animasi, s: ukuran)
   HADIAH: [
     { id: "bg_gold",    jenis: "bingkai", emoji: "👑", nama: "Bingkai Mahkota Emas",    harga: 50,  frameClass: "frame-gold",    desc: "Mahkota emas berkilau di atas kepala avatarmu.",
@@ -909,7 +909,7 @@ const LP = Object.assign({}, window.LP_DATA, {
   ],
   hadiahMilik() { return this._get("hadiahMilik", []); },
   hadiahPakai() { return this._get("hadiahPakai", {}); },
-  // saldo = total poin − harga semua hadiah yang sudah dibeli
+  // saldo = total koin − harga semua hadiah yang sudah dibeli
   saldo() {
     const own = this.hadiahMilik();
     const spent = this.HADIAH.filter(h => own.indexOf(h.id) >= 0).reduce((s, h) => s + h.harga, 0);
@@ -919,7 +919,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     const h = this.HADIAH.find(x => x.id === id), own = this.hadiahMilik();
     if (!h) return { ok: false, pesan: "Hadiah tidak ditemukan." };
     if (own.indexOf(id) >= 0) return { ok: false, pesan: "Hadiah ini sudah kamu punya." };
-    if (this.saldo() < h.harga) return { ok: false, pesan: "Poinmu belum cukup. Selesaikan task lagi ya!" };
+    if (this.saldo() < h.harga) return { ok: false, pesan: "Koinmu belum cukup. Selesaikan task lagi ya!" };
     own.push(id);
     this._set("hadiahMilik", own);
     this.pakai(id);                                   // langsung dipakai

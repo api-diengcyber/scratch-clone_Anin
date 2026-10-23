@@ -1,6 +1,6 @@
 // ============================================================
 // AvatarFrame — memasang bingkai hadiah (LP.HADIAH) ke avatar.
-// Dipakai dashboard, halaman poin, dan halaman profil agar tampilannya SAMA.
+// Dipakai dashboard, halaman koin, dan halaman profil agar tampilannya SAMA.
 // Butuh: /shared/css/frames.css
 //
 //   AvatarFrame.apply(el, frame, { size: 44, ornaments: true })

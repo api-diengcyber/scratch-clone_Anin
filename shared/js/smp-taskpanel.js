@@ -389,11 +389,11 @@
           const LPx = window.LP;
           let r = null;
           try {
-            // LP.completeSmp = tandai selesai + beri poin (sekali per task) + simpan ke server
+            // LP.completeSmp = tandai selesai + beri koin (sekali per task) + simpan ke server
             r = LPx && typeof LPx.completeSmp === "function"
               ? LPx.completeSmp(nid, ti, { judul: node.title + " — " + (cur.judul || "Task " + (ti + 1)), project: !!cur.project, poin: cur.poin })
               : null;
-          } catch (e) { console.error("SMPTaskPanel: gagal memberi poin.", e); }
+          } catch (e) { console.error("SMPTaskPanel: gagal memberi koin.", e); }
           if (!r) setDone(ti, true);          // LP tidak tersedia → minimal status selesai tetap tersimpan
 
           const pv = document.getElementById("pointsValue");
@@ -403,9 +403,9 @@
             notice = (ti < last
               ? "🎉 Semua langkah selesai! Task berikutnya sudah terbuka."
               : "🎉 Semua langkah selesai! Semua task di modul ini sudah dikerjakan.");
-            // Poin & bonus dari jawaban server: tambahkan ke pesan begitu tiba, lalu segarkan angka poin
+            // Koin & bonus dari jawaban server: tambahkan ke pesan begitu tiba, lalu segarkan angka koin
             if (r && r.ready) r.ready.then((s) => {
-              if (s && s.earned) notice += " +" + s.earned + " poin!" + (s.bonus ? " ⚡ +" + s.bonus + " bonus percobaan pertama!" : "");
+              if (s && s.earned) notice += " +" + s.earned + " koin!" + (s.bonus ? " ⚡ +" + s.bonus + " bonus percobaan pertama!" : "");
               const pv2 = document.getElementById("pointsValue");
               if (pv2 && LPx && typeof LPx.saldo === "function") pv2.textContent = LPx.saldo();
               draw();

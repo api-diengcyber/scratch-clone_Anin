@@ -32,7 +32,7 @@
     localStorage.setItem('scratch_user', user.username);
     localStorage.setItem('isLoggedIn', 'true');
     
-    // progres + poin, jenjang yang diizinkan, dan profil diambil sekaligus dari server (masing-masing tidak melempar error)
+    // progres + koin, jenjang yang diizinkan, dan profil diambil sekaligus dari server (masing-masing tidak melempar error)
     if (typeof LP !== "undefined") {
       await Promise.all([
         typeof LP.loadFromServer === "function" ? LP.loadFromServer() : null,
@@ -121,7 +121,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !userMenu.
 // Mode Gelap: saklar di menu (logika & penyimpanan ada di /shared/js/theme.js)
 if (window.DCTheme) DCTheme.bind($('themeItem'));
 
-// Samakan dengan halaman Poin: tampilkan saldo koin (total poin − hadiah yang sudah dibeli)
+// Samakan dengan halaman Koin: tampilkan saldo koin (total koin − hadiah yang sudah dibeli)
 const refreshSaldo = () => { $('pointsValue').textContent = Number(LP.saldo ? LP.saldo() : totalPoints) || 0; };
 refreshSaldo();
 window.addEventListener('pageshow', e => { if (e.persisted) refreshSaldo(); });

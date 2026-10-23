@@ -297,15 +297,15 @@
         buttons: [{ label: "Baca Materi 📖", cls: "mp-primary", fn: () => { location.href = LP.materiHref(task, "/belajar.html?task=" + taskId); } },
                   { label: "Nanti saja", cls: "mp-secondary" }] });
     }
-    const s = await r.ready;                    // poin & bonus dari jawaban server
+    const s = await r.ready;                    // koin & bonus dari jawaban server
     refreshPoints();
-    popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: '<div class="mp-points"><b>+' + s.earned + '</b> poin</div>' + (s.bonus ? '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + s.bonus + '</div>' : "") + '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>", buttons });
+    popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: '<div class="mp-points"><b>+' + s.earned + '</b> koin</div>' + (s.bonus ? '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + s.bonus + '</div>' : "") + '<p class="mp-info">Koinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>", buttons });
   }
   function missionCard() {
     const t = task || proj; if (!t) return;
     const m = $("mission"); m.hidden = false;
     m.innerHTML = '<div class="m-top"><div><div class="m-tag"></div><h2></h2><p></p></div><button type="button" class="m-info-btn" id="infoBtn">📝 Langkah &amp; petunjuk</button></div><ul class="m-goals"></ul><div class="m-info" id="mInfo"></div>';
-    m.querySelector(".m-tag").textContent = task ? "🎯 TASK " + task.no + " • " + task.label.toUpperCase() + "  •  ⭐ " + LP.poinOf(task) + " poin" : "🏆 PROJECT AKHIR  •  ⭐ " + LP.poinOf(proj) + " poin";
+    m.querySelector(".m-tag").textContent = task ? "🎯 TASK " + task.no + " • " + task.label.toUpperCase() + "  •  ⭐ " + LP.poinOf(task) + " koin" : "🏆 PROJECT AKHIR  •  ⭐ " + LP.poinOf(proj) + " koin";
     m.querySelector("h2").textContent = t.title; m.querySelector("p").textContent = t.desc;
     const list = task ? goals.map((g) => g.teks) : (proj.checklist || []);
     goalLis = list.map((x) => { const li = document.createElement("li"); li.innerHTML = "<span>☐</span><span></span>"; li.lastChild.textContent = x; m.querySelector(".m-goals").appendChild(li); return li; });
@@ -317,7 +317,7 @@
     if (proj) h += '<div class="m-box ok"><h4>📸 Setelah selesai</h4>Klik tombol 📸 Screenshot, lalu unggah gambarnya di halaman Project.</div>';
     $("mInfo").innerHTML = h; $("mInfo").hidden = task ? LP.isDone(taskId) : false;
     $("infoBtn").addEventListener("click", () => { $("mInfo").hidden = !$("mInfo").hidden; });
-    if (task && LP.isDone(taskId)) { const d = document.createElement("div"); d.className = "m-done"; d.textContent = "✅ Sudah selesai! Mengulang tidak memberi poin tambahan."; m.appendChild(d); }
+    if (task && LP.isDone(taskId)) { const d = document.createElement("div"); d.className = "m-done"; d.textContent = "✅ Sudah selesai! Mengulang tidak memberi koin tambahan."; m.appendChild(d); }
   }
 
   // ---------- mulai ----------

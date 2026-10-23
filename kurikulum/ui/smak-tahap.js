@@ -17,7 +17,7 @@
   const progTrack = (t) => t.nodes.reduce((a, n) => { const p = progNode(n); return { done: a.done + p.done, total: a.total + p.total }; }, { done: 0, total: 0 });
 
   // Dipakai juga oleh belajar-smk.js (halaman detail SMA/SMK)
-  // selesai → beri poin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
+  // selesai → beri koin (sekali per task) lewat LP.completeSmp; batal → LP.undoSmp
   const toggle = (n, i) => {
     if (isDone(n, i)) return LP.undoSmp(n, i);
     const nd = T.reduce((a, t) => a || t.nodes.find((x) => x.id === n), null), k = nd && nd.tasks[i];

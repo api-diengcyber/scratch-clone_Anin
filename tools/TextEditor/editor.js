@@ -1,11 +1,11 @@
 // ============================================================
 // TEXT EDITOR — HTML, CSS, Python & PHP (Dieng Cyber Coding)
 // Data task ada di ../jalur-data.js (task berjenis kode(...)).
-// Poin, kunci, dan progres dikelola oleh LP di ../jalur-belajar.js.
+// Koin, kunci, dan progres dikelola oleh LP di ../jalur-belajar.js.
 //
 //  ?task=g3-t2   → membuka task dari Learning Path (dicek otomatis)
-//  ?dari=g3-t1   → 🚀 Mulai Praktik dari Task biasa (kuis/external): mode bebas, tanpa poin, tombol kembali ke Task itu
-//  (tanpa task)  → mode bebas: bereksperimen tanpa poin
+//  ?dari=g3-t1   → 🚀 Mulai Praktik dari Task biasa (kuis/external): mode bebas, tanpa koin, tombol kembali ke Task itu
+//  (tanpa task)  → mode bebas: bereksperimen tanpa koin
 //  ?bahasa=python | php | html → membuka mode bebas langsung di bahasa itu
 //                  (tanpa ?bahasa, Python dipilih otomatis kalau ?dari= dari jalur Python: py1, pl2, da3, ...)
 //
@@ -120,10 +120,10 @@
   const consoleEl = $("console"), outPre = $("consoleOut"), stdinEl = $("stdin"), stdinBox = $("stdinBox");
   const runBtn = $("runBtn"), stopBtn = $("stopBtn");
   if (draft.stdin != null) stdinEl.value = draft.stdin;
-  const nowPoints = () => (LP.saldo ? LP.saldo() : LP.points());   // saldo: sama dengan dashboard, halaman poin & laporan
+  const nowPoints = () => (LP.saldo ? LP.saldo() : LP.points());   // saldo: sama dengan dashboard, halaman koin & laporan
   const refreshPoints = () => { $("pointsValue").textContent = nowPoints(); };
   refreshPoints();
-  if (LP.loadFromServer) LP.loadFromServer().then((ok) => { if (ok) refreshPoints(); }).catch(() => {});   // poin terbaru dari server
+  if (LP.loadFromServer) LP.loadFromServer().then((ok) => { if (ok) refreshPoints(); }).catch(() => {});   // koin terbaru dari server
   if (task) { $("backLink").href = "/belajar.html?p=" + info.pemb.id; $("backLink").textContent = "← Jalur belajar"; }
   const projectId = params.get("project");      // dibuka dari Project Akhir → kembali ke halaman project-nya
   if (!task && dari && LP.find(dari)) { $("backLink").href = "/belajar.html?task=" + dari; $("backLink").textContent = "← Kembali ke Task"; }
@@ -312,7 +312,7 @@
       '<button type="button" class="m-info-btn" id="infoBtn">📖 Materi &amp; petunjuk</button></div>' +
       '<ul class="m-goals"></ul>' +
       '<div class="m-info" id="mInfo" hidden></div>';
-    m.querySelector(".m-tag").textContent = "🎯 TASK " + task.no + " • " + task.label.toUpperCase() + "  •  ⭐ " + LP.poinOf(task) + " poin";
+    m.querySelector(".m-tag").textContent = "🎯 TASK " + task.no + " • " + task.label.toUpperCase() + "  •  ⭐ " + LP.poinOf(task) + " koin";
     m.querySelector("h2").textContent = task.title;
     m.querySelector("p").textContent = task.desc;
     const ul = m.querySelector(".m-goals");
@@ -329,7 +329,7 @@
     }
     $("infoBtn").addEventListener("click", () => { $("mInfo").hidden = !$("mInfo").hidden; });
     if (LP.isDone(taskId)) {
-      const d = document.createElement("div"); d.className = "m-done"; d.textContent = "✅ Sudah selesai! Mengulang tidak memberi poin tambahan.";
+      const d = document.createElement("div"); d.className = "m-done"; d.textContent = "✅ Sudah selesai! Mengulang tidak memberi koin tambahan.";
       m.appendChild(d);
     }
     updateGoals();
@@ -494,7 +494,7 @@
     buttons.push({ label: "Lanjut bereksperimen", cls: "mp-secondary" });
     if (already) {
       return popup({ type: "info", emoji: "✅", title: "Sudah selesai!", name: nameLine,
-        html: '<p class="mp-info">Kamu sudah pernah menyelesaikan task ini, jadi tidak ada tambahan poin.</p>', buttons: buttons });
+        html: '<p class="mp-info">Kamu sudah pernah menyelesaikan task ini, jadi tidak ada tambahan koin.</p>', buttons: buttons });
     }
     const r = LP.complete(taskId, LP.attempts(taskId) === 0);
     if (r && r.blocked) {                       // gerbang materi: materi belum dibaca sampai selesai
@@ -503,11 +503,11 @@
         buttons: [{ label: "Baca Materi 📖", cls: "mp-primary", fn: () => { window.location.href = LP.materiHref(task, "/belajar.html?task=" + taskId); } },
                   { label: "Nanti saja", cls: "mp-secondary" }] });
     }
-    const s = await r.ready;                    // poin & bonus dari jawaban server
+    const s = await r.ready;                    // koin & bonus dari jawaban server
     refreshPoints();
-    let html = '<div class="mp-points"><b>+' + s.earned + "</b> poin</div>";
+    let html = '<div class="mp-points"><b>+' + s.earned + "</b> koin</div>";
     if (s.bonus) html += '<div class="mp-bonus">⚡ Bonus percobaan pertama +' + s.bonus + "</div>";
-    html += '<p class="mp-info">Poinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>";
+    html += '<p class="mp-info">Koinmu sekarang: <b>⭐ ' + nowPoints() + "</b></p>";
     popup({ type: "ok", emoji: "🎉", title: "Hore, berhasil!", name: nameLine, html: html, buttons: buttons });
   }
 

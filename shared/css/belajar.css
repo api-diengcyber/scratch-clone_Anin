@@ -160,7 +160,7 @@ button { font: inherit; cursor: pointer; }
 .tahap-hero p { padding-right: 90px; }
 @media (max-width: 600px) { .tahap-hero p { padding-right: 0; } }
 
-/* ---------- Sistem konten fleksibel: status, poin, materi, kondisi ---------- */
+/* ---------- Sistem konten fleksibel: status, koin, materi, kondisi ---------- */
 .badge { margin-right: 6px; }
 .badge.st-terkunci { background: #eceff8; color: #8a93b4; }
 .badge.st-tersedia { background: #fff4d6; color: #a86a00; }
