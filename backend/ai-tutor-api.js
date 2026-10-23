@@ -1,4 +1,6 @@
-const OpenAI = require("openai");
+// OpenAI/Groq dimuat hanya saat AI Tutor benar-benar dipakai, supaya boot
+// server tidak menunggu modul yang opsional.
+let OpenAI = null;
 
 // ============================================================
 // AI TUTOR — Groq
@@ -46,6 +48,7 @@ function getClient() {
 
     if (!client) {
 
+        if (!OpenAI) OpenAI = require("openai");
         client = new OpenAI({
             apiKey: getApiKey(),
             baseURL: getBaseUrl(),

@@ -1,0 +1,14 @@
+# Caddy: HTTPS otomatis (Let's Encrypt) + reverse proxy ke Node.
+# Ganti example.com dengan domain asli, lalu:
+#   sudo cp Caddyfile /etc/caddy/Caddyfile
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+
+example.com {
+    reverse_proxy 127.0.0.1:3000 {
+        # Caddy sudah mengisi X-Forwarded-For secara otomatis. Jangan override
+        # supaya rantai Cloudflare -> Caddy -> Node tetap benar (TRUST_PROXY=2).
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+    }
+}

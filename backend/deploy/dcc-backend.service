@@ -1,0 +1,26 @@
+[Unit]
+Description=Dieng Cyber Coding backend
+After=network.target
+
+[Service]
+Type=simple
+User=dcc
+Group=dcc
+WorkingDirectory=/opt/dcc/backend
+EnvironmentFile=/opt/dcc/backend/.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+KillSignal=SIGTERM
+
+# Hardening dasar. Pastikan DB_PATH berada di /data (atau tambahkan path-nya
+# ke ReadWritePaths). Folder kode di /opt/dcc cukup read-only.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/data
+
+[Install]
+WantedBy=multi-user.target

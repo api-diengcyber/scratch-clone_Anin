@@ -1,13 +1,24 @@
+const fs = require("fs");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-// Database selalu berada di folder backend.
-// (DB_PATH hanya dipakai untuk testing otomatis.)
+// DB_PATH dipakai di production (volume persistent) dan testing otomatis.
 const dbPath = process.env.DB_PATH || path.join(__dirname, "database.sqlite");
+
+if (dbPath !== ":memory:") {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+}
+if (process.env.NODE_ENV === "production" && !process.env.DB_PATH) {
+    console.warn("[WARN] DB_PATH belum diset di production. Database berada di folder aplikasi dan bisa hilang saat redeploy.");
+}
 
 const db = new Database(dbPath);
 
 db.pragma("foreign_keys = ON");
+// Performa & ketahanan saat ada beberapa request bersamaan.
+db.pragma("busy_timeout = 5000");
+db.pragma("temp_store = MEMORY");
+db.pragma("cache_size = -16000"); // ~16 MB cache halaman
 
 // ============================================================
 // USERS — FINAL SCHEMA
@@ -447,6 +458,7 @@ if (!taskCols.includes("points")) {
 
 db.exec(`
     CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_progress_username ON progress(username);
     CREATE INDEX IF NOT EXISTS idx_progress_task ON progress(task_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_grade_module ON tasks(grade, module_id);
@@ -468,6 +480,7 @@ db.exec(`
     )
 `);
 db.exec(`CREATE INDEX IF NOT EXISTS idx_attempts_username ON attempts(username);`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_attempts_username_updated ON attempts(username, updated_at DESC);`);
 
 // Migrasi kolom attempts.time_spent (aman dijalankan berulang)
 const attemptCols = db.prepare("PRAGMA table_info(attempts)").all().map((c) => c.name);
