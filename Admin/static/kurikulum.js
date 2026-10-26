@@ -3,6 +3,7 @@
    Nanti cukup ganti isi api.* dengan fetch('/api/admin/...'). */
 (function () {
   const KEY = 'dc_admin_jalur_v8';
+  const TAHAP_KEY = 'dc_admin_tahap_v1';
   const $ = (s, r = document) => r.querySelector(s);
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // `teks` di antara backtick tampil sebagai <code>
@@ -16,7 +17,8 @@
     SMP: { urut: 2, label: 'SMP (Python & Web)', dot: '#0ea5e9' },
     SMK: { urut: 3, label: 'SMA / SMK (Fullstack)', dot: '#6366f1' },
   };
-  const TAHAP_WARNA = { 1: '#0ea5e9', 2: '#10b981', 3: '#f59e0b' };
+  const TAHAP_PALET = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#ef4444', '#84cc16'];
+  const TAHAP_WARNA = new Proxy({}, { get: (_, t) => TAHAP_PALET[(((Number(t) || 1) - 1) % TAHAP_PALET.length + TAHAP_PALET.length) % TAHAP_PALET.length] });
   // Judul & ikon tiap tahap (header grup: "SMP • TAHAP 1  Python Start")
   const TAHAP_INFO = {
     'SD|1': { nama: 'Basic', ikon: 'fa-solid fa-seedling', warna: '#f59e0b' },
@@ -134,10 +136,20 @@
       return structuredClone(SEED);
     },
     async saveAll(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (_) {} return list; },
+    // Daftar tahap (Konfigurasi > Kelola Tahap). Awalnya diisi dari TAHAP_INFO.
+    async listTahap() {
+      try { const raw = localStorage.getItem(TAHAP_KEY); if (raw) return JSON.parse(raw); } catch (_) {}
+      return Object.entries(TAHAP_INFO).map(([k, v]) => {
+        const [jenjang, no] = k.split('|');
+        return { jenjang, no: Number(no), nama: v.nama, ikon: v.ikon || IKON_DEFAULT, warna: v.warna || TAHAP_WARNA[no], meta: v.meta || '' };
+      });
+    },
+    async saveTahap(list) { try { localStorage.setItem(TAHAP_KEY, JSON.stringify(list)); } catch (_) {} return list; },
   };
 
   // ---------- STATE ----------
   let jalur = [];
+  let tahapList = [];
   let filter = 'all';
   let query = '';
   let sortBy = 'default';
@@ -145,6 +157,9 @@
 
   const labCount = (j) => Math.max(j.lab || 0, (j.materi || []).length);
   const tahapOf = (j) => j.tahap || 1;
+  const tahapKey = (t) => t.jenjang + '|' + t.no;
+  const tahapInfo = (jenjang, no) => tahapList.find((t) => t.jenjang === jenjang && t.no === Number(no));
+  const nextTahapNo = (jenjang) => Math.max(0, ...tahapList.filter((t) => t.jenjang === jenjang).map((t) => t.no), ...jalur.filter((j) => j.jenjang === jenjang).map(tahapOf)) + 1;
 
   // ---------- RENDER: STATISTIK, FILTER ----------
   function renderStats() {
@@ -224,7 +239,7 @@
   }
 
   function sectionHead(jenjang, tahap, rows) {
-    const info = TAHAP_INFO[jenjang + '|' + tahap];
+    const info = tahapInfo(jenjang, tahap);
     const c = (info && info.warna) || TAHAP_WARNA[tahap] || '#0ea5e9';
     const label = jenjang === 'SMK' ? 'SMA/SMK' : jenjang;
     const totalLab = rows.reduce((n, j) => n + labCount(j), 0);
@@ -232,13 +247,14 @@
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-2.5">
         <div class="flex items-center gap-2.5">
           <span class="px-2.5 py-1 rounded-md font-mono text-[11px] font-bold uppercase tracking-wider" style="background:${c}1f;color:${c}">${esc(label)} • TAHAP ${tahap}</span>
-          ${info ? `<h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono flex items-center gap-2"><i class="${info.ikon}" style="color:${c}"></i>${esc(info.nama)}</h2>` : ''}
+          ${info ? `<h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono flex items-center gap-2"><i class="${esc(info.ikon || IKON_DEFAULT)}" style="color:${c}"></i>${esc(info.nama)}</h2>` : ''}
         </div>
         <span class="text-xs font-mono text-slate-500 dark:text-slate-400">${rows.length} Modul${totalLab ? ` • ${totalLab} Code Lab` : ''}${info && info.meta ? ` • ${esc(info.meta)}` : ''}</span>
       </div>`;
   }
 
   function render() {
+    renderTahap();
     renderStats();
     renderFilter();
     const q = query.trim().toLowerCase();
@@ -284,6 +300,7 @@
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
           <span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${m.tes ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/40' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40'}">${m.tes ? 'Mini Test' : 'Tersedia'}</span>
+          <button data-emat="${esc(j.id)}|${esc(m.id)}" class="text-sky-600 px-1 opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Edit materi ${esc(m.judul)}" title="Edit materi"><i class="fa-solid fa-pen"></i></button>
           <button data-delmat="${esc(j.id)}|${esc(m.id)}" class="text-rose-500 px-1 opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Hapus materi ${esc(m.judul)}"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>`).join('')
@@ -297,16 +314,163 @@
     $('#modalPreview').classList.remove('hidden');
   }
 
+
+  // ---------- PEMILIH IKON (gambar, tanpa hafal kode) ----------
+  const IKON_LIST = [
+    ['fa-solid fa-cube', 'Kubus 3D', '3d kubus roblox blok'],
+    ['fa-solid fa-gamepad', 'Game', 'game permainan main'],
+    ['fa-solid fa-dice', 'Dadu', 'dadu acak game'],
+    ['fa-solid fa-puzzle-piece', 'Puzzle', 'puzzle teka-teki kerapian'],
+    ['fa-solid fa-chess', 'Catur', 'catur strategi'],
+    ['fa-solid fa-ghost', 'Hantu', 'hantu musuh game'],
+    ['fa-solid fa-code', 'Kode', 'kode coding program'],
+    ['fa-solid fa-laptop-code', 'Laptop Kode', 'laptop komputer coding'],
+    ['fa-solid fa-terminal', 'Terminal', 'terminal command baris perintah'],
+    ['fa-solid fa-file-code', 'File Kode', 'file kode dokumen'],
+    ['fa-solid fa-bug', 'Bug', 'bug error debug'],
+    ['fa-solid fa-keyboard', 'Keyboard', 'keyboard ketik'],
+    ['fa-brands fa-python', 'Python', 'python ular'],
+    ['fa-brands fa-html5', 'HTML5', 'html web halaman'],
+    ['fa-brands fa-css3-alt', 'CSS3', 'css desain gaya'],
+    ['fa-brands fa-js', 'JavaScript', 'javascript js'],
+    ['fa-brands fa-java', 'Java', 'java'],
+    ['fa-brands fa-php', 'PHP', 'php'],
+    ['fa-brands fa-react', 'React', 'react'],
+    ['fa-brands fa-node-js', 'Node.js', 'node server'],
+    ['fa-brands fa-github', 'GitHub', 'github git'],
+    ['fa-brands fa-git-alt', 'Git', 'git versi'],
+    ['fa-brands fa-android', 'Android', 'android aplikasi hp'],
+    ['fa-solid fa-globe', 'Website', 'website web internet dunia'],
+    ['fa-solid fa-earth-asia', 'Dunia', 'dunia bumi world'],
+    ['fa-solid fa-mobile-screen-button', 'Ponsel', 'hp ponsel mobile responsif'],
+    ['fa-solid fa-desktop', 'Komputer', 'komputer desktop layar'],
+    ['fa-solid fa-server', 'Server', 'server backend'],
+    ['fa-solid fa-cloud', 'Awan', 'awan cloud'],
+    ['fa-solid fa-wifi', 'Internet', 'wifi internet jaringan'],
+    ['fa-solid fa-database', 'Database', 'database data penyimpanan'],
+    ['fa-solid fa-box', 'Kotak', 'kotak struktur data'],
+    ['fa-solid fa-cubes', 'Tumpukan Kubus', 'kubus oop objek'],
+    ['fa-solid fa-sitemap', 'Struktur', 'struktur bagan sitemap'],
+    ['fa-solid fa-diagram-project', 'Diagram', 'diagram alur proyek'],
+    ['fa-solid fa-layer-group', 'Lapisan', 'lapisan layer tahap'],
+    ['fa-solid fa-stairs', 'Tangga', 'tangga tahap tingkat'],
+    ['fa-solid fa-repeat', 'Ulangi', 'ulang loop rekursi'],
+    ['fa-solid fa-bolt', 'Petir', 'petir cepat javascript'],
+    ['fa-solid fa-gears', 'Roda Gigi', 'mesin pengaturan gear'],
+    ['fa-solid fa-wrench', 'Kunci Inggris', 'perbaiki alat'],
+    ['fa-solid fa-microchip', 'Chip', 'chip prosesor elektronik'],
+    ['fa-solid fa-robot', 'Robot', 'robot ai mesin'],
+    ['fa-solid fa-brain', 'Otak', 'otak ai pikir'],
+    ['fa-solid fa-atom', 'Atom', 'atom fisika sains'],
+    ['fa-solid fa-flask', 'Labu Sains', 'sains lab percobaan'],
+    ['fa-solid fa-chart-line', 'Grafik Garis', 'grafik statistik data'],
+    ['fa-solid fa-chart-pie', 'Grafik Pie', 'grafik pie visualisasi'],
+    ['fa-solid fa-magnifying-glass', 'Cari', 'cari pencarian'],
+    ['fa-solid fa-magnifying-glass-chart', 'Analisis Data', 'analisis data cari grafik'],
+    ['fa-solid fa-calculator', 'Kalkulator', 'hitung matematika'],
+    ['fa-solid fa-shield-halved', 'Perisai', 'keamanan privasi etika'],
+    ['fa-solid fa-lock', 'Gembok', 'kunci keamanan'],
+    ['fa-solid fa-scale-balanced', 'Timbangan', 'adil etika bertanggung jawab'],
+    ['fa-solid fa-palette', 'Palet Warna', 'warna seni desain'],
+    ['fa-solid fa-paintbrush', 'Kuas', 'kuas lukis seni'],
+    ['fa-solid fa-pen', 'Pena', 'pena tulis'],
+    ['fa-solid fa-image', 'Gambar', 'gambar foto'],
+    ['fa-solid fa-camera', 'Kamera', 'kamera foto'],
+    ['fa-solid fa-film', 'Film', 'film animasi video'],
+    ['fa-solid fa-tv', 'Televisi', 'tv animasi tayangan'],
+    ['fa-solid fa-music', 'Musik', 'musik nada'],
+    ['fa-solid fa-volume-high', 'Suara', 'suara audio volume'],
+    ['fa-solid fa-headphones', 'Headphone', 'headphone audio'],
+    ['fa-solid fa-person-running', 'Berlari', 'karakter lari gerak'],
+    ['fa-solid fa-gauge-high', 'Kecepatan', 'performa cepat optimasi'],
+    ['fa-solid fa-house', 'Rumah', 'rumah desain'],
+    ['fa-solid fa-hands', 'Tangan', 'tangan memahat kreatif'],
+    ['fa-solid fa-seedling', 'Tunas', 'tunas dasar pemula basic'],
+    ['fa-solid fa-compass', 'Kompas', 'kompas jelajah explore'],
+    ['fa-solid fa-map', 'Peta', 'peta rute'],
+    ['fa-solid fa-route', 'Rute', 'rute jalur'],
+    ['fa-solid fa-flag', 'Bendera', 'bendera target'],
+    ['fa-solid fa-rocket', 'Roket', 'roket peluncuran proyek'],
+    ['fa-solid fa-lightbulb', 'Lampu Ide', 'ide lampu kreatif'],
+    ['fa-solid fa-star', 'Bintang', 'bintang favorit poin'],
+    ['fa-solid fa-heart', 'Hati', 'hati suka'],
+    ['fa-solid fa-fire', 'Api', 'api semangat'],
+    ['fa-solid fa-trophy', 'Piala', 'piala juara capstone'],
+    ['fa-solid fa-medal', 'Medali', 'medali lencana'],
+    ['fa-solid fa-award', 'Penghargaan', 'penghargaan sertifikat'],
+    ['fa-solid fa-crown', 'Mahkota', 'mahkota raja'],
+    ['fa-solid fa-graduation-cap', 'Toga', 'toga lulus wisuda'],
+    ['fa-solid fa-book', 'Buku', 'buku materi'],
+    ['fa-solid fa-book-open', 'Buku Terbuka', 'buku baca belajar'],
+    ['fa-solid fa-note-sticky', 'Catatan', 'catatan memo'],
+    ['fa-solid fa-floppy-disk', 'Simpan', 'simpan disket file'],
+    ['fa-solid fa-folder-open', 'Folder', 'folder berkas'],
+    ['fa-solid fa-list-check', 'Daftar Tugas', 'tugas checklist'],
+    ['fa-solid fa-clipboard-check', 'Papan Ceklis', 'ceklis tugas selesai'],
+    ['fa-solid fa-users', 'Tim', 'tim kelompok kolaborasi'],
+    ['fa-solid fa-chalkboard-user', 'Guru', 'guru mengajar kelas'],
+    ['fa-solid fa-shapes', 'Bentuk', 'bentuk geometri'],
+    ['fa-solid fa-infinity', 'Tak Hingga', 'tak hingga loop'],
+    ['fa-solid fa-cat', 'Kucing', 'kucing hewan'],
+    ['fa-solid fa-dragon', 'Naga', 'naga fantasi'],
+  ];
+  let ikonForm = null;
+  function syncIkon(f) {
+    const box = f.querySelector('[data-ikon-picker]'); if (!box) return;
+    const v = (f.ikon.value || '').trim();
+    const found = IKON_LIST.find((i) => i[0] === v);
+    box.querySelector('[data-ikon-preview]').className = v || IKON_DEFAULT;
+    box.querySelector('[data-ikon-label]').textContent = v ? (found ? found[1] : v) : 'Bawaan (kubus)';
+  }
+  function renderIkon(q = '') {
+    const s = q.trim().toLowerCase(), cur = ikonForm ? ikonForm.ikon.value.trim() : '';
+    const list = IKON_LIST.filter((i) => !s || (i[1] + ' ' + i[2]).toLowerCase().includes(s));
+    $('#ikonGrid').innerHTML = list.map((i) => `<button type="button" data-ikon-pick="${esc(i[0])}" title="${esc(i[1])}" class="flex flex-col items-center justify-center gap-1 p-2 rounded-xl border text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 ${i[0] === cur ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300' : 'border-slate-200 dark:border-slate-700'}"><i class="${esc(i[0])} text-lg"></i><span class="text-[10px] leading-tight w-full truncate text-center">${esc(i[1])}</span></button>`).join('')
+      || '<div class="col-span-full text-center text-xs text-slate-500 py-6">Ikon tidak ditemukan. Coba kata lain, atau ketik kode di bawah.</div>';
+  }
+  function openIkon(f) {
+    ikonForm = f; $('#ikonSearch').value = ''; $('#ikonManual').value = '';
+    renderIkon(); toggleModal('modalIkon'); setTimeout(() => $('#ikonSearch').focus(), 50);
+  }
+  function pickIkon(cls) {
+    if (!ikonForm) return;
+    ikonForm.ikon.value = cls; syncIkon(ikonForm); toggleModal('modalIkon');
+  }
+  $('#ikonSearch').addEventListener('input', (e) => renderIkon(e.target.value));
+  const pakaiManual = () => {
+    const v = $('#ikonManual').value.trim();
+    if (!/^[a-z0-9 -]+$/i.test(v)) return showToast('Kode ikon tidak valid. Contoh: fa-solid fa-dragon');
+    pickIkon(v);
+  };
+  $('#ikonManualBtn').addEventListener('click', pakaiManual);
+  $('#ikonManual').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); pakaiManual(); } });
+
   // ---------- JALUR: CREATE / UPDATE / DELETE ----------
+  // Pilihan Tahap di form jalur diambil dari daftar tahap menurut jenjang yang dipilih
+  function fillTahapSelect(selected) {
+    const f = $('#jalurForm'), jn = f.jenjang.value;
+    const nos = new Set(tahapList.filter((t) => t.jenjang === jn).map((t) => t.no));
+    if (selected) nos.add(Number(selected));
+    const arr = [...nos].sort((a, b) => a - b);
+    f.tahap.innerHTML = arr.length
+      ? arr.map((n) => { const t = tahapInfo(jn, n); return `<option value="${n}">${n}${t ? ' · ' + esc(t.nama) : ''}</option>`; }).join('')
+      : '<option value="">Belum ada tahap (buat di Kelola Tahap)</option>';
+    if (selected) f.tahap.value = String(selected);
+  }
+  $('#jalurForm').jenjang.addEventListener('change', () => fillTahapSelect());
+
   function openJalur(id) {
     const f = $('#jalurForm'); f.reset();
+    f.ikon.value = ''; // input hidden tidak ikut reset
     const j = jalur.find((x) => x.id === id);
     f.jid.value = j ? j.id : '';
     if (j) {
-      ['nama', 'jenjang', 'tahap', 'lencana', 'warna', 'meta', 'ringkas', 'proyek', 'durasi', 'ikon', 'lab'].forEach((k) => (f[k].value = j[k] ?? ''));
+      ['nama', 'jenjang', 'lencana', 'warna', 'meta', 'ringkas', 'proyek', 'durasi', 'ikon', 'lab'].forEach((k) => (f[k].value = j[k] ?? ''));
       f.tags.value = (j.tags || []).join(', ');
       f.capstone.checked = !!j.capstone;
     }
+    fillTahapSelect(j ? tahapOf(j) : null);
+    syncIkon(f);
     $('#jalurModalTitle').lastChild.textContent = j ? ' Edit Jalur Belajar' : ' Tambah Jalur Belajar';
     toggleModal('modalJalur');
   }
@@ -314,6 +478,7 @@
   $('#jalurForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = e.target;
+    if (!f.tahap.value) return showToast('Buat tahap dulu di menu Konfigurasi > Kelola Tahap.');
     const ikon = f.ikon.value.trim();
     const data = {
       jenjang: f.jenjang.value, tahap: Number(f.tahap.value), nama: f.nama.value.trim(), warna: f.warna.value,
@@ -337,6 +502,97 @@
     showToast(existing ? 'Jalur belajar diperbarui.' : 'Jalur belajar baru ditambahkan.');
   });
 
+
+  // ---------- TAHAP: CREATE / UPDATE / DELETE (Konfigurasi > Kelola Tahap) ----------
+  function renderTahap() {
+    const box = $('#tahapList'); if (!box) return;
+    box.innerHTML = Object.entries(JENJANG).sort((a, b) => a[1].urut - b[1].urut).map(([jn, jm]) => {
+      const rows = tahapList.filter((t) => t.jenjang === jn).sort((a, b) => a.no - b.no);
+      const items = rows.map((t) => {
+        const c = hex(t.warna);
+        const n = jalur.filter((j) => j.jenjang === jn && tahapOf(j) === t.no).length;
+        return `<div class="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-card">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${c}1f;color:${c}"><i class="${esc(t.ikon || IKON_DEFAULT)}"></i></span>
+            <div class="min-w-0">
+              <div class="text-[11px] font-mono font-bold uppercase tracking-wider" style="color:${c}">Tahap ${t.no}</div>
+              <div class="text-sm font-bold text-slate-900 dark:text-white truncate">${esc(t.nama)}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">${n} jalur${t.meta ? ' • ' + esc(t.meta) : ''}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button data-tedit="${esc(tahapKey(t))}" title="Edit" class="p-2 rounded-lg text-slate-500 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-solid fa-pen"></i></button>
+            <button data-tdel="${esc(tahapKey(t))}" title="Hapus" class="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+      return `<section class="space-y-3">
+        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:${jm.dot}"></span>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white">${esc(jm.label)}</h2>
+          <span class="text-xs font-mono text-slate-400">${rows.length} tahap</span></div>
+        ${items ? `<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">${items}</div>` : '<div class="text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-4">Belum ada tahap untuk jenjang ini.</div>'}
+      </section>`;
+    }).join('');
+  }
+
+  function openTahap(key) {
+    const f = $('#tahapForm'); f.reset();
+    f.ikon.value = ''; // input hidden tidak ikut reset
+    const t = key ? tahapList.find((x) => tahapKey(x) === key) : null;
+    f.tid.value = t ? key : '';
+    f.jenjang.disabled = !!t; // jenjang tidak diubah saat edit
+    if (t) {
+      f.jenjang.value = t.jenjang; f.no.value = t.no; f.nama.value = t.nama;
+      f.ikon.value = t.ikon || ''; f.warna.value = hex(t.warna); f.meta.value = t.meta || '';
+    } else {
+      f.no.value = nextTahapNo(f.jenjang.value);
+      f.warna.value = TAHAP_WARNA[f.no.value];
+    }
+    syncIkon(f);
+    $('#tahapModalTitle').lastChild.textContent = t ? ' Edit Tahap' : ' Tambah Tahap';
+    toggleModal('modalTahap');
+  }
+  $('#tahapForm').jenjang.addEventListener('change', (e) => {
+    const f = $('#tahapForm');
+    if (!f.tid.value) { f.no.value = nextTahapNo(e.target.value); f.warna.value = TAHAP_WARNA[f.no.value]; }
+  });
+
+  $('#tahapForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const ikon = f.ikon.value.trim();
+    const oldKey = f.tid.value;
+    const jenjang = oldKey ? oldKey.split('|')[0] : f.jenjang.value;
+    const t = {
+      jenjang, no: Math.min(99, Math.max(1, Math.round(Number(f.no.value)) || 1)), nama: f.nama.value.trim(),
+      ikon: /^[a-z0-9 -]+$/i.test(ikon) ? ikon : IKON_DEFAULT, warna: hex(f.warna.value), meta: f.meta.value.trim(),
+    };
+    if (!t.nama) return;
+    const newKey = tahapKey(t);
+    if (newKey !== oldKey && tahapList.some((x) => tahapKey(x) === newKey)) return showToast(`Tahap ${t.no} untuk jenjang itu sudah ada.`);
+    if (oldKey) {
+      const old = tahapList.find((x) => tahapKey(x) === oldKey);
+      if (old && old.no !== t.no) { // nomor berubah: jalur yang memakai tahap ini ikut pindah
+        jalur.forEach((j) => { if (j.jenjang === jenjang && tahapOf(j) === old.no) j.tahap = t.no; });
+        await api.saveAll(jalur);
+      }
+      tahapList = tahapList.map((x) => (tahapKey(x) === oldKey ? t : x));
+    } else tahapList.push(t);
+    await api.saveTahap(tahapList);
+    toggleModal('modalTahap'); render();
+    showToast(oldKey ? 'Tahap diperbarui.' : 'Tahap baru ditambahkan.');
+  });
+
+  async function removeTahap(key) {
+    const t = tahapList.find((x) => tahapKey(x) === key); if (!t) return;
+    const n = jalur.filter((j) => j.jenjang === t.jenjang && tahapOf(j) === t.no).length;
+    if (n) return showToast(`Tahap ${t.no} masih dipakai ${n} jalur. Pindahkan atau hapus jalurnya dulu.`);
+    if (!confirm(`Hapus Tahap ${t.no} "${t.nama}"?`)) return;
+    tahapList = tahapList.filter((x) => tahapKey(x) !== key);
+    await api.saveTahap(tahapList); render();
+    showToast('Tahap dihapus.');
+  }
+
   async function removeJalur(id) {
     const j = jalur.find((x) => x.id === id);
     if (!j || !confirm(`Hapus jalur "${j.nama}"? Materi di dalamnya ikut terhapus.`)) return;
@@ -355,27 +611,35 @@
     if (cur && jalur.some((j) => j.id === cur)) sel.value = cur;
   }
 
-  function openMateri(preselect) {
-    fillMateriSelect();
-    if (preselect) $('#courseForm select').value = preselect;
-    toggleModal('modalAddCourse');
-  }
+  const jenjangLabel = (j) => (j.jenjang === 'SMK' ? 'SMA/SMK' : j.jenjang);
 
-  window.handleCourseSubmit = async function (e) {
-    e.preventDefault();
-    const f = e.target;
-    const j = jalur.find((x) => x.id === f.querySelector('select').value);
-    if (!j) return showToast('Pilih atau buat jalur belajar dulu.');
-    const judul = f.querySelector('input[type=text]').value.trim();
-    j.materi.push({ id: Date.now().toString(36), judul, tipe: f.querySelectorAll('select')[1].value, boilerplate: f.querySelector('textarea').value });
-    await api.saveAll(jalur);
-    toggleModal('modalAddCourse'); f.reset(); render();
-    showToast('Materi ditambahkan ke ' + j.nama + '.');
-  };
+  // Tambah materi baru / edit materi yang sudah ada (editor WYSIWYG: static/editor.js)
+  function openMateri(preselect, materiId) {
+    if (!jalur.length) return showToast('Buat jalur belajar dulu.');
+    const first = jalur.find((x) => x.id === preselect) || jalur[0];
+    const cur = materiId ? first.materi.find((m) => m.id === materiId) : null;
+    DCEditor.open({
+      jalur: first.id,
+      data: cur || null,
+      jalurOptions: jalur.map((j) => ({ value: j.id, label: `${j.nama} (${jenjangLabel(j)} · Tahap ${tahapOf(j)})` })),
+      onSave: async (d) => {
+        const target = jalur.find((x) => x.id === d.jalur);
+        if (!target) return;
+        const rec = { judul: d.judul, tipe: d.tipe, badge: d.badge, subjudul: d.subjudul, html: d.html };
+        if (cur) {
+          first.materi = first.materi.filter((m) => m.id !== cur.id);
+          target.materi.push(Object.assign(cur, rec));
+        } else target.materi.push({ id: Date.now().toString(36), durasi: '', tes: false, ...rec });
+        await api.saveAll(jalur); render();
+        if (typeof renderPreview === 'function' && !$('#modalPreview').classList.contains('hidden')) renderPreview();
+        showToast(cur ? 'Materi diperbarui.' : 'Materi ditambahkan ke ' + target.nama + '.');
+      },
+    });
+  }
 
   // ---------- EXPORT ----------
   function exportKurikulum() {
-    const blob = new Blob([JSON.stringify(jalur, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ tahap: tahapList, jalur }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'kurikulum-dieng-cyber.json';
@@ -390,6 +654,7 @@
   function showView(name) {
     $('#view-dashboard').classList.toggle('hidden', name !== 'dashboard');
     $('#view-kurikulum').classList.toggle('hidden', name !== 'kurikulum');
+    $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
     document.querySelectorAll('[data-view]').forEach((a) => {
       const active = a.dataset.view === name;
       a.classList.remove(...(active ? OFF : ON)); a.classList.add(...(active ? ON : OFF));
@@ -400,10 +665,13 @@
 
   document.addEventListener('click', (e) => {
     const v = e.target.closest('[data-view]'); if (v) { e.preventDefault(); return showView(v.dataset.view); }
+    const io = e.target.closest('[data-ikon-open]'); if (io) return openIkon(io.closest('form'));
+    const ip = e.target.closest('[data-ikon-pick]'); if (ip) return pickIkon(ip.dataset.ikonPick);
     const a = e.target.closest('[data-act]');
     if (a) {
       const act = a.dataset.act;
       if (act === 'new-jalur') return openJalur();
+      if (act === 'new-tahap') return openTahap();
       if (act === 'export') return exportKurikulum();
       if (act === 'new-materi') {
         const inPreview = !$('#modalPreview').classList.contains('hidden');
@@ -412,8 +680,12 @@
       }
     }
     const pv = e.target.closest('[data-prev]'); if (pv) return openPreview(pv.dataset.prev);
+    const te = e.target.closest('[data-tedit]'); if (te) return openTahap(te.dataset.tedit);
+    const td = e.target.closest('[data-tdel]'); if (td) return removeTahap(td.dataset.tdel);
     const ed = e.target.closest('[data-edit]'); if (ed) return openJalur(ed.dataset.edit);
     const dl = e.target.closest('[data-del]'); if (dl) return removeJalur(dl.dataset.del);
+    const em = e.target.closest('[data-emat]');
+    if (em) { const [jid, mid] = em.dataset.emat.split('|'); return openMateri(jid, mid); }
     const dm = e.target.closest('[data-delmat]');
     if (dm) {
       const [jid, mid] = dm.dataset.delmat.split('|');
@@ -428,5 +700,9 @@
   $('#kurSort').addEventListener('change', (e) => { sortBy = e.target.value; render(); });
 
   // ---------- INIT ----------
-  api.list().then((list) => { jalur = list; render(); showView(location.hash === '#kurikulum' ? 'kurikulum' : 'dashboard'); });
+  Promise.all([api.list(), api.listTahap()]).then(([list, tl]) => {
+    jalur = list; tahapList = tl; render();
+    const h = location.hash.slice(1);
+    showView(['kurikulum', 'tahap'].includes(h) ? h : 'dashboard');
+  });
 })();
