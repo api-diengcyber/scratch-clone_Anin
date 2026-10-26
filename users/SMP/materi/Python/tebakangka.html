@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
+  <title>Task 2: Tebak Angka - Python Dasar SMP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --accent: #f72585;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: var(--dark); line-height: 1.7; padding: 30px 15px; }
+    .container { max-width: 860px; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid var(--border); }
+    .header { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: #ffffff; padding: 35px; text-align: center; }
+    .badge { display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 6px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .content { padding: 35px; }
+    .section-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin: 28px 0 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .card { background: var(--gray-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .code-block { background: #0f172a; color: #f8fafc; padding: 16px 20px; border-radius: 12px; font-family: 'Fira Code', monospace; font-size: 0.92rem; overflow-x: auto; margin: 14px 0; border: 1px solid #334155; }
+    .code-comment { color: #94a3b8; }
+    .code-keyword { color: #f472b6; font-weight: 600; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    table { width: 100%; border-collapse: collapse; border-radius: var(--radius); overflow: hidden; margin: 15px 0; background: #fff; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+    th { background: #e2e8f0; color: var(--dark); font-weight: 700; }
+    .steps-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+    .step-item { display: flex; align-items: flex-start; gap: 14px; background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .step-num { width: 36px; height: 36px; background: var(--primary); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+    .playground { background: #1e1b4b; color: #e0e7ff; border-radius: var(--radius); padding: 22px; margin-top: 25px; }
+    .playground h3 { color: #ffffff; margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; color: #a5b4fc; }
+    .input-group input { width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid #4338ca; background: #312e81; color: #ffffff; font-family: inherit; margin-bottom: 12px; }
+    .btn-run { background: linear-gradient(135deg, #f72585, #7209b7); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .output-screen { margin-top: 15px; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; font-family: 'Fira Code', monospace; color: #38bdf8; font-size: 0.9rem; }
+  </style>
+  <script src="/shared/js/auth-guard.js?v=20261019"></script>
+</head>
+<body>
+<a id="btnKembali" href="/belajar-smp.html?p=py2" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
+  <div class="container">
+    <div class="header">
+      <span class="badge">TASK 2 • OPERATOR PERBANDINGAN</span>
+      <h1>Tebak Angka</h1>
+      <p>Menguji kesamaan dan perbandingan angka menggunakan operator logika</p>
+    </div>
+
+    <div class="content"><h2 class="section-title">Materi Lengkap: Dasar Pemrograman</h2>
+<div class="card">
+<p><strong>Konsep dasar.</strong> Python adalah bahasa pemrograman yang digunakan untuk memberi komputer instruksi secara terstruktur dan mudah dibaca. Pada materi <strong>Tebak Angka</strong>, fokus utama kita adalah <strong>dasar pemrograman</strong>. Tujuannya bukan menghafal langkah, tetapi memahami alasan di balik setiap keputusan sehingga kamu dapat menerapkannya pada masalah yang berbeda.</p>
+<p><strong>Cara kerja.</strong> Program menerima data, memprosesnya berdasarkan aturan, lalu menghasilkan keluaran. Variabel menyimpan nilai, tipe data menentukan jenis nilai, operator melakukan operasi, dan fungsi membantu membagi program menjadi bagian yang dapat digunakan kembali.</p>
+</div>
+<h2 class="section-title">Contoh Sederhana</h2>
+<div class="card"><p>nama = input(&quot;Nama: &quot;) lalu print(&quot;Halo&quot;, nama) menunjukkan alur input → proses sederhana → output.</p><div class="highlight-box"><strong>Coba pikirkan:</strong> jika input, ukuran data, kondisi, atau lingkungan diubah, bagian mana dari proses yang ikut berubah? Sebelum menjalankan task, buat prediksi terlebih dahulu.</div></div>
+<h2 class="section-title">Istilah Penting</h2>
+<div class="card"><p><strong>variabel, tipe data, input, output, operator, fungsi, algoritma</strong></p><p>Pahami istilah tersebut sebagai konsep yang saling berhubungan, bukan daftar hafalan. Saat membaca task, coba tunjukkan istilah mana yang sedang digunakan dan apa buktinya dari hasil program/scene.</p></div>
+<h2 class="section-title">Kapan Konsep Ini Digunakan?</h2>
+<div class="card"><p>Gunakan konsep dasar ini sebagai fondasi hampir semua program Python.</p><p>Pemilihan teknik selalu bergantung pada masalah. Tidak ada satu metode yang paling benar untuk semua situasi; bandingkan kebutuhan, batasan, data, dan hasil yang diinginkan.</p></div>
+<h2 class="section-title">Hal yang Perlu Diperhatikan</h2>
+<div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Perhatikan tipe data, nilai batas, urutan operasi, nama variabel yang jelas, dan hasil yang benar untuk input berbeda.</li><li>Uji lebih dari satu kondisi, termasuk kasus normal dan kasus batas.</li><li>Amati hasil sebelum mengubah kode/scene agar perubahanmu memiliki alasan.</li><li>Bedakan masalah pada konsep, data/input, dan implementasi.</li></ul></div>
+<h2 class="section-title">Kesalahan Umum</h2>
+<div class="card"><p>Kesalahan umum: menyalin kode tanpa memahami alurnya, salah indentasi, salah tipe data, kondisi tidak lengkap, indeks di luar batas, atau menganggap satu contoh selalu mewakili semua kasus.</p><p>Jika hasil task berbeda dari prediksi, jangan langsung mengganti kode secara acak. Cari langkah pertama ketika perilaku mulai berbeda, lalu jelaskan penyebabnya.</p></div>
+<h2 class="section-title">Cara Belajar Sebelum Task</h2>
+<div class="card"><ol style="margin:8px 0 0 20px;line-height:1.7;"><li>Jelaskan konsep dengan kata-katamu sendiri.</li><li>Perhatikan contoh dan prediksi hasilnya sebelum dijalankan.</li><li>Kerjakan task tanpa menyalin jawaban langkah demi langkah.</li><li>Ubah satu bagian dan amati dampaknya.</li><li>Catat alasan solusi yang kamu pilih.</li></ol></div>
+<h2 class="section-title">1. Simbol Perbandingan pada Python</h2>
+      <div class="card">
+        <p>Untuk membandingkan dua nilai, kita menggunakan <strong>Operator Komparasi</strong>:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Operator</th>
+              <th>Arti</th>
+              <th>Contoh Benar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>==</code></td><td>Sama persis (dua tanda sama dengan)</td><td><code>7 == 7</code> (True)</td></tr>
+            <tr><td><code>!=</code></td><td>Tidak sama dengan</td><td><code>5 != 2</code> (True)</td></tr>
+            <tr><td><code>&gt;</code></td><td>Lebih besar dari</td><td><code>10 &gt; 3</code> (True)</td></tr>
+            <tr><td><code>&lt;</code></td><td>Lebih kecil dari</td><td><code>4 &lt; 8</code> (True)</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.9rem; color:#64748b; margin-top:8px;"><em>Catatan: Tanda <code>=</code> satu kali untuk mengisi variabel, sedangkan <code>==</code> dua kali untuk membandingkan!</em></p>
+      </div>
+
+      <h2 class="section-title">2. Eksplorasi Praktik</h2>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div>
+            <h4>Contoh 1: Tentukan Angka Rahasia</h4>
+            <p>Simpan angka kunci rahasia di dalam variabel <code>rahasia</code>.</p>
+            <div class="code-block">rahasia = <span class="code-num">7</span></div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div>
+            <h4>Contoh 2: Ambil Tebakan Pemain</h4>
+            <p>Minta pemain memasukkan tebakannya dan ubah ke tipe integer.</p>
+            <div class="code-block">tebakan = <span class="code-func">int</span>(<span class="code-func">input</span>(<span class="code-str">"Tebak angka rahasia (1-10): "</span>))</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div>
+            <h4>Contoh 3: Periksa dengan Operator ==</h4>
+            <p>Bandingkan apakah tebakan sama dengan angka rahasia.</p>
+            <div class="code-block"><span class="code-keyword">if</span> tebakan == rahasia:
+    <span class="code-func">print</span>(<span class="code-str">"Keren banget! Tebakanmu BENAR 🎯"</span>)
+<span class="code-keyword">else</span>:
+    <span class="code-func">print</span>(<span class="code-str">"Yahh salah! Coba tebak lagi ya ❌"</span>)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playground">
+        <h3>Simulasi Langsung Task 2 (Angka Rahasia = 7)</h3>
+        <div class="input-group">
+          <label for="t2_tebak">Tebak Angka (1-10):</label>
+          <input type="number" id="t2_tebak" value="5">
+        </div>
+        <button class="btn-run" id="btnRun" type="button">Kirim Tebakan</button>
+        <div class="output-screen" id="t2_res">> Tebak angkanya dan lihat reaksinya...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function ujiTebakan() {
+      const rahasia = 7;
+      const t = parseInt(document.getElementById('t2_tebak').value);
+      let hasil = "";
+      if (t === rahasia) {
+        hasil = "Keren banget! Tebakanmu BENAR 🎯 (7 == 7)";
+      } else {
+        hasil = `Yahh tebakanmu ${t} masih SALAH! Coba lagi ya ❌`;
+      }
+      document.getElementById('t2_res').innerHTML = `> Evaluasi: ${hasil}`;
+    }
+    document.getElementById('btnRun').addEventListener('click', ujiTebakan);
+  </script>
+<script src="/shared/js/materi-back.js?v=20261019"></script>
+<script src="/shared/js/materi-gate.js?v=20261019"></script>
+</body>
+</html>

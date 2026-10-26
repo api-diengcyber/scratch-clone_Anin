@@ -1,0 +1,3635 @@
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  /* Zoom halaman (pinch) tetap boleh untuk pengguna yang butuh. Hanya zoom dobel-ketuk yang dimatikan.
+     Area editor (.script-area, blok, palet) punya touch-action sendiri supaya seret blok tidak ikut zoom / geser halaman. */
+  touch-action: manipulation;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #e9f1f7;
+  color: #575e75;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   MODAL LOGIN
+   ========================================================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.6);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+
+  z-index: 9999;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.login-card {
+  background: white;
+
+  padding: 30px;
+
+  border-radius: 12px;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  width: 360px;
+  max-width: 100%;
+
+  text-align: center;
+}
+
+.login-card h2 {
+  margin-bottom: 8px;
+  color: #4c97ff;
+}
+
+.login-card p {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  margin-bottom: 5px;
+}
+
+.input-group input {
+  width: 100%;
+
+  padding: 10px;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  font-size: 14px;
+
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: #4c97ff;
+}
+
+.error-msg {
+  color: #ff4c4c;
+
+  font-size: 12px;
+
+  margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn-primary {
+  width: 100%;
+
+  padding: 10px;
+
+  background: #4c97ff;
+  color: white;
+
+  border: none;
+  border-radius: 6px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.btn-secondary {
+  padding: 6px 12px;
+
+  background: #e9f1f7;
+
+  border: 1px solid #d0dbe5;
+
+  border-radius: 4px;
+
+  color: #575e75;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+}
+
+.btn-icon {
+  border: none;
+  background: transparent;
+
+  font-size: 18px;
+
+  cursor: pointer;
+
+  padding: 4px 8px;
+
+  border-radius: 4px;
+
+  flex-shrink: 0;
+}
+
+.btn-green:hover {
+  background: #e2f8e2;
+}
+
+.btn-red:hover {
+  background: #fde8e8;
+}
+
+.btn-link {
+  background: none;
+
+  border: none;
+
+  color: #ff4c4c;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+  margin-left: 10px;
+}
+
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.navbar {
+  min-height: 50px;
+  height: 50px;
+
+  background: #4c97ff;
+  color: white;
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 16px;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  z-index: 100;
+
+  flex-shrink: 0;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 18px;
+  margin: 0;
+
+  white-space: nowrap;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+}
+
+.nav-right {
+  flex-shrink: 0;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+
+  background: rgba(255, 255, 255, 0.2);
+
+  padding: 4px 12px;
+
+  border-radius: 16px;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   MAIN APP
+   ========================================================= */
+
+.app-container {
+  display: flex;
+
+  flex: 1;
+
+  min-height: 0;
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   SIDEBAR KATEGORI
+   ========================================================= */
+
+.sidebar-categories {
+  width: 100px;
+
+  flex: 0 0 100px;
+
+  background: white;
+
+  border-right: 1px solid #d0dbe5;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding: 10px 0;
+
+  user-select: none;
+
+  overflow-y: auto;
+}
+
+.cat-item {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+
+  font-weight: bold;
+
+  color: #575e75;
+
+  cursor: pointer;
+
+  padding: 6px 0;
+
+  min-height: 50px;
+
+  flex-shrink: 0;
+}
+
+.cat-item:hover,
+.cat-item.active {
+  background: #e9f1f7;
+}
+
+.dot {
+  width: 18px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  margin-bottom: 4px;
+
+  flex-shrink: 0;
+}
+
+.dot-motion {
+  background: #4c97ff;
+}
+
+.dot-looks {
+  background: #9966ff;
+}
+
+.dot-sound {
+  background: #cf63cf;
+}
+
+.dot-events {
+  background: #ffbf00;
+}
+
+.dot-control {
+  background: #ffab19;
+}
+
+.dot-sensing {
+  background: #5cb1d6;
+}
+
+.dot-operators {
+  background: #59c059;
+}
+
+.dot-variables {
+  background: #ff8c1a;
+}
+
+.dot-myblocks {
+  background: #ff6680;
+}
+
+
+/* =========================================================
+   PALETTE
+   ========================================================= */
+
+.palette-panel {
+  width: 260px;
+
+  flex: 0 0 260px;
+
+  background: #f9fbfd;
+
+  border-right: 1px solid #d0dbe5;
+
+  padding: 12px;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  min-height: 0;
+}
+
+.category-header {
+  font-size: 12px;
+
+  font-weight: bold;
+
+  color: #888;
+
+  margin-top: 10px;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.workspace-panel {
+  flex: 1 1 auto;
+
+  min-width: 0;
+  min-height: 0;
+
+  background: #f0f4f8;
+
+  display: flex;
+  flex-direction: column;
+
+  border-right: 1px solid #d0dbe5;
+}
+
+.workspace-header {
+  padding: 8px 16px;
+
+  background: #e3ebf2;
+
+  border-bottom: 1px solid #d0dbe5;
+
+  font-size: 12px;
+
+  font-weight: bold;
+
+  color: #737d8c;
+
+  flex-shrink: 0;
+
+  user-select: none;
+}
+
+.workspace-hint {
+  color: #8b95a3;
+}
+
+
+/* =========================================================
+   SCRIPT AREA
+   ========================================================= */
+
+.script-area {
+  flex: 1;
+
+  position: relative;
+
+  overflow: auto;
+
+  min-height: 0;
+  min-width: 0;
+
+  /*
+    Penting:
+    area workspace tetap bisa scroll,
+    tetapi drag blok ditangani JS.
+  */
+  touch-action: pan-x pan-y;
+  cursor: default;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* =========================================================
+   WORKSPACE ZOOM CANVAS & CONTROLS
+   ========================================================= */
+
+.workspace-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  transform-origin: 0 0;
+}
+
+.workspace-zoom-controls {
+   position: absolute;
+   right: 14px;
+   bottom: 14px;
+   z-index: 5000;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 4px;
+   padding: 5px;
+   background: rgba(255, 255, 255, 0.94);
+   border: 1px solid #cfd8e3;
+   border-radius: 9px;
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+   user-select: none;
+   -webkit-user-select: none;
+ }
+
+.workspace-zoom-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #4b5563;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.workspace-zoom-btn:hover {
+  background: #f3f6fa;
+}
+
+.workspace-zoom-btn:active {
+  background: #e8eef5;
+  transform: scale(0.96);
+}
+
+.workspace-zoom-btn:focus-visible {
+  outline: 2px solid #4c97ff;
+  outline-offset: 1px;
+}
+
+/* =========================================================
+   WORKSPACE STACK CONTAINER
+   ========================================================= */
+
+.block-stack-container {
+  position: absolute;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  z-index: 10;
+
+  /*
+    Jangan gunakan native HTML5 drag.
+    Drag workspace ditangani Pointer Events.
+  */
+  draggable: false;
+
+  cursor: grab;
+
+  user-select: none;
+
+  -webkit-user-select: none;
+
+  -webkit-user-drag: none;
+
+  touch-action: none;
+}
+
+.block-stack-container:active {
+  cursor: grabbing;
+}
+
+.block-stack-container.dragging {
+  z-index: 1000;
+
+  cursor: grabbing;
+
+  filter: drop-shadow(
+    0 6px 10px rgba(0, 0, 0, 0.18)
+  );
+}
+
+
+/* =========================================================
+   BLOCK DI DALAM WORKSPACE
+   ========================================================= */
+
+.block-stack-container .scratch-block {
+  margin-bottom: -4px;
+
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.15);
+
+  /*
+    Jangan biarkan gesture blok dianggap
+    sebagai native browser gesture.
+  */
+  touch-action: none;
+}
+
+
+/*
+  Input tetap bisa disentuh/diedit
+*/
+.block-stack-container .block-input {
+  touch-action: manipulation;
+
+  cursor: text;
+
+  user-select: text;
+
+  -webkit-user-select: text;
+}
+
+
+/*
+  Dropdown tetap bisa diklik
+*/
+.block-stack-container .custom-dropdown,
+.block-stack-container .custom-dropdown-selected,
+.block-stack-container .custom-dropdown-option {
+  touch-action: manipulation;
+
+  cursor: pointer;
+}
+
+
+/*
+  Checkbox tetap bisa diklik
+*/
+.block-stack-container .block-checkbox {
+  touch-action: manipulation;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   SAAT DRAG
+   ========================================================= */
+
+.block-stack-container.is-dragging {
+  opacity: 0.92;
+
+  z-index: 9999;
+
+  cursor: grabbing;
+}
+
+.block-stack-container.is-dragging .scratch-block {
+  cursor: grabbing;
+}
+
+
+/* =========================================================
+   PALETTE BLOCK
+   ========================================================= */
+
+.palette-panel .scratch-block {
+  cursor: grab;
+
+  /*
+    Palette tetap dapat menggunakan drag & drop.
+  */
+  touch-action: none;
+}
+
+.palette-panel .scratch-block:active {
+  cursor: grabbing;
+}
+
+
+/* =========================================================
+   STAGE PANEL
+   ========================================================= */
+
+.stage-panel {
+  width: 500px;
+
+  flex: 0 0 500px;
+
+  background: white;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  padding: 10px;
+
+  gap: 10px;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+
+  min-height: 0;
+}
+
+.stage-wrapper {
+  position: relative;
+
+  border: 2px solid #d0dbe5;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  background: white;
+
+  width: 480px;
+  height: 360px;
+
+  flex-shrink: 0;
+}
+
+#stage {
+  touch-action: manipulation;   /* tap sprite tidak memicu zoom dobel-ketuk */
+  display: block;
+
+  width: 480px;
+  height: 360px;
+
+  background: #ffffff;
+
+  max-width: none;
+}
+
+.say-bubble {
+  position: absolute;
+
+  background: white;
+
+  border: 2px solid #575e75;
+
+  border-radius: 12px;
+
+  padding: 6px 12px;
+
+  font-size: 12px;
+
+  font-weight: bold;
+
+  display: none;
+
+  pointer-events: none;
+
+  z-index: 5;
+
+  max-width: 180px;
+
+  word-wrap: break-word;
+}
+
+.variable-monitor {
+  position: absolute;
+
+  top: 10px;
+  left: 10px;
+
+  background: rgba(255, 255, 255, 0.85);
+
+  border: 1px solid #ccc;
+
+  border-radius: 4px;
+
+  padding: 4px 8px;
+
+  font-size: 11px;
+
+  display: flex;
+
+  gap: 6px;
+
+  font-weight: bold;
+
+  z-index: 4;
+}
+
+.var-value {
+  background: #ff8c1a;
+
+  color: white;
+
+  padding: 1px 6px;
+
+  border-radius: 4px;
+}
+
+
+/* =========================================================
+   SPRITE CONTROLS
+   ========================================================= */
+
+.sprite-controls {
+  width: 100%;
+
+  background: #f9fbfd;
+
+  border: 1px solid #d0dbe5;
+
+  border-radius: 8px;
+
+  padding: 10px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  flex-shrink: 0;
+}
+
+.control-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  width: 100%;
+}
+
+.control-row label {
+  font-size: 11px;
+
+  font-weight: bold;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+.control-row input {
+  width: 100%;
+
+  min-width: 0;
+
+  padding: 4px;
+
+  border: 1px solid #ccc;
+
+  border-radius: 4px;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   SCRATCH BLOCK WRAPPER
+   ========================================================= */
+
+.scratch-block-wrapper {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 8px;
+
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   CHECKBOX
+   ========================================================= */
+
+.block-checkbox {
+  appearance: none;
+
+  width: 18px;
+  height: 18px;
+
+  border: 2px solid #ccc;
+
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  background: white;
+
+  flex-shrink: 0;
+}
+
+.block-checkbox:checked {
+  background: #4c97ff;
+
+  border-color: #4c97ff;
+
+  position: relative;
+}
+
+.block-checkbox:checked::after {
+  content: "✓";
+
+  color: white;
+
+  font-size: 13px;
+
+  position: absolute;
+
+  top: -3px;
+  left: 2px;
+
+  font-weight: bold;
+}
+
+
+/* =========================================================
+   BLOCK BASE
+   ========================================================= */
+
+.scratch-block {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 8px 12px;
+
+  min-height: 38px;
+
+  font-size: 14px;
+
+  line-height: 20px;
+
+  font-weight: bold;
+
+  color: white;
+
+  cursor: grab;
+
+  user-select: none;
+
+  gap: 7px;
+
+  width: fit-content;
+
+  max-width: calc(100vw - 20px);
+
+  white-space: nowrap;
+
+  touch-action: manipulation;
+}
+
+.scratch-block:active {
+  cursor: grabbing;
+}
+
+
+/* =========================================================
+   STACK BLOCK
+   ========================================================= */
+
+.scratch-block.block-stack {
+  border-radius: 6px;
+
+  position: relative;
+
+  clip-path: polygon(
+    0 0,
+    14px 0,
+    18px 5px,
+    30px 5px,
+    34px 0,
+    100% 0,
+
+    100% 100%,
+
+    34px 100%,
+    30px calc(100% + 5px),
+    18px calc(100% + 5px),
+    14px 100%,
+
+    0 100%
+  );
+
+  margin-bottom: 3px;
+}
+.scratch-block.block-events.block-stack {
+  position: relative;
+
+  /*
+    Bentuk dasar:
+    - kiri atas masuk sedikit
+    - bagian tengah atas cekung
+    - kanan atas kembali normal
+    - bawah tetap seperti stack
+  */
+  clip-path: polygon(
+    0 12px,
+
+    8px 12px,
+    12px 7px,
+    18px 4px,
+    25px 2px,
+    32px 4px,
+    38px 7px,
+    42px 12px,
+
+    100% 12px,
+
+    100% 100%,
+
+    34px 100%,
+    30px calc(100% + 5px),
+    18px calc(100% + 5px),
+    14px 100%,
+
+    0 100%
+  );
+
+  padding-top: 15px;
+
+  margin-top: 2px;
+}
+
+
+/* ---------------------------------------------------------
+   EVENT BLOCK — TOP HAT VISUAL
+   --------------------------------------------------------- */
+
+.scratch-block.block-events.block-stack::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 8px;
+
+  width: 34px;
+  height: 12px;
+
+  background: #ffbf00;
+
+  border-radius:
+    12px 12px 0 0;
+
+  pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------
+   EVENT BLOCK — TEXT CONTENT
+   --------------------------------------------------------- */
+
+.scratch-block.block-events.block-stack > span {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* ---------------------------------------------------------
+   EVENT DROPDOWN
+   --------------------------------------------------------- */
+
+.scratch-block.block-events.block-stack
+.custom-dropdown {
+  position: relative;
+  z-index: 20;
+}
+
+
+/* ---------------------------------------------------------
+   EVENT INPUT
+   --------------------------------------------------------- */
+
+.scratch-block.block-events.block-stack
+.block-input {
+  position: relative;
+  z-index: 20;
+}
+
+
+/* =========================================================
+   EVENT BLOCK — MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .scratch-block.block-events.block-stack {
+    padding-top: 13px;
+
+    clip-path: polygon(
+      0 10px,
+
+      7px 10px,
+      11px 6px,
+      17px 3px,
+      23px 2px,
+      29px 3px,
+      35px 6px,
+      39px 10px,
+
+      100% 10px,
+
+      34px 100%,
+      30px calc(100% + 4px),
+      18px calc(100% + 4px),
+      14px 100%,
+
+      0 100%
+    );
+  }
+
+  .scratch-block.block-events.block-stack::before {
+    width: 31px;
+    height: 10px;
+
+    left: 7px;
+  }
+
+}
+
+
+/* =========================================================
+   EVENT BLOCK — HP KECIL
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+  .scratch-block.block-events.block-stack {
+    padding-top: 12px;
+  }
+
+  .scratch-block.block-events.block-stack::before {
+    width: 28px;
+    height: 9px;
+  }
+
+}
+
+/* =========================================================
+   STACK CONTAINER
+   ========================================================= */
+
+.block-stack-container {
+  position: absolute;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  z-index: 10;
+}
+
+.block-stack-container .scratch-block {
+  margin-bottom: -4px;
+
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.15);
+}
+
+
+/* =========================================================
+   REPORTER BLOCK
+   ========================================================= */
+
+.scratch-block.block-reporter {
+  border-radius: 20px;
+
+  padding: 7px 14px;
+
+  min-height: 34px;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   WARNA BLOK
+   ========================================================= */
+
+.block-motion {
+  background-color: #4c97ff;
+}
+
+.block-looks {
+  background-color: #9966ff;
+}
+
+.block-sound {
+  background-color: #cf63cf;
+}
+
+.block-events {
+  background-color: #ffbf00;
+
+  color: #575e75;
+}
+
+.block-control {
+  background-color: #ffab19;
+}
+
+.block-sensing {
+  background-color: #5cb1d6;
+}
+
+.block-operators {
+  background-color: #59c059;
+}
+
+.block-variables {
+  background-color: #ff8c1a;
+}
+
+.block-myblocks {
+  background-color: #ff6680;
+}
+
+
+/* =========================================================
+   INPUT BLOCK
+   ========================================================= */
+
+.block-input {
+  border: none;
+
+  border-radius: 14px;
+
+  padding: 4px 9px;
+
+  font-size: 13px;
+
+  line-height: 18px;
+
+  outline: none;
+
+  text-align: center;
+
+  background: white;
+
+  color: #575e75;
+
+  width: 55px;
+
+  height: 27px;
+
+  font-weight: bold;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+
+  flex-shrink: 0;
+
+  touch-action: manipulation;
+}
+
+.block-input.long {
+  width: 80px;
+}
+
+
+/* =========================================================
+   SELECT
+   ========================================================= */
+
+.block-select {
+  appearance: auto;
+
+  background-color: rgba(0, 0, 0, 0.15);
+
+  color: white;
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  border-radius: 14px;
+
+  padding: 4px 10px;
+
+  min-width: 100px;
+
+  height: 28px;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  outline: none;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+.block-motion .block-select {
+  min-width: 125px;
+}
+
+.block-select option {
+  background-color: white;
+
+  color: #333;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   HOVER
+   ========================================================= */
+
+.scratch-block:hover {
+  filter: brightness(1.05);
+}
+
+
+/* =========================================================
+   SNAP TARGET
+   ========================================================= */
+
+.snap-target-highlight {
+  outline: 2px dashed #ffbf00 !important;
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   CUSTOM DROPDOWN
+   ========================================================= */
+
+.custom-dropdown {
+  position: relative;
+
+  display: inline-block;
+
+  min-width: 125px;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  color: white;
+
+  user-select: none;
+
+  vertical-align: middle;
+
+  z-index: 100;
+
+  flex-shrink: 0;
+}
+
+.custom-dropdown-selected {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-start;
+
+  min-height: 29px;
+
+  padding: 5px 30px 5px 11px;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.4);
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  user-select: none;
+
+  white-space: nowrap;
+
+  pointer-events: auto;
+
+  touch-action: manipulation;
+}
+
+.custom-dropdown-selected:hover {
+  filter: brightness(1.08);
+}
+
+.custom-dropdown-selected::after {
+  content: "▼";
+
+  position: absolute;
+
+  right: 9px;
+
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  font-size: 9px;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   DROPDOWN MENU
+   ========================================================= */
+
+.custom-dropdown-menu {
+  position: fixed !important;
+
+  display: none;
+
+  padding: 4px;
+
+  min-width: 125px;
+
+  max-width: calc(100vw - 16px);
+
+  max-height: 220px;
+
+  overflow-y: auto;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.3);
+
+  z-index: 999999 !important;
+
+  pointer-events: auto;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.custom-dropdown.open .custom-dropdown-menu {
+  display: block;
+}
+
+.custom-dropdown-option {
+  display: block;
+
+  padding: 7px 12px;
+
+  min-height: 30px;
+
+  border-radius: 5px;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  user-select: none;
+
+  pointer-events: auto;
+
+  white-space: nowrap;
+
+  touch-action: manipulation;
+}
+
+.custom-dropdown-option:hover {
+  filter: brightness(1.12);
+}
+
+
+/* =========================================================
+   DROPDOWN CATEGORY COLORS
+   ========================================================= */
+
+.dropdown-motion .custom-dropdown-selected,
+.dropdown-motion .custom-dropdown-menu,
+.dropdown-motion .custom-dropdown-option {
+  background-color: #4c97ff;
+}
+
+.dropdown-looks .custom-dropdown-selected,
+.dropdown-looks .custom-dropdown-menu,
+.dropdown-looks .custom-dropdown-option {
+  background-color: #9966ff;
+}
+
+.dropdown-sound .custom-dropdown-selected,
+.dropdown-sound .custom-dropdown-menu,
+.dropdown-sound .custom-dropdown-option {
+  background-color: #cf63cf;
+}
+
+.dropdown-events .custom-dropdown-selected,
+.dropdown-events .custom-dropdown-menu,
+.dropdown-events .custom-dropdown-option {
+  background-color: #ffbf00;
+
+  color: #575e75;
+}
+
+.dropdown-events .custom-dropdown-option {
+  color: #575e75;
+}
+
+.dropdown-control .custom-dropdown-selected,
+.dropdown-control .custom-dropdown-menu,
+.dropdown-control .custom-dropdown-option {
+  background-color: #ffab19;
+}
+
+.dropdown-sensing .custom-dropdown-selected,
+.dropdown-sensing .custom-dropdown-menu,
+.dropdown-sensing .custom-dropdown-option {
+  background-color: #5cb1d6;
+}
+
+.dropdown-operators .custom-dropdown-selected,
+.dropdown-operators .custom-dropdown-menu,
+.dropdown-operators .custom-dropdown-option {
+  background-color: #59c059;
+}
+
+.dropdown-variables .custom-dropdown-selected,
+.dropdown-variables .custom-dropdown-menu,
+.dropdown-variables .custom-dropdown-option {
+  background-color: #ff8c1a;
+}
+
+.dropdown-myblocks .custom-dropdown-selected,
+.dropdown-myblocks .custom-dropdown-menu,
+.dropdown-myblocks .custom-dropdown-option {
+  background-color: #ff6680;
+}
+
+
+/* =========================================================
+   INTERACTIVE ELEMENTS
+   ========================================================= */
+
+.scratch-block input,
+.scratch-block .custom-dropdown,
+.scratch-block .custom-dropdown-selected,
+.scratch-block .custom-dropdown-option,
+.scratch-block .block-checkbox {
+  pointer-events: auto;
+}
+
+
+/* =========================================================
+   CLEAR BUTTON
+   ========================================================= */
+
+#clear-ws-btn {
+  position: relative;
+
+  z-index: 100;
+
+  pointer-events: auto;
+}
+
+
+/* =========================================================
+   TABLET
+   769px - 1200px
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+  .sidebar-categories {
+    width: 82px;
+    flex-basis: 82px;
+  }
+
+  .palette-panel {
+    width: 220px;
+    flex-basis: 220px;
+  }
+
+  .stage-panel {
+    width: 390px;
+    flex-basis: 390px;
+  }
+
+  .stage-wrapper {
+    width: 360px;
+    height: 270px;
+  }
+
+  #stage {
+    width: 360px;
+    height: 270px;
+  }
+
+  .stage-panel {
+    padding: 8px;
+  }
+
+  .scratch-block {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+}
+
+
+/* =========================================================
+   TABLET PORTRAIT / HP BESAR
+   max 900px
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  body {
+    overflow: auto;
+  }
+
+  .navbar {
+    height: auto;
+    min-height: 54px;
+
+    padding: 7px 10px;
+
+    gap: 8px;
+  }
+
+  .nav-left {
+    gap: 6px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .btn-secondary {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  .user-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .app-container {
+    flex-direction: column;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    min-height: 0;
+  }
+
+
+  /* CATEGORY MENJADI HORIZONTAL */
+
+  .sidebar-categories {
+    width: 100%;
+    height: 68px;
+
+    flex: 0 0 68px;
+
+    flex-direction: row;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    border-right: none;
+    border-bottom: 1px solid #d0dbe5;
+
+    padding: 6px 8px;
+
+    gap: 4px;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cat-item {
+    min-width: 68px;
+
+    height: 54px;
+    min-height: 54px;
+
+    padding: 4px 6px;
+
+    border-radius: 6px;
+
+    flex-shrink: 0;
+  }
+
+  .dot {
+    width: 16px;
+    height: 16px;
+  }
+
+
+  /* PALETTE */
+
+  .palette-panel {
+    width: 100%;
+
+    height: 210px;
+
+    flex: 0 0 210px;
+
+    border-right: none;
+    border-bottom: 1px solid #d0dbe5;
+
+    padding: 10px;
+
+    overflow-x: auto;
+    overflow-y: auto;
+
+    flex-direction: column;
+  }
+
+
+  /* WORKSPACE */
+
+  .workspace-panel {
+    width: 100%;
+
+    height: 430px;
+
+    flex: 0 0 430px;
+
+    border-right: none;
+    border-bottom: 1px solid #d0dbe5;
+  }
+
+  .script-area {
+    overflow: auto;
+
+    min-height: 0;
+  }
+
+
+  /* STAGE */
+
+  .stage-panel {
+    width: 100%;
+
+    flex: 0 0 auto;
+
+    padding: 12px;
+
+    overflow: visible;
+  }
+
+  .stage-wrapper {
+    width: min(480px, calc(100vw - 24px));
+
+    height: auto;
+
+    aspect-ratio: 4 / 3;
+  }
+
+  #stage {
+    width: 100%;
+    height: 100%;
+  }
+
+  .sprite-controls {
+    width: min(480px, 100%);
+  }
+
+}
+
+
+/* =========================================================
+   HP
+   max 600px
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  body {
+    font-size: 14px;
+
+    overflow: auto;
+  }
+
+
+  /* ---------------- NAVBAR ---------------- */
+
+  .navbar {
+    min-height: 52px;
+
+    padding: 6px 8px;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+  }
+
+  .nav-left {
+    width: 100%;
+
+    justify-content: space-between;
+
+    gap: 4px;
+  }
+
+  .logo {
+    font-size: 15px;
+  }
+
+  .nav-controls {
+    gap: 2px;
+  }
+
+  .btn-icon {
+    font-size: 17px;
+
+    padding: 5px 7px;
+  }
+
+  .btn-secondary {
+    font-size: 10px;
+
+    padding: 6px 7px;
+  }
+
+  .nav-right {
+    display: none;
+  }
+
+
+  /* ---------------- CATEGORY ---------------- */
+
+  .sidebar-categories {
+    height: 64px;
+
+    flex-basis: 64px;
+
+    padding: 5px 6px;
+
+    gap: 3px;
+  }
+
+  .cat-item {
+    min-width: 62px;
+
+    height: 52px;
+    min-height: 52px;
+
+    font-size: 9px;
+  }
+
+  .dot {
+    width: 15px;
+    height: 15px;
+
+    margin-bottom: 2px;
+  }
+
+
+  /* ---------------- PALETTE ---------------- */
+
+  .palette-panel {
+    height: 190px;
+
+    flex-basis: 190px;
+
+    padding: 8px;
+
+    gap: 7px;
+  }
+
+  .category-header {
+    font-size: 11px;
+
+    margin-top: 5px;
+  }
+
+  .scratch-block {
+    font-size: 12px;
+
+    min-height: 34px;
+
+    padding: 6px 9px;
+
+    gap: 5px;
+
+    max-width: calc(100vw - 16px);
+  }
+
+  .block-input {
+    width: 48px;
+
+    height: 25px;
+
+    font-size: 12px;
+
+    padding: 3px 7px;
+  }
+
+  .block-input.long {
+    width: 70px;
+  }
+
+  .custom-dropdown {
+    min-width: 110px;
+
+    font-size: 12px;
+  }
+
+  .custom-dropdown-selected {
+    min-height: 27px;
+
+    font-size: 12px;
+
+    padding: 4px 27px 4px 9px;
+  }
+
+
+  /* ---------------- WORKSPACE ---------------- */
+
+  .workspace-panel {
+    height: 360px;
+
+    flex-basis: 360px;
+  }
+
+  .workspace-header {
+    padding: 8px 10px;
+
+    font-size: 11px;
+  }
+
+  .workspace-hint {
+    display: none;
+  }
+
+  .script-area {
+    overflow: auto;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .block-stack-container {
+    z-index: 10;
+  }
+
+
+  /* ---------------- STAGE ---------------- */
+
+  .stage-panel {
+    padding: 10px 8px;
+
+    gap: 8px;
+  }
+
+  .stage-wrapper {
+    width: calc(100vw - 16px);
+
+    max-width: 480px;
+
+    aspect-ratio: 4 / 3;
+  }
+
+  .variable-monitor {
+    top: 7px;
+    left: 7px;
+
+    font-size: 10px;
+
+    padding: 3px 6px;
+  }
+
+  .say-bubble {
+    font-size: 11px;
+
+    padding: 5px 9px;
+
+    max-width: 140px;
+  }
+
+  .sprite-controls {
+    padding: 8px;
+
+    gap: 6px;
+  }
+
+  .control-row {
+    gap: 6px;
+  }
+
+  .control-row label {
+    font-size: 10px;
+
+    gap: 3px;
+  }
+
+  .control-row input {
+    font-size: 10px;
+
+    padding: 4px;
+  }
+
+}
+
+
+/* =========================================================
+   HP KECIL
+   max 400px
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+  .logo {
+    font-size: 13px;
+  }
+
+  .btn-secondary {
+    max-width: 125px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+  }
+
+  .cat-item {
+    min-width: 58px;
+
+    font-size: 8px;
+  }
+
+  .palette-panel {
+    height: 180px;
+
+    flex-basis: 180px;
+  }
+
+  .workspace-panel {
+    height: 330px;
+
+    flex-basis: 330px;
+  }
+
+  .scratch-block {
+    font-size: 11px;
+
+    padding: 5px 8px;
+  }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE HP
+   ========================================================= */
+
+@media (max-width: 900px) and (orientation: landscape) {
+
+  .navbar {
+    min-height: 48px;
+
+    padding: 5px 10px;
+  }
+
+  .nav-left {
+    width: auto;
+  }
+
+  .nav-right {
+    display: block;
+  }
+
+  .app-container {
+    flex-direction: row;
+
+    overflow: hidden;
+  }
+
+  .sidebar-categories {
+    width: 72px;
+
+    height: 100%;
+
+    flex: 0 0 72px;
+
+    flex-direction: column;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    border-right: 1px solid #d0dbe5;
+    border-bottom: none;
+
+    padding: 6px 0;
+  }
+
+  .cat-item {
+    min-width: 72px;
+
+    height: 55px;
+    min-height: 55px;
+  }
+
+  .palette-panel {
+    width: 190px;
+
+    height: 100%;
+
+    flex: 0 0 190px;
+
+    border-right: 1px solid #d0dbe5;
+    border-bottom: none;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .workspace-panel {
+    height: 100%;
+
+    flex: 1 1 auto;
+
+    min-width: 250px;
+
+    border-bottom: none;
+  }
+
+  .stage-panel {
+    width: 330px;
+
+    flex: 0 0 330px;
+
+    height: 100%;
+
+    padding: 8px;
+
+    overflow-y: auto;
+  }
+
+  .stage-wrapper {
+    width: 310px;
+
+    height: 232px;
+
+    aspect-ratio: auto;
+  }
+
+  #stage {
+    width: 100%;
+    height: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   TOUCH DEVICE
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+  .scratch-block {
+    cursor: grab;
+
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .scratch-block:hover {
+    filter: none;
+  }
+
+  .cat-item,
+  .btn-icon,
+  .btn-secondary,
+  .btn-link,
+  .custom-dropdown-selected,
+  .custom-dropdown-option {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+}
+
+
+/* =========================================================
+   SAFE AREA — HP DENGAN NOTCH
+   ========================================================= */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+
+  .navbar {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+
+  .stage-panel {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+}
+/* =========================================================
+   FIX BLOCK PALETTE PANJANG
+   ========================================================= */
+
+/* Palette tetap pada ukuran normal,
+   tetapi isi yang terlalu panjang bisa digeser */
+.palette-panel {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+
+  min-width: 0 !important;
+}
+
+
+/* Block boleh lebih panjang dari lebar palette */
+.palette-panel .scratch-block-wrapper {
+  width: max-content !important;
+  max-width: none !important;
+
+  flex-shrink: 0;
+}
+
+
+/* Block tidak dipotong dan tidak mengecil */
+.palette-panel .scratch-block {
+  width: max-content !important;
+  max-width: none !important;
+
+  min-width: max-content;
+
+  white-space: nowrap;
+
+  flex-shrink: 0;
+}
+
+
+/* Input dan dropdown jangan mengecil */
+.palette-panel .block-input,
+.palette-panel .custom-dropdown {
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.palette-panel::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.palette-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.palette-panel::-webkit-scrollbar-thumb {
+  background: rgba(87, 94, 117, 0.35);
+  border-radius: 10px;
+}
+
+.palette-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(87, 94, 117, 0.55);
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .palette-panel {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+
+    min-width: 0 !important;
+  }
+
+  .palette-panel .scratch-block-wrapper {
+    width: max-content !important;
+    max-width: none !important;
+  }
+
+  .palette-panel .scratch-block {
+    width: max-content !important;
+    max-width: none !important;
+  }
+}
+
+
+/* =========================================================
+   LANDSCAPE MOBILE
+   ========================================================= */
+
+@media (max-width: 900px) and (orientation: landscape) {
+
+  .palette-panel {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+  }
+}
+@supports (padding: env(safe-area-inset-bottom)) {
+
+  .navbar {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+
+  .stage-panel {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+}
+
+
+/* =========================================================
+   FIX BLOCK PALETTE PANJANG
+   ========================================================= */
+
+.palette-panel {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  min-width: 0 !important;
+}
+
+.palette-panel .scratch-block-wrapper {
+  width: max-content !important;
+  max-width: none !important;
+  flex-shrink: 0;
+}
+
+.palette-panel .scratch-block {
+  width: max-content !important;
+  max-width: none !important;
+  min-width: max-content;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.palette-panel .block-input,
+.palette-panel .custom-dropdown {
+  flex-shrink: 0;
+}
+
+.palette-panel::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.palette-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.palette-panel::-webkit-scrollbar-thumb {
+  background: rgba(87, 94, 117, 0.35);
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+
+  .palette-panel {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    min-width: 0 !important;
+  }
+
+  .palette-panel .scratch-block-wrapper {
+    width: max-content !important;
+    max-width: none !important;
+  }
+
+  .palette-panel .scratch-block {
+    width: max-content !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+
+  .palette-panel {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+  }
+}
+
+
+/* =========================================================
+   SCRATCH-STYLE VARIABLE / LIST / MY BLOCK DIALOGS
+   ========================================================= */
+.palette-action-button {
+  display: block;
+  width: calc(100% - 20px);
+  margin: 8px 10px;
+  padding: 8px 12px;
+  border: 1px solid #d7d7d7;
+  border-radius: 6px;
+  background: #fff;
+  color: #575e75;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.palette-action-button:hover { background: #f3f3f3; }
+
+.block-color-input {
+  width: 32px !important;
+  min-width: 32px;
+  height: 26px;
+  padding: 2px !important;
+  border-radius: 5px !important;
+  cursor: pointer;
+  background: #fff;
+}
+
+.block-checkbox {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.scratch-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.35);
+  padding: 20px;
+}
+.scratch-dialog-card {
+  width: 390px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.28);
+  overflow: hidden;
+}
+.scratch-dialog-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #8b4bd6;
+  color: #fff;
+  padding: 13px 18px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.scratch-dialog-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.16);
+  color: #fff;
+  font-size: 25px;
+  line-height: 25px;
+  cursor: pointer;
+}
+.scratch-dialog-body { padding: 20px 24px 22px; }
+.scratch-dialog-body > label:first-child {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 15px;
+  color: #575e75;
+}
+.scratch-dialog-name {
+  width: 100%;
+  height: 50px;
+  padding: 8px 12px;
+  border: 1px solid #888;
+  border-radius: 5px;
+  outline: none;
+  font-size: 16px;
+}
+.scratch-dialog-name:focus { border-color: #8b4bd6; box-shadow: 0 0 0 2px rgba(139,75,214,.14); }
+.scratch-dialog-radios { display:flex; gap: 28px; margin: 18px 0 22px; flex-wrap:wrap; }
+.scratch-dialog-radios label { display:flex; align-items:center; gap:7px; font-size:14px; color:#575e75; }
+.scratch-dialog-radios input { accent-color:#4c97ff; }
+.scratch-dialog-actions { display:flex; justify-content:flex-end; gap:10px; }
+.scratch-dialog-actions button {
+  min-width: 86px;
+  padding: 9px 16px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor:pointer;
+}
+.scratch-cancel { border:1px solid #d2d2d2; background:#fff; color:#575e75; }
+.scratch-ok { border:0; background:#8b4bd6; color:#fff; }
+
+.myblock-dialog { width: 520px; }
+.myblock-builder-list { display:flex; flex-direction:column; gap:7px; margin:14px 0; }
+.myblock-builder-row { display:flex; gap:7px; }
+.myblock-builder-row input { flex:1; padding:8px 10px; border:1px solid #bbb; border-radius:4px; }
+.myblock-builder-row button { width:34px; border:0; border-radius:4px; background:#eee; cursor:pointer; }
+.myblock-builder-actions { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:15px; }
+.myblock-builder-actions button { border:1px solid #cfcfcf; background:#f8f8f8; border-radius:5px; padding:7px 9px; cursor:pointer; font-size:12px; }
+.myblock-refresh { display:flex; align-items:center; gap:8px; font-size:13px; margin: 8px 0 20px; color:#575e75; }
+
+.list-monitor {
+  position: absolute;
+  right: 10px;
+  min-width: 130px;
+  max-width: 210px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  overflow: hidden;
+  z-index: 30;
+}
+.list-monitor-title { background:#ff8c1a; color:#fff; padding:5px 8px; font-weight:700; }
+.list-monitor-items { white-space:pre-line; max-height:130px; overflow:auto; padding:6px 8px; font-size:12px; color:#575e75; }
+
+/* =========================================================
+   SCRATCH-LIKE CONTROL C-BLOCKS — palette/workspace shape
+   The control blocks use a real C-shaped silhouette rather than
+   painting a rectangle and placing a white strip on top.
+   ========================================================= */
+.scratch-block.block-control[data-type="repeat"],
+.scratch-block.block-control[data-type="forever"],
+.scratch-block.block-control[data-type="repeat_until"] {
+  position: relative;
+  box-sizing: border-box;
+  align-items: flex-start;
+  min-height: 96px;
+  padding: 9px 10px 43px 9px;
+  border-radius: 7px;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 43%,
+    15% 43%,
+    15% 70%,
+    100% 70%,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* IF has one C cavity. */
+.scratch-block.block-control[data-type="if"] {
+  position: relative;
+  box-sizing: border-box;
+  align-items: flex-start;
+  min-height: 100px;
+  padding: 9px 10px 45px 9px;
+  border-radius: 7px;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 42%,
+    15% 42%,
+    15% 70%,
+    100% 70%,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* IF/ELSE has two separate script cavities. */
+.scratch-block.block-control[data-type="if_else"] {
+  position: relative;
+  box-sizing: border-box;
+  align-items: flex-start;
+  min-height: 145px;
+  padding: 9px 10px 58px 9px;
+  border-radius: 7px;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 29%,
+    15% 29%,
+    15% 47%,
+    100% 47%,
+    100% 57%,
+    15% 57%,
+    15% 75%,
+    100% 75%,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* No cavity for these single-line Control blocks. */
+.scratch-block.block-control[data-type="wait_until"] {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 43px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 7px;
+}
+
+/* Loop-return arrow, matching Scratch's small white curved mark. */
+.scratch-block.block-control[data-type="repeat"]::after,
+.scratch-block.block-control[data-type="forever"]::after,
+.scratch-block.block-control[data-type="repeat_until"]::after {
+  content: "↗";
+  position: absolute;
+  right: 8px;
+  bottom: 3px;
+  color: #fff;
+  font-size: 16px;
+  line-height: 16px;
+  font-weight: 900;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.scratch-block.block-control .block-boolean-input {
+  width: 43px;
+  min-width: 43px;
+  height: 29px;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: rgba(255,255,255,.32);
+  color: #575e75;
+  text-align: center;
+  box-shadow: none;
+  position: relative;
+  z-index: 5;
+}
+
+.scratch-block.block-control[data-type="wait_until"] .block-boolean-input,
+.scratch-block.block-control[data-type="repeat_until"] .block-boolean-input {
+  margin-right: 1px;
+}
+
+.scratch-block.block-control > span,
+.scratch-block.block-control > input,
+.scratch-block.block-control > .custom-dropdown {
+  position: relative;
+  z-index: 5;
+}
+
+/* Preserve a useful height when the palette is narrow. */
+.palette-panel .scratch-block.block-control[data-type="repeat"],
+.palette-panel .scratch-block.block-control[data-type="forever"],
+.palette-panel .scratch-block.block-control[data-type="repeat_until"] {
+  min-width: 136px;
+}
+
+.palette-panel .scratch-block.block-control[data-type="if"],
+.palette-panel .scratch-block.block-control[data-type="if_else"] {
+  min-width: 136px;
+}
+
+.myblock-preview-label {
+  margin: 4px 0 6px;
+  font-size: 12px;
+  color: #575e75;
+  font-weight: 700;
+}
+.myblock-preview {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 10px;
+  cursor: default;
+}
+.myblock-preview-arg {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 1px 9px;
+  margin-left: 4px;
+  border-radius: 12px;
+  background: #fff;
+  color: #575e75;
+  font-weight: 600;
+}
+
+
+/* Scratch-like Make a Block dialog */
+.scratch-make-block-dialog {
+  width: 880px;
+  max-width: 96vw;
+  overflow: hidden;
+}
+.myblock-design-area {
+  height: 318px;
+  background: #eaf3ff;
+  border-bottom: 1px solid #d6dce6;
+  position: relative;
+  overflow: hidden;
+}
+.myblock-design-canvas {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 30px 70px;
+}
+.myblock-trash {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 0;
+  background: transparent;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+}
+.myblock-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 58px;
+  margin: 0;
+  padding: 10px 14px;
+  white-space: nowrap;
+  font-size: 18px;
+}
+.myblock-name-inline,
+.myblock-token {
+  display: inline-flex;
+  align-items: center;
+  min-width: 92px;
+  height: 34px;
+  border-radius: 4px;
+  border: 0;
+  background: #fff;
+  color: #575e75;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 4px 9px;
+  box-sizing: border-box;
+}
+.myblock-name-inline {
+  outline: none;
+}
+.myblock-name-inline:focus { box-shadow: 0 0 0 2px rgba(76,151,255,.45); }
+.myblock-token { cursor: text; }
+.myblock-token.input-boolean { border-radius: 17px; }
+.myblock-token.label { background: transparent; color: #fff; min-width: auto; padding: 0 4px; }
+.myblock-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 30px 45px 22px;
+  background: #fff;
+}
+.myblock-add-card {
+  min-height: 145px;
+  border: 1px solid #d4d8df;
+  border-radius: 10px;
+  background: #fff;
+  color: #575e75;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 16px;
+}
+.myblock-add-card strong { font-size: 19px; }
+.myblock-add-card small { font-size: 17px; }
+.myblock-add-card:hover { background: #f7f8fb; }
+.myblock-icon {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  color: #fff;
+  background: #ff6680;
+  border: 1px solid #ff4f70;
+  font-weight: 700;
+}
+.myblock-icon-input { border-radius: 11px; }
+.myblock-icon-input::after { content: ""; width: 35px; height: 24px; border-radius: 50%; background: #ff6680; border: 2px solid #ff4168; }
+.myblock-icon-boolean { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.myblock-icon-label { border-radius: 6px; font-size: 15px; }
+.myblock-refresh {
+  margin: 0;
+  padding: 0 45px 20px;
+  font-size: 16px;
+}
+.myblock-actions { padding: 0 45px 25px; }
+@media (max-width: 720px) {
+  .myblock-controls { grid-template-columns: 1fr; padding: 20px; }
+  .myblock-add-card { min-height: 110px; }
+  .myblock-refresh, .myblock-actions { padding-left: 20px; padding-right: 20px; }
+}
+
+/* Stage monitors can coexist independently, like Scratch checkboxes. */
+.reporter-monitor { z-index: 4; }
+.sensing-monitor { z-index: 5; }
+
+
+/* Scratch-like custom My Blocks shapes */
+.myblock-custom-name { font-weight: 700; }
+.myblock-custom-arg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 24px;
+  padding: 3px 10px;
+  margin-left: 3px;
+  background: #fff;
+  color: #575e75;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 13px;
+  box-sizing: border-box;
+}
+.myblock-custom-arg.text { border-radius: 13px; }
+.myblock-custom-arg.boolean {
+  min-width: 58px;
+  border-radius: 14px;
+  clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+}
+.myblock-custom-label { margin-left: 4px; font-weight: 700; }
+
+
+/* Zoom controls: disabled state at the allowed limits. */
+.workspace-zoom-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+
+/* =========================================================
+   REAL CONTROL C-BLOCK DROP SLOTS
+   ========================================================= */
+
+.scratch-block.block-control[data-type="repeat"],
+.scratch-block.block-control[data-type="forever"],
+.scratch-block.block-control[data-type="if"],
+.scratch-block.block-control[data-type="repeat_until"],
+.scratch-block.block-control[data-type="if_else"] {
+  overflow: visible;
+  --control-slot-1-height: 52px;
+  --control-slot-2-height: 52px;
+}
+
+/* One script cavity */
+.scratch-block.block-control[data-type="repeat"],
+.scratch-block.block-control[data-type="forever"],
+.scratch-block.block-control[data-type="if"],
+.scratch-block.block-control[data-type="repeat_until"] {
+  height: max(96px, calc(43px + var(--control-slot-1-height) + 38px));
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 43px,
+    15px 43px,
+    15px calc(43px + var(--control-slot-1-height)),
+    100% calc(43px + var(--control-slot-1-height)),
+    100% 100%,
+    0 100%
+  );
+}
+
+.scratch-block.block-control[data-type="if_else"] {
+  height: max(
+    145px,
+    calc(
+      43px +
+      var(--control-slot-1-height) +
+      8px +
+      var(--control-slot-2-height) +
+      32px
+    )
+  );
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 43px,
+    15px 43px,
+    15px calc(43px + var(--control-slot-1-height)),
+    100% calc(43px + var(--control-slot-1-height)),
+    100% calc(43px + var(--control-slot-1-height) + 28px),
+    15px calc(43px + var(--control-slot-1-height) + 28px),
+    15px calc(43px + var(--control-slot-1-height) + 28px + var(--control-slot-2-height)),
+    100% calc(43px + var(--control-slot-1-height) + 28px + var(--control-slot-2-height)),
+    100% 100%,
+    0 100%
+  );
+}
+
+/* The actual drop target inside a Control block. */
+.control-slot {
+  position: absolute;
+  left: 15px;
+  right: 0;
+  top: 43px;
+  height: var(--control-slot-1-height);
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0;
+  z-index: 8;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.scratch-block.block-control[data-type="if_else"] > .control-slot[data-branch="0"] {
+  top: 43px;
+  height: var(--control-slot-1-height);
+}
+
+.scratch-block.block-control[data-type="if_else"] > .control-slot[data-branch="1"] {
+  top: calc(43px + var(--control-slot-1-height) + 28px);
+  height: var(--control-slot-2-height);
+}
+
+.control-slot > .scratch-block {
+  position: relative;
+  flex: 0 0 auto;
+  margin-bottom: -4px;
+  max-width: calc(100% - 15px);
+}
+
+.control-slot::before {
+  content: "";
+  position: absolute;
+  inset: 2px 0 2px 0;
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+.scratch-block.block-control .control-slot .scratch-block {
+  cursor: grab;
+}
+
+
+/* Control children must remain visible inside the C-shaped cavity. */
+.control-slot > .scratch-block {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  z-index: 20 !important;
+  flex: 0 0 auto !important;
+  pointer-events: auto;
+}
+
+.control-slot > .scratch-block.block-motion {
+  min-width: 0;
+}
+
+
+
+/* =========================================================
+   BLOK C ALA SCRATCH (repeat / forever / if / if-else / repeat until)
+   Bentuknya digambar lewat <svg class="control-shape"> (lihat
+   drawControlShape di script.js), jadi tidak ada clip-path pada
+   blok induk dan blok anak di dalam rongga tetap kelihatan penuh.
+   ========================================================= */
+.scratch-block.block-control[data-type="repeat"],
+.scratch-block.block-control[data-type="forever"],
+.scratch-block.block-control[data-type="repeat_until"],
+.scratch-block.block-control[data-type="if"],
+.scratch-block.block-control[data-type="if_else"] {
+  clip-path: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+  isolation: isolate;
+  margin-bottom: 4px;
+}
+
+.scratch-block.block-control[data-type="repeat"]:hover,
+.scratch-block.block-control[data-type="forever"]:hover,
+.scratch-block.block-control[data-type="repeat_until"]:hover,
+.scratch-block.block-control[data-type="if"]:hover,
+.scratch-block.block-control[data-type="if_else"]:hover {
+  filter: brightness(1.05);
+}
+
+/* Pastikan tidak ada bentuk lama yang tersisa */
+.scratch-block.block-control[data-type="repeat"]::before,
+.scratch-block.block-control[data-type="forever"]::before,
+.scratch-block.block-control[data-type="repeat_until"]::before,
+.scratch-block.block-control[data-type="if"]::before,
+.scratch-block.block-control[data-type="if_else"]::before,
+.scratch-block.block-control[data-type="repeat"]::after,
+.scratch-block.block-control[data-type="forever"]::after,
+.scratch-block.block-control[data-type="repeat_until"]::after,
+.scratch-block.block-control[data-type="if"]::after,
+.scratch-block.block-control[data-type="if_else"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+svg.control-shape {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+svg.control-shape .control-shape-body {
+  fill: #ffab19;
+  stroke: #cf8b17;
+  stroke-width: 1;
+}
+
+svg.control-shape .control-shape-arrow {
+  fill: #ffffff;
+}
+
+/* Blok anak di rongga C: jangan dipotong oleh lebar slot */
+.control-slot > .scratch-block {
+  max-width: none !important;
+}
+
+/* Slot kondisi (boolean) berbentuk segi enam seperti Scratch */
+.scratch-block.block-control .block-boolean-input {
+  width: 48px;
+  min-width: 48px;
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+  background: rgba(0, 0, 0, 0.18);
+  color: #ffffff;
+}
+
+/* =========================================================
+   TAB BAWAH BLOK BIASA (stack) — biru/oranye sesuai kategori,
+   bukan bayangan abu-abu.
+   ========================================================= */
+.scratch-block.block-stack::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 100%;
+  width: 20px;
+  height: 5px;
+  background-color: inherit;
+  clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+  pointer-events: none;
+}
+
+/* Bayangan kotak di blok yang di-clip malah jadi bercak abu-abu di tab */
+.block-stack-container .scratch-block.block-stack,
+.control-slot > .scratch-block.block-stack {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+
+/* Label "else" di lengan tengah blok if / else */
+.scratch-block.block-control > span.control-else-label {
+  position: absolute !important;
+  left: 9px;
+  top: calc(43px + var(--control-slot-1-height));
+  height: 28px;
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 5;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   REPORTER DI DALAM SLOT (ala Scratch)
+   ========================================================= */
+
+/* Reporter boolean berbentuk segi enam */
+.scratch-block.block-reporter.block-boolean {
+  border-radius: 0;
+  padding-left: 20px;
+  padding-right: 20px;
+  clip-path: polygon(
+    14px 0,
+    calc(100% - 14px) 0,
+    100% 50%,
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0 50%
+  );
+}
+
+/* Slot boolean (and / or / not) juga segi enam */
+.scratch-block.block-operators .block-boolean-input {
+  width: 48px;
+  min-width: 48px;
+  height: 26px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+  clip-path: polygon(13px 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 13px 100%, 0 50%);
+  background: rgba(0, 0, 0, 0.18);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* Pembungkus reporter yang berada di dalam slot */
+.reporter-slot-holder {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 6;
+}
+
+.reporter-slot-holder > .scratch-block.nested-reporter {
+  margin: 0 !important;
+  min-height: 28px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  font-size: 13px;
+  box-shadow: none !important;
+  filter: none;
+  cursor: grab;
+}
+
+.reporter-slot-holder > .scratch-block.nested-reporter:not(.block-boolean) {
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15) !important;
+}
+
+.reporter-slot-holder > .scratch-block.nested-reporter.block-boolean {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.reporter-slot-holder > .scratch-block.nested-reporter::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Teks judul blok C sejajar vertikal dengan slot / reporter di sebelahnya */
+.scratch-block.block-control > span:not(.control-else-label) {
+  line-height: 29px;
+}
+
+/* =========================================================
+   SPRITE & BACKDROP PANEL
+   ========================================================= */
+.assets-panel{width:100%;display:flex;gap:10px;flex-shrink:0}
+.sprite-pane,.backdrop-pane{position:relative;background:#e9f1fc;border:1px solid #d0dbe5;border-radius:8px;padding:10px;min-height:150px}
+.sprite-pane{flex:1;min-width:0}
+.backdrop-pane{width:110px;flex:0 0 110px;text-align:center;padding-bottom:56px}
+.pane-title{font-size:11px;font-weight:bold;color:#575e75;margin-bottom:8px}
+.sprite-list{display:flex;flex-wrap:wrap;gap:8px}
+.sprite-empty{font-size:11px;color:#8791a5;padding:6px 0}
+.sprite-item{position:relative;width:68px;height:68px;background:#fff;border:2px solid #d0dbe5;border-radius:8px;display:grid;place-items:center;cursor:pointer;font-size:10px;padding-bottom:12px}
+.sprite-item.selected{border-color:#855cd6;background:#ece4fb}
+.sprite-item canvas,.sprite-item img{width:46px;height:46px;object-fit:contain}
+.sprite-item .sprite-label{position:absolute;bottom:0;left:0;right:0;background:#855cd6;color:#fff;font-size:9px;border-radius:0 0 5px 5px;padding:1px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprite-del{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border:0;border-radius:50%;background:#855cd6;color:#fff;font-size:12px;cursor:pointer;line-height:1}
+.sprite-del:hover{background:#e64d4d}
+.backdrop-preview{width:80px;height:60px;margin:0 auto;border:2px solid #855cd6;border-radius:6px;background:#fff;overflow:hidden}
+.backdrop-preview img{width:100%;height:100%;display:block;object-fit:cover}
+.backdrop-name{font-size:10px;color:#575e75;margin-top:4px}
+.fab-btn{position:absolute;right:8px;bottom:8px;width:38px;height:38px;border:0;border-radius:50%;background:#855cd6;color:#fff;font-size:12px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.fab-btn:hover{background:#7549c4}
+
+/* =========================================================
+   JENDELA PILIHAN SPRITE / BACKDROP (ala Scratch)
+   ========================================================= */
+.picker{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;background:#e5f0ff;font-family:Arial,sans-serif}
+.picker.picker-hidden{display:none}
+.picker-head{height:56px;flex:0 0 56px;background:#855cd6;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.picker-back{border:0;background:transparent;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;padding:8px 6px}
+.picker-title{font-size:18px;font-weight:bold}
+.picker-spacer{width:90px}
+.picker-filter{flex:0 0 auto;background:#c9bdf2;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.picker-search{display:flex;align-items:center;gap:8px;background:#fff;border-radius:22px;padding:0 14px;height:42px;width:230px}
+.picker-search input{border:0;outline:0;font-size:15px;width:100%;background:transparent}
+.picker-cats{display:flex;gap:10px;flex-wrap:wrap}
+.picker-pill{border:0;border-radius:22px;background:#855cd6;color:#fff;font-size:14px;font-weight:bold;padding:10px 18px;cursor:pointer}
+.picker-pill:hover{background:#7549c4}
+.picker-pill.active{background:#ff9a1a}
+.picker-grid{flex:1;overflow:auto;padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;align-content:start}
+.picker-card{background:#fff;border:2px solid #d9e3f2;border-radius:10px;padding:14px 10px 10px;text-align:center;cursor:pointer;transition:.12s}
+.picker-card:hover{border-color:#855cd6;box-shadow:0 4px 12px rgba(133,92,214,.25);transform:translateY(-2px)}
+.picker-thumb{height:112px;display:grid;place-items:center}
+.picker-thumb img,.picker-thumb canvas{width:100px;height:100px;object-fit:contain}
+.picker-thumb .bd{width:140px;height:105px;border-radius:6px;border:1px solid #d0dbe5;object-fit:cover;display:block}
+.picker-name{margin-top:8px;font-size:15px;color:#575e75}
+.picker-none{grid-column:1/-1;text-align:center;color:#8791a5;padding:40px 0}
+@media (max-width:640px){
+  .picker-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));padding:12px;gap:10px}
+  .picker-search{width:100%}
+}
+
+
+/* =========================================================
+   MISI LEVEL
+   ========================================================= */
+.workspace-panel{position:relative}
+.mission-card{position:absolute;top:46px;right:14px;width:290px;z-index:20;background:#fff;border:2px solid #855cd6;border-radius:14px;box-shadow:0 6px 18px rgba(80,50,150,.22);font-family:Arial,sans-serif;font-size:13px;color:#3d3a50}
+.mission-head{display:flex;align-items:center;justify-content:space-between;background:#855cd6;color:#fff;border-radius:11px 11px 0 0;padding:8px 12px}
+.mission-card.collapsed .mission-head{border-radius:11px}
+.mission-tag{font-weight:bold;font-size:12px;letter-spacing:.3px}
+.mission-toggle{border:0;background:rgba(255,255,255,.25);color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1}
+.mission-body{padding:12px 14px 12px}
+.mission-card.collapsed .mission-body{display:none}
+.mission-title{font-size:16px;font-weight:bold;margin-bottom:4px}
+.mission-challenge{margin-bottom:10px;line-height:1.4}
+.mission-goals{list-style:none;margin:0 0 10px;padding:0}
+.mission-goals li{display:flex;gap:8px;align-items:flex-start;padding:5px 0;line-height:1.35;border-bottom:1px dashed #e6e0f7}
+.mission-goals li:last-child{border-bottom:0}
+.mission-goals li.done{color:#2e8b43}
+.mission-check{flex:0 0 auto;width:20px}
+.mission-hint{background:#f4efff;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.4;color:#5b4a8a}
+.mission-hint:empty{display:none}
+.mission-note{background:#fff7e0;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px;color:#7a5a00}
+.mission-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.mission-points{font-weight:bold;color:#b9770e}
+.mission-manual{border:0;background:#855cd6;color:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:bold}
+.mission-overlay{position:fixed;inset:0;z-index:20000;background:rgba(30,20,60,.55);display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif}
+.mission-popup{width:min(380px,90vw);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;background:#fff;border-radius:20px;padding:26px 24px 20px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:mpPop .25s ease-out}
+@keyframes mpPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.mp-emoji{font-size:54px}
+.mission-popup h2{margin:6px 0 2px;color:#855cd6}
+.mp-name{margin:0 0 12px;color:#6f6a85;font-size:13px}
+.mp-points{font-size:22px;color:#b9770e}
+.mp-points b{font-size:34px}
+.mp-bonus{display:inline-block;margin-top:6px;background:#fff1c9;color:#8a5a00;border-radius:20px;padding:4px 12px;font-size:13px;font-weight:bold}
+.mp-info{color:#6f6a85;margin:10px 0 14px}
+.mp-actions{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.mp-actions button{border:0;border-radius:12px;padding:12px;font-size:14px;font-weight:bold;cursor:pointer}
+.mp-primary{background:#855cd6;color:#fff}.mp-primary:hover{background:#7549c4}
+.mp-secondary{background:#efeaff;color:#5b4a8a}
+.mp-link{background:transparent;color:#8791a5;font-weight:normal!important}
+.mp-all{background:#e8f8ec;color:#2e8b43;border-radius:12px;padding:10px;font-weight:bold}
+
+/* ---------- Jalur Belajar: popup gagal & catatan ---------- */
+.mission-popup.fail h2{color:#e0453a}
+.mission-popup.fail .mp-primary{background:#ff7a59}
+.mp-unmet{text-align:left;background:#ffecec;border-radius:14px;padding:10px 14px 10px 30px;margin:10px 0;font-size:13px;color:#b23b32}
+.mission-done-note{background:#e6f8ee;color:#1e8f52;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:12px;font-weight:bold}
+.mission-back{margin-left:auto;font-size:12px;color:#6d5bd0;text-decoration:none;font-weight:bold}
+.mission-back:hover{text-decoration:underline}
+
+
+/* =========================================================
+   TAB KODE / SUARA, EDITOR SUARA, DAN PEREKAM
+   ========================================================= */
+
+.workspace-header.workspace-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+}
+.workspace-tabs .workspace-hint {
+  margin-left: auto;
+  font-weight: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ws-tab {
+  border: 1px solid #cdb9ee;
+  background: #fff;
+  color: #575e75;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.ws-tab.active {
+  background: #cf63cf;
+  border-color: #cf63cf;
+  color: #fff;
+}
+.ws-tab:focus-visible,
+.snd-btn:focus-visible,
+.sounds-record-btn:focus-visible,
+.sound-item:focus-visible {
+  outline: 2px solid #8b4bd6;
+  outline-offset: 2px;
+}
+
+.scratch-dialog-overlay [hidden],
+.sounds-panel[hidden] {
+  display: none !important;
+}
+
+/* ---------- panel suara ---------- */
+.sounds-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: #f0f4f8;
+}
+.sounds-list-col {
+  flex: 0 0 190px;
+  width: 190px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #e9eef5;
+  border-right: 1px solid #d0dbe5;
+}
+.sounds-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sound-item {
+  position: relative;
+  padding: 8px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.sound-item.selected {
+  border-color: #cf63cf;
+  background: #fbeefb;
+}
+.sound-item-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 26px;
+}
+.sound-item-num {
+  flex: 0 0 auto;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #cf63cf;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 18px;
+}
+.sound-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #575e75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sound-item-thumb {
+  display: block;
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+}
+.sound-item-dur {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #8b95a3;
+}
+.sound-item-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: #ef476f;
+  color: #fff;
+  font-size: 12px;
+  line-height: 24px;
+  padding: 0;
+  cursor: pointer;
+  display: none;
+}
+.sound-item.selected .sound-item-del,
+.sound-item:hover .sound-item-del,
+.sound-item:focus-within .sound-item-del {
+  display: block;
+}
+@media (hover: none) {
+  .sound-item-del { display: block; }
+}
+.sounds-record-btn {
+  margin: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 22px;
+  background: #cf63cf;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sounds-record-btn:hover { background: #b84fb8; }
+.sounds-empty {
+  padding: 20px 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #8b95a3;
+}
+
+/* ---------- editor ---------- */
+.sounds-editor {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sound-edit-row label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #575e75;
+}
+.sound-edit-name {
+  height: 36px;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 10px;
+  border: 1px solid #aab;
+  border-radius: 6px;
+  font-size: 15px;
+  outline: none;
+}
+.sound-edit-name:focus {
+  border-color: #8b4bd6;
+  box-shadow: 0 0 0 2px rgba(139, 75, 214, .16);
+}
+.sound-edit-info,
+.sound-edit-hint {
+  font-size: 12px;
+  color: #737d8c;
+}
+.sound-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.snd-btn {
+  padding: 8px 14px;
+  border: 1px solid #8b4bd6;
+  border-radius: 18px;
+  background: #8b4bd6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.snd-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.snd-btn:disabled { opacity: .45; cursor: not-allowed; }
+.snd-btn.secondary {
+  background: #fff;
+  color: #575e75;
+  border-color: #cdb9ee;
+}
+.snd-btn.danger {
+  background: #fff;
+  color: #d6336c;
+  border-color: #f0b3c6;
+}
+.snd-btn.snd-rec { background: #e5334f; border-color: #e5334f; }
+
+/* ---------- pemotong gelombang (trim) ---------- */
+.trim-wrap {
+  position: relative;
+  height: 140px;
+  background: #fff;
+  border: 1px solid #cdb9ee;
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.trim-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.trim-shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(87, 94, 117, .38);
+  pointer-events: none;
+}
+.trim-shade-l { left: 0; }
+.trim-shade-r { right: 0; }
+.trim-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  cursor: ew-resize;
+  touch-action: none;
+  z-index: 2;
+}
+/* pegangan kiri berada di kanan garis potong, pegangan kanan di kirinya,
+   jadi keduanya selalu utuh terlihat walau di ujung gelombang */
+.trim-handle-r { margin-left: -22px; }
+.trim-handle::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #8b4bd6;
+}
+.trim-handle-r::after { left: auto; right: 0; }
+.trim-handle::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  width: 12px;
+  height: 30px;
+  margin-top: -15px;
+  border-radius: 6px;
+  background: #8b4bd6;
+  z-index: 1;
+}
+.trim-handle.dragging::before,
+.trim-handle:focus-visible::before { background: #ff9a1a; }
+.trim-handle:focus-visible { outline: none; }
+.trim-playhead {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ff9a1a;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------- dialog rekam ---------- */
+.sound-rec-card { width: 480px; }
+.sound-rec-body { display: flex; flex-direction: column; gap: 12px; }
+.sound-rec-status {
+  min-height: 20px;
+  font-size: 14px;
+  color: #575e75;
+}
+.sound-rec-meter {
+  height: 14px;
+  border-radius: 7px;
+  background: #e9eef5;
+  overflow: hidden;
+}
+.sound-rec-meter-fill {
+  width: 0;
+  height: 100%;
+  background: #cf63cf;
+  transition: width .06s linear;
+}
+.sound-rec-time {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #575e75;
+  font-variant-numeric: tabular-nums;
+}
+.sound-rec-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sound-rec-name-row label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #575e75;
+}
+.sound-rec-name { flex: 1; }
+.sound-rec-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sound-rec-spacer { flex: 1; }
+
+@media (max-width: 600px) {
+  .sounds-panel { flex-direction: column; }
+  .sounds-list-col {
+    flex: 0 0 auto;
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid #d0dbe5;
+  }
+  .sounds-list { flex-direction: row; overflow-x: auto; max-height: none; }
+  .sound-item { width: 140px; }
+  .workspace-tabs .workspace-hint { display: none; }
+}

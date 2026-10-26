@@ -1,0 +1,447 @@
+/* Text Editor — gaya mengikuti halaman belajar (ramah anak) */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: "Trebuchet MS", "Nunito", Arial, sans-serif; color: #2b3350;
+  background: linear-gradient(180deg, #e8f4ff 0%, #fff8e8 100%); display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+button { font: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+
+/* ----- header ----- */
+.eh { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 18px; background: #fff; border-bottom: 3px solid #e3e9ff; flex: none; }
+.eh-back { text-decoration: none; background: #eef1ff; color: #5a6bd8; padding: 9px 14px; border-radius: 14px; font-weight: bold; font-size: 14px; }
+.eh-title { font-weight: bold; font-size: 16px; margin: 0; }
+.points-chip { background: #fff4d6; color: #a86a00; padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; white-space: nowrap; }
+
+/* ----- kartu misi ----- */
+.mission { flex: none; margin: 12px 14px 0; background: #fff; border-radius: 22px; padding: 12px 18px; box-shadow: 0 6px 16px rgba(60,80,140,.1); border-left: 10px solid #ff9f1c; }
+.m-top { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.m-tag { font-size: 12px; font-weight: bold; color: #8a93b4; letter-spacing: .4px; }
+.mission h2 { margin: 2px 0 2px; font-size: 19px; }
+.mission p { margin: 0; font-size: 14px; color: #5a6485; line-height: 1.45; }
+.m-info-btn { border: 0; background: #eef1ff; color: #5a6bd8; font-weight: bold; font-size: 13px; padding: 8px 12px; border-radius: 12px; }
+.m-goals { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.m-goals li { display: flex; gap: 6px; align-items: center; background: #f3f5fd; border-radius: 12px; padding: 5px 10px; font-size: 13px; font-weight: bold; color: #55608a; }
+.m-goals li.done { background: #e6f8ee; color: #1e8f52; }
+.m-info { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.m-info[hidden] { display: none; }
+.m-info { max-height: 30vh; overflow: auto; }                       /* langkah panjang tidak menutupi editor */
+.m-box.steps { grid-column: 1 / -1; background: #eef6ff; padding: 8px 14px; }
+.m-box.steps h4 { margin-bottom: 2px; }
+.m-box.steps ol { margin: 0; padding-left: 22px; line-height: 1.45; font-size: 13px; }
+@media (min-width: 900px) { .m-box.steps ol { columns: 2; column-gap: 28px; } .m-box.steps li { break-inside: avoid; } }
+.m-box { background: #f6f8ff; border-radius: 14px; padding: 10px 14px; font-size: 13.5px; line-height: 1.5; }
+.m-box h4 { margin: 0 0 4px; font-size: 13.5px; }
+.m-box ul { margin: 0; padding-left: 18px; }
+.m-box.ok { background: #e6f8ee; color: #1b6f43; }
+.m-box.bad { background: #fff0ee; color: #b23b32; }
+.m-box.tip { background: #fff7e0; }
+.m-done { margin-top: 8px; background: #e6f8ee; color: #1e8f52; border-radius: 12px; padding: 6px 12px; font-size: 13px; font-weight: bold; display: inline-block; }
+
+/* ----- dua panel ----- */
+.split { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 14px 14px; }
+.pane { background: #fff; border-radius: 22px; box-shadow: 0 8px 20px rgba(60,80,140,.12); display: flex; flex-direction: column; overflow: hidden; min-height: 0; min-width: 0; }
+.pane-head { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 3px solid #eef1ff; flex: none; flex-wrap: wrap; }
+.ph-title { font-weight: bold; font-size: 15px; }
+.ph-note { margin-left: auto; font-size: 12px; color: #8a93b4; font-weight: bold; }
+.ph-note.flash { color: #1e8f52; }
+.tabs { display: flex; gap: 6px; margin-left: auto; }
+.tabs button { border: 0; background: #eef1ff; color: #5a6bd8; font-weight: bold; font-size: 13px; padding: 7px 12px; border-radius: 12px; }
+.tabs button.on { background: #6d7eea; color: #fff; }
+
+/* ----- area kode: textarea transparan di atas <pre> berwarna ----- */
+.code-wrap { position: relative; flex: 1; min-height: 0; background: #232846; }
+.hl, .src { position: absolute; inset: 0; margin: 0; width: 100%; height: 100%; padding: 14px 16px; border: 0; border-radius: 0;
+  font: 15.5px/25px Consolas, Menlo, "Courier New", monospace; font-variant-ligatures: none; letter-spacing: 0;
+  white-space: pre; word-wrap: normal; overflow-wrap: normal; tab-size: 2; -moz-tab-size: 2; -webkit-appearance: none; }
+.hl { overflow: hidden; pointer-events: none; color: #e8ecff; }
+.src { overflow: auto; resize: none; outline: none; background: transparent; color: transparent; caret-color: #fff; }
+.src::selection { background: rgba(124,196,255,.4); }
+.tk-tag { color: #ff8fb1; } .tk-attr { color: #ffd166; } .tk-str { color: #7be0a3; }
+.tk-com { color: #8a93b4; font-style: italic; } .tk-doc { color: #b69cff; } .tk-pun { color: #c9cfe4; }
+.tk-sel { color: #7cc4ff; } .tk-prop { color: #ffd166; } .tk-val { color: #ffa8c5; } .tk-num { color: #ffb86b; }
+.tk-kw { color: #ff8fb1; } .tk-fn { color: #7cc4ff; } .tk-bi { color: #b69cff; } .tk-var { color: #ffd166; } .tk-cn { color: #ffb86b; }   /* Python & PHP */
+
+/* ----- tombol ----- */
+.toolbar { display: flex; gap: 10px; padding: 10px 14px; background: #f6f8ff; flex: none; flex-wrap: wrap; }
+.btn { border: 0; border-radius: 16px; padding: 11px 18px; font-weight: bold; font-size: 15px; background: #6d7eea; color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.15); }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.btn.run { background: #34c06f; font-size: 17px; padding: 11px 26px; }
+.btn.ghost { background: #eef1ff; color: #5a6bd8; box-shadow: none; }
+.btn.stop { background: #ff7a59; }
+
+/* ----- preview ----- */
+#preview { flex: 1; min-height: 0; width: 100%; border: 0; background: #fff; }
+.prev-foot { flex: none; padding: 7px 14px; font-size: 12px; color: #8a93b4; background: #f6f8ff; }
+
+/* ----- popup (sama gayanya dengan halaman belajar & Scratch) ----- */
+.mission-overlay { position: fixed; inset: 0; background: rgba(30,25,60,.5); display: grid; place-items: center; z-index: 99999; padding: 16px; }
+.mission-popup { background: #fff; border-radius: 26px; padding: 26px 28px; width: min(380px, 100%); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.3); animation: pop .25s ease-out; }
+@keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.mp-emoji { font-size: 58px; }
+.mission-popup h2 { margin: 6px 0 4px; font-size: 26px; color: #2b3350; }
+.mission-popup.fail h2 { color: #e0453a; }
+.mission-popup.info h2 { color: #4c7bd8; }
+.mp-name { margin: 0 0 8px; color: #6b7494; font-size: 14px; }
+.mp-points { font-size: 22px; color: #a86a00; margin: 8px 0; }
+.mp-points b { font-size: 36px; }
+.mp-bonus { background: #fff4d6; color: #a86a00; border-radius: 14px; padding: 8px; font-weight: bold; margin-bottom: 8px; }
+.mp-info { margin: 8px 0; color: #4a5378; font-size: 15px; line-height: 1.5; }
+.mp-unmet { text-align: left; background: #ffecec; border-radius: 14px; padding: 10px 14px 10px 30px; margin: 10px 0; font-size: 14px; color: #b23b32; }
+.mp-actions { display: grid; gap: 10px; margin-top: 14px; }
+.mp-actions button { border: 0; border-radius: 16px; padding: 13px; font-weight: bold; font-size: 15px; }
+.mp-primary { background: #34c06f; color: #fff; }
+.mission-popup.fail .mp-primary { background: #ff7a59; }
+.mission-popup.info .mp-primary { background: #6d7eea; }
+.mp-secondary { background: #eef1ff; color: #5a6bd8; }
+.mp-all { font-weight: bold; color: #1e8f52; }
+
+
+/* ============================================================
+   AI TUTOR
+   ============================================================ */
+
+.ai-tutor {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 360px;
+  height: 470px;
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #171b4d;
+  color: white;
+
+  border: 2px solid #7357ff;
+  border-radius: 20px;
+
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+
+  overflow: hidden;
+}
+
+.ai-tutor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 14px 16px;
+
+  background: #20265f;
+}
+
+.ai-tutor-title {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.ai-tutor-subtitle {
+  margin-top: 3px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.ai-tutor-min {
+  width: 34px;
+  height: 34px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: #30377c;
+  color: white;
+
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.ai-tutor-messages {
+  flex: 1;
+
+  padding: 14px;
+
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-message {
+  max-width: 88%;
+
+  padding: 10px 12px;
+
+  border-radius: 14px;
+
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.ai-message-user {
+  align-self: flex-end;
+  background: #7357ff;
+}
+
+.ai-message-bot {
+  align-self: flex-start;
+  background: #292f6e;
+}
+
+.ai-message-label {
+  margin-bottom: 4px;
+
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.65;
+}
+
+.ai-tutor-form {
+  display: flex;
+  gap: 8px;
+
+  padding: 10px;
+
+  background: #11153d;
+}
+
+.ai-tutor-form textarea {
+  flex: 1;
+
+  resize: none;
+
+  min-height: 42px;
+  max-height: 110px;
+
+  padding: 10px;
+
+  border: 1px solid #464d91;
+  border-radius: 12px;
+
+  background: #20265f;
+  color: white;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+}
+
+.ai-tutor-form textarea:focus {
+  border-color: #8b78ff;
+}
+
+.ai-tutor-form button {
+  width: 44px;
+  height: 44px;
+
+  align-self: flex-end;
+
+  border: 0;
+  border-radius: 12px;
+
+  background: #7357ff;
+  color: white;
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+.ai-tutor-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-tutor.minimized {
+  height: auto;
+}
+
+.ai-tutor.minimized .ai-tutor-messages,
+.ai-tutor.minimized .ai-tutor-form {
+  display: none;
+}
+
+.ai-tutor-thinking {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.ai-generated-code {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.ai-generated-code-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.ai-generated-code-label {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.ai-generated-code pre {
+  white-space: pre-wrap;
+  overflow-x: auto;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ai-apply-code {
+  width: 100%;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ============================================================
+   PYTHON & PHP — pilihan bahasa, kotak Output, kotak Input
+   ============================================================ */
+.langs { display: flex; gap: 6px; }
+.langs button { border: 2px solid #eef1ff; background: #fff; color: #5a6bd8; font-weight: bold; font-size: 13px; padding: 5px 10px; border-radius: 12px; }
+.langs button.on { background: #fff4d6; border-color: #ffc94d; color: #a86a00; }
+.pane-head .tabs[hidden] + .ph-note { margin-left: auto; }
+
+.console { flex: 1; min-height: 0; background: #1b1f3b; color: #e8ecff; overflow: auto; }
+.console pre { margin: 0; padding: 14px 16px; min-height: 100%; font: 15px/22px Consolas, Menlo, "Courier New", monospace; white-space: pre-wrap; word-break: break-word; }
+.console .err { color: #ff9b8f; }
+.console .sys { color: #8a93b4; font-style: italic; }
+
+.stdin-box { flex: none; padding: 8px 14px 10px; background: #f6f8ff; border-top: 3px solid #eef1ff; }
+.stdin-box label { display: block; font-size: 13px; font-weight: bold; color: #55608a; margin-bottom: 4px; }
+.stdin-box label span { font-weight: normal; color: #8a93b4; }
+.stdin-box textarea { width: 100%; resize: vertical; min-height: 44px; max-height: 120px; border: 2px solid #dfe5ff; border-radius: 12px; padding: 8px 10px; font: 14px/20px Consolas, Menlo, "Courier New", monospace; color: #2b3350; background: #fff; outline: none; }
+.stdin-box textarea:focus { border-color: #6d7eea; }
+.stdin-box.need textarea { border-color: #ff9b8f; }
+
+
+/* ============================================================
+   RESPONSIVE
+   Titik patah:  >=1100px desktop (Tutor AI menempel di kanan)
+                 <=1099px Tutor AI jadi panel bawah (awalnya diciutkan)
+                 <=820px  panel Code & Preview ditumpuk, halaman bisa di-scroll
+                 <=480px  tombol & header dipadatkan
+                 tinggi <=560px (HP landscape) halaman bisa di-scroll
+   ============================================================ */
+html { -webkit-text-size-adjust: 100%; }
+
+/* header boleh turun baris, tidak melebar */
+.eh { flex-wrap: wrap; }
+.eh-back { white-space: nowrap; }
+.points-chip { flex: none; }
+
+/* kartu misi tidak boleh menelan layar: ia scroll sendiri, editor tetap kelihatan */
+.mission { max-height: 36dvh; overflow: auto; overscroll-behavior: contain; }
+.m-info { max-height: none; overflow: visible; }
+.m-goals li { min-width: 0; overflow-wrap: anywhere; }
+.mission h2, .mission p { overflow-wrap: anywhere; }
+
+/* ---------- DOCK: "Task aktif" + Tutor AI ----------
+   Kedua panel melayang itu ditata bersama di #editorDock supaya tidak saling menimpa.
+   Desktop : kolom di kanan (Task aktif di atas, Tutor AI di bawah); panel lain memberi ruang.
+   Tablet/HP: baris di bawah layar; panel yang diciutkan jadi tombol kecil berdampingan. */
+:root { --dock-w: 360px; }
+.editor-dock { position: fixed; z-index: 1000; display: flex; pointer-events: none; }
+.editor-dock > * { pointer-events: auto; }
+.editor-dock .smpP, .editor-dock .ai-tutor { position: static; margin: 0; z-index: auto; box-sizing: border-box; }
+.editor-dock .smpP { order: -1; overflow-wrap: anywhere; }
+.editor-dock .ai-tutor.minimized .ai-tutor-subtitle { display: none; }
+.editor-dock .ai-tutor.minimized .ai-tutor-head { padding: 8px 10px 8px 14px; gap: 12px; }
+.ai-tutor-messages { min-height: 0; overscroll-behavior: contain; }
+.ai-message { overflow-wrap: anywhere; }
+.ai-generated-code pre { max-width: 100%; }
+
+@media (max-width: 1279px) { :root { --dock-w: 320px; } }
+
+@media (min-width: 1100px) {
+  .editor-dock { top: 72px; right: 14px; bottom: 14px; width: var(--dock-w); flex-direction: column; gap: 12px; }
+  .editor-dock .smpP { width: auto; flex: 0 1 auto; max-height: 46%; min-height: 0; }
+  .editor-dock .smpP.min { align-self: flex-end; }
+  .editor-dock .ai-tutor { width: auto; height: auto; flex: 1 1 0; min-height: 0; }
+  .editor-dock .ai-tutor.minimized { flex: 0 0 auto; margin-top: auto; align-self: flex-end; }
+  body.dock-open .mission { margin-right: calc(var(--dock-w) + 28px); }
+  body.dock-open .split { padding-right: calc(var(--dock-w) + 28px); }
+}
+
+@media (max-width: 1099px) {
+  body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .editor-dock {
+    left: 10px; right: 10px; margin-left: auto; max-width: 560px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    flex-wrap: wrap; justify-content: flex-end; align-items: flex-end; gap: 8px;
+  }
+  .editor-dock .smpP, .editor-dock .ai-tutor { width: auto; flex: 1 1 100%; min-height: 0; }
+  .editor-dock .smpP { max-height: 38vh; max-height: 38dvh; }
+  .editor-dock .ai-tutor { height: min(56vh, 480px); height: min(56dvh, 480px); }
+  .editor-dock .smpP.min, .editor-dock .ai-tutor.minimized { flex: 0 0 auto; height: auto; }
+  .editor-dock .ai-tutor.minimized .ai-tutor-head { cursor: pointer; }
+}
+
+/* ---------- layar kecil: Code di atas, Preview/Output di bawah ---------- */
+@media (max-width: 820px) {
+  body { height: auto; min-height: 100vh; min-height: 100dvh; }
+  .eh { padding: 8px 12px; }
+  .eh-title { display: none; }
+  .mission { max-height: none; margin: 10px 10px 0; padding: 10px 14px; border-left-width: 8px; border-radius: 18px; }
+  .mission h2 { font-size: 17px; }
+  .m-info { grid-template-columns: 1fr; }
+  .split { grid-template-columns: 1fr; grid-template-rows: auto auto; flex: none; gap: 12px; padding: 10px 10px 12px; }
+  .split > .pane { border-radius: 18px; }
+  .split > .pane:first-child { height: clamp(340px, 62vh, 640px); height: clamp(340px, 62dvh, 640px); }
+  .split > .pane:nth-child(2) { height: clamp(300px, 50vh, 560px); height: clamp(300px, 50dvh, 560px); }
+  .tabs { margin-left: 0; }
+  .ph-note { margin-left: 0; }
+}
+
+/* ---------- HP portrait sempit ---------- */
+@media (max-width: 480px) {
+  .eh-back { font-size: 13px; padding: 8px 12px; }
+  .points-chip { font-size: 13px; padding: 6px 10px; }
+  .pane-head { padding: 8px 10px; gap: 8px; }
+  .toolbar { gap: 8px; padding: 8px 10px; }
+  .btn { padding: 10px 12px; font-size: 14px; }
+  .btn.run { flex: 1 1 100%; font-size: 16px; padding: 11px 12px; }
+  .btn.ghost { flex: 1 1 0; }
+  .split > .pane:first-child { height: clamp(440px, 74vh, 720px); height: clamp(440px, 74dvh, 720px); }
+  .langs { flex: 1 1 100%; }
+  .langs button { flex: 1 1 0; padding: 6px 4px; font-size: 12.5px; white-space: nowrap; }
+  .pane-head .tabs { flex-wrap: wrap; }
+  .m-goals li { font-size: 12.5px; }
+  .stdin-box { padding: 8px 10px 10px; }
+  .prev-foot { padding: 6px 10px; }
+}
+
+/* ---------- HP landscape / layar pendek: halaman bisa di-scroll ---------- */
+@media (max-height: 560px) and (min-width: 821px) {
+  body { height: auto; min-height: 100vh; min-height: 100dvh; }
+  .mission { max-height: none; }
+  .split { flex: none; height: calc(100vh - 12px); height: calc(100dvh - 12px); min-height: 300px; }
+  .toolbar { gap: 8px; padding: 8px 10px; }
+  .btn { padding: 8px 12px; font-size: 14px; }
+  .btn.run { padding: 8px 16px; font-size: 15px; }
+}
+
+/* ---------- layar sentuh: target lebih besar, tanpa auto-zoom iOS ---------- */
+@media (pointer: coarse) {
+  .tabs button, .langs button, .m-info-btn { min-height: 40px; }
+  .ai-tutor-form textarea, .stdin-box textarea { font-size: 16px; }
+}
+@media (pointer: coarse) and (max-width: 820px) {
+  .hl, .src { font-size: 16px; line-height: 24px; padding: 12px; }
+}

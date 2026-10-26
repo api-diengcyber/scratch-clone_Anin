@@ -130,7 +130,8 @@ function checkAiRateLimit(ip) {
 // PATH PROJECT
 // ============================================================
 
-const PROJECT_ROOT = path.join(__dirname, "..");
+const PROJECT_ROOT = path.join(__dirname, "..", "users"); // frontend siswa
+const ADMIN_ROOT = path.join(__dirname, "..", "Admin");   // frontend admin
 
 // ============================================================
 // MIDDLEWARE
@@ -220,13 +221,15 @@ setInterval(() => {
 // ============================================================
 // SECURITY HEADERS (dasar, tanpa dependensi tambahan)
 app.use((req, res, next) => {
+    const isAdminPage = req.path === "/admin" || req.path.startsWith("/admin/");
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
     res.setHeader(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com" +
+        (isAdminPage ? " https://cdn.tailwindcss.com https://unpkg.com" : "") + "; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
         "img-src 'self' data: blob: https://cdn.jsdelivr.net; " +
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
@@ -273,6 +276,9 @@ app.use(
         }
     })
 );
+
+// Halaman admin: http://localhost:3000/admin/
+app.use("/admin", express.static(ADMIN_ROOT, { index: "index.html" }));
 
 // ============================================================
 // HALAMAN UTAMA
@@ -1381,6 +1387,9 @@ app.use((err, req, res, next) => {
     if (err && (err.type === "entity.parse.failed" || err instanceof SyntaxError)) {
         return sendApiError(res, 400, "Body JSON tidak valid", "VALIDATION_ERROR");
     }
+    if (err && (err.status === 404 || err.code === "ENOENT")) {
+        return res.status(404).send("Not Found");
+    }
     console.error("Unhandled error:", err);
     if (res.headersSent) return next(err);
     sendApiError(res, 500, "Terjadi kesalahan server", "INTERNAL_ERROR");
@@ -1418,6 +1427,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Frontend : http://localhost:${PORT}`);
     console.log(`Dashboard: http://localhost:${PORT}/dashboard.html`);
     console.log(`Belajar  : http://localhost:${PORT}/belajar.html`);
+    console.log(`Admin    : http://localhost:${PORT}/admin/`);
     console.log(`API      : http://localhost:${PORT}/api`);
     console.log("");
     logger.info("Server siap digunakan.");

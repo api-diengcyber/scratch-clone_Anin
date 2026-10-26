@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id" data-dark="manual">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
+  <title>Dieng Cyber Coding Academy</title>
+  <meta name="description" content="Dashboard Dieng Cyber Coding: pilih jenjang SD, SMP, atau SMA/SMK, lanjutkan jalur belajarmu, dan pantau koin yang sudah dikumpulkan.">
+  <link rel="icon" type="image/webp" href="/Assets/logo.webp">
+  <!-- Font Awesome + MDB (untuk navbar burger). style.css dimuat SESUDAH MDB agar aturan kita yang menang -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.3.0/mdb.min.css">
+  <link rel="stylesheet" href="/shared/css/style.css?v=20261019">
+  <link rel="stylesheet" href="/shared/css/frames.css?v=20261019">
+  <link rel="stylesheet" href="/shared/css/dark.css?v=20261022">
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"></div>
+      <div>
+        <h1><span class="t-line">DIENG CYBER</span> <span class="t-line">CODING</span></h1>
+        <p>E-learning coding untuk anak</p>
+      </div>
+    </div>
+
+    <div class="profile">
+      <a class="points-chip" href="/poin/poin.html" title="Lihat saldo koinmu">💰 <b id="pointsValue">0</b> <span class="pc-label">Koin Belajar</span></a>
+
+      <!-- Burger menu (semua ukuran layar) -->
+      <div class="user-menu-wrap">
+        <button id="menuBtn" class="menu-btn" type="button" aria-haspopup="true"
+          aria-expanded="false" aria-controls="userMenu" aria-label="Buka menu">
+          <span id="menuIcon" class="menu-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span>
+          <span id="menuAvatarBox" class="menu-avatar-box" hidden><img id="menuAvatar" alt="" width="42" height="42"></span>
+        </button>
+
+        <div id="userMenu" class="user-menu" role="menu" hidden>
+          <div class="um-user">
+            <div class="um-avatar" id="avatarLetter">A</div>
+            <div class="um-info">
+              <strong id="displayUsername">@anak_coding</strong>
+              <span>Belajar • Bermain • Berkarya</span>
+            </div>
+          </div>
+          <a class="um-item" role="menuitem" href="/profil/profil.html">⚙️ Pengaturan Profil</a>
+          <a class="um-item" role="menuitem" href="/laporan/laporan.html">📊 Laporan Saya</a>
+          <button id="themeItem" class="um-item um-theme" role="menuitemcheckbox" aria-checked="false" type="button">🌙 Mode Gelap <span class="dc-sw" aria-hidden="true"></span></button>
+          <button id="logoutBtn" class="um-item um-logout" role="menuitem" type="button">🚪 Keluar</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="eyebrow">CODING ADVENTURE</span>
+        <h2>Belajar coding sesuai jenjangmu!</h2>
+        <p>Pilih jenjangmu. Untuk SD, ada Tahap 1 dan Tahap 2 yang seru: animasi, game, dunia 3D, dan website!</p>
+      </div>
+    <div class="hero-badge">
+        <img src="/Assets/belajar-bermain.webp" alt="" width="480" height="320">
+    </div>    
+    </section>
+
+    <section class="grade-section">
+      <div class="section-title">
+        <div>
+          <span class="eyebrow">PILIH JENJANG</span>
+          <h2>Mulai petualanganmu</h2>
+        </div>
+      </div>
+
+      <div class="grade-tabs">
+        <button type="button" class="grade-tab active" data-grade="sd">
+          <span>🎒</span><b>SD</b><small>Visual & cerita</small>
+        </button>
+        <button type="button" class="grade-tab" data-grade="smp">
+          <span>🎮</span><b>SMP</b><small>Game & logika</small>
+        </button>
+        <button type="button" class="grade-tab" data-grade="smak">
+          <span>💻</span><b>SMA/SMK</b><small>Algoritma & coding</small>
+        </button>
+      </div>
+    </section>
+
+    <div id="tahapArea"></div>
+  </main>
+
+  <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.3.0/mdb.umd.min.js"></script>
+  <script src="/kurikulum/data/jalur-data-smp.js?v=20261019"></script>
+  <script src="/kurikulum/data/jalur-data-smak.js?v=20261019"></script>
+  <script src="/shared/js/utils.js?v=20261019"></script>
+  <script src="/kurikulum/ui/smp-tahap.js?v=20261019"></script>
+  <script src="/kurikulum/ui/smak-tahap.js?v=20261019"></script>
+  <script src="/shared/js/avatar-default.js?v=20261019"></script>
+  <script src="/shared/js/avatar-frame.js?v=20261019"></script>
+  <script src="/dashboard/dashboard.js?v=20261019"></script>
+  <script src="/shared/js/icons.js?v=20261019"></script>
+</body>
+</html>
