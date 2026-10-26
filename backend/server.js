@@ -1,4 +1,5 @@
 const path = require("path");
+const crypto = require("crypto");
 const dotenv = require("dotenv");
 
 dotenv.config({
@@ -236,7 +237,7 @@ app.use((req, res, next) => {
         "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://dieng-cyber-coding.firebaseapp.com https://cdn.jsdelivr.net; " +
         "worker-src 'self' blob: https://cdn.jsdelivr.net; " +
         "child-src 'self' blob: https://cdn.jsdelivr.net; " +
-        "frame-src 'self' https://dieng-cyber-coding.firebaseapp.com;"
+        "frame-src 'self' https://dieng-cyber-coding.firebaseapp.com " + (process.env.PLUGIN_PUBLIC_ORIGIN || "https://plugins.domain.com") + ";"
     );
     next();
 });
@@ -497,12 +498,12 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
 
     const user = loginByEmail
         ? db.prepare(`
-            SELECT username, email, password_hash, password_salt, firebase_uid
+            SELECT id, username, email, password_hash, password_salt, firebase_uid, role, status
             FROM users
             WHERE email = ? COLLATE NOCASE
         `).get(identifier)
         : db.prepare(`
-            SELECT username, email, password_hash, password_salt, firebase_uid
+            SELECT id, username, email, password_hash, password_salt, firebase_uid, role, status
             FROM users
             WHERE username = ?
         `).get(identifier);
@@ -512,6 +513,13 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
     if (!user) {
         auth.recordFail(attemptKey);
         return sendApiError(res, 401, "Email/username atau password salah", "INVALID_CREDENTIALS");
+    }
+
+    if (user.status === "suspended") {
+        return sendApiError(res, 403, "Akun sedang ditangguhkan", "ACCOUNT_SUSPENDED");
+    }
+    if (user.status !== "active") {
+        return sendApiError(res, 403, "Akun tidak aktif", "ACCOUNT_INACTIVE");
     }
 
     if (!user.password_hash) {
@@ -531,8 +539,8 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
         // Akun legacy (sebelum sistem password dibuat) boleh mengklaim password saat login pertama.
         const { salt, hash } = auth.hashPassword(password);
         db.prepare(`
-            UPDATE users SET password_hash = ?, password_salt = ? WHERE username = ?
-        `).run(hash, salt, user.username);
+            UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?
+        `).run(hash, salt, user.id);
         status = "claimed";
     } else if (!auth.verifyPassword(password, user.password_salt, user.password_hash)) {
         auth.recordFail(attemptKey);
@@ -540,13 +548,17 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
     }
 
     auth.clearFails(attemptKey);
+    db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
 
-    const token = auth.createSession(user.username);
+    const token = auth.createSession(user.id);
     sendApiSuccess(res, {
+        id: user.id,
         username: user.username,
         email: user.email || null,
         token,
-        status
+        status,
+        role: user.role || "student",
+        accountStatus: user.status || "active"
     }, "Login berhasil");
 });
 
@@ -575,8 +587,24 @@ app.post("/api/auth/firebase-login", async (req, res) => {
                 firebase_uid = excluded.firebase_uid
         `).run(username, firebaseUser.email, firebaseUser.uid);
 
-        const token = auth.createSession(username);
-        sendApiSuccess(res, { username, token, email: firebaseUser.email }, "Login Firebase berhasil");
+        const user = db.prepare(`
+            SELECT id, username, email, role, status FROM users WHERE username = ?
+        `).get(username);
+        if (!user) return sendApiError(res, 401, "User Firebase tidak ditemukan", "FIREBASE_AUTH_ERROR");
+        if (user.status === "suspended") return sendApiError(res, 403, "Akun sedang ditangguhkan", "ACCOUNT_SUSPENDED");
+        if (user.status !== "active") return sendApiError(res, 403, "Akun tidak aktif", "ACCOUNT_INACTIVE");
+
+        db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
+
+        const token = auth.createSession(user.id);
+        sendApiSuccess(res, {
+            id: user.id,
+            username: user.username,
+            token,
+            email: firebaseUser.email,
+            role: user.role || "student",
+            accountStatus: user.status || "active"
+        }, "Login Firebase berhasil");
     } catch (error) {
         console.error("Firebase login error:", error);
         sendApiError(res, 401, "Login Firebase gagal: " + error.message, "FIREBASE_AUTH_ERROR");
@@ -637,11 +665,13 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
 
     // Buat user baru
     const { salt, hash } = auth.hashPassword(password);
+    let userId;
     try {
-        db.prepare(`
+        const info = db.prepare(`
             INSERT INTO users (username, email, password_hash, password_salt)
             VALUES (?, ?, ?, ?)
         `).run(username, finalEmail, hash, salt);
+        userId = Number(info.lastInsertRowid);
     } catch (error) {
         // Jaga-jaga kalau ada request bersamaan yang lolos cek duplikat.
         if (String(error.code || "").startsWith("SQLITE_CONSTRAINT")) {
@@ -651,8 +681,9 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
         throw error;
     }
 
-    const token = auth.createSession(username);
-    sendApiSuccess(res, { username, token, email: finalEmail }, "Registrasi berhasil", 201);
+    db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
+    const token = auth.createSession(userId);
+    sendApiSuccess(res, { id: userId, username, token, email: finalEmail, role: "student", accountStatus: "active" }, "Registrasi berhasil", 201);
 });
 
 // ============================================================
@@ -678,13 +709,22 @@ app.post("/api/auth/firebase-register", async (req, res) => {
         }
 
         // Buat user baru dengan Firebase UID
-        db.prepare(`
+        const info = db.prepare(`
             INSERT INTO users (username, email, firebase_uid)
             VALUES (?, ?, ?)
         `).run(username, firebaseUser.email, firebaseUser.uid);
+        const userId = Number(info.lastInsertRowid);
 
-        const token = auth.createSession(username);
-        sendApiSuccess(res, { username, token, email: firebaseUser.email }, "Registrasi Firebase berhasil", 201);
+        db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
+        const token = auth.createSession(userId);
+        sendApiSuccess(res, {
+            id: userId,
+            username,
+            token,
+            email: firebaseUser.email,
+            role: "student",
+            accountStatus: "active"
+        }, "Registrasi Firebase berhasil", 201);
     } catch (error) {
         console.error("Firebase register error:", error);
         sendApiError(res, 401, "Registrasi Firebase gagal: " + error.message, "FIREBASE_AUTH_ERROR");
@@ -697,15 +737,23 @@ app.post("/api/auth/firebase-register", async (req, res) => {
 
 app.get("/api/auth/me", auth.requireAuth, (req, res) => {
     const user = db.prepare(`
-        SELECT username, email, full_name, password_hash
-        FROM users WHERE username = ?
-    `).get(req.user);
+        SELECT id, username, email, full_name, password_hash, role, status,
+               must_change_password, last_login_at
+        FROM users WHERE id = ?
+    `).get(req.userId);
+
+    if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
 
     sendApiSuccess(res, {
-        username: req.user,
-        email: (user && user.email) || null,
-        fullName: (user && user.full_name) || null,
-        hasPassword: Boolean(user && user.password_hash)
+        id: user.id,
+        username: user.username,
+        email: user.email || null,
+        fullName: user.full_name || null,
+        role: user.role || "student",
+        status: user.status || "active",
+        mustChangePassword: Boolean(user.must_change_password),
+        lastLoginAt: user.last_login_at || null,
+        hasPassword: Boolean(user.password_hash)
     });
 });
 
@@ -732,8 +780,8 @@ app.post("/api/auth/change-password", auth.requireAuth, rateLimitMiddleware(10),
     }
 
     const user = db.prepare(`
-        SELECT password_hash, password_salt FROM users WHERE username = ?
-    `).get(req.user);
+        SELECT password_hash, password_salt FROM users WHERE id = ?
+    `).get(req.userId);
     if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
 
     const pwKey = req.ip + "|pw:" + req.user;
@@ -753,13 +801,15 @@ app.post("/api/auth/change-password", auth.requireAuth, rateLimitMiddleware(10),
 
     const { salt, hash } = auth.hashPassword(newPassword);
     db.prepare(`
-        UPDATE users SET password_hash = ?, password_salt = ? WHERE username = ?
-    `).run(hash, salt, req.user);
+        UPDATE users
+        SET password_hash = ?, password_salt = ?, must_change_password = 0
+        WHERE id = ?
+    `).run(hash, salt, req.userId);
 
     // Sesi di perangkat lain dicabut; sesi yang sedang dipakai tetap hidup.
-    auth.deleteOtherSessions(req.user, req.token);
+    auth.deleteOtherSessions(req.userId, req.token);
 
-    sendApiSuccess(res, { username: req.user }, "Password berhasil diubah");
+    sendApiSuccess(res, { id: req.userId, username: req.user }, "Password berhasil diubah");
 });
 
 // ============================================================
@@ -770,8 +820,8 @@ app.get("/api/profile", auth.requireAuth, (req, res) => {
     try {
         const user = db.prepare(`
             SELECT username, email, full_name, bio, avatar_url, equipped_frame, equipped_title, firebase_uid, created_at
-            FROM users WHERE username = ?
-        `).get(req.user);
+            FROM users WHERE id = ?
+        `).get(req.userId);
         if (!user) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
         sendApiSuccess(res, {
             profile: {
@@ -809,8 +859,8 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
         if (email !== undefined) {
             const taken = db.prepare(`
                 SELECT 1 FROM users
-                WHERE email = ? COLLATE NOCASE AND username <> ?
-            `).get(email, req.user);
+                WHERE email = ? COLLATE NOCASE AND id <> ?
+            `).get(email, req.userId);
             if (taken) {
                 return sendApiError(res, 409, "Email sudah dipakai akun lain", "EMAIL_EXISTS");
             }
@@ -822,13 +872,13 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
                 email = COALESCE(?, email),
                 bio = COALESCE(?, bio),
                 avatar_url = COALESCE(?, avatar_url, ?)
-            WHERE username = ?
-        `).run(fullName, email, bio, avatarUrl, avatar, req.user);
+            WHERE id = ?
+        `).run(fullName, email, bio, avatarUrl, avatar, req.userId);
 
         const updated = db.prepare(`
             SELECT username, email, full_name, bio, avatar_url, equipped_frame, equipped_title, firebase_uid, created_at
-            FROM users WHERE username = ?
-        `).get(req.user);
+            FROM users WHERE id = ?
+        `).get(req.userId);
 
         sendApiSuccess(res, {
             profile: {
@@ -855,7 +905,7 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
 
 app.get("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
     try {
-        const row = db.prepare("SELECT allowed_grades FROM users WHERE username = ?").get(req.user);
+        const row = db.prepare("SELECT allowed_grades FROM users WHERE id = ?").get(req.userId);
         if (!row) return sendApiError(res, 404, "User tidak ditemukan", "NOT_FOUND");
         let grades = ["SD", "SMP", "SMK"];
         if (row.allowed_grades) {
@@ -886,7 +936,7 @@ app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
         if (valid.length !== grades.length) {
             return sendApiError(res, 400, "Grade tidak valid (boleh SD, SMP, SMK)", "VALIDATION_ERROR");
         }
-        db.prepare("UPDATE users SET allowed_grades = ? WHERE username = ?").run(JSON.stringify(valid), req.user);
+        db.prepare("UPDATE users SET allowed_grades = ? WHERE id = ?").run(JSON.stringify(valid), req.userId);
         sendApiSuccess(res, { grades: valid }, "Allowed grades diperbarui");
     } catch (error) {
         console.error("Gagal menyimpan allowed-grades:", error);
@@ -902,20 +952,15 @@ app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
 // `points.total` TIDAK dikurangi saat belanja supaya level & riwayat tetap utuh.
 // Harga disimpan sebagai snapshot di user_items saat pembelian.
 
-function getShopState(username) {
-    const pointsRow = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
+function getShopState(userId) {
+    const pointsRow = db.prepare("SELECT total FROM points WHERE user_id = ?").get(userId);
     const earned = pointsRow ? Number(pointsRow.total) || 0 : 0;
-
     const ownedRows = db.prepare(`
-        SELECT item_id, harga FROM user_items WHERE username = ? ORDER BY id ASC
-    `).all(username);
+        SELECT item_id, harga FROM user_items WHERE user_id = ? ORDER BY id ASC
+    `).all(userId);
     const owned = ownedRows.map((row) => row.item_id);
     const spent = ownedRows.reduce((sum, row) => sum + (Number(row.harga) || 0), 0);
-
-    const user = db.prepare(`
-        SELECT equipped_frame, equipped_title FROM users WHERE username = ?
-    `).get(username);
-
+    const user = db.prepare("SELECT equipped_frame, equipped_title FROM users WHERE id = ?").get(userId);
     return {
         owned,
         equipped: {
@@ -943,7 +988,7 @@ app.get("/api/shop", auth.requireAuth, (req, res) => {
     try {
         sendApiSuccess(res, {
             items: shop.SHOP_ITEMS,
-            ...getShopState(req.user)
+            ...getShopState(req.userId)
         });
     } catch (error) {
         console.error("Gagal mengambil data toko:", error);
@@ -962,13 +1007,13 @@ app.post("/api/shop/buy", auth.requireAuth, rateLimitMiddleware(30), (req, res) 
         // Transaksi: cek kepemilikan + saldo + catat pembelian + pasang item.
         const result = db.transaction(() => {
             const owned = db.prepare(`
-                SELECT 1 FROM user_items WHERE username = ? AND item_id = ?
-            `).get(req.user, item.id);
+                SELECT 1 FROM user_items WHERE user_id = ? AND item_id = ?
+            `).get(req.userId, item.id);
             if (owned) {
                 return { error: { status: 409, code: "ALREADY_OWNED", message: "Hadiah ini sudah kamu punya." } };
             }
 
-            const state = getShopState(req.user);
+            const state = getShopState(req.userId);
             if (state.balance < item.harga) {
                 return {
                     error: {
@@ -980,16 +1025,16 @@ app.post("/api/shop/buy", auth.requireAuth, rateLimitMiddleware(30), (req, res) 
             }
 
             db.prepare(`
-                INSERT INTO user_items (username, item_id, jenis, harga)
+                INSERT INTO user_items (user_id, item_id, jenis, harga)
                 VALUES (?, ?, ?, ?)
-            `).run(req.user, item.id, item.jenis, item.harga);
+            `).run(req.userId, item.id, item.jenis, item.harga);
 
             // Sama seperti frontend: item yang dibeli langsung dipasang.
             db.prepare(`
-                UPDATE users SET ${shopColumnFor(item.jenis)} = ? WHERE username = ?
-            `).run(item.id, req.user);
+                UPDATE users SET ${shopColumnFor(item.jenis)} = ? WHERE id = ?
+            `).run(item.id, req.userId);
 
-            return { state: getShopState(req.user) };
+            return { state: getShopState(req.userId) };
         })();
 
         if (result.error) {
@@ -1011,15 +1056,15 @@ app.post("/api/shop/equip", auth.requireAuth, (req, res) => {
         if (!item) return sendApiError(res, 404, "Hadiah tidak ditemukan", "ITEM_NOT_FOUND");
 
         const owned = db.prepare(`
-            SELECT 1 FROM user_items WHERE username = ? AND item_id = ?
-        `).get(req.user, item.id);
+            SELECT 1 FROM user_items WHERE user_id = ? AND item_id = ?
+        `).get(req.userId, item.id);
         if (!owned) return sendApiError(res, 400, "Kamu belum memiliki hadiah ini", "NOT_OWNED");
 
         db.prepare(`
-            UPDATE users SET ${shopColumnFor(item.jenis)} = ? WHERE username = ?
-        `).run(item.id, req.user);
+            UPDATE users SET ${shopColumnFor(item.jenis)} = ? WHERE id = ?
+        `).run(item.id, req.userId);
 
-        sendApiSuccess(res, { equipped: getShopState(req.user).equipped }, "Hadiah dipasang");
+        sendApiSuccess(res, { equipped: getShopState(req.userId).equipped }, "Hadiah dipasang");
     } catch (error) {
         console.error("Gagal memasang hadiah:", error);
         sendApiError(res, 500, "Gagal memasang hadiah", "INTERNAL_ERROR");
@@ -1034,10 +1079,10 @@ app.post("/api/shop/unequip", auth.requireAuth, (req, res) => {
         }
 
         db.prepare(`
-            UPDATE users SET ${shopColumnFor(jenis)} = NULL WHERE username = ?
-        `).run(req.user);
+            UPDATE users SET ${shopColumnFor(jenis)} = NULL WHERE id = ?
+        `).run(req.userId);
 
-        sendApiSuccess(res, { equipped: getShopState(req.user).equipped }, "Hadiah dilepas");
+        sendApiSuccess(res, { equipped: getShopState(req.userId).equipped }, "Hadiah dilepas");
     } catch (error) {
         console.error("Gagal melepas hadiah:", error);
         sendApiError(res, 500, "Gagal melepas hadiah", "INTERNAL_ERROR");
@@ -1056,12 +1101,14 @@ if (process.env.NODE_ENV !== "production") {
     `).run(DEV_USERNAME);
 }
 
+function getDevUserId() { const row = db.prepare("SELECT id FROM users WHERE username = ?").get(DEV_USERNAME); return row ? row.id : null; }
+
 app.get("/api/dev/progress", requireDevelopmentMode, (req, res) => {
     try {
         const progress = db.prepare(`
             SELECT task_id, completed, completed_at, bonus_awarded
-                FROM progress WHERE username = ? ORDER BY id ASC
-            `).all(DEV_USERNAME);
+                FROM progress WHERE user_id = ? ORDER BY id ASC
+            `).all(getDevUserId());
         sendApiSuccess(res, { username: DEV_USERNAME, progress });
     } catch (error) {
         console.error("Gagal mengambil progress dev:", error);
@@ -1078,7 +1125,7 @@ app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
         const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
 
-        const devResult = applyProgress(DEV_USERNAME, String(taskId), completed);
+        const devResult = applyProgress(getDevUserId(), String(taskId), completed);
         if (devResult.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed, points: devResult.points, earned: devResult.earned }, "Progress disimpan");
     } catch (error) {
@@ -1089,7 +1136,7 @@ app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
 
 app.get("/api/dev/points", requireDevelopmentMode, (req, res) => {
     try {
-        const row = db.prepare("SELECT total FROM points WHERE username = ?").get(DEV_USERNAME);
+        const row = db.prepare("SELECT total FROM points WHERE user_id = ?").get(getDevUserId());
         sendApiSuccess(res, { username: DEV_USERNAME, total: row ? row.total : 0 });
     } catch (error) {
         console.error("Gagal mengambil points dev:", error);
@@ -1104,9 +1151,9 @@ app.post("/api/dev/points", requireDevelopmentMode, (req, res) => {
             return sendApiError(res, 400, "total points harus bilangan bulat non-negatif", "VALIDATION_ERROR");
         }
         db.prepare(`
-            INSERT INTO points (username, total, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(username) DO UPDATE SET total = excluded.total, updated_at = CURRENT_TIMESTAMP
-        `).run(DEV_USERNAME, total);
+            INSERT INTO points (user_id, total, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id) DO UPDATE SET total = excluded.total, updated_at = CURRENT_TIMESTAMP
+        `).run(getDevUserId(), total);
         sendApiSuccess(res, { username: DEV_USERNAME, total }, "Points disimpan");
     } catch (error) {
         console.error("Gagal menyimpan points dev:", error);
@@ -1130,16 +1177,16 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
             progress = db.prepare(`
                 SELECT p.task_id, p.completed, p.completed_at, p.bonus_awarded
                 FROM progress p JOIN tasks t ON t.task_id = p.task_id
-                WHERE p.username = ?
+                WHERE p.user_id = ?
                   AND (? IS NULL OR t.grade = ?)
                   AND (? IS NULL OR t.module_id = ?)
                 ORDER BY p.id ASC
-            `).all(username, fGrade, fGrade, fModule, fModule);
+            `).all(req.userId, fGrade, fGrade, fModule, fModule);
         } else {
             progress = db.prepare(`
                 SELECT task_id, completed, completed_at, bonus_awarded
-                FROM progress WHERE username = ? ORDER BY id ASC
-            `).all(username);
+                FROM progress WHERE user_id = ? ORDER BY id ASC
+            `).all(req.userId);
         }
         sendApiSuccess(res, { progress });
     } catch (error) {
@@ -1155,18 +1202,17 @@ const FIRST_TRY_BONUS = Number.isSafeInteger(_FB) && _FB >= 0 ? _FB : 5;
 // Berlaku semua task (termasuk project). Bonus hanya sekali seumur (user, task).
 // Koin dihitung SERVER dari task selesai (fase 2). Idempoten:
 // hanya selisih status false<->true yang mengkredit/mendebit.
-function applyProgress(username, taskId, completed) {
+function applyProgress(userId, taskId, completed) {
     const task = db.prepare("SELECT points FROM tasks WHERE task_id = ?").get(taskId);
     if (!task) return { error: "NOT_FOUND" };
     const pts = Number.isSafeInteger(task.points) ? task.points : 10;
     return db.transaction(() => {
-        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
-        const prev = db.prepare("SELECT completed, bonus_awarded FROM progress WHERE username = ? AND task_id = ?").get(username, taskId);
+        const prev = db.prepare("SELECT completed, bonus_awarded FROM progress WHERE user_id = ? AND task_id = ?").get(userId, taskId);
         const wasDone = !!prev && prev.completed === 1;
         const hadBonus = !!prev && prev.bonus_awarded === 1;
         let earnedBase = 0, earnedBonus = 0, giveBonus = false;
         if (!wasDone && completed) {
-            const fr = db.prepare("SELECT fails FROM attempts WHERE username = ? AND task_id = ?").get(username, taskId);
+            const fr = db.prepare("SELECT fails FROM attempts WHERE user_id = ? AND task_id = ?").get(userId, taskId);
             giveBonus = !hadBonus && (!fr || fr.fails === 0);
             earnedBase = pts;
             earnedBonus = giveBonus ? FIRST_TRY_BONUS : 0;
@@ -1176,16 +1222,16 @@ function applyProgress(username, taskId, completed) {
         }
         const stamp = completed ? new Date().toISOString() : null;
         db.prepare(`
-            INSERT INTO progress (username, task_id, completed, completed_at, bonus_awarded)
+            INSERT INTO progress (user_id, task_id, completed, completed_at, bonus_awarded)
             VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(username, task_id) DO UPDATE SET
+            ON CONFLICT(user_id, task_id) DO UPDATE SET
                 completed = excluded.completed, completed_at = excluded.completed_at,
                 bonus_awarded = excluded.bonus_awarded
-        `).run(username, taskId, completed ? 1 : 0, stamp, (hadBonus || giveBonus) ? 1 : 0);
-        db.prepare(`INSERT INTO points (username, total, updated_at) VALUES (?, 0, CURRENT_TIMESTAMP) ON CONFLICT(username) DO NOTHING`).run(username);
-        const row = db.prepare("SELECT total FROM points WHERE username = ?").get(username);
+        `).run(userId, taskId, completed ? 1 : 0, stamp, (hadBonus || giveBonus) ? 1 : 0);
+        db.prepare(`INSERT INTO points (user_id, total, updated_at) VALUES (?, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id) DO NOTHING`).run(userId);
+        const row = db.prepare("SELECT total FROM points WHERE user_id = ?").get(userId);
         const next = Math.max(0, (row ? row.total : 0) + earnedBase + earnedBonus);
-        db.prepare(`UPDATE points SET total = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?`).run(next, username);
+        db.prepare(`UPDATE points SET total = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`).run(next, userId);
         return { completed, points: next, earned: { base: earnedBase, bonus: earnedBonus } };
     })();
 }
@@ -1200,7 +1246,7 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
         if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
         if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
-        const result = applyProgress(username, String(taskId), completed);
+        const result = applyProgress(req.userId, String(taskId), completed);
         if (result.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         sendApiSuccess(res, { username, taskId: String(taskId), completed, points: result.points, earned: result.earned }, "Progress berhasil disimpan");
     } catch (error) {
@@ -1222,12 +1268,11 @@ app.post("/api/attempts/:username", auth.requireAuth, auth.requireSameUser, (req
         if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
         const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
-        db.prepare(`INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO NOTHING`).run(username);
         const ts = Number.isSafeInteger(timeSpent) && timeSpent >= 0 ? timeSpent : 0;
         const rec = db.transaction(() => {
-            db.prepare(`INSERT INTO attempts (username, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(username, task_id) DO NOTHING`).run(username, String(taskId));
-            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND task_id = ?`).run(ts, username, String(taskId));
-            return db.prepare("SELECT fails, time_spent FROM attempts WHERE username = ? AND task_id = ?").get(username, String(taskId));
+            db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(req.userId, String(taskId));
+            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND task_id = ?`).run(ts, req.userId, String(taskId));
+            return db.prepare("SELECT fails, time_spent FROM attempts WHERE user_id = ? AND task_id = ?").get(req.userId, String(taskId));
         })();
         sendApiSuccess(res, { username, taskId: String(taskId), fails: rec.fails, timeSpent: rec.time_spent }, "Percobaan dicatat");
     } catch (error) {
@@ -1243,9 +1288,9 @@ app.get("/api/attempts/:username", auth.requireAuth, auth.requireSameUser, (req,
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
         const rows = db.prepare(`
             SELECT task_id, fails, time_spent, updated_at
-            FROM attempts WHERE username = ?
+            FROM attempts WHERE user_id = ?
             ORDER BY updated_at DESC
-        `).all(username);
+        `).all(req.userId);
         sendApiSuccess(res, { username, attempts: rows }, "Daftar percobaan");
     } catch (error) {
         console.error("Gagal mengambil attempts:", error);
@@ -1261,9 +1306,9 @@ app.post("/api/dev/attempts", requireDevelopmentMode, (req, res) => {
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         const ts = Number.isSafeInteger(timeSpent) && timeSpent >= 0 ? timeSpent : 0;
         const rec = db.transaction(() => {
-            db.prepare(`INSERT INTO attempts (username, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(username, task_id) DO NOTHING`).run(DEV_USERNAME, String(taskId));
-            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND task_id = ?`).run(ts, DEV_USERNAME, String(taskId));
-            return db.prepare("SELECT fails, time_spent FROM attempts WHERE username = ? AND task_id = ?").get(DEV_USERNAME, String(taskId));
+            db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(getDevUserId(), String(taskId));
+            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND task_id = ?`).run(ts, getDevUserId(), String(taskId));
+            return db.prepare("SELECT fails, time_spent FROM attempts WHERE user_id = ? AND task_id = ?").get(getDevUserId(), String(taskId));
         })();
         sendApiSuccess(res, { username: DEV_USERNAME, taskId: String(taskId), fails: rec.fails, timeSpent: rec.time_spent }, "Percobaan dicatat");
     } catch (error) {
@@ -1279,7 +1324,7 @@ app.get("/api/points/:username", auth.requireAuth, auth.requireSameUser, (req, r
     try {
         const username = String(req.params.username || "").trim();
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-        const state = getShopState(username);
+        const state = getShopState(req.userId);
         sendApiSuccess(res, {
             username,
             total: state.earned,
@@ -1414,6 +1459,14 @@ setInterval(() => {
         if (now - e.windowStart > AI_RATE_WINDOW_MS) aiRequestCounts.delete(ip);
     }
 }, 5 * 60 * 1000).unref();
+
+// ============================================================
+// ADMIN API (M1-M4): semua endpoint terlindungi di modul terpisah
+// ============================================================
+require("./admin-api").registerAdminApi(app, {
+    db, auth, express, sendApiError, sendApiSuccess,
+    rateLimitMiddleware, sanitizeString, normalizeEmail, isValidEmail
+});
 
 // ============================================================
 // START SERVER
