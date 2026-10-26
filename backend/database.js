@@ -89,6 +89,84 @@ if (!existingUserColumns.includes("equipped_frame")) {
 if (!existingUserColumns.includes("equipped_title")) {
     db.exec("ALTER TABLE users ADD COLUMN equipped_title TEXT");
 }
+if (!existingUserColumns.includes("role")) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin'))");
+}
+if (!existingUserColumns.includes("status")) {
+    db.exec("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'deleted'))");
+}
+if (!existingUserColumns.includes("must_change_password")) {
+    db.exec("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0 CHECK (must_change_password IN (0, 1))");
+}
+if (!existingUserColumns.includes("last_login_at")) {
+    db.exec("ALTER TABLE users ADD COLUMN last_login_at DATETIME");
+}
+
+// ============================================================
+// ADMIN AUDIT
+// ============================================================
+// actor_user_id sengaja tidak memakai FK: audit harus tetap ada walaupun
+// akun admin-nya kelak dihapus. actor_username disimpan sebagai snapshot.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_audit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        actor_user_id INTEGER,
+        actor_username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        target_type TEXT,
+        target_id TEXT,
+        details TEXT,
+        ip TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit(created_at DESC);`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_admin_audit_actor ON admin_audit(actor_user_id, created_at DESC);`);
+
+// ============================================================
+// PLUGIN REGISTRY (M4) — tidak menyajikan file karantina ke publik
+// ============================================================
+db.exec(`
+    CREATE TABLE IF NOT EXISTS plugin_categories (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS plugins (
+        plugin_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        category_name TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'quarantine'
+            CHECK (status IN ('quarantine', 'published', 'disabled')),
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS plugin_versions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        upload_id TEXT NOT NULL UNIQUE,
+        plugin_id TEXT NOT NULL,
+        version TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'uploaded'
+            CHECK (status IN ('uploaded','validating','rejected','needs_review','approved','published','disabled','rolled_back')),
+        zip_sha256 TEXT NOT NULL,
+        manifest_json TEXT NOT NULL,
+        scan_report_json TEXT NOT NULL DEFAULT '{}',
+        quarantine_path TEXT NOT NULL,
+        live_path TEXT,
+        uploaded_by INTEGER NOT NULL,
+        reviewed_by INTEGER,
+        reviewed_at DATETIME,
+        published_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(plugin_id, version),
+        FOREIGN KEY(plugin_id) REFERENCES plugins(plugin_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_plugin_versions_status ON plugin_versions(status, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_plugin_versions_plugin ON plugin_versions(plugin_id, created_at DESC);
+`);
+
 
 // Unique indexes (hanya untuk non-null, non-empty)
 db.exec(`
@@ -119,7 +197,7 @@ db.exec(`
         FOREIGN KEY(username) REFERENCES users(username)
     )
 `);
-db.exec(`CREATE INDEX IF NOT EXISTS idx_user_items_username ON user_items(username);`);
+
 
 // ============================================================
 // SESSIONS (tiket login — simpan HASH token)
@@ -457,10 +535,6 @@ if (!taskCols.includes("points")) {
 }
 
 db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username);
-    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
-    CREATE INDEX IF NOT EXISTS idx_progress_username ON progress(username);
-    CREATE INDEX IF NOT EXISTS idx_progress_task ON progress(task_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_grade_module ON tasks(grade, module_id);
     CREATE INDEX IF NOT EXISTS idx_materials_grade_module ON materials(grade, module_id);
 `);
@@ -479,8 +553,7 @@ db.exec(`
         FOREIGN KEY(task_id) REFERENCES tasks(task_id)
     )
 `);
-db.exec(`CREATE INDEX IF NOT EXISTS idx_attempts_username ON attempts(username);`);
-db.exec(`CREATE INDEX IF NOT EXISTS idx_attempts_username_updated ON attempts(username, updated_at DESC);`);
+
 
 // Migrasi kolom attempts.time_spent (aman dijalankan berulang)
 const attemptCols = db.prepare("PRAGMA table_info(attempts)").all().map((c) => c.name);
@@ -495,6 +568,189 @@ if (!progressCols.includes("bonus_awarded")) {
     db.exec("ALTER TABLE progress ADD COLUMN bonus_awarded INTEGER NOT NULL DEFAULT 0 CHECK (bonus_awarded IN (0, 1))");
     console.log("Migrasi kolom progress.bonus_awarded berhasil.");
 }
+
+// ============================================================
+// MIGRASI IDENTITAS: username -> users.id
+// ============================================================
+// Semua tabel anak memakai user_id sebagai FK. Username tetap unik untuk
+// login/display, tetapi boleh berubah tanpa menyentuh progress/points/items.
+function tableExists(table) {
+    return Boolean(db.prepare(`
+        SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?
+    `).get(table));
+}
+
+function tableColumns(table) {
+    if (!tableExists(table)) return [];
+    return db.prepare(`PRAGMA table_info(${table})`).all().map((column) => column.name);
+}
+
+function migrateIdentityToUserId() {
+    const tables = ["sessions", "progress", "points", "attempts", "user_items"];
+    const legacyTables = tables.filter((table) => {
+        const columns = tableColumns(table);
+        return columns.includes("username");
+    });
+
+    // Database baru/ sudah termigrasi: tidak ada kolom username di tabel anak.
+    if (legacyTables.length === 0) return false;
+
+    for (const table of legacyTables) {
+        const columns = tableColumns(table);
+        if (!columns.includes("user_id")) {
+            db.exec(`ALTER TABLE ${table} ADD COLUMN user_id INTEGER`);
+        }
+        db.exec(`
+            UPDATE ${table}
+            SET user_id = (SELECT id FROM users WHERE users.username = ${table}.username)
+            WHERE user_id IS NULL
+        `);
+    }
+
+    // Sesi tanpa user valid tidak bisa dipakai lagi; hapus daripada menggagalkan boot.
+    const orphanSessions = db.prepare("SELECT COUNT(*) AS total FROM sessions WHERE user_id IS NULL").get().total;
+    if (orphanSessions) {
+        db.prepare("DELETE FROM sessions WHERE user_id IS NULL").run();
+        console.log(`Migrasi identitas: ${orphanSessions} sesi lama tanpa user dihapus.`);
+    }
+
+    for (const table of ["progress", "points", "attempts", "user_items"]) {
+        const orphan = db.prepare(`SELECT COUNT(*) AS total FROM ${table} WHERE user_id IS NULL`).get().total;
+        if (orphan) {
+            throw new Error(`Migrasi identitas dibatalkan: ${orphan} baris ${table} tidak punya user yang cocok.`);
+        }
+    }
+
+    db.pragma("foreign_keys = OFF");
+    try {
+        const migrate = db.transaction(() => {
+            if (legacyTables.includes("sessions")) {
+                db.exec(`
+                    CREATE TABLE sessions_new (
+                        token_hash TEXT PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        expires_at DATETIME NOT NULL,
+                        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                    )
+                `);
+                db.exec(`
+                    INSERT INTO sessions_new (token_hash, user_id, created_at, expires_at)
+                    SELECT token_hash, user_id, created_at, expires_at FROM sessions
+                `);
+                db.exec("DROP TABLE sessions");
+                db.exec("ALTER TABLE sessions_new RENAME TO sessions");
+            }
+
+            if (legacyTables.includes("progress")) {
+                db.exec(`
+                    CREATE TABLE progress_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        task_id TEXT NOT NULL,
+                        completed INTEGER NOT NULL DEFAULT 0 CHECK (completed IN (0, 1)),
+                        completed_at DATETIME,
+                        bonus_awarded INTEGER NOT NULL DEFAULT 0 CHECK (bonus_awarded IN (0, 1)),
+                        UNIQUE(user_id, task_id),
+                        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY(task_id) REFERENCES tasks(task_id)
+                    )
+                `);
+                db.exec(`
+                    INSERT INTO progress_new (id, user_id, task_id, completed, completed_at, bonus_awarded)
+                    SELECT id, user_id, task_id, completed, completed_at, bonus_awarded FROM progress
+                `);
+                db.exec("DROP TABLE progress");
+                db.exec("ALTER TABLE progress_new RENAME TO progress");
+            }
+
+            if (legacyTables.includes("points")) {
+                db.exec(`
+                    CREATE TABLE points_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER UNIQUE NOT NULL,
+                        total INTEGER NOT NULL DEFAULT 0
+                            CHECK (total >= 0 AND typeof(total) = 'integer'),
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                    )
+                `);
+                db.exec(`
+                    INSERT INTO points_new (id, user_id, total, updated_at)
+                    SELECT id, user_id, total, updated_at FROM points
+                `);
+                db.exec("DROP TABLE points");
+                db.exec("ALTER TABLE points_new RENAME TO points");
+            }
+
+            if (legacyTables.includes("attempts")) {
+                db.exec(`
+                    CREATE TABLE attempts_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        task_id TEXT NOT NULL,
+                        fails INTEGER NOT NULL DEFAULT 0 CHECK (fails >= 0),
+                        time_spent INTEGER NOT NULL DEFAULT 0 CHECK (time_spent >= 0),
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(user_id, task_id),
+                        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY(task_id) REFERENCES tasks(task_id)
+                    )
+                `);
+                db.exec(`
+                    INSERT INTO attempts_new (id, user_id, task_id, fails, time_spent, updated_at)
+                    SELECT id, user_id, task_id, fails, time_spent, updated_at FROM attempts
+                `);
+                db.exec("DROP TABLE attempts");
+                db.exec("ALTER TABLE attempts_new RENAME TO attempts");
+            }
+
+            if (legacyTables.includes("user_items")) {
+                db.exec(`
+                    CREATE TABLE user_items_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        item_id TEXT NOT NULL,
+                        jenis TEXT NOT NULL CHECK (jenis IN ('bingkai', 'gelar')),
+                        harga INTEGER NOT NULL CHECK (harga >= 0),
+                        purchased_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(user_id, item_id),
+                        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                    )
+                `);
+                db.exec(`
+                    INSERT INTO user_items_new (id, user_id, item_id, jenis, harga, purchased_at)
+                    SELECT id, user_id, item_id, jenis, harga, purchased_at FROM user_items
+                `);
+                db.exec("DROP TABLE user_items");
+                db.exec("ALTER TABLE user_items_new RENAME TO user_items");
+            }
+        });
+        migrate();
+
+        const violations = db.pragma("foreign_key_check");
+        if (violations.length) {
+            throw new Error("Migrasi identitas gagal foreign key check: " + JSON.stringify(violations));
+        }
+    } finally {
+        db.pragma("foreign_keys = ON");
+    }
+
+    console.log("Migrasi identitas user -> users.id berhasil.");
+    return true;
+}
+
+migrateIdentityToUserId();
+
+db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id);
+    CREATE INDEX IF NOT EXISTS idx_progress_task ON progress(task_id);
+    CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
+    CREATE INDEX IF NOT EXISTS idx_attempts_user_updated ON attempts(user_id, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_user_items_user ON user_items(user_id);
+`);
 
 console.log("Database berhasil terhubung.");
 console.log("Lokasi database:", dbPath);

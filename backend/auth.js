@@ -73,14 +73,17 @@ function sha256(text) {
     return crypto.createHash("sha256").update(text).digest("hex");
 }
 
-function createSession(username) {
+function createSession(userId) {
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
+    const user = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
+    if (!user) throw new Error("User tidak ditemukan saat membuat sesi.");
+
     db.prepare(`
-        INSERT INTO sessions (token_hash, username, expires_at)
+        INSERT INTO sessions (token_hash, user_id, expires_at)
         VALUES (?, ?, ?)
-    `).run(sha256(token), username, expiresAt);
+    `).run(sha256(token), userId, expiresAt);
 
     return token;
 }
@@ -97,13 +100,17 @@ function deleteSession(token) {
 
 // Cabut semua sesi user, kecuali token yang sedang dipakai (kalau ada).
 // Dipakai setelah ganti password supaya sesi lama di perangkat lain ikut mati.
-function deleteOtherSessions(username, keepToken) {
+function deleteOtherSessions(userId, keepToken) {
     if (keepToken) {
-        db.prepare("DELETE FROM sessions WHERE username = ? AND token_hash <> ?")
-            .run(username, sha256(keepToken));
+        db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?")
+            .run(userId, sha256(keepToken));
     } else {
-        db.prepare("DELETE FROM sessions WHERE username = ?").run(username);
+        db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
     }
+}
+
+function deleteAllSessions(userId) {
+    db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
 }
 
 // ============================================================
@@ -124,22 +131,67 @@ function requireAuth(req, res, next) {
     if (!token) return authError(res, 401, "Belum login", "UNAUTHORIZED");
 
     const session = db.prepare(`
-        SELECT username, expires_at FROM sessions WHERE token_hash = ?
+        SELECT s.user_id, s.expires_at,
+               u.username, u.role, u.status, u.must_change_password
+        FROM sessions s
+        JOIN users u ON u.id = s.user_id
+        WHERE s.token_hash = ?
     `).get(sha256(token));
 
     if (!session || new Date(session.expires_at) < new Date()) {
         return authError(res, 401, "Sesi habis, silakan login lagi", "SESSION_EXPIRED");
     }
 
+    if (session.status === "suspended") {
+        return authError(res, 403, "Akun sedang ditangguhkan", "ACCOUNT_SUSPENDED");
+    }
+    if (session.status !== "active") {
+        return authError(res, 403, "Akun tidak aktif", "ACCOUNT_INACTIVE");
+    }
+
+    const role = session.role || "student";
+    if (role !== "student" && role !== "admin") {
+        return authError(res, 403, "Role akun belum didukung. Gunakan student atau admin.", "ROLE_NOT_SUPPORTED");
+    }
+    req.userId = session.user_id;
     req.user = session.username;
+    req.role = role;
+    req.status = session.status;
+    req.mustChangePassword = Boolean(session.must_change_password);
     req.token = token;
+    next();
+}
+
+function requireAdmin(req, res, next) {
+    if (req.role !== "admin") {
+        return authError(res, 403, "Akses admin diperlukan", "ADMIN_REQUIRED");
+    }
+    next();
+}
+
+function requireSuperadmin(req, res, next) {
+    if (req.role !== "superadmin") {
+        return authError(res, 403, "Akses superadmin diperlukan", "SUPERADMIN_REQUIRED");
+    }
     next();
 }
 
 // "Satpam kedua": tiket Budi hanya boleh membuka data Budi.
 function requireSameUser(req, res, next) {
-    const requested = String(req.params.username || "").trim();
-    if (requested !== req.user) {
+    // Route lama masih menerima username agar frontend lama tetap kompatibel,
+    // tetapi otorisasi tetap membandingkan users.id, bukan teks username.
+    let requestedId = null;
+    if (req.params.userId !== undefined) {
+        const value = String(req.params.userId).trim();
+        if (/^\d+$/.test(value)) requestedId = Number(value);
+    } else {
+        const requestedUsername = String(req.params.username || "").trim();
+        if (requestedUsername) {
+            const target = db.prepare("SELECT id FROM users WHERE username = ? COLLATE NOCASE").get(requestedUsername);
+            requestedId = target ? Number(target.id) : null;
+        }
+    }
+    if (!requestedId || requestedId !== Number(req.userId)) {
         return authError(res, 403, "Tidak boleh mengakses data user lain", "FORBIDDEN");
     }
     next();
@@ -195,7 +247,10 @@ module.exports = {
     createSession,
     deleteSession,
     deleteOtherSessions,
+    deleteAllSessions,
     requireAuth,
+    requireAdmin,
+    requireSuperadmin,
     requireSameUser,
     isBlocked,
     recordFail,

@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# SQLite / local databases
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Firebase service account
+*firebase-adminsdk*.json
+
+# Local backups
+backend/backups/
+
+# Logs
+*.log
