@@ -1,0 +1,40 @@
+/* Smooth global transitions for theme switching */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Sleek custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+  
+
+/* Kartu modul kurikulum: warna aksen per kartu lewat variabel --c */
+.module-card:hover { border-color: var(--c); }
+.module-card:hover .mc-title { color: var(--c); }
+.mc-code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--c);
+  background: rgba(100, 116, 139, 0.14);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}

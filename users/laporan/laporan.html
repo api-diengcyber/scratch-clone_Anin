@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/js/theme.js?v=20261019"></script>
+<title>Laporan Saya • Dieng Cyber Coding</title>
+<meta name="description" content="Laporan belajar Dieng Cyber Coding: kecenderungan minat, rincian nilai per task, perkembangan tiap jalur, lencana, dan pesan dari mentor.">
+  <link rel="icon" type="image/webp" href="/Assets/logo.webp">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);min-height:100vh}
+.eh{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#fff;border-bottom:3px solid #e3e9ff}.eh img{width:34px;height:34px;object-fit:contain}.eh h1{flex:1;margin:0;font-size:inherit}
+.eh a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:9px 14px;border-radius:14px;font-weight:bold;font-size:14px}.chip{background:#fff4d6;color:#a86a00;padding:8px 14px;border-radius:20px;font-weight:bold;font-size:14px}
+main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.card{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 6px 16px rgba(60,80,140,.1)}.card h3{margin:0 0 10px;font-size:18px}
+.hi{background:linear-gradient(135deg,#6d7eea,#9a7bea);color:#fff}.hi h2{margin:0 0 4px}.hi p{margin:0;opacity:.95}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.sum div{background:#fff3;border-radius:14px;padding:8px 14px;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.j{border:3px solid #eef1ff;border-radius:18px;padding:12px 14px}.j.mine{border-color:var(--c)}.j .top{display:flex;align-items:center;gap:10px}
+.j .em{width:46px;height:46px;border-radius:16px;background:var(--c);display:grid;place-items:center;font-size:26px}.j h4{margin:0;font-size:15px}.j small{color:#6b7494}
+.track{height:12px;border-radius:8px;background:#eef1ff;margin:10px 0 6px;overflow:hidden}.track i{display:block;height:100%;background:var(--c);border-radius:8px}
+.stage{font-weight:bold;font-size:13px}.tag{font-size:11px;background:#fff4d6;color:#a86a00;border-radius:10px;padding:2px 8px;margin-left:6px}
+.rec{display:flex;gap:12px;align-items:center;background:#f3f5fd;border-radius:16px;padding:12px 14px;margin-bottom:8px}.rec span{font-size:26px}.rec p{margin:0;flex:1;line-height:1.45}
+.rec a{background:#34c06f;color:#fff;text-decoration:none;font-weight:bold;padding:9px 14px;border-radius:14px;white-space:nowrap;font-size:14px}
+.badges{display:flex;gap:10px;flex-wrap:wrap}.b{background:#fff4d6;border-radius:16px;padding:10px 14px;font-weight:bold}.b.lock{background:#eef1ff;color:#9aa3c4}.b small{display:block;font-weight:normal;font-size:12px;color:#6b7494;margin-top:2px}.bg-h{margin:14px 0 8px;font-size:14px;color:#6b7494}.bg-h:first-child{margin-top:0}
+.note{background:#fffbea;border-left:8px solid #ffc94d;border-radius:14px;padding:12px 14px;line-height:1.5;white-space:pre-wrap}
+.note-btn{margin-top:8px;border:0;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;font-size:13px;padding:7px 12px;border-radius:12px;cursor:pointer}
+.mc{display:flex;gap:14px;align-items:flex-end}.col{flex:1;text-align:center}
+.bar{height:200px;border-radius:22px;background:color-mix(in srgb,var(--c) 18%,#fff);display:flex;align-items:flex-end;overflow:hidden}
+.bar i{width:100%;background:var(--c);border-radius:22px;display:grid;place-items:center;transition:height .5s}.bar b{color:#fff;font-size:18px;text-shadow:0 1px 3px #0003}
+.cn{margin-top:8px;font-weight:bold;font-size:14px}.col.top .bar{outline:4px solid var(--c);outline-offset:3px}
+@media(max-width:480px){.bar{height:150px}.eh{flex-wrap:wrap;padding:10px 14px}.eh a{padding:8px 12px;font-size:13px}.chip{font-size:13px;padding:7px 12px}main{padding:12px}.card{padding:14px}.rec{flex-wrap:wrap}.rec a{width:100%;text-align:center}.mc{gap:8px}}@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+.tw{overflow-x:auto}.tb{width:100%;border-collapse:collapse;font-size:14px}.tb th{text-align:left;color:#6b7494;font-size:12px;padding:6px 8px;border-bottom:2px solid #eef1ff}.tb td{padding:8px;border-bottom:1px solid #eef1ff;vertical-align:top}.tb small{color:#8a93b3}
+textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;border-radius:12px;padding:8px;font:inherit}
+</style>
+</head>
+<body>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"><h1>📊 Laporan Saya</h1><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> koin</span></header>
+<main>
+  <section class="card hi"><h2 id="hello">Halo!</h2><p>Ini perjalanan belajarmu sejauh ini. Terus semangat ya! 🚀</p><div class="sum" id="sum"></div></section>
+  <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
+  <section class="card"><h3>⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
+  <section class="card"><h3>💡 Saran untukmu</h3><div id="recs"></div></section>
+  <section class="card"><h3>🌱 Perkembangan di setiap jalur</h3><div id="tahap"></div></section>
+  <section class="card"><h3>🏅 Lencana</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Lencana didapat kalau <b>semua task</b> di satu jalur selesai <b>dan</b> Project Akhir / Capstone-nya juga selesai.</p><div id="badges"></div></section>
+  <section class="card"><h3>💌 Pesan dari Kak Mentor</h3><div class="note" id="note"></div><button type="button" class="note-btn" id="noteBtn">✏️ Tulis / ubah pesan (untuk mentor)</button><div id="noteEdit" hidden><textarea id="noteTa" maxlength="400" placeholder="Tulis pesan untuk anak ini…"></textarea><button type="button" class="note-btn" id="noteSave">Simpan pesan</button></div></section>
+</main>
+<script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
+<script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+<script src="/kurikulum/data/jalur-data-smp.js?v=20261019"></script>
+<script src="/kurikulum/data/jalur-data-smak.js?v=20261019"></script>
+<script src="/shared/js/utils.js?v=20261019"></script>
+<script>
+if (localStorage.getItem("isLoggedIn") !== "true") location.replace("/index.html");
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = window.DCUtils.esc;
+const stage = (d, t) => !d ? "🌰 Belum dicoba" : d === t ? "🌳 Hebat, selesai!" : d / t < .5 ? "🌱 Baru tumbuh" : "🌿 Sedang tumbuh";
+
+// ---------- kumpulkan data ----------
+function buildReport() {
+  const jalur = [];
+  LP_DATA.tahap.forEach((th) => {
+    const chosen = th.mode === "pilih-jalur" ? LP.chosen(th.id) : null;
+    th.pembelajaran.forEach((pb) => {
+      const p = LP.progressOf(pb), tasks = pb.tasks.filter((t) => t.kind === "editor" || t.kind === "code");
+      const doneT = tasks.filter((t) => LP.isDone(t.id));
+      jalur.push({ th, pb, done: p.done, total: p.total, mine: chosen === pb.id, pilih: th.mode === "pilih-jalur",
+        lancar: doneT.length >= 2 ? doneT.filter((t) => LP.attempts(t.id) === 0).length / doneT.length : null,
+        next: LP.items(pb).find((t) => !LP.isDone(t.id) && LP.isUnlocked(t.id)) || null });
+    });
+  });
+  return jalur;
+}
+function saran(jalur) {
+  const r = [], aktif = jalur.filter((j) => j.done > 0 && j.done < j.total);
+  const fokus = [...aktif].sort((a, b) => b.done / b.total - a.done / a.total)[0];
+  if (fokus && fokus.next) r.push({ e: "🚀", t: "Lanjutkan " + fokus.pb.judul + ": " + (fokus.next.type === "project" ? "Project Akhir" : "Task " + fokus.next.no) + " — " + fokus.next.title + ".", id: fokus.next.id, b: "Lanjut" });
+  const baru = jalur.find((j) => j.th.id === "explore" && !j.done && j.next && LP.isUnlocked(j.next.id) && (!fokus || fokus.pb.id !== j.pb.id));
+  if (baru) r.push({ e: "🔍", t: "Penasaran dengan " + baru.pb.judul + "? Coba satu task dulu, cuma beberapa menit!", id: baru.next.id, b: "Coba" });
+  const tamat = jalur.find((j) => j.done === j.total && j.total);
+  if (tamat) r.push({ e: "🎉", t: "Hebat! Kamu sudah menyelesaikan jalur " + tamat.pb.judul + ". Mau menjelajah jalur lain?" });
+  if (!r.length) { const j = jalur.find((x) => x.next); r.push({ e: "🌟", t: "Yuk mulai petualanganmu! Coba salah satu jalur dulu.", id: j && j.next.id, b: "Mulai" }); }
+  return r.slice(0, 3);
+}
+
+// ---------- kecenderungan minat: nilai keterampilan dari task Tahap 2 (bukan nama jalur) ----------
+// Nilai tiap task = gabungan DUA hal:
+//   1) Percobaan : 1 / (1 + jumlah gagal)  → 1x percobaan = 100%, 2x = 50%, 3x = 33%
+//   2) Kecepatan : target / waktu aktif    → secepat/lebih cepat dari target = 100%, 2x lebih lama = 50% (minimal 20%)
+// Nilai task = W_COBA × percobaan + W_CEPAT × kecepatan. Makin sedikit gagal dan makin cepat → minat makin tinggi.
+// Task yang dikerjakan sebelum pencatatan waktu aktif (tidak ada data waktu) dinilai dari percobaan saja.
+// Jalur 3D & Roblox (g2) dicek otomatis lewat kartu misi, tidak ada "gagal", jadi dinilai dari KECEPATAN saja
+// dan baru ikut dihitung kalau waktunya tercatat.
+const BIDANG = { P: { k: "Programming", e: "💻", c: "#4c7dff" }, M: { k: "Menggambar", e: "🎨", c: "#ec5fa8" }, D: { k: "Desain", e: "🧊", c: "#84b816" } };
+const W_COBA = 0.65, W_CEPAT = 0.35, CEPAT_MIN = 0.2, TARGET_DEFAULT = 300;   // bobot & batas bawah kecepatan; target bawaan 300 detik
+// urutan = urutan task di jalur. Atur bobot bidang (BOBOT) dan waktu target dalam DETIK (TARGET) di sini.
+const BOBOT = {
+  g1: [{ P: 1, M: 1 }, { P: 1 }, { P: 1 }, { P: 1 }, { P: 1 }, { D: 1, M: .5 }],  // Game: kostum/ulang, gerak, variabel, waktu, percabangan, dekor panggung
+  g3: [{ P: 1, D: 1 }, { P: 1 }, { D: 1, P: .5 }, { P: 1 }, { P: 1, D: 1 }],  // Web: HTML+warna, kerangka, CSS, menu/section, situs statis
+  g2: [{ D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }, { D: 1 }]  // 3D & Roblox: 8 task, semua ke bidang Desain
+};
+const TARGET = {
+  g1: [240, 240, 300, 300, 420, 240],   // Game (Scratch)
+  g3: [600, 420, 480, 480, 600],         // Web (Text Editor)
+  g2: [120, 150, 150, 240, 240, 150, 240, 240]   // 3D & Roblox (Editor 3D)
+};
+const DIUKUR = ["editor", "code", "quiz", "model3d"];
+const SAJA_WAKTU = ["g2"];   // jalur yang dinilai dari waktu saja
+const fmtWaktu = (s) => { s = Math.round(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const nilaiCepat = (detik, target) => Math.max(CEPAT_MIN, Math.min(1, target / detik));
+// daftar task terukur: percobaan, waktu, dan nilai gabungan masing-masing
+function nilaiTask(jalur) {
+  const out = [];
+  jalur.forEach((j) => (BOBOT[j.pb.id] || []).forEach((w, i) => {
+    const t = j.pb.tasks[i]; if (!t || !DIUKUR.includes(t.kind) || !LP.isDone(t.id)) return;
+    const gagal = LP.attempts(t.id), coba = 1 / (1 + gagal), waktuSaja = SAJA_WAKTU.includes(j.pb.id);
+    const detik = LP.waktu ? LP.waktu(t.id) : 0, target = (TARGET[j.pb.id] || [])[i] || TARGET_DEFAULT;
+    const cepat = detik > 0 ? nilaiCepat(detik, target) : null;
+    const nilai = waktuSaja ? cepat : (cepat === null ? coba : W_COBA * coba + W_CEPAT * cepat);   // null = belum bisa dinilai
+    out.push({ t, w, waktuSaja, gagal, detik, target, coba, cepat, nilai });
+  }));
+  return out;
+}
+function renderMinat(jalur) {
+  const rows = nilaiTask(jalur);
+  const tot = { P: [0, 0], M: [0, 0], D: [0, 0] };   // [jumlah bobot x nilai, jumlah bobot]
+  rows.filter((r) => r.nilai !== null).forEach((r) => Object.keys(r.w).forEach((b) => { tot[b][0] += r.w[b] * r.nilai; tot[b][1] += r.w[b]; }));
+  const m = Object.keys(BIDANG).map((b) => Object.assign({ b, pct: tot[b][1] >= 2 ? Math.round(tot[b][0] / tot[b][1] * 100) : null }, BIDANG[b]));
+  const ada = m.filter((x) => x.pct !== null).sort((a, b) => b.pct - a.pct);
+  const top = ada.length >= 2 && ada[0].pct - ada[1].pct >= 10 ? ada[0] : null;
+  m.forEach((x) => {
+    const c = el("div", "col" + (top && top === x ? " top" : ""), '<div class="bar"><i style="height:' + Math.max(x.pct || 0, 14) + '%"><b>' + (x.pct === null ? "–" : x.pct + "%") + '</b></i></div><div class="cn">' + x.e + " " + x.k + "</div>");
+    c.style.setProperty("--c", x.c); $("minatCols").appendChild(c);
+  });
+  const box = $("arah"), cat = "";
+  if (!top) { box.innerHTML = "<span>🔎</span><p>" + (ada.length < 2 ? "Belum cukup data. Anak perlu menyelesaikan lebih banyak task Tahap 2 di beberapa bidang." : "Belum ada bidang yang menonjol.") + cat + "</p>"; }
+  else box.innerHTML = "<span>" + top.e + "</span><p>Condong ke <b>" + top.k + "</b>. Rekomendasi: jalur <b>" + top.k + "</b> di tahap selanjutnya. Dukung ananda mendalami bidang ini dan tanyakan bagian mana yang paling seru.</p>";
+  renderRincian(rows);
+}
+// rincian per task: transparan untuk mentor / orang tua
+function renderRincian(rows) {
+  const box = $("rincian");
+  if (!rows.length) { box.innerHTML = '<p style="margin:0;color:#6b7494;font-size:14px">Belum ada task Tahap 2 (Game, Web, atau 3D &amp; Roblox) yang selesai.</p>'; return; }
+  const tr = rows.map((r) => "<tr><td>" + esc(r.t.title) + "</td><td>" + (r.waktuSaja ? "–" : r.gagal === 0 ? "✅ 1x" : (r.gagal + 1) + "x") + "</td><td>" +
+    (r.detik > 0 ? fmtWaktu(r.detik) + ' <small>(target ' + fmtWaktu(r.target) + ")</small>" : "–") + "</td><td><b>" + (r.nilai === null ? "–" : Math.round(r.nilai * 100) + "%") + "</b></td></tr>").join("");
+  box.innerHTML = '<div class="tw"><table class="tb"><thead><tr><th>Task</th><th>Percobaan</th><th>Waktu aktif</th><th>Nilai</th></tr></thead><tbody>' + tr + "</tbody></table></div>" +
+    '<p style="margin:10px 0 0;color:#6b7494;font-size:13px">Nilai = ' + Math.round(W_COBA * 100) + "% percobaan + " + Math.round(W_CEPAT * 100) + "% kecepatan. Tanda – berarti waktu belum tercatat (task selesai sebelum pencatatan waktu ada), nilainya dari percobaan saja. Task 3D dicek otomatis (tidak ada kata gagal), jadi dinilai dari waktu saja dan baru dihitung kalau waktunya tercatat.</p>";
+}
+
+// ---------- lencana: terbuka kalau SEMUA task di jalur selesai DAN Project Akhir / Capstone selesai ----------
+const GRADE_NAMA = { sd: "SD", smp: "SMP", smak: "SMA/SMK" };
+let GRADE_BOLEH = LP.allowedGrades();   // sama seperti dashboard; dimutakhirkan dari server sebelum render (lihat bawah)
+function statusLencana(grade, judul, nama, done, total, capDone, istilah) {
+  const sisa = total - done, ok = total > 0 && capDone && sisa === 0;
+  const hint = ok ? "" : capDone ? istilah + " selesai, tinggal " + sisa + " task lagi"
+    : sisa === 1 ? "Tinggal " + istilah + "-nya!"
+    : done + " dari " + total + " langkah. Selesaikan semua task dan " + istilah;
+  return { grade, judul, nama, ok, hint };
+}
+function lencanaList(jalur) {
+  const out = [];
+  if (GRADE_BOLEH.includes("sd")) jalur.forEach((j) => out.push(statusLencana("sd", j.pb.judul, j.pb.project.lencana || "🏅 Lencana " + j.pb.judul, j.done, j.total, LP.isDone(j.pb.project.id), "Project Akhir")));
+  const sel = LP._get("smpTasks", {});   // task SMP & SMA/SMK: id "modul:nomor"
+  [["smp", window.LP_SMP], ["smak", window.LP_SMAK]].forEach(([g, tracks]) => {
+    if (!GRADE_BOLEH.includes(g)) return;
+    (tracks || []).forEach((tr) => {
+      let total = 0, done = 0, capId = null, lastId = null;
+      (tr.nodes || []).forEach((nd) => nd.tasks.forEach((t, i) => {
+        const id = nd.id + ":" + i; total++; lastId = id; if (sel[id]) done++; if (t.kumpul) capId = id;
+      }));
+      out.push(statusLencana(g, tr.nama, tr.lencana || "🏅 Lencana " + tr.nama, done, total, !!sel[capId || lastId], "Capstone"));
+    });
+  });
+  return out;
+}
+
+// ---------- tampilkan ----------
+function render() {
+  const jalur = buildReport(), user = LP.user();
+  $("hello").textContent = "Halo, " + user + "! 👋"; $("pts").textContent = LP.saldo ? LP.saldo() : LP.points();   // saldo, sama dengan dashboard & halaman koin
+  const dn = jalur.reduce((s, j) => s + j.done, 0), daftarLencana = lencanaList(jalur), lenc = daftarLencana.filter((x) => x.ok);
+  $("sum").innerHTML = "<div>✅ " + dn + " langkah selesai</div><div>🏅 " + lenc.length + " lencana</div><div>🌿 " + jalur.filter((j) => j.done).length + " jalur dicoba</div>";
+  renderMinat(jalur);
+  const rc = $("recs"); saran(jalur).forEach((s) => { const d = el("div", "rec", "<span>" + s.e + "</span><p>" + esc(s.t) + "</p>"); if (s.id) { const a = el("a", "", s.b); a.href = LP.href(s.id, ""); d.appendChild(a); } rc.appendChild(d); });
+  const tb = $("tahap");
+  LP_DATA.tahap.forEach((th) => {
+    tb.appendChild(el("h4", "", esc(th.emoji) + " " + esc(th.nama))).style.margin = "14px 0 8px";
+    const g = el("div", "grid"); tb.appendChild(g);
+    jalur.filter((j) => j.th === th).forEach((j) => {
+      const c = el("div", "j" + (j.mine ? " mine" : ""), '<div class="top"><div class="em">' + esc(j.pb.emoji) + '</div><div><h4>' + esc(j.pb.judul) + (j.mine ? '<span class="tag">⭐ pilihanmu</span>' : "") + "</h4><small>" + j.done + " dari " + j.total + ' langkah</small></div></div><div class="track"><i style="width:' + (j.total ? Math.round(j.done / j.total * 100) : 0) + '%"></i></div><div class="stage">' + stage(j.done, j.total) + "</div>");
+      c.style.setProperty("--c", j.pb.warna); g.appendChild(c);
+    });
+  });
+  ["sd", "smp", "smak"].forEach((g) => {
+    const items = daftarLencana.filter((x) => x.grade === g); if (!items.length) return;
+    const h = el("div", "bg-h", "<b>" + GRADE_NAMA[g] + "</b> · " + items.filter((x) => x.ok).length + " dari " + items.length + " lencana"), wrap = el("div", "badges");
+    items.forEach((x) => wrap.appendChild(el("div", "b" + (x.ok ? "" : " lock"), x.ok ? esc(x.nama) : "🔒 " + esc(x.judul) + "<small>" + esc(x.hint) + "</small>")));
+    $("badges").appendChild(h); $("badges").appendChild(wrap);
+  });
+  const k = "mentorNote_" + user, show = () => { $("note").textContent = localStorage.getItem(k) || "Belum ada pesan. Kak Mentor akan menulis pesan semangat di sini 💌"; };
+  show();
+  $("noteBtn").onclick = () => { $("noteEdit").hidden = !$("noteEdit").hidden; $("noteTa").value = localStorage.getItem(k) || ""; };
+  $("noteSave").onclick = () => { localStorage.setItem(k, $("noteTa").value.trim()); $("noteEdit").hidden = true; show(); };
+}
+// ambil koin & progres terbaru dari server dulu (seperti dashboard), baru tampilkan
+Promise.all([
+  LP.loadFromServer ? LP.loadFromServer().catch(() => false) : false,
+  LP.loadAllowedGrades ? LP.loadAllowedGrades() : null
+]).then(() => { GRADE_BOLEH = LP.allowedGrades(); render(); });
+window.addEventListener("pageshow", (e) => { if (e.persisted) $("pts").textContent = LP.saldo ? LP.saldo() : LP.points(); });
+</script>
+  <script src="/shared/js/icons.js?v=20261019"></script>
+</body>
+</html>

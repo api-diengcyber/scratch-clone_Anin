@@ -1,0 +1,291 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; }
+button { font: inherit; }
+.header { min-height: 72px; padding: 12px 5%; background: #fff; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e8edf7; }
+.brand, .profile, .section-title, .learning-head { display: flex; align-items: center; }
+.brand { gap: 12px; }
+.brand-icon { width: 44px; height: 44px; border-radius: 14px; background: #fff; display: grid; place-items: center; font-size: 24px; overflow: hidden; }
+.brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.brand h1 { margin: 0; font-size: 17px; letter-spacing: .5px; }
+.brand p, .profile span { margin: 3px 0 0; color: #8791a5; font-size: 11px; }
+.profile { gap: 16px; text-align: right; }
+.profile strong { display: block; font-size: 13px; }
+.logout { border: 0; background: #f1f3f8; color: #657087; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+main { max-width: 1120px; margin: auto; padding: 28px 22px 50px; }
+.hero { background: linear-gradient(110deg, #fff, #eef4ff); border: 1px solid #e1e8f7; border-radius: 24px; padding: 28px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(50,70,110,.06); }
+.hero h2 { margin: 7px 0; font-size: 29px; }
+.hero p { margin: 0; color: #68758c; max-width: 650px; line-height: 1.6; }
+.hero-badge { width: 100px; height: 100px; border-radius: 50%; background: #fff; display: grid; place-items: center; text-align: center; font-size: 28px; box-shadow: 0 8px 20px rgba(50,70,110,.1); }
+.hero-badge small { font-size: 9px; line-height: 1.3; color: #68758c; }
+.eyebrow { color: #6d7eea; font-size: 10px; font-weight: 800; letter-spacing: 1.3px; }
+.grade-section { margin-top: 30px; }
+.section-title { justify-content: space-between; margin-bottom: 15px; }
+.section-title h2, .learning-head h2 { margin: 5px 0 3px; font-size: 21px; }
+.level-count { background: #e9edff; color: #6372d8; padding: 8px 13px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.grade-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grade-tab { border: 2px solid #e8ecf5; background: #fff; border-radius: 18px; padding: 17px; cursor: pointer; text-align: left; display: grid; grid-template-columns: 42px 1fr; grid-template-rows: 24px 20px; column-gap: 10px; transition: .2s; }
+.grade-tab span { grid-row: 1 / 3; width: 42px; height: 42px; border-radius: 12px; background: #f1f3ff; display: grid; place-items: center; font-size: 22px; }
+.grade-tab b { align-self: end; font-size: 15px; }
+.grade-tab small { color: #8a94a7; align-self: start; font-size: 11px; }
+.grade-tab.active { border-color: #7181ec; box-shadow: 0 7px 18px rgba(113,129,236,.15); transform: translateY(-2px); }
+.learning-area { margin-top: 24px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 24px; }
+.learning-head { margin-bottom: 18px; }
+.learning-head p { margin: 0; color: #788398; font-size: 13px; line-height: 1.5; }
+.progress-box { min-width: 145px; padding: 12px 14px; background: #f7f8fc; border-radius: 14px; }
+.progress-box strong { font-size: 15px; display: block; }
+.progress-box span { color: #929bad; font-size: 10px; }
+.progress { height: 7px; background: #e5e8f0; border-radius: 10px; margin-top: 8px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: #7181ec; border-radius: inherit; transition: .3s; }
+.level-list { display: grid; gap: 11px; }
+.level-card { display: grid; grid-template-columns: 50px 1fr auto; gap: 15px; align-items: center; padding: 15px; border: 1px solid #e6eaf2; border-radius: 16px; background: #fff; }
+.level-number { width: 42px; height: 42px; border-radius: 13px; background: #eef1ff; color: #6372d8; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+.level-card.done .level-number { background: #e7f8ef; color: #23a566; }
+.level-card.locked { opacity: .55; }
+.level-card h3 { margin: 0 0 4px; font-size: 14px; }
+.level-card p { margin: 0; color: #8791a5; font-size: 11px; }
+.level-tag { display: inline-block; margin-top: 6px; font-size: 9px; color: #69758a; background: #f2f4f8; padding: 4px 7px; border-radius: 8px; }
+.level-btn { border: 0; border-radius: 10px; background: #7181ec; color: white; padding: 9px 14px; cursor: pointer; font-weight: bold; font-size: 11px; }
+.level-btn:hover, .start-btn:hover { filter: brightness(.96); }
+.level-btn:disabled { background: #c4c9d4; cursor: not-allowed; }
+.modal { position: fixed; inset: 0; background: rgba(27,37,60,.45); display: grid; place-items: center; padding: 20px; z-index: 10; }
+.modal.hidden { display: none; }
+.modal-card { position: relative; background: white; width: min(520px, 100%); border-radius: 22px; padding: 27px; box-shadow: 0 20px 50px rgba(0,0,0,.18); }
+.close { position: absolute; right: 17px; top: 12px; border: 0; background: #f2f4f8; width: 31px; height: 31px; border-radius: 50%; font-size: 21px; color: #657087; cursor: pointer; }
+.modal-card h2 { margin: 7px 0; }
+.modal-card > p { color: #778398; line-height: 1.5; font-size: 13px; }
+.material-box, .challenge-box { margin-top: 12px; padding: 13px 15px; border-radius: 13px; background: #f7f8fc; }
+.material-box p, .challenge-box p { margin: 5px 0 0; color: #69758a; font-size: 12px; line-height: 1.5; }
+.start-btn { width: 100%; border: 0; background: #7181ec; color: #fff; padding: 13px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 17px; }
+.hero-badge {width: 90px; height: 90px;border-radius: 50%;overflow: hidden;      display: flex;align-items: center;justify-content: center;padding: 0; }
+.hero-badge img {width: 100%; height: 100%; object-fit: cover; border-radius: 50%;}
+@media (max-width: 700px) { .header, .learning-head { align-items: flex-start; } .profile { gap: 8px; }  .hero { padding: 23px; } .hero h2 { font-size: 22px; } .hero-badge { width: 75px; height: 75px; } .grade-tabs { grid-template-columns: 1fr; } .learning-head { flex-direction: column; } .progress-box { width: 100%; } .level-card { grid-template-columns: 42px 1fr; } .level-btn { grid-column: 2; justify-self: start; } }
+.points-chip { background: #fff4d6; color: #a86a00; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; white-space: nowrap; }
+.points-chip b { font-size: 15px; }
+
+/* ---------- Ringkasan progres level ---------- */
+.progress-box { width: 100%; display: block; padding: 12px 16px; background: #f4f6ff; border-radius: 14px; }
+.pb-text { display: flex; align-items: baseline; gap: 6px; }
+.pb-text strong { font-size: 16px; color: #4c5bd0; }
+.pb-text span { font-size: 12px; color: #7a859c; }
+
+/* ---------- Tahap 1 (ramah anak) ---------- */
+.tahap-section { margin-top: 38px; font-family: "Trebuchet MS", "Nunito", Arial, sans-serif; }
+.tahap-banner { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 28px 30px; border-radius: 30px; color: #fff; background: linear-gradient(120deg, #3fcf8e 0%, #3db8f5 60%, #7c8cff 100%); box-shadow: 0 14px 30px rgba(61, 184, 245, .32); }
+.tb-bubbles i { position: absolute; border-radius: 50%; background: rgba(255,255,255,.18); animation: floaty 6s ease-in-out infinite; }
+.tb-bubbles i:nth-child(1) { width: 140px; height: 140px; right: 170px; top: -50px; }
+.tb-bubbles i:nth-child(2) { width: 70px; height: 70px; right: 40px; bottom: -20px; animation-delay: -2s; }
+.tb-bubbles i:nth-child(3) { width: 46px; height: 46px; left: 46%; bottom: 14px; animation-delay: -4s; }
+.tb-bubbles i:nth-child(4) { width: 90px; height: 90px; left: -30px; bottom: -40px; animation-delay: -1s; }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.tb-left { position: relative; flex: 1; min-width: 0; }
+.tb-age { display: inline-block; background: rgba(255,255,255,.25); padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+.tahap-banner h2 { margin: 10px 0 6px; font-size: 32px; text-shadow: 0 2px 0 rgba(0,0,0,.12); }
+.tahap-banner p { margin: 0 0 16px; font-size: 15px; line-height: 1.5; opacity: .96; max-width: 520px; }
+.tb-track { position: relative; max-width: 420px; padding-top: 22px; }
+.tb-bar { height: 16px; background: rgba(255,255,255,.35); border-radius: 20px; overflow: hidden; }
+.tb-bar i { display: block; height: 100%; width: 0; background: #fff; border-radius: 20px; transition: width .6s ease; }
+.tb-rocket { position: absolute; top: -2px; left: 0; font-size: 26px; transition: left .6s ease; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+.tahap-banner small { display: block; margin-top: 8px; font-size: 13px; font-weight: bold; }
+.tb-btn { position: relative; flex: none; text-decoration: none; background: #ffd23f; color: #4a3500; font-weight: bold; font-size: 17px; padding: 16px 26px; border-radius: 20px; box-shadow: 0 6px 0 #d9a900; transition: .15s; }
+.tb-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #d9a900; }
+.tb-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d9a900; }
+
+.tahap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 24px; }
+.tg-card { position: relative; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #2b3350; background: #fff; border: 3px solid transparent; border-radius: 26px; padding: 18px 16px 16px; box-shadow: 0 8px 20px rgba(60,80,140,.1); transition: .18s; animation: popin .45s ease backwards; animation-delay: var(--d); }
+@keyframes popin { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
+.tg-card:hover { transform: translateY(-6px) rotate(-.6deg); border-color: var(--c); box-shadow: 0 14px 26px rgba(60,80,140,.16); }
+.tg-emoji { width: 58px; height: 58px; border-radius: 20px; background: var(--c); display: grid; place-items: center; font-size: 32px; box-shadow: 0 5px 0 rgba(0,0,0,.12); }
+.tg-card h3 { margin: 8px 0 0; font-size: 16px; }
+.tg-card p { margin: 0; font-size: 12.5px; line-height: 1.45; color: #6b7494; flex: 1; }
+.tg-dots { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+.tg-dots i { width: 14px; height: 14px; border-radius: 50%; background: #e6e9f5; }
+.tg-dots i.on { background: #34c06f; }
+.tg-dots i.trophy { width: auto; height: auto; background: none; font-size: 16px; font-style: normal; filter: grayscale(1); opacity: .5; }
+.tg-dots i.trophy.on { filter: none; opacity: 1; }
+.tg-status { font-size: 12px; font-weight: bold; color: var(--c); }
+.tg-card.complete::after { content: "⭐"; position: absolute; top: 10px; right: 12px; font-size: 20px; }
+
+@media (max-width: 700px) {
+  .tahap-banner { flex-direction: column; align-items: flex-start; padding: 22px; }
+  .tahap-banner h2 { font-size: 25px; }
+  .tb-btn { width: 100%; text-align: center; }
+  .tahap-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+@media (max-width: 380px) { .tahap-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Tahap 2 (Explore) ---------- */
+.tahap-banner.t2 { background: linear-gradient(120deg, #4c1d95 0%, #7c3aed 55%, #c026d3 100%); box-shadow: 0 14px 30px rgba(124, 58, 237, .32); }
+.tg-card.mine { border-color: var(--c); }
+.tg-chip { position: absolute; top: 14px; right: 14px; background: #fff4d6; color: #a86a00; font-size: 11px; font-weight: bold; padding: 4px 9px; border-radius: 12px; }
+.tahap-section + .tahap-section { margin-top: 44px; }
+
+/* ---------- Jenjang & placeholder ---------- */
+.grade-section { margin-top: 30px; }
+#tahapArea .tahap-section:first-child { margin-top: 28px; }
+.coming-soon { margin-top: 28px; text-align: center; background: #fff; border: 3px dashed #d6dcf3; border-radius: 26px; padding: 36px 20px; font-family: "Trebuchet MS", "Nunito", Arial, sans-serif; }
+.cs-emoji { font-size: 52px; }
+.coming-soon h3 { margin: 8px 0 6px; font-size: 20px; color: #2b3350; }
+.coming-soon p { margin: 0 auto; max-width: 420px; color: #6b7494; font-size: 14px; line-height: 1.5; }
+
+/* =====================================================
+   Grid kartu menyesuaikan jumlah (tidak ada kolom kosong)
+   ===================================================== */
+.tahap-grid.fit { grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.tahap-grid.big { gap: 22px; }
+.tahap-grid.big .tg-card { padding: 24px 22px 20px; gap: 8px; }
+.tahap-grid.big .tg-emoji { width: 72px; height: 72px; font-size: 40px; border-radius: 24px; }
+.tahap-grid.big .tg-card h3 { font-size: 19px; }
+.tahap-grid.big .tg-card p { font-size: 14px; }
+.tahap-grid.big .tg-dots i { width: 16px; height: 16px; }
+.tahap-grid.big .tg-status { font-size: 13px; }
+.tg-dots { flex-wrap: wrap; }
+
+/* =====================================================
+   Responsif HP & tablet
+   ===================================================== */
+@media (max-width: 900px) {
+  .tahap-grid.fit.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  main { padding: 18px 14px 40px; }
+
+  /* Hero */
+  .hero { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 20px; }
+  .hero h2 { font-size: 21px; }
+  .hero p { font-size: 13px; }
+  .hero-badge { width: 64px; height: 64px; }
+
+  /* Pilih jenjang: 3 tombol ringkas sebaris */
+  .grade-section { margin-top: 22px; }
+  .grade-tabs { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grade-tab { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 4px; border-radius: 16px; }
+  .grade-tab span { width: 38px; height: 38px; font-size: 20px; }
+  .grade-tab b, .grade-tab small { align-self: center; }
+  .grade-tab span { grid-row: auto; }
+  .grade-tab b { font-size: 13px; }
+  .grade-tab small { font-size: 10px; line-height: 1.25; }
+  .grade-tab.active { transform: none; }
+
+  /* Banner tahap */
+  .tahap-section { margin-top: 28px; }
+  .tahap-banner { gap: 16px; padding: 20px 18px; border-radius: 24px; }
+  .tahap-banner h2 { font-size: 23px; }
+  .tahap-banner p { font-size: 14px; margin-bottom: 12px; }
+  .tb-track { max-width: none; }
+  .tb-btn { font-size: 16px; padding: 14px 20px; border-radius: 18px; }
+
+  /* Kartu: 2 kolom; kartu ganjil terakhir melebar penuh agar tidak ada ruang kosong */
+  .tahap-grid, .tahap-grid.fit, .tahap-grid.fit.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+  .tahap-grid > .tg-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .tahap-grid .tg-card, .tahap-grid.big .tg-card { padding: 16px 14px 14px; border-radius: 22px; }
+  .tahap-grid .tg-emoji, .tahap-grid.big .tg-emoji { width: 52px; height: 52px; font-size: 28px; border-radius: 18px; }
+  .tahap-grid .tg-card h3, .tahap-grid.big .tg-card h3 { font-size: 15px; }
+  .tahap-grid .tg-card p, .tahap-grid.big .tg-card p { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .tahap-grid > .tg-card:last-child:nth-child(odd) p { -webkit-line-clamp: unset; display: block; }
+  .tg-card:hover { transform: none; }
+
+  .coming-soon { padding: 28px 16px; border-radius: 22px; }
+}
+
+@media (max-width: 380px) {
+  .tahap-grid, .tahap-grid.fit, .tahap-grid.fit.n4 { grid-template-columns: 1fr; }
+  .tahap-grid > .tg-card:last-child:nth-child(odd) { grid-column: auto; }
+  .grade-tab small { display: none; }
+  .tahap-banner h2 { font-size: 21px; }
+}
+
+/* =====================================================
+   Kompatibilitas MDB (dimuat sebelum file ini)
+   MDB me-reset body/heading; kembalikan ke tampilan asli.
+   ===================================================== */
+body { line-height: normal; }
+h1, h2, h3, h4, h5, h6 { font-weight: bold; line-height: normal; }
+
+/* =====================================================
+   Header: burger menu (user, pengaturan profil, laporan, keluar)
+   Tampil di semua ukuran layar
+   ===================================================== */
+.profile { position: relative; }
+.user-menu-wrap { position: relative; }
+.menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 12px; background: #eef1ff; color: #5a6bd8; font-size: 18px; line-height: 1; cursor: pointer; transition: background .15s; }
+.menu-btn:hover { background: #e1e6ff; }
+.menu-btn:focus-visible { outline: 3px solid #b8c2ff; outline-offset: 2px; }
+.menu-btn .menu-ico { display: inline-flex; }
+.menu-btn .menu-ico svg { width: 1.1em; height: 1.1em; display: block; }
+.menu-btn [hidden] { display: none !important; }
+/* Mode foto profil: tombol jadi lingkaran transparan; bingkai hadiah (AvatarFrame) dipasang ke .menu-avatar-box */
+.menu-btn.has-avatar { background: transparent; border-radius: 50%; overflow: visible; }
+.menu-btn .af-wrap { width: 100%; height: 100%; }
+.menu-btn .menu-avatar-box { box-sizing: border-box; display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #cfd6ff; transition: box-shadow .15s; }
+.menu-btn:hover .menu-avatar-box { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #aeb9ff; }
+.menu-btn[aria-expanded="true"] .menu-avatar-box { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #5a6bd8; }
+.menu-btn .menu-avatar-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.user-menu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: 270px; max-width: calc(100vw - 24px); padding: 8px; background: #fff; border: 1px solid #e3e8f3; border-radius: 18px; box-shadow: 0 14px 34px rgba(60, 80, 140, .18); text-align: left; animation: umIn .14s ease-out; }
+.user-menu[hidden] { display: none; }
+@keyframes umIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.um-user { display: flex; align-items: center; gap: 12px; padding: 10px 10px 12px; margin-bottom: 6px; border-bottom: 1px solid #eef1f8; }
+.um-avatar { display: grid; place-items: center; flex: none; width: 44px; height: 44px; overflow: hidden; border-radius: 50%; background: linear-gradient(135deg, #7181ec, #9a7bea); color: #fff; font-weight: bold; font-size: 18px; }
+.um-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.um-info { min-width: 0; }
+.um-info strong { display: block; font-size: 14px; color: #2b3350; word-break: break-word; }
+.um-info span { display: block; margin-top: 2px; font-size: 11px; color: #8791a5; }
+
+.um-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 12px; border: 0; border-radius: 12px; background: none; color: #3d4670; font: inherit; font-size: 14px; font-weight: bold; text-decoration: none; text-align: left; cursor: pointer; }
+.um-item:hover, .um-item:focus-visible { background: #f1f3ff; color: #5a6bd8; outline: none; }
+.um-theme .dc-sw { margin-left: auto; }
+.um-logout { color: #d33; }
+.um-logout:hover, .um-logout:focus-visible { background: #fff0f0; color: #c22; }
+
+@media (max-width: 700px) {
+  .header { flex-wrap: nowrap; gap: 10px; padding: 10px 14px; }
+  .brand { gap: 10px; min-width: 0; flex: 1; }
+  .brand-icon { width: 38px; height: 38px; flex: none; }
+  .brand h1 { font-size: 14px; line-height: 1.2; letter-spacing: .4px; white-space: normal; }
+  .brand h1 .t-line { display: block; }          /* judul 2 baris di HP: tidak pernah menabrak chip koin */
+  .brand > div:last-child { min-width: 0; }
+  .brand p { display: none; }
+  .profile { gap: 8px; flex: none; flex-wrap: nowrap; justify-content: flex-end; }
+  .points-chip { padding: 7px 11px; font-size: 12px; flex: none; }
+  .menu-btn { width: 40px; height: 40px; }
+}
+
+@media (max-width: 360px) {
+  .header { gap: 8px; padding: 10px 10px; }
+  .brand { gap: 8px; }
+  .brand-icon { width: 34px; height: 34px; }
+  .brand h1 { font-size: 12.5px; letter-spacing: .2px; }
+  .profile { gap: 6px; }
+  .points-chip { padding: 6px 9px; font-size: 11px; }
+  .points-chip b { font-size: 13px; }
+  .menu-btn { width: 36px; height: 36px; font-size: 16px; }
+}
+
+@media (min-width: 821px) { .tahap-grid.smp-fit { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); } }
+@media (max-width: 820px) {
+  .tahap-grid.smp-fit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tahap-grid.smp-fit > .tg-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+@media (max-width: 380px) {
+  .tahap-grid.smp-fit { grid-template-columns: 1fr; }
+  .tahap-grid.smp-fit > .tg-card:last-child:nth-child(odd) { grid-column: auto; }
+}
+
+/* Kartu modul SMA/SMK: kolom dibagi rata (mis. 6 modul = 3 x 2) supaya baris terakhir tidak bolong */
+@media (min-width: 821px) { .tahap-grid.smk-fit { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); } }
+@media (max-width: 820px) {
+  .tahap-grid.smk-fit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tahap-grid.smk-fit > .tg-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+@media (max-width: 380px) {
+  .tahap-grid.smk-fit { grid-template-columns: 1fr; }
+  .tahap-grid.smk-fit > .tg-card:last-child:nth-child(odd) { grid-column: auto; }
+}
+
+a.points-chip { text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+a.points-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(168,106,0,.25); }
+
+/* Label "Koin Belajar" di chip saldo: disembunyikan di layar kecil (sama seperti halaman Koin) */
+@media (max-width: 640px) { .points-chip .pc-label { display: none; } }

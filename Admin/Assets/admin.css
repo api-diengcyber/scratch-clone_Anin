@@ -1,0 +1,54 @@
+/* Scrollbar bergaya "code editor" */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+
+/* Tema terang admin — diselaraskan dengan pilihan tema akun pengguna (dc-theme). */
+html:not(.dark) { color-scheme: light; }
+html:not(.dark) body,
+html:not(.dark) main { background: #f5f7fb !important; color: #172033 !important; }
+html:not(.dark) header,
+html:not(.dark) #sidebar,
+html:not(.dark) main > div:first-child { background-color: rgba(255,255,255,.96) !important; border-color: #e2e8f0 !important; }
+html:not(.dark) #sidebar { background: #fff !important; }
+html:not(.dark) .bg-slate-950 { background-color: #f5f7fb !important; }
+html:not(.dark) .bg-slate-900,
+html:not(.dark) .bg-slate-900\/80,
+html:not(.dark) .bg-slate-900\/90 { background-color: #fff !important; }
+html:not(.dark) .bg-slate-800,
+html:not(.dark) .bg-slate-800\/80,
+html:not(.dark) .bg-slate-800\/70,
+html:not(.dark) .bg-slate-800\/60,
+html:not(.dark) .bg-slate-800\/30 { background-color: #f1f5f9 !important; }
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-slate-800\/80,
+html:not(.dark) .border-slate-800\/60,
+html:not(.dark) .border-slate-700,
+html:not(.dark) .border-slate-700\/70,
+html:not(.dark) .border-slate-700\/60 { border-color: #e2e8f0 !important; }
+html:not(.dark) .text-white { color: #172033 !important; }
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200,
+html:not(.dark) .text-slate-300 { color: #334155 !important; }
+html:not(.dark) .text-slate-400 { color: #64748b !important; }
+html:not(.dark) .text-slate-500 { color: #64748b !important; }
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea { background-color: #fff !important; color: #172033 !important; border-color: #cbd5e1 !important; }
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder { color: #94a3b8 !important; }
+html:not(.dark) [data-modal] > div { background-color: #fff !important; border-color: #e2e8f0 !important; }
+html:not(.dark) .hover\:bg-slate-800:hover,
+html:not(.dark) .hover\:bg-slate-700:hover { background-color: #e2e8f0 !important; }
+html:not(.dark) .ring-slate-900 { --tw-ring-color: #fff !important; }
+html:not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9; }
+html:not(.dark) ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+
+/* Pertahankan teks putih pada tombol/ikon berwarna dan gradasi. */
+html:not(.dark) button.text-white,
+html:not(.dark) .bg-gradient-to-r.text-white,
+html:not(.dark) .bg-gradient-to-tr.text-white,
+html:not(.dark) .bg-sky-500.text-white,
+html:not(.dark) .bg-emerald-600.text-white { color: #fff !important; }

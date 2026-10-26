@@ -1,0 +1,24 @@
+/* Halaman modul SMA/SMK: memakai kelas SD (belajar.css) apa adanya; di sini hanya gradasi hero per tahap + penyesuaian kecil. */
+.tahap-hero.s4 { background: linear-gradient(120deg, #0ea5a4 0%, #2563eb 100%); box-shadow: 0 10px 24px rgba(14,165,164,.3); }
+.tahap-hero.s5 { background: linear-gradient(120deg, #e11d48 0%, #f59e0b 100%); box-shadow: 0 10px 24px rgba(225,29,72,.3); }
+.tahap-hero.s6 { background: linear-gradient(120deg, #6d28d9 0%, #06b6d4 100%); box-shadow: 0 10px 24px rgba(109,40,217,.3); }
+.smk-tahap + .smk-tahap { margin-top: 44px; }
+a.pcard { text-decoration: none; color: inherit; }
+.smk a.pcard:focus-visible { outline: 3px solid #5a6bd8; outline-offset: 2px; }
+.smk .phead { display: flex; gap: 16px; align-items: center; background: #fff; border-radius: 26px; padding: 20px 22px; box-shadow: 0 8px 20px rgba(60,80,140,.1); border-left: 8px solid var(--c); }
+.smk .phead .pe { font-size: 52px; } .smk .phead h2 { margin: 0 0 4px; } .smk .phead p { margin: 0 0 6px; color: #6b7494; } .smk .phead .bar { background: #e6e9f5; } .smk .phead .bar i { background: var(--c); } .smk .phead .bar-text { color: #6b7494; }
+.smk .tcard { margin: 16px 0 6px; } .smk .tcard h3 { margin: 0 0 6px; } .smk .tcard ul { margin: 6px 0; padding-left: 22px; line-height: 1.55; }
+.smk .btn { background: var(--c, #6d7eea); } .smk .btn.ghost { background: #eef1ff; color: #5a6bd8; } .smk .btn.grey { background: #c9cfe4; } .smk .btn.green { background: #34c06f; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; } .chip { background: #eef1ff; color: #4a5bd0; border-radius: 12px; padding: 5px 10px; font-size: 13px; font-weight: bold; }
+.smk .btn:focus-visible, .smk .tg-card:focus-visible { outline: 3px solid #5b3dff; outline-offset: 2px; }
+.smk-overlay { position: fixed; inset: 0; background: rgba(30,25,60,.55); display: grid; place-items: center; z-index: 9999; padding: 14px; }
+.smk-modal { background: #fff; color: #2b3350; border-radius: 26px; width: min(660px, 100%); max-height: 92vh; overflow: auto; padding: 24px 26px; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+.smk-modal h2 { margin: 0 0 2px; } .smk-modal h3 { margin: 16px 0 6px; font-size: 16px; color: var(--c); } .smk-modal .sub { margin: 0 0 6px; color: #6b7494; font-size: 13px; }
+.smk-modal ul, .smk-modal ol { margin: 6px 0; padding-left: 22px; line-height: 1.6; } .smk-modal a.btn { display: inline-block; text-decoration: none; margin-top: 8px; }
+.mfoot { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; } .xbtn { float: right; border: 0; background: #eef1ff; color: #5a6bd8; border-radius: 12px; padding: 6px 12px; }
+@media (prefers-reduced-motion: reduce) { .smk * { animation: none !important; transition: none !important; } }
+.materi-link.soon { cursor: default; border-style: dashed; background: #f5f7fc; box-shadow: none; opacity: .75; }
+.materi-link.soon:hover, .materi-link.soon:active { transform: none; border-color: #cfe0ff; box-shadow: none; }
+.materi-link.soon .ml-icon { filter: grayscale(1); }
+.smk a.btn.mlink, .smk button.btn.mlink { display: inline-block; text-decoration: none; }
+.smk-modal .materi-link { margin: 14px 0 8px; }

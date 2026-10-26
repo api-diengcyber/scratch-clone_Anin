@@ -1,0 +1,20 @@
+# Node
+node_modules/
+
+# SQLite
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Backup lokal
+backend/backups/
+
+# Logs
+*.log
+
+dieng-cyber-coding-firebase-adminsdk-fbsvc-b6d234f528.json

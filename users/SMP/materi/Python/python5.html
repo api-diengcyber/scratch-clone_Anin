@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
+  <title>Task 5: Cetak Rapi - Python Dasar SMP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #eef2ff;
+      --accent: #f72585;
+      --dark: #0f172a;
+      --gray-bg: #f8fafc;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: var(--dark); line-height: 1.7; padding: 30px 15px; }
+    .container { max-width: 860px; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid var(--border); }
+    .header { background: linear-gradient(135deg, #f72585, #7209b7); color: #ffffff; padding: 35px; text-align: center; }
+    .badge { display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 6px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .content { padding: 35px; }
+    .section-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin: 28px 0 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .card { background: var(--gray-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .highlight-box { background: var(--primary-light); border-left: 5px solid var(--primary); padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0; margin: 15px 0; }
+    .code-block { background: #0f172a; color: #f8fafc; padding: 16px 20px; border-radius: 12px; font-family: 'Fira Code', monospace; font-size: 0.92rem; overflow-x: auto; margin: 14px 0; border: 1px solid #334155; }
+    .code-comment { color: #94a3b8; }
+    .code-func { color: #38bdf8; }
+    .code-str { color: #4ade80; }
+    .code-num { color: #fbbf24; }
+    .steps-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+    .step-item { display: flex; align-items: flex-start; gap: 14px; background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .step-num { width: 36px; height: 36px; background: #f72585; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+    .playground { background: #1e1b4b; color: #e0e7ff; border-radius: var(--radius); padding: 22px; margin-top: 25px; }
+    .playground h3 { color: #ffffff; margin-bottom: 12px; }
+    .input-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .input-group { flex: 1; min-width: 140px; }
+    .input-group label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: #a5b4fc; }
+    .input-group input { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #4338ca; background: #312e81; color: #ffffff; font-family: inherit; }
+    .btn-run { background: linear-gradient(135deg, #f72585, #7209b7); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .output-screen { margin-top: 15px; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; font-family: 'Fira Code', monospace; color: #38bdf8; font-size: 0.9rem; }
+  </style>
+  <script src="/shared/js/auth-guard.js?v=20261019"></script>
+</head>
+<body>
+<a id="btnKembali" href="/belajar-smp.html?p=py1" style="position:fixed;top:12px;left:12px;z-index:50;text-decoration:none;background:#fff;color:#4361ee;padding:8px 14px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.12);border:1px solid #e2e8f0">← Kembali ke Modul</a>
+  <div class="container">
+    <div class="header">
+      <span class="badge">TASK 5 • KODING SMP</span>
+      <h1>Cetak Rapi (Format String)</h1>
+      <p>Menyusun teks output yang indah, rapi, dan dinamis menggunakan f-string</p>
+    </div>
+
+    <div class="content"><h2 class="section-title">Materi Lengkap: Dasar Pemrograman</h2>
+<div class="card">
+<p><strong>Konsep dasar.</strong> Python adalah bahasa pemrograman yang digunakan untuk memberi komputer instruksi secara terstruktur dan mudah dibaca. Pada materi <strong>Cetak Rapi (Format String)</strong>, fokus utama kita adalah <strong>dasar pemrograman</strong>. Tujuannya bukan menghafal langkah, tetapi memahami alasan di balik setiap keputusan sehingga kamu dapat menerapkannya pada masalah yang berbeda.</p>
+<p><strong>Cara kerja.</strong> Program menerima data, memprosesnya berdasarkan aturan, lalu menghasilkan keluaran. Variabel menyimpan nilai, tipe data menentukan jenis nilai, operator melakukan operasi, dan fungsi membantu membagi program menjadi bagian yang dapat digunakan kembali.</p>
+</div>
+<h2 class="section-title">Contoh Sederhana</h2>
+<div class="card"><p>nama = input(&quot;Nama: &quot;) lalu print(&quot;Halo&quot;, nama) menunjukkan alur input → proses sederhana → output.</p><div class="highlight-box"><strong>Coba pikirkan:</strong> jika input, ukuran data, kondisi, atau lingkungan diubah, bagian mana dari proses yang ikut berubah? Sebelum menjalankan task, buat prediksi terlebih dahulu.</div></div>
+<h2 class="section-title">Istilah Penting</h2>
+<div class="card"><p><strong>variabel, tipe data, input, output, operator, fungsi, algoritma</strong></p><p>Pahami istilah tersebut sebagai konsep yang saling berhubungan, bukan daftar hafalan. Saat membaca task, coba tunjukkan istilah mana yang sedang digunakan dan apa buktinya dari hasil program/scene.</p></div>
+<h2 class="section-title">Kapan Konsep Ini Digunakan?</h2>
+<div class="card"><p>Gunakan konsep dasar ini sebagai fondasi hampir semua program Python.</p><p>Pemilihan teknik selalu bergantung pada masalah. Tidak ada satu metode yang paling benar untuk semua situasi; bandingkan kebutuhan, batasan, data, dan hasil yang diinginkan.</p></div>
+<h2 class="section-title">Hal yang Perlu Diperhatikan</h2>
+<div class="card"><ul style="margin:8px 0 0 20px;line-height:1.7;"><li>Perhatikan tipe data, nilai batas, urutan operasi, nama variabel yang jelas, dan hasil yang benar untuk input berbeda.</li><li>Uji lebih dari satu kondisi, termasuk kasus normal dan kasus batas.</li><li>Amati hasil sebelum mengubah kode/scene agar perubahanmu memiliki alasan.</li><li>Bedakan masalah pada konsep, data/input, dan implementasi.</li></ul></div>
+<h2 class="section-title">Kesalahan Umum</h2>
+<div class="card"><p>Kesalahan umum: menyalin kode tanpa memahami alurnya, salah indentasi, salah tipe data, kondisi tidak lengkap, indeks di luar batas, atau menganggap satu contoh selalu mewakili semua kasus.</p><p>Jika hasil task berbeda dari prediksi, jangan langsung mengganti kode secara acak. Cari langkah pertama ketika perilaku mulai berbeda, lalu jelaskan penyebabnya.</p></div>
+<h2 class="section-title">Cara Belajar Sebelum Task</h2>
+<div class="card"><ol style="margin:8px 0 0 20px;line-height:1.7;"><li>Jelaskan konsep dengan kata-katamu sendiri.</li><li>Perhatikan contoh dan prediksi hasilnya sebelum dijalankan.</li><li>Kerjakan task tanpa menyalin jawaban langkah demi langkah.</li><li>Ubah satu bagian dan amati dampaknya.</li><li>Catat alasan solusi yang kamu pilih.</li></ol></div>
+<h2 class="section-title">1. Mengapa Perlu f-string?</h2>
+      <div class="card">
+        <p>Cara lama menyatukan teks dengan koma <code>print("Halo", nama, "umur", umur)</code> membuat penulisan kode panjang dan mudah salah spasi.</p>
+        <div class="highlight-box">
+          <strong>Kunci f-string:</strong> Taruh huruf <code>f</code> tepat sebelum tanda kutip, lalu masukkan variabel langsung di dalam kurung kurawal <code>{nama_variabel}</code>!
+        </div>
+      </div>
+
+      <h2 class="section-title">2. Eksplorasi Praktik</h2>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div>
+            <h4>Contoh 1: Menggunakan f-string Dasar</h4>
+            <p>Gabungkan teks dan variabel langsung di dalam satu pasang tanda petik.</p>
+            <div class="code-block">nama = <span class="code-str">"Salma"</span>
+kelas = <span class="code-num">8</span>
+<span class="code-func">print</span>(<span class="code-str">f"Halo, namaku {nama} dari kelas {kelas} SMP!"</span>)</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div>
+            <h4>Contoh 2: Menghitung Langsung di f-string</h4>
+            <p>Kita bisa langsung menuliskan rumus matematika di dalam kurung kurawal <code>{ }</code>.</p>
+            <div class="code-block">harga = <span class="code-num">3000</span>
+jumlah = <span class="code-num">4</span>
+<span class="code-func">print</span>(<span class="code-str">f"Total belanjaan: Rp {harga * jumlah}"</span>)</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div>
+            <h4>Contoh 3: Pindah Baris dengan \n</h4>
+            <p>Gunakan simbol <code>\n</code> untuk membuat baris baru tanpa perlu memanggil <code>print()</code> berkali-kali.</p>
+            <div class="code-block"><span class="code-func">print</span>(<span class="code-str">"=== KARTU SISWA ===\nNama: Salma\nStatus: Aktif"</span>)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playground">
+        <h3>Simulasi Langsung Task 5: Kartu Profil Otomatis</h3>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="t5_nama">Nama Siswa:</label>
+            <input type="text" id="t5_nama" value="Dimas">
+          </div>
+          <div class="input-group">
+            <label for="t5_poin">Poin Game:</label>
+            <input type="number" id="t5_poin" value="50">
+          </div>
+        </div>
+        <button class="btn-run" id="btnRun" type="button">Cetak dengan f-string</button>
+        <div class="output-screen" id="t5_res">> Klik tombol untuk generate teks rapi...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function cetakRapi() {
+      const nama = document.getElementById('t5_nama').value || "Siswa";
+      const poin = parseInt(document.getElementById('t5_poin').value) || 0;
+      document.getElementById('t5_res').innerHTML =
+        `====================================<br>` +
+        `f"Halo {nama}, selamat datang!"<br>` +
+        `-> Halo ${nama}, selamat datang!<br><br>` +
+        `f"Poin saat ini: {poin} | Poin bonus ganda: {poin * 2}"<br>` +
+        `-> Poin saat ini: ${poin} | Poin bonus ganda: ${poin * 2}<br>` +
+        `====================================`;
+    }
+    document.getElementById('btnRun').addEventListener('click', cetakRapi);
+  </script>
+<script src="/shared/js/materi-back.js?v=20261019"></script>
+<script src="/shared/js/materi-gate.js?v=20261019"></script>
+</body>
+</html>
