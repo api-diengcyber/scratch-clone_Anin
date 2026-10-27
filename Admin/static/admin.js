@@ -535,9 +535,8 @@ function showToast(message) {
   try {
     const me = await window.DCAdminApi.me();
     if (me.role !== 'admin') {
-      // Sementara untuk debug: jangan redirect, cukup tampilkan pesan.
-      showToast('DEBUG: akun ini bukan admin (role=' + me.role + ').');
-      console.error('DEBUG admin auth: role bukan admin', me);
+      showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
+      setTimeout(() => location.replace('/dashboard.html'), 1200);
       return;
     }
     adminState.me = me;
@@ -545,9 +544,8 @@ function showToast(message) {
     await loadDashboard();
   } catch (error) {
     if (error.status === 403) {
-      // Sementara untuk debug: jangan redirect, cukup tampilkan pesan.
-      showToast('DEBUG: /api/admin/me mengembalikan 403. Cek token/role akun.');
-      console.error('DEBUG admin auth: 403 dari /api/admin/me', error);
+      showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
+      setTimeout(() => location.replace('/dashboard.html'), 1200);
     } else if (error.status !== 401) {
       showToast(error.message || 'Gagal memverifikasi sesi admin.');
     }
