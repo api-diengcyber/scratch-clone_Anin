@@ -85,7 +85,7 @@
       </a>
 
       <!-- Blockly & Interactive Code Lab -->
-      <a href="#" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
+      <a href="#" data-view="codelab" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
         <i class="fa-solid fa-laptop-code w-4 text-center text-slate-400 group-hover:text-indigo-500 text-sm"></i>
         <span>Code Lab & Blockly</span>
       </a>
@@ -171,12 +171,6 @@
       <!-- Action Tools & Theme Switcher -->
       <div class="flex items-center gap-2.5 sm:gap-3 ml-3">
         
-        <!-- Live Compiler Online Indicator -->
-        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-xs font-mono text-slate-600 dark:text-slate-300">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Dieng Runner: <strong class="text-emerald-600 dark:text-emerald-400 font-semibold">Siap</strong></span>
-        </div>
-
         <!-- Light / Dark Mode Switcher Button -->
         <button 
           onclick="toggleTheme()" 
@@ -195,12 +189,29 @@
           </span>
         </button>
 
-        <!-- Notification Bell -->
-        <button class="relative p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition shadow-xs">
-          <i class="fa-regular fa-bell text-sm"></i>
-          <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
-        </button>
+        <!-- Notification Bell + Dropdown -->
+        <div class="relative" id="notifWrap">
+          <button id="notifBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel" title="Notifikasi"
+            class="relative p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition shadow-xs">
+            <i class="fa-regular fa-bell text-sm"></i>
+            <span id="notifDot" class="hidden absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+          </button>
 
+          <div id="notifPanel" role="dialog" aria-label="Notifikasi"
+            class="hidden absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[24rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800">
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Notifikasi</h3>
+                <span id="notifCount" class="hidden px-1.5 py-0.5 rounded-md text-[10px] font-bold font-mono bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400"></span>
+              </div>
+              <button id="notifReadAll" type="button" class="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-default">Tandai semua dibaca</button>
+            </div>
+            <ul id="notifList" class="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"></ul>
+            <div class="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 text-right">
+              <button id="notifClear" type="button" class="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition">Hapus semua</button>
+            </div>
+          </div>
+        </div>
 
       </div>
     </header>
@@ -701,6 +712,41 @@
       <div id="jalurGrid" class="space-y-8"></div>
     </div>
 
+    <!-- View: Code Lab & Blockly -->
+    <div id="view-codelab" class="hidden p-4 md:p-8 space-y-6">
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
+            <span>Portal Admin</span><span>/</span>
+            <span class="text-sky-600 dark:text-sky-400 font-medium">Code Lab &amp; Blockly</span>
+          </div>
+          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2.5">
+            Code Lab &amp; Blockly
+            <span id="clCount" class="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">0 Tantangan</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola tantangan koding: soal Blockly untuk SD, soal kode untuk SMP dan SMA/SMK.</p>
+        </div>
+        <button type="button" data-cl="new" class="flex items-center gap-2 self-start md:self-auto bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition">
+          <i class="fa-solid fa-plus text-xs"></i><span>Tantangan Baru</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card">
+        <div id="clFilter" class="flex items-center gap-1.5 overflow-x-auto p-0.5"></div>
+        <div class="relative lg:w-64 px-1">
+          <span class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <input id="clSearch" type="text" placeholder="Cari judul tantangan..." class="w-full bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs rounded-xl pl-8 pr-3 py-2 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500">
+        </div>
+      </div>
+
+      <div id="clList" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-card overflow-hidden divide-y divide-slate-100 dark:divide-slate-800"></div>
+
+      <p class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+        Data tersimpan di browser ini. <button type="button" data-cl="reset" class="underline hover:text-sky-600 dark:hover:text-sky-400">Kembalikan data contoh</button>
+      </p>
+    </div>
+
     <!-- View: Kelola Tahap -->
     <div id="view-tahap" class="hidden p-4 md:p-8 space-y-6">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -968,15 +1014,17 @@
   </div>
 
   <!-- Toast Notification Box -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 z-[70] pointer-events-none">
-    <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600 text-sm"></i>
-    <span id="toastMessage">Operasi berhasil dijalankan!</span>
+  <div id="toast" role="status" aria-live="polite" class="fixed bottom-5 left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 text-sm font-medium pl-3 pr-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[90] pointer-events-none">
+    <span id="toastBadge" class="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs bg-emerald-100 text-emerald-600"><i class="fa-solid fa-check"></i></span>
+    <span id="toastMessage" class="leading-snug">Operasi berhasil dijalankan!</span>
   </div>
 
   <!-- Javascript Logic -->
-  <script src="static/admin.js?v=3"></script>
-  <script src="static/editor.js?v=4"></script>
-  <script src="static/kurikulum.js?v=11"></script>
+  <script src="static/admin.js?v=5"></script>
+  <script src="static/dialog.js?v=1"></script>
+  <script src="static/editor.js?v=10"></script>
+  <script src="static/kurikulum.js?v=15"></script>
+  <script src="static/codelab.js?v=1"></script>
 
 </body>
 </html>

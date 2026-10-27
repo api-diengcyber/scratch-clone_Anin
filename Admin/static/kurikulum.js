@@ -155,6 +155,9 @@
   let sortBy = 'default';
   let previewId = '';
 
+  // Status materi: 'terbit' = tersedia di portal siswa, 'draft' = belum diunggah.
+  // Materi lama tanpa field status dianggap sudah tersedia (perilaku sebelumnya).
+  const isTerbit = (m) => (m.status || 'terbit') === 'terbit';
   const labCount = (j) => Math.max(j.lab || 0, (j.materi || []).length);
   const tahapOf = (j) => j.tahap || 1;
   const tahapKey = (t) => t.jenjang + '|' + t.no;
@@ -299,13 +302,17 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${m.tes ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/40' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40'}">${m.tes ? 'Mini Test' : 'Tersedia'}</span>
+          ${m.tes ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40">Mini Test</span>' : ''}
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${isTerbit(m) ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' : 'text-slate-500 bg-slate-200/70 dark:text-slate-300 dark:bg-slate-700/60'}">${isTerbit(m) ? 'Tersedia' : 'Draft'}</span>
+          <button data-vmat="${esc(j.id)}|${esc(m.id)}" class="text-indigo-600 px-1" aria-label="Lihat materi ${esc(m.judul)} sebagai siswa" title="Pratinjau tampilan siswa"><i class="fa-solid fa-eye"></i></button>
+          <button data-pubmat="${esc(j.id)}|${esc(m.id)}" class="${isTerbit(m) ? 'text-slate-500 hover:text-amber-600' : 'px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold'} px-1" aria-label="${isTerbit(m) ? 'Tarik ke draft' : 'Unggah'} ${esc(m.judul)}" title="${isTerbit(m) ? 'Tarik ke draft (sembunyikan dari siswa)' : 'Unggah agar tersedia untuk siswa'}">${isTerbit(m) ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Unggah'}</button>
           <button data-emat="${esc(j.id)}|${esc(m.id)}" class="text-sky-600 px-1 opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Edit materi ${esc(m.judul)}" title="Edit materi"><i class="fa-solid fa-pen"></i></button>
           <button data-delmat="${esc(j.id)}|${esc(m.id)}" class="text-rose-500 px-1 opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Hapus materi ${esc(m.judul)}"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>`).join('')
       : '<div class="text-center text-slate-400 py-8">Belum ada materi di modul ini.<br>Klik “Tambah Materi” untuk menambahkan.</div>';
-    $('#prevFoot').textContent = `${list.length} materi${j.lab && j.lab > list.length ? ` dari ${j.lab} lab` : ''}`;
+    const nTerbit = list.filter(isTerbit).length;
+    $('#prevFoot').textContent = `${list.length} materi · ${nTerbit} tersedia · ${list.length - nTerbit} draft${j.lab && j.lab > list.length ? ` (target ${j.lab} lab)` : ''}`;
   }
 
   function openPreview(id) {
@@ -587,7 +594,7 @@
     const t = tahapList.find((x) => tahapKey(x) === key); if (!t) return;
     const n = jalur.filter((j) => j.jenjang === t.jenjang && tahapOf(j) === t.no).length;
     if (n) return showToast(`Tahap ${t.no} masih dipakai ${n} jalur. Pindahkan atau hapus jalurnya dulu.`);
-    if (!confirm(`Hapus Tahap ${t.no} "${t.nama}"?`)) return;
+    if (!(await dcConfirm({ title: 'Hapus tahap ini?', message: 'Tahap akan dihapus permanen dan tidak bisa dikembalikan.', detail: `Tahap ${t.no} · ${t.nama}`, confirmText: 'Ya, hapus', tone: 'danger' }))) return;
     tahapList = tahapList.filter((x) => tahapKey(x) !== key);
     await api.saveTahap(tahapList); render();
     showToast('Tahap dihapus.');
@@ -595,7 +602,8 @@
 
   async function removeJalur(id) {
     const j = jalur.find((x) => x.id === id);
-    if (!j || !confirm(`Hapus jalur "${j.nama}"? Materi di dalamnya ikut terhapus.`)) return;
+    if (!j) return;
+    if (!(await dcConfirm({ title: 'Hapus jalur belajar?', message: 'Semua materi di dalam jalur ini ikut terhapus dan tidak bisa dikembalikan.', detail: j.nama, confirmText: 'Ya, hapus', tone: 'danger' }))) return;
     jalur = jalur.filter((x) => x.id !== id);
     await api.saveAll(jalur); render();
     showToast('Jalur belajar dihapus.');
@@ -625,16 +633,40 @@
       onSave: async (d) => {
         const target = jalur.find((x) => x.id === d.jalur);
         if (!target) return;
-        const rec = { judul: d.judul, tipe: d.tipe, badge: d.badge, subjudul: d.subjudul, html: d.html };
+        const rec = { judul: d.judul, tipe: d.tipe, badge: d.badge, subjudul: d.subjudul, html: d.html, headerStyle: d.headerStyle || '', status: d.publish ? 'terbit' : 'draft' };
         if (cur) {
           first.materi = first.materi.filter((m) => m.id !== cur.id);
           target.materi.push(Object.assign(cur, rec));
         } else target.materi.push({ id: Date.now().toString(36), durasi: '', tes: false, ...rec });
         await api.saveAll(jalur); render();
         if (typeof renderPreview === 'function' && !$('#modalPreview').classList.contains('hidden')) renderPreview();
-        showToast(cur ? 'Materi diperbarui.' : 'Materi ditambahkan ke ' + target.nama + '.');
+        showToast(d.publish ? 'Materi diunggah dan tersedia untuk siswa.' : 'Materi disimpan sebagai draft (belum terlihat siswa).');
       },
     });
+  }
+
+  function findMateri(key) {
+    const [jid, mid] = key.split('|'), j = jalur.find((x) => x.id === jid);
+    return { j, m: j && j.materi.find((x) => x.id === mid) };
+  }
+  // Lihat materi persis seperti tampilan siswa
+  function previewMateri(key) {
+    const { m } = findMateri(key); if (!m) return;
+    if (!m.html) return showToast('Materi ini belum punya isi. Klik ikon pensil untuk menulisnya.');
+    DCEditor.preview({ badge: m.badge, judul: m.judul, subjudul: m.subjudul, html: m.html, headerStyle: m.headerStyle }, isTerbit(m));
+  }
+  // Unggah (jadi tersedia) / tarik kembali ke draft
+  async function togglePublish(key) {
+    const { m } = findMateri(key); if (!m) return;
+    if (isTerbit(m)) {
+      if (!(await dcConfirm({ title: 'Tarik materi ke draft?', message: 'Materi akan disembunyikan dari siswa sampai kamu mengunggahnya lagi.', detail: m.judul, confirmText: 'Tarik ke draft', cancelText: 'Biarkan tersedia', tone: 'warning' }))) return;
+      m.status = 'draft';
+    } else {
+      if (!m.html) return showToast('Materi belum punya isi. Tulis dulu lewat ikon pensil sebelum diunggah.');
+      m.status = 'terbit';
+    }
+    await api.saveAll(jalur); render();
+    showToast(isTerbit(m) ? 'Materi diunggah dan tersedia untuk siswa.' : 'Materi ditarik ke draft.');
   }
 
   // ---------- EXPORT ----------
@@ -655,6 +687,7 @@
     $('#view-dashboard').classList.toggle('hidden', name !== 'dashboard');
     $('#view-kurikulum').classList.toggle('hidden', name !== 'kurikulum');
     $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
+    $('#view-codelab').classList.toggle('hidden', name !== 'codelab');
     document.querySelectorAll('[data-view]').forEach((a) => {
       const active = a.dataset.view === name;
       a.classList.remove(...(active ? OFF : ON)); a.classList.add(...(active ? ON : OFF));
@@ -684,13 +717,16 @@
     const td = e.target.closest('[data-tdel]'); if (td) return removeTahap(td.dataset.tdel);
     const ed = e.target.closest('[data-edit]'); if (ed) return openJalur(ed.dataset.edit);
     const dl = e.target.closest('[data-del]'); if (dl) return removeJalur(dl.dataset.del);
+    const vm = e.target.closest('[data-vmat]'); if (vm) return previewMateri(vm.dataset.vmat);
+    const pm = e.target.closest('[data-pubmat]'); if (pm) return togglePublish(pm.dataset.pubmat);
     const em = e.target.closest('[data-emat]');
     if (em) { const [jid, mid] = em.dataset.emat.split('|'); return openMateri(jid, mid); }
     const dm = e.target.closest('[data-delmat]');
     if (dm) {
       const [jid, mid] = dm.dataset.delmat.split('|');
-      const j = jalur.find((x) => x.id === jid);
-      if (j && confirm('Hapus materi ini?')) { j.materi = j.materi.filter((m) => m.id !== mid); api.saveAll(jalur); render(); showToast('Materi dihapus.'); }
+      const j = jalur.find((x) => x.id === jid), m = j && j.materi.find((x) => x.id === mid);
+      if (m) dcConfirm({ title: 'Hapus materi ini?', message: 'Materi akan dihapus permanen dan tidak bisa dikembalikan.', detail: m.judul, confirmText: 'Ya, hapus', tone: 'danger' })
+        .then(async (ok) => { if (!ok) return; j.materi = j.materi.filter((x) => x.id !== mid); await api.saveAll(jalur); render(); showToast('Materi dihapus.'); });
       return;
     }
     const fl = e.target.closest('[data-filter]'); if (fl) { filter = fl.dataset.filter; render(); }
@@ -703,6 +739,6 @@
   Promise.all([api.list(), api.listTahap()]).then(([list, tl]) => {
     jalur = list; tahapList = tl; render();
     const h = location.hash.slice(1);
-    showView(['kurikulum', 'tahap'].includes(h) ? h : 'dashboard');
+    showView(['kurikulum', 'tahap', 'codelab'].includes(h) ? h : 'dashboard');
   });
 })();
