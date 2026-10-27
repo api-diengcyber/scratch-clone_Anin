@@ -169,6 +169,8 @@ function requireAdmin(req, res, next) {
     next();
 }
 
+// Reserved untuk fase berikutnya. Schema role saat ini hanya student/admin;
+// akses developer plugin memakai allowlist PLUGIN_DEVELOPER_USER_IDS.
 function requireSuperadmin(req, res, next) {
     if (req.role !== "superadmin") {
         return authError(res, 403, "Akses superadmin diperlukan", "SUPERADMIN_REQUIRED");

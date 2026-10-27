@@ -1,0 +1,11 @@
+{
+  "id": "sample-game",
+  "name": "Sample Game",
+  "version": "1.0.0",
+  "sdk": 1,
+  "entry": "index.html",
+  "category": { "id": "learning-games", "name": "Learning Games" },
+  "grades": ["SMP"],
+  "permissions": ["progress:complete"],
+  "network": { "allow": [] }
+}

@@ -13,6 +13,7 @@ kecuali disebutkan lain.
 - [ ] 1.6 Process manager (systemd/pm2) auto-restart
 - [ ] 1.7 Backup pertama + salinan `.env`
 - [ ] 1.8 Smoke test production
+- [ ] 1.9 Admin pertama + runtime plugin (jika plugin dipakai)
 
 ## 1. Prasyarat
 
@@ -76,7 +77,9 @@ Lokasi database: /data/database.sqlite
 ```
 
 Migrasi schema berjalan otomatis saat server/seed start (kolom profil, `user_items`,
-`attempts.time_spent`, `progress.bonus_awarded`, index, dll). Tidak perlu SQL manual.
+`attempts.time_spent`, `progress.bonus_awarded`, migrasi identitas `username` →
+`user_id`, index, dll). Tidak perlu SQL manual. Migrasi identitas menolak boot jika
+ada baris anak yang tidak punya user valid; sesi lama tanpa user dihapus.
 
 Kalau jumlah data tidak sesuai, cek `DB_PATH` — kemungkinan seed masuk ke DB lain.
 
@@ -108,6 +111,12 @@ Opsional:
 | `LOG_LEVEL` | `info` | Level log pino. |
 | `BACKUP_DIR` | `backend/backups` | Sebaiknya `/data/backups`. |
 | `BACKUP_KEEP` | `7` | Jumlah backup terakhir yang disimpan. |
+| `PLUGIN_DIR` | `/data/plugins` | Harus sama untuk backend dan runtime plugin. |
+| `PLUGIN_PUBLIC_ORIGIN` | `https://plugins.example.com` | Origin runtime plugin (subdomain terpisah). |
+| `APP_PUBLIC_ORIGIN` | `https://example.com` | Origin aplikasi utama untuk `frame-ancestors` runtime. Wajib di production. |
+| `PLUGIN_PREVIEW_SECRET` | random 32+ karakter | HMAC tiket preview; jangan commit. |
+| `PLUGIN_DEVELOPER_USER_IDS` | `1,7` | `users.id` admin yang boleh upload/review/publish plugin. |
+| `PLUGIN_PORT` | `3001` | Port runtime plugin. |
 
 Pastikan `.env` **tidak ikut git** dan hanya bisa dibaca user service:
 
@@ -257,23 +266,54 @@ curl -i https://domain-anda/backend/.env
 curl -i https://domain-anda/api/shop
 ```
 
+## 1.9 Admin pertama & runtime plugin
+
+Buat akun admin lewat CLI (bukan lewat UI admin):
+
+```bash
+cd /opt/dcc/backend
+npm run create-admin
+```
+
+CLI meminta username, email opsional, dan password. Role yang dibuat adalah
+`admin`; admin hanya mengelola murid. Simpan `users.id` yang dicetak CLI.
+
+Kalau plugin dipakai:
+
+1. Set `PLUGIN_DIR` ke volume persistent yang sama untuk backend dan runtime.
+2. Isi `PLUGIN_DEVELOPER_USER_IDS` dengan `users.id` admin tepercaya. Tanpa ini,
+   upload/review/publish plugin ditolak `403 PLUGIN_DEVELOPER_REQUIRED`.
+3. Isi `PLUGIN_PUBLIC_ORIGIN` (mis. `https://plugins.example.com`) dan
+   `APP_PUBLIC_ORIGIN` (mis. `https://example.com`).
+4. Buat `PLUGIN_PREVIEW_SECRET` acak minimal 32 karakter.
+5. Jalankan runtime sebagai proses/service terpisah:
+
+```bash
+cd /opt/dcc/backend
+npm run start:plugins
+```
+
+Runtime membuka database secara **read-only**; backend tetap satu-satunya penulis.
+Arahkan subdomain plugin ke port `PLUGIN_PORT` (default `3001`). Backend hanya
+menampilkan plugin yang sudah `published`; file quarantine tidak pernah disajikan
+publik.
+
+Kalau plugin belum dipakai, runtime tidak perlu dijalankan dan
+`PLUGIN_DEVELOPER_USER_IDS` boleh kosong.
+
 ## 2. Login: Firebase vs database
 
 Backend mendukung **dua jalur**:
 
-1. `POST /api/auth/firebase-login` `{ idToken }` — butuh service account Firebase
-   di server (file JSON, gitignored). Kalau file tidak ada, endpoint ini gagal
-   tetapi server tetap boot.
-2. `POST /api/auth/login` `{ email, password }` atau `{ username, password }` —
-   murni database, tanpa Firebase/Google.
+1. `POST /api/auth/login` `{ email, password }` atau `{ username, password }` —
+   murni database, tanpa Firebase/Google. Frontend siswa di `users/` memakai
+   jalur ini.
+2. `POST /api/auth/firebase-login` `{ idToken }` — opsional; butuh service account
+   Firebase di server (file JSON, gitignored). Kalau file tidak ada, endpoint ini
+   gagal tetapi server tetap boot.
 
-**Penting:** halaman `register.html` menyimpan user ke database, sedangkan
-`index.html` saat ini masih login lewat Firebase. Artinya user yang mendaftar
-lewat `register.html` belum bisa login sampai frontend memakai
-`POST /api/auth/login`. Pilih salah satu sebelum hosting:
-
-- **A.** Upload service account Firebase ke server (login tetap seperti sekarang), atau
-- **B.** Frontend mengganti login ke `POST /api/auth/login` (backend sudah siap).
+Akun Firebase yang belum punya password DB tidak bisa diklaim lewat login biasa.
+Pemilik harus login Firebase dulu, lalu memanggil `POST /api/auth/change-password`.
 
 ## 3. Keamanan file statis
 
@@ -294,8 +334,11 @@ Sudah ada test otomatis untuk ini (`test-endpoints.js` dan `npm run smoke`).
 | `NODE_MODULE_VERSION` mismatch | `npm rebuild better-sqlite3`. |
 | Seed 0 data | `DB_PATH` salah; lihat log `Lokasi database: ...`. |
 | Semua user kena rate limit yang sama | `TRUST_PROXY` salah atau proxy tidak mengirim `X-Forwarded-For`. |
-| Login user baru gagal | Masih jalur Firebase vs database (lihat bagian 2). |
+| Login user baru gagal | Cek jalur login frontend dan endpoint auth yang dipakai (lihat bagian 2). |
 | Data hilang setelah redeploy | `DB_PATH` masih di folder ephemeral. |
+| Upload plugin `403 PLUGIN_DEVELOPER_REQUIRED` | `PLUGIN_DEVELOPER_USER_IDS` belum berisi `users.id` admin. |
+| Iframe plugin kosong / ditolak | `APP_PUBLIC_ORIGIN`, `PLUGIN_PUBLIC_ORIGIN`, dan CSP `frame-src` harus cocok; runtime harus di origin terpisah. |
+| Murid 403 setelah username diubah | Frontend masih memakai username lama; ambil ulang `/api/auth/me` lalu pakai username baru. |
 
 ## 5. Rollback
 

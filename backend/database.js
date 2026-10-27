@@ -35,11 +35,13 @@ db.pragma("cache_size = -16000"); // ~16 MB cache halaman
 // Legacy users have username + password_hash only.
 // All nullable to support gradual migration.
 //
-// KEPUTUSAN IDENTITAS FINAL (langkah 2):
-// - firebase_uid = identitas kanonis untuk user baru (stabil, dari Firebase).
+// KEPUTUSAN IDENTITAS FINAL (M2):
+// - users.id = identitas kanonis untuk semua relasi.
+// - firebase_uid = tautan stabil ke Firebase Auth untuk akun Firebase.
 // - email = atribut unik (case-insensitive), bukan kunci relasi.
-// - username = kompatibilitas legacy + target FK saat ini (jangan rename).
-// - Migrasi FK username -> firebase_uid DITUNDA sampai langkah 5 (butuh backfill + ganti auth).
+// - username = nama login/display; boleh diubah admin tanpa memutus relasi.
+// - Tabel anak (sessions/progress/points/attempts/user_items) memakai user_id.
+//   Database lama dimigrasikan otomatis oleh migrateIdentityToUserId() di bawah.
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (

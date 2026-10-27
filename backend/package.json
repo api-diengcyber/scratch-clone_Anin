@@ -8,7 +8,8 @@
     "seed": "node seed-tasks-smp.js && node seed-tasks-sd-smk.js && node seed-materials.js",
     "backup": "node backup.js",
     "smoke": "node smoke-test.js",
-    "test": "node test-endpoints.js && node test-auth.js && node test-shop.js",
+    "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js",
+    "test:admin": "node test-admin.js",
     "create-admin": "node create-admin.js",
     "start:plugins": "node plugin-runtime-server.js",
     "test:m0-m5": "node test-m0-m5.js"

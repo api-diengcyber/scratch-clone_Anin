@@ -1418,6 +1418,16 @@ app.post("/api/ai/tutor", auth.requireAuth, async (req, res) => {
 });
 
 // ============================================================
+// ADMIN API (M1-M4): semua endpoint terlindungi di modul terpisah.
+// Harus didaftarkan SEBELUM handler 404, kalau tidak semua route admin
+// akan dianggap route tidak ditemukan.
+// ============================================================
+require("./admin-api").registerAdminApi(app, {
+    db, auth, express, sendApiError, sendApiSuccess,
+    rateLimitMiddleware, sanitizeString, normalizeEmail, isValidEmail
+});
+
+// ============================================================
 // 404
 // ============================================================
 
@@ -1459,14 +1469,6 @@ setInterval(() => {
         if (now - e.windowStart > AI_RATE_WINDOW_MS) aiRequestCounts.delete(ip);
     }
 }, 5 * 60 * 1000).unref();
-
-// ============================================================
-// ADMIN API (M1-M4): semua endpoint terlindungi di modul terpisah
-// ============================================================
-require("./admin-api").registerAdminApi(app, {
-    db, auth, express, sendApiError, sendApiSuccess,
-    rateLimitMiddleware, sanitizeString, normalizeEmail, isValidEmail
-});
 
 // ============================================================
 // START SERVER
