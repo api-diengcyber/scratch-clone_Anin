@@ -44,6 +44,194 @@ function registerAdminApi(app, deps) {
     try { const v = JSON.parse(value); return Array.isArray(v) ? v : []; } catch { return []; }
   }
   function createTempPassword() { return crypto.randomBytes(9).toString("base64url") + "A7!"; }
+
+  // ------------------------------------------------------------
+  // Validasi dokumen kurikulum Admin.
+  // UI Admin mengirim tahap + jalur + materi sekaligus, jadi backend
+  // menyimpannya sebagai satu dokumen berversi. Validasi dilakukan ketat
+  // supaya data yang nanti dipakai halaman murid tidak berisi HTML aktif.
+  // ------------------------------------------------------------
+  function curriculumError(message, field) {
+    const err = new Error(message);
+    err.code = "CURRICULUM_INVALID";
+    err.field = field || null;
+    throw err;
+  }
+  function plainText(value, field, max, required = false) {
+    if (value === undefined || value === null) {
+      if (required) curriculumError(`${field} wajib diisi.`, field);
+      return "";
+    }
+    if (typeof value !== "string") curriculumError(`${field} harus berupa teks.`, field);
+    const text = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim();
+    if (required && !text) curriculumError(`${field} wajib diisi.`, field);
+    if (text.length > max) curriculumError(`${field} maksimal ${max} karakter.`, field);
+    return text;
+  }
+  function curriculumInteger(value, field, min, max) {
+    const num = typeof value === "number" ? value : Number(value);
+    if (!Number.isInteger(num) || num < min || num > max) {
+      curriculumError(`${field} harus bilangan bulat ${min}-${max}.`, field);
+    }
+    return num;
+  }
+  function curriculumBoolean(value, field) {
+    if (value === undefined || value === null) return false;
+    if (typeof value !== "boolean") curriculumError(`${field} harus boolean.`, field);
+    return value;
+  }
+  function curriculumIcon(value, field) {
+    const icon = plainText(value, field, 80);
+    if (icon && !/^[a-z0-9 -]+$/i.test(icon)) curriculumError(`${field} tidak valid.`, field);
+    return icon;
+  }
+  function curriculumColor(value, field) {
+    const color = typeof value === "string" ? value.trim() : "";
+    if (!color) return "#0ea5e9";
+    if (!/^#[0-9a-f]{6}$/i.test(color)) curriculumError(`${field} harus warna HEX #rrggbb.`, field);
+    return color.toLowerCase();
+  }
+  function curriculumHtml(value, field) {
+    if (value === undefined || value === null) return "";
+    if (typeof value !== "string") curriculumError(`${field} harus berupa teks HTML.`, field);
+    if (value.length > 400_000) curriculumError(`${field} maksimal 400.000 karakter.`, field);
+    if (/<\s*(script|iframe|object|embed|link|meta|base)\b/i.test(value)) {
+      curriculumError(`${field} mengandung tag HTML yang tidak diizinkan.`, field);
+    }
+    if (/\bon[a-z]+\s*=/i.test(value)) curriculumError(`${field} mengandung event handler inline.`, field);
+    if (/\b(?:javascript|vbscript)\s*:/i.test(value) || /\bsrcdoc\s*=/i.test(value) || /\bdata\s*:\s*text\/html/i.test(value)) {
+      curriculumError(`${field} mengandung URL/atribut tidak aman.`, field);
+    }
+    return value;
+  }
+  function curriculumSlug(value, field) {
+    const slug = plainText(value, field, 80, true);
+    if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug)) {
+      curriculumError(`${field} hanya boleh huruf kecil, angka, dan strip.`, field);
+    }
+    return slug;
+  }
+  function normalizeCurriculum(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      curriculumError("Body kurikulum harus berupa objek.", "body");
+    }
+    if (!Array.isArray(input.tahap)) curriculumError("tahap harus berupa array.", "tahap");
+    if (input.tahap.length > 100) curriculumError("tahap maksimal 100 item.", "tahap");
+    if (!Array.isArray(input.jalur)) curriculumError("jalur harus berupa array.", "jalur");
+    if (input.jalur.length > 500) curriculumError("jalur maksimal 500 item.", "jalur");
+
+    const tahap = [];
+    const stageKeys = new Set();
+    input.tahap.forEach((raw, index) => {
+      const field = `tahap[${index}]`;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) curriculumError(`${field} harus objek.`, field);
+      const jenjang = plainText(raw.jenjang, `${field}.jenjang`, 8, true).toUpperCase();
+      if (!["SD", "SMP", "SMK"].includes(jenjang)) curriculumError(`${field}.jenjang harus SD/SMP/SMK.`, `${field}.jenjang`);
+      const no = curriculumInteger(raw.no, `${field}.no`, 1, 99);
+      const key = `${jenjang}|${no}`;
+      if (stageKeys.has(key)) curriculumError(`${field} duplikat untuk ${jenjang} tahap ${no}.`, field);
+      stageKeys.add(key);
+      tahap.push({
+        jenjang,
+        no,
+        nama: plainText(raw.nama, `${field}.nama`, 100, true),
+        ikon: curriculumIcon(raw.ikon, `${field}.ikon`),
+        warna: curriculumColor(raw.warna, `${field}.warna`),
+        meta: plainText(raw.meta, `${field}.meta`, 200)
+      });
+    });
+
+    const jalur = [];
+    const pathIds = new Set();
+    input.jalur.forEach((raw, index) => {
+      const field = `jalur[${index}]`;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) curriculumError(`${field} harus objek.`, field);
+      const id = curriculumSlug(raw.id, `${field}.id`);
+      if (pathIds.has(id)) curriculumError(`${field}.id duplikat: ${id}.`, `${field}.id`);
+      pathIds.add(id);
+      const jenjang = plainText(raw.jenjang, `${field}.jenjang`, 8, true).toUpperCase();
+      if (!["SD", "SMP", "SMK"].includes(jenjang)) curriculumError(`${field}.jenjang harus SD/SMP/SMK.`, `${field}.jenjang`);
+      const tahapNo = curriculumInteger(raw.tahap, `${field}.tahap`, 1, 99);
+      if (!stageKeys.has(`${jenjang}|${tahapNo}`)) {
+        curriculumError(`${field}.tahap ${jenjang} ${tahapNo} tidak ada di daftar tahap.`, `${field}.tahap`);
+      }
+      const rawTags = raw.tags === undefined || raw.tags === null ? [] : raw.tags;
+      if (!Array.isArray(rawTags)) curriculumError(`${field}.tags harus array.`, `${field}.tags`);
+      if (rawTags.length > 20) curriculumError(`${field}.tags maksimal 20 item.`, `${field}.tags`);
+      const tags = [...new Set(rawTags.map((tag, tagIndex) => plainText(tag, `${field}.tags[${tagIndex}]`, 40)).filter(Boolean))];
+      let siswa = null;
+      if (raw.siswa !== undefined && raw.siswa !== null && raw.siswa !== "") {
+        siswa = curriculumInteger(raw.siswa, `${field}.siswa`, 0, 1_000_000_000);
+      }
+      const rawMateri = raw.materi === undefined || raw.materi === null ? [] : raw.materi;
+      if (!Array.isArray(rawMateri)) curriculumError(`${field}.materi harus array.`, `${field}.materi`);
+      if (rawMateri.length > 200) curriculumError(`${field}.materi maksimal 200 item.`, `${field}.materi`);
+      const materialIds = new Set();
+      const materi = rawMateri.map((m, materialIndex) => {
+        const mField = `${field}.materi[${materialIndex}]`;
+        if (!m || typeof m !== "object" || Array.isArray(m)) curriculumError(`${mField} harus objek.`, mField);
+        const materialId = curriculumSlug(m.id, `${mField}.id`);
+        if (materialIds.has(materialId)) curriculumError(`${mField}.id duplikat: ${materialId}.`, `${mField}.id`);
+        materialIds.add(materialId);
+        return {
+          id: materialId,
+          judul: plainText(m.judul, `${mField}.judul`, 200, true),
+          tipe: plainText(m.tipe, `${mField}.tipe`, 40) || "Materi",
+          durasi: plainText(m.durasi, `${mField}.durasi`, 40),
+          tes: curriculumBoolean(m.tes, `${mField}.tes`),
+          badge: plainText(m.badge, `${mField}.badge`, 80),
+          subjudul: plainText(m.subjudul, `${mField}.subjudul`, 200),
+          html: curriculumHtml(m.html, `${mField}.html`)
+        };
+      });
+      jalur.push({
+        id,
+        jenjang,
+        tahap: tahapNo,
+        nama: plainText(raw.nama, `${field}.nama`, 160, true),
+        warna: curriculumColor(raw.warna, `${field}.warna`),
+        ikon: curriculumIcon(raw.ikon, `${field}.ikon`),
+        ringkas: plainText(raw.ringkas, `${field}.ringkas`, 1000),
+        tags,
+        lab: curriculumInteger(raw.lab === undefined || raw.lab === null || raw.lab === "" ? 0 : raw.lab, `${field}.lab`, 0, 9999),
+        durasi: plainText(raw.durasi, `${field}.durasi`, 40),
+        siswa,
+        capstone: curriculumBoolean(raw.capstone, `${field}.capstone`),
+        lencana: plainText(raw.lencana, `${field}.lencana`, 200),
+        meta: plainText(raw.meta, `${field}.meta`, 200),
+        proyek: plainText(raw.proyek, `${field}.proyek`, 200),
+        materi
+      });
+    });
+
+    return { tahap, jalur };
+  }
+  function readCurriculum() {
+    const row = db.prepare("SELECT version, payload_json, updated_at, updated_by FROM curriculum_documents WHERE id = 'default'").get();
+    if (!row) return { exists: false, curriculum: { tahap: [], jalur: [] }, version: 0, updatedAt: null, updatedBy: null };
+    let curriculum;
+    try { curriculum = JSON.parse(row.payload_json); } catch { curriculum = { tahap: [], jalur: [] }; }
+    if (!curriculum || !Array.isArray(curriculum.tahap) || !Array.isArray(curriculum.jalur)) curriculum = { tahap: [], jalur: [] };
+    return { exists: true, curriculum, version: row.version, updatedAt: row.updated_at, updatedBy: row.updated_by };
+  }
+  function uniqueStudentUsername(base) {
+    let root = String(base || "").toLowerCase().normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .replace(/^[._-]+|[._-]+$/g, "")
+      .slice(0, 32);
+    if (!root) root = "siswa";
+    if (root.length < 3) root = (root + "siswa").slice(0, 32);
+    let candidate = root;
+    let suffixNumber = 2;
+    const exists = db.prepare("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE");
+    while (exists.get(candidate)) {
+      const suffix = String(suffixNumber++);
+      candidate = root.slice(0, Math.max(1, 32 - suffix.length)) + suffix;
+    }
+    return candidate;
+  }
+
   function pluginDeveloper(req, res, next) {
     const ids = String(process.env.PLUGIN_DEVELOPER_USER_IDS || "").split(",").map(x => x.trim()).filter(Boolean);
     if (!ids.includes(String(req.userId))) return sendApiError(res, 403, "Upload/review/publish plugin hanya untuk admin developer yang di-allowlist. Set PLUGIN_DEVELOPER_USER_IDS ke users.id tepercaya.", "PLUGIN_DEVELOPER_REQUIRED");
@@ -99,19 +287,147 @@ function registerAdminApi(app, deps) {
     return sendApiSuccess(res, { entries, page, limit: limitN, total, pages: Math.ceil(total / limitN) });
   });
 
+  // Ringkasan untuk kartu dashboard Admin. Semua angka dihitung dari DB,
+  // bukan dari data mock di frontend.
+  app.get("/api/admin/stats", (req, res) => {
+    const students = db.prepare(`SELECT COUNT(*) AS total,
+      SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active,
+      SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) AS suspended,
+      SUM(CASE WHEN status = 'deleted' THEN 1 ELSE 0 END) AS deleted
+      FROM users WHERE role = 'student'`).get();
+    const content = db.prepare(`SELECT
+      (SELECT COUNT(*) FROM modules) AS modules,
+      (SELECT COUNT(*) FROM tasks) AS tasks,
+      (SELECT COUNT(*) FROM materials) AS materials`).get();
+    const plugins = db.prepare(`SELECT COUNT(*) AS total,
+      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published,
+      SUM(CASE WHEN status = 'quarantine' THEN 1 ELSE 0 END) AS quarantine,
+      SUM(CASE WHEN status = 'disabled' THEN 1 ELSE 0 END) AS disabled
+      FROM plugins`).get();
+    const activity = db.prepare(`SELECT
+      (SELECT COUNT(*) FROM attempts WHERE date(updated_at) = date('now')) AS attemptsToday,
+      (SELECT COUNT(*) FROM progress WHERE completed = 1 AND date(completed_at) = date('now')) AS completedToday,
+      (SELECT COUNT(*) FROM progress WHERE completed = 1) AS completedTotal,
+      (SELECT COUNT(*) FROM sessions WHERE expires_at > CURRENT_TIMESTAMP) AS activeSessions,
+      (SELECT CASE WHEN COUNT(*) = 0 THEN 0 ELSE ROUND(100.0 * SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) / COUNT(*), 1) END FROM progress) AS completionRate`).get();
+    const grades = db.prepare(`SELECT
+      SUM(CASE WHEN allowed_grades LIKE '%"SD"%' THEN 1 ELSE 0 END) AS sd,
+      SUM(CASE WHEN allowed_grades LIKE '%"SMP"%' THEN 1 ELSE 0 END) AS smp,
+      SUM(CASE WHEN allowed_grades LIKE '%"SMK"%' THEN 1 ELSE 0 END) AS smk,
+      SUM(CASE WHEN allowed_grades IS NULL OR allowed_grades = '' OR allowed_grades = '[]' THEN 1 ELSE 0 END) AS unassigned
+      FROM users WHERE role = 'student'`).get();
+    const curriculumDoc = readCurriculum();
+    const paths = curriculumDoc.curriculum.jalur;
+    const curriculum = {
+      exists: curriculumDoc.exists,
+      version: curriculumDoc.version,
+      updatedAt: curriculumDoc.updatedAt,
+      stages: curriculumDoc.curriculum.tahap.length,
+      paths: paths.length,
+      materials: paths.reduce((sum, jalur) => sum + (Array.isArray(jalur.materi) ? jalur.materi.length : 0), 0)
+    };
+    const numbers = (row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, Number(value || 0)]));
+    return sendApiSuccess(res, {
+      students: numbers(students),
+      content: {
+        ...numbers(content),
+        curriculumStages: curriculum.stages,
+        curriculumPaths: curriculum.paths,
+        curriculumMaterials: curriculum.materials
+      },
+      plugins: numbers(plugins),
+      activity: numbers(activity),
+      grades: numbers(grades),
+      curriculum
+    });
+  });
+
+  // Feed submisi terbaru untuk panel "Submisi Praktik Terkini" di dashboard.
+  app.get("/api/admin/activity", (req, res) => {
+    const limitN = Math.max(1, Math.min(20, Number.parseInt(req.query.limit, 10) || 5));
+    const entries = db.prepare(`SELECT pr.completed_at, pr.task_id,
+        u.id AS user_id, u.username, u.full_name,
+        t.title, t.points
+      FROM progress pr
+      JOIN users u ON u.id = pr.user_id
+      LEFT JOIN tasks t ON t.task_id = pr.task_id
+      WHERE pr.completed = 1 AND pr.completed_at IS NOT NULL AND u.role = 'student'
+      ORDER BY datetime(pr.completed_at) DESC, pr.id DESC
+      LIMIT ?`).all(limitN);
+    return sendApiSuccess(res, { entries });
+  });
+
+  // Kurikulum Admin: tahap, jalur, dan materi disimpan sebagai satu dokumen.
+  // `version` dipakai untuk optimistic concurrency agar dua admin tidak saling
+  // menimpa perubahan.
+  app.get("/api/admin/curriculum", (req, res) => {
+    return sendApiSuccess(res, readCurriculum());
+  });
+
+  app.put("/api/admin/curriculum", (req, res) => {
+    const body = req.body || {};
+    const version = body.version;
+    if (!Number.isInteger(version) || version < 0 || version > 1_000_000_000) {
+      return sendApiError(res, 400, "version wajib berupa bilangan bulat >= 0.", "VALIDATION_ERROR", { field: "version" });
+    }
+    const current = db.prepare("SELECT version FROM curriculum_documents WHERE id = 'default'").get();
+    const currentVersion = current ? current.version : 0;
+    if (version !== currentVersion) {
+      return sendApiError(res, 409, "Kurikulum sudah diubah admin lain. Muat ulang data terlebih dahulu.", "CURRICULUM_VERSION_CONFLICT", { currentVersion });
+    }
+    let curriculum;
+    try {
+      curriculum = normalizeCurriculum(body);
+    } catch (e) {
+      if (e.code === "CURRICULUM_INVALID") {
+        return sendApiError(res, 400, e.message, "CURRICULUM_INVALID", e.field ? { field: e.field } : undefined);
+      }
+      throw e;
+    }
+    const nextVersion = currentVersion + 1;
+    const payload = JSON.stringify(curriculum);
+    const tx = db.transaction(() => {
+      db.prepare(`INSERT INTO curriculum_documents (id, version, payload_json, updated_by)
+        VALUES ('default', ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET version = excluded.version, payload_json = excluded.payload_json,
+          updated_by = excluded.updated_by, updated_at = CURRENT_TIMESTAMP`)
+        .run(nextVersion, payload, req.userId);
+      audit(req, "curriculum.update", "curriculum", "default", {
+        version: nextVersion,
+        stages: curriculum.tahap.length,
+        paths: curriculum.jalur.length,
+        materials: curriculum.jalur.reduce((sum, jalur) => sum + jalur.materi.length, 0)
+      });
+    });
+    tx();
+    const saved = db.prepare("SELECT updated_at FROM curriculum_documents WHERE id = 'default'").get();
+    return sendApiSuccess(res, {
+      exists: true,
+      curriculum,
+      version: nextVersion,
+      updatedAt: saved ? saved.updated_at : null
+    }, "Kurikulum disimpan.");
+  });
+
   // M3: daftar user student saja. Pencarian dan pagination dibatasi di server.
   app.get("/api/admin/users", (req, res) => {
     const search = sanitizeString(String(req.query.search || ""), 100);
     const status = ["active", "suspended", "deleted"].includes(String(req.query.status || "")) ? String(req.query.status) : "";
+    const grade = ["SD", "SMP", "SMK"].includes(String(req.query.grade || "").toUpperCase()) ? String(req.query.grade).toUpperCase() : "";
     const page = Math.max(1, Math.min(100000, Number.parseInt(req.query.page, 10) || 1));
     const limitN = Math.max(1, Math.min(100, Number.parseInt(req.query.limit, 10) || 25));
     const where = ["u.role = 'student'"];
     const params = [];
     if (search) { where.push("(u.username LIKE ? OR u.email LIKE ? OR u.full_name LIKE ? OR CAST(u.id AS TEXT) = ?)"); params.push(`%${search}%`, `%${search}%`, `%${search}%`, search); }
     if (status) { where.push("u.status = ?"); params.push(status); }
+    if (grade) {
+      // allowed_grades kosong berarti semua jenjang, jadi ikut tampil di filter apa pun.
+      where.push("(u.allowed_grades IS NULL OR u.allowed_grades = '' OR u.allowed_grades = '[]' OR u.allowed_grades LIKE ?)");
+      params.push(`%"${grade}"%`);
+    }
     const clause = where.join(" AND ");
     const total = db.prepare(`SELECT COUNT(*) AS n FROM users u WHERE ${clause}`).get(...params).n;
-    const aggregate = db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status='suspended' THEN 1 ELSE 0 END) AS suspended FROM users WHERE role='student'").get();
+    const aggregate = db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status='suspended' THEN 1 ELSE 0 END) AS suspended, (SELECT COUNT(*) FROM tasks) AS tasks_total FROM users WHERE role='student'").get();
     const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.status, u.allowed_grades, u.last_login_at, u.created_at,
         COALESCE(p.total,0) AS points_total,
         (SELECT COUNT(*) FROM progress pr WHERE pr.user_id=u.id AND pr.completed=1) AS completed_tasks,
@@ -137,22 +453,31 @@ function registerAdminApi(app, deps) {
 
   app.post("/api/admin/users", (req, res) => {
     const body = req.body || {};
-    const username = sanitizeString(body.username, 32);
+    let username = sanitizeString(body.username, 32);
+    const usernameProvided = Boolean(username);
     const email = normalizeEmail(body.email || "") || null;
     const fullName = sanitizeString(body.fullName || "", 100) || null;
     let password = typeof body.password === "string" ? body.password : "";
-    if (!/^[a-zA-Z0-9._-]{3,32}$/.test(username)) return sendApiError(res, 400, "Username harus 3-32 karakter (huruf, angka, titik, underscore, strip).", "VALIDATION_ERROR");
+    if (usernameProvided && !/^[a-zA-Z0-9._-]{3,32}$/.test(username)) return sendApiError(res, 400, "Username harus 3-32 karakter (huruf, angka, titik, underscore, strip).", "VALIDATION_ERROR");
+    if (!usernameProvided) username = uniqueStudentUsername(email ? email.split("@")[0] : fullName || "siswa");
     if (email && !isValidEmail(email)) return sendApiError(res, 400, "Email tidak valid.", "VALIDATION_ERROR");
     if (email && db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email)) return sendApiError(res, 409, "Email sudah digunakan.", "EMAIL_EXISTS");
     if (db.prepare("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE").get(username)) return sendApiError(res, 409, "Username sudah digunakan.", "USERNAME_EXISTS");
+    let allowedGrades = [];
+    if (body.allowedGrades !== undefined) {
+      if (!Array.isArray(body.allowedGrades) || body.allowedGrades.some((g) => !["SD", "SMP", "SMK"].includes(String(g).toUpperCase()))) {
+        return sendApiError(res, 400, "allowedGrades hanya boleh berisi SD/SMP/SMK.", "VALIDATION_ERROR");
+      }
+      allowedGrades = [...new Set(body.allowedGrades.map((g) => String(g).toUpperCase()))];
+    }
     if (!password) password = createTempPassword();
     if (password.length < 8 || password.length > 128) return sendApiError(res, 400, "Password harus 8-128 karakter.", "VALIDATION_ERROR");
     const { salt, hash } = auth.hashPassword(password);
     try {
-      const id = Number(db.prepare(`INSERT INTO users (username,email,full_name,password_hash,password_salt,role,status,must_change_password)
-        VALUES (?,?,?,?,?,'student','active',1)`).run(username, email, fullName, hash, salt).lastInsertRowid);
-      audit(req, "student.create", "user", id, { username, email });
-      return sendApiSuccess(res, { id, username, email, temporaryPassword: body.password ? undefined : password }, "Murid berhasil dibuat.", 201);
+      const id = Number(db.prepare(`INSERT INTO users (username,email,full_name,password_hash,password_salt,role,status,must_change_password,allowed_grades)
+        VALUES (?,?,?,?,?,'student','active',1,?)`).run(username, email, fullName, hash, salt, JSON.stringify(allowedGrades)).lastInsertRowid);
+      audit(req, "student.create", "user", id, { username, email, allowedGrades, autoUsername: !usernameProvided });
+      return sendApiSuccess(res, { id, username, email, allowedGrades, temporaryPassword: body.password ? undefined : password }, "Murid berhasil dibuat.", 201);
     } catch (e) {
       if (String(e.code || "").startsWith("SQLITE_CONSTRAINT")) return sendApiError(res, 409, "Username/email sudah digunakan.", "DUPLICATE_USER");
       throw e;

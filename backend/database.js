@@ -125,6 +125,20 @@ db.exec(`
 db.exec(`CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit(created_at DESC);`);
 db.exec(`CREATE INDEX IF NOT EXISTS idx_admin_audit_actor ON admin_audit(actor_user_id, created_at DESC);`);
 
+// Dokumen kurikulum admin (tahap, jalur, materi). Disimpan sebagai satu
+// dokumen berversi agar perubahan dari UI Admin bersifat atomik dan tidak
+// kehilangan update saat dua admin mengedit bersamaan.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS curriculum_documents (
+        id TEXT PRIMARY KEY,
+        version INTEGER NOT NULL DEFAULT 0,
+        payload_json TEXT NOT NULL,
+        updated_by INTEGER,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(updated_by) REFERENCES users(id)
+    );
+`);
+
 // ============================================================
 // PLUGIN REGISTRY (M4) — tidak menyajikan file karantina ke publik
 // ============================================================

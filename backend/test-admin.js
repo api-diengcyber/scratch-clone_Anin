@@ -418,6 +418,133 @@ async function cleanup() {
     eq(res.d.code, "EMAIL_EXISTS", "code email");
   });
 
+  await t("admin membuat murid dari email + jenjang -> username otomatis", async () => {
+    const { r, d } = await api("POST", "/api/admin/users", {
+      token: adminToken,
+      body: {
+        email: "auto.student@example.com",
+        fullName: "Auto Student",
+        allowedGrades: ["SD", "SMP"]
+      }
+    });
+    eq(r.status, 201, "status");
+    eq(d.username, "auto.student", "username otomatis");
+    eqJson(d.allowedGrades, ["SD", "SMP"], "allowedGrades");
+    ok(typeof d.temporaryPassword === "string" && d.temporaryPassword.length >= 8, "temporaryPassword");
+  });
+
+  let curriculumVersion = 0;
+  const curriculumPayload = {
+    tahap: [{
+      jenjang: "SMP",
+      no: 1,
+      nama: "Dasar Coding",
+      ikon: "fa-solid fa-cube",
+      warna: "#0ea5e9",
+      meta: "pemula"
+    }],
+    jalur: [{
+      id: "smp-dasar-coding",
+      jenjang: "SMP",
+      tahap: 1,
+      nama: "Dasar Coding",
+      warna: "#0ea5e9",
+      ikon: "fa-solid fa-code",
+      ringkas: "Belajar dasar HTML dan CSS.",
+      tags: ["html", "css"],
+      lab: 1,
+      durasi: "4 minggu",
+      siswa: null,
+      capstone: false,
+      lencana: "",
+      meta: "",
+      proyek: "",
+      materi: [{
+        id: "m1",
+        judul: "Pengenalan HTML",
+        tipe: "Materi",
+        durasi: "10 menit",
+        tes: false,
+        badge: "Dasar",
+        subjudul: "Kenali struktur halaman.",
+        html: "<h2>Halo</h2><p>Belajar HTML.</p>"
+      }]
+    }]
+  };
+
+  await t("GET /api/admin/curriculum awal -> kosong version 0", async () => {
+    const { r, d } = await api("GET", "/api/admin/curriculum", { token: adminToken });
+    eq(r.status, 200, "status");
+    eq(d.exists, false, "exists");
+    eq(d.version, 0, "version");
+    eqJson(d.curriculum, { tahap: [], jalur: [] }, "curriculum kosong");
+  });
+
+  await t("PUT /api/admin/curriculum valid -> version 1", async () => {
+    const { r, d } = await api("PUT", "/api/admin/curriculum", {
+      token: adminToken,
+      body: { ...curriculumPayload, version: curriculumVersion }
+    });
+    eq(r.status, 200, "status");
+    eq(d.exists, true, "exists");
+    eq(d.version, 1, "version");
+    eqJson(d.curriculum, curriculumPayload, "payload tersimpan");
+    curriculumVersion = d.version;
+  });
+
+  await t("GET /api/admin/curriculum memuat data tersimpan", async () => {
+    const { r, d } = await api("GET", "/api/admin/curriculum", { token: adminToken });
+    eq(r.status, 200, "status");
+    eq(d.exists, true, "exists");
+    eq(d.version, 1, "version");
+    eqJson(d.curriculum, curriculumPayload, "payload");
+  });
+
+  await t("PUT curriculum dengan version lama -> 409", async () => {
+    const { r, d } = await api("PUT", "/api/admin/curriculum", {
+      token: adminToken,
+      body: { ...curriculumPayload, version: 0 }
+    });
+    eq(r.status, 409, "status");
+    eq(d.code, "CURRICULUM_VERSION_CONFLICT", "code");
+    eq(d.details.currentVersion, 1, "currentVersion");
+  });
+
+  await t("PUT curriculum version terbaru -> version 2", async () => {
+    const nextPayload = structuredClone(curriculumPayload);
+    nextPayload.jalur[0].ringkas = "Belajar dasar HTML, CSS, dan JavaScript.";
+    const { r, d } = await api("PUT", "/api/admin/curriculum", {
+      token: adminToken,
+      body: { ...nextPayload, version: curriculumVersion }
+    });
+    eq(r.status, 200, "status");
+    eq(d.version, 2, "version");
+    eq(d.curriculum.jalur[0].ringkas, nextPayload.jalur[0].ringkas, "ringkas");
+    curriculumVersion = d.version;
+  });
+
+  await t("PUT curriculum dengan HTML aktif -> 400", async () => {
+    const bad = structuredClone(curriculumPayload);
+    bad.jalur[0].materi[0].html = '<h2>X</h2><script>alert(1)</script>';
+    const { r, d } = await api("PUT", "/api/admin/curriculum", {
+      token: adminToken,
+      body: { ...bad, version: curriculumVersion }
+    });
+    eq(r.status, 400, "status");
+    eq(d.code, "CURRICULUM_INVALID", "code");
+  });
+
+  await t("PUT curriculum dengan tahap tidak dikenal -> 400", async () => {
+    const bad = structuredClone(curriculumPayload);
+    bad.jalur[0].tahap = 9;
+    const { r, d } = await api("PUT", "/api/admin/curriculum", {
+      token: adminToken,
+      body: { ...bad, version: curriculumVersion }
+    });
+    eq(r.status, 400, "status");
+    eq(d.code, "CURRICULUM_INVALID", "code");
+  });
+
   await t("rename murid mempertahankan progress/poin/attempt/item/sesi", async () => {
     let res = await api("POST", "/api/progress/student1", {
       token: studentToken,
@@ -736,6 +863,42 @@ async function cleanup() {
     eq(d.code, "INVALID_PLUGIN_ZIP", "code");
   });
 
+  await t("GET /api/admin/stats -> ringkasan dari database", async () => {
+    const { r, d } = await api("GET", "/api/admin/stats", { token: adminToken });
+    eq(r.status, 200, "status");
+    ok(d.students.total >= 3, "students.total");
+    ok(d.students.active >= 1, "students.active");
+    ok(d.content.modules >= 1, "content.modules");
+    ok(d.content.tasks >= 1, "content.tasks");
+    eq(d.content.curriculumStages, 1, "curriculumStages");
+    eq(d.content.curriculumPaths, 1, "curriculumPaths");
+    eq(d.content.curriculumMaterials, 1, "curriculumMaterials");
+    ok(d.plugins.published >= 1, "plugins.published");
+    ok(d.activity.completedTotal >= 1, "activity.completedTotal");
+    ok(d.activity.completionRate > 0, "activity.completionRate");
+    ok(d.grades.sd >= 1, "grades.sd");
+    eq(d.curriculum.version, 2, "curriculum.version");
+  });
+
+  await t("GET /api/admin/activity memuat submisi terbaru", async () => {
+    const { r, d } = await api("GET", "/api/admin/activity?limit=5", { token: adminToken });
+    eq(r.status, 200, "status");
+    ok(d.entries.length >= 1, "ada entri");
+    const entry = d.entries.find((e) => e.username === "student-renamed");
+    ok(entry, "submisi student-renamed");
+    eq(entry.task_id, "adminmod:a", "task_id");
+    eq(entry.title, "Task Admin A", "judul task");
+    ok(entry.completed_at, "completed_at");
+  });
+
+  await t("GET /api/admin/users?grade=SD memfilter jenjang", async () => {
+    const { r, d } = await api("GET", "/api/admin/users?grade=SD&limit=100", { token: adminToken });
+    eq(r.status, 200, "status");
+    ok(d.users.some((u) => u.username === "auto.student"), "murid SD ikut");
+    ok(!d.users.some((u) => u.username === "student-renamed"), "murid SMP/SMK tidak ikut");
+    ok(d.stats.tasks_total >= 1, "tasks_total");
+  });
+
   await t("audit admin mencatat aksi penting", async () => {
     const actions = db.prepare("SELECT action FROM admin_audit").all().map((r) => r.action);
     for (const required of [
@@ -746,6 +909,7 @@ async function cleanup() {
       "student.reactivate",
       "student.sessions_revoked",
       "student.soft_delete",
+      "curriculum.update",
       "plugin.upload",
       "plugin.approve",
       "plugin.publish",
