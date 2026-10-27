@@ -701,6 +701,29 @@ async function cleanup() {
     eq(live.status, 404, "runtime live setelah disable");
   });
 
+  await t("rollback mengaktifkan kembali versi yang dinonaktifkan", async () => {
+    let res = await api("POST", `/api/admin/plugins/${uploadedVersionId}/rollback`, {
+      token: adminToken
+    });
+    eq(res.r.status, 200, "rollback");
+    eq(res.d.status, "published", "status rollback");
+
+    res = await api("GET", "/api/plugins/sample-game");
+    eq(res.r.status, 200, "plugin publik aktif lagi");
+    eq(res.d.plugin.version, "1.0.0", "versi aktif");
+
+    const live = await fetch(`http://127.0.0.1:${PLUGIN_PORT}/sample-game/1.0.0/index.html`);
+    eq(live.status, 200, "runtime live setelah rollback");
+  });
+
+  await t("rollback versi yang sudah aktif -> 409", async () => {
+    const { r, d } = await api("POST", `/api/admin/plugins/${uploadedVersionId}/rollback`, {
+      token: adminToken
+    });
+    eq(r.status, 409, "status");
+    eq(d.code, "PLUGIN_ALREADY_ACTIVE", "code");
+  });
+
   await t("upload versi duplikat -> 409", async () => {
     const { r, d } = await uploadZip(adminToken, validZip);
     eq(r.status, 409, "status");
@@ -726,10 +749,31 @@ async function cleanup() {
       "plugin.upload",
       "plugin.approve",
       "plugin.publish",
-      "plugin.disable"
+      "plugin.disable",
+      "plugin.rollback"
     ]) {
       ok(actions.includes(required), `audit ${required}`);
     }
+  });
+
+  await t("GET /api/admin/audit memfilter dan mem-parse details", async () => {
+    let res = await api("GET", "/api/admin/audit?action=plugin.publish&limit=5", { token: adminToken });
+    eq(res.r.status, 200, "status");
+    ok(res.d.entries.length >= 1, "ada entri publish");
+    ok(res.d.entries.every((e) => e.action === "plugin.publish"), "filter action");
+    ok(res.d.entries[0].details && typeof res.d.entries[0].details === "object", "details ter-parse");
+    eq(res.d.limit, 5, "limit");
+    eq(res.d.page, 1, "page");
+
+    res = await api("GET", "/api/admin/audit?actor=admin1&targetType=plugin_version&limit=100", { token: adminToken });
+    eq(res.r.status, 200, "filter actor/target");
+    ok(res.d.entries.length >= 1, "entri plugin");
+    ok(res.d.entries.every((e) => e.actor_username === "admin1" && e.target_type === "plugin_version"), "filter cocok");
+
+    res = await api("GET", "/api/admin/audit?action=tidak.ada", { token: adminToken });
+    eq(res.r.status, 200, "filter kosong");
+    eq(res.d.entries.length, 0, "tanpa hasil");
+    eq(res.d.total, 0, "total nol");
   });
 
   const fails = results.filter((r) => r[0] === "FAIL");

@@ -105,6 +105,7 @@ Semua endpoint di bawah wajib role `admin`. Endpoint plugin juga wajib `users.id
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
 | GET | `/api/admin/me` | - | `{ id, username, role, status, mustChangePassword }` |
+| GET | `/api/admin/audit?action=&actor=&targetType=&targetId=&page=&limit=` | - | `{ entries, page, limit, total, pages }`; `details` sudah di-parse |
 | GET | `/api/admin/users?search=&status=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student` |
 | GET | `/api/admin/users/:id` | - | `{ user, points, progress, progressRows, items, sessions, activeSessions }` |
 | POST | `/api/admin/users` | `{ username, email?, fullName?, password? }` | `{ id, username, email, temporaryPassword? }` |
@@ -151,6 +152,7 @@ Manifest ZIP wajib berada di root dengan bentuk minimal:
 | POST | `/api/admin/plugins/:versionId/publish` | - | `{ id, status: "published", url }` |
 | POST | `/api/admin/plugins/:versionId/preview-ticket` | - | `{ url, expiresInSeconds: 300 }` |
 | POST | `/api/admin/plugins/:versionId/disable` | - | `{ id, status: "disabled" }` |
+| POST | `/api/admin/plugins/:versionId/rollback` | - | `{ id, status: "published", version, url }` |
 | GET | `/api/plugins` | - | `{ plugins: [{ id, name, version, entry, grades, network, origin, url }] }` |
 | GET | `/api/plugins/:id` | - | `{ plugin: { ... } }` |
 
@@ -159,6 +161,7 @@ Aturan plugin:
 - ZIP divalidasi: path traversal, symlink, ZIP bomb, ekstensi, checksum, ukuran, manifest, dan scan statis dasar.
 - Upload masuk **quarantine**; file tidak disajikan publik sampai `approve` + `publish`.
 - `publish` menyalin ke direktori live yang immutable per versi.
+- `rollback` hanya untuk versi yang pernah dipublish (`published`/`disabled`/`rolled_back`) dan file live-nya masih ada. Versi published lain untuk plugin yang sama menjadi `rolled_back`, sehingga hanya satu versi aktif.
 - Preview memakai ticket HMAC berumur 5 menit dan **tidak** membawa token sesi API.
 - Runtime plugin harus berada di origin terpisah dan dijalankan dengan `npm run start:plugins`.
 - `network.allow` default `[]`; domain harus eksplisit dan ditinjau manual. CSP runtime memakai daftar itu untuk `connect-src`.

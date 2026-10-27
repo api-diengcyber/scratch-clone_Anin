@@ -73,6 +73,32 @@ function registerAdminApi(app, deps) {
     mustChangePassword: req.mustChangePassword
   }));
 
+  // M1: audit log admin dengan filter dan pagination.
+  app.get("/api/admin/audit", (req, res) => {
+    const page = Math.max(1, Math.min(100000, Number.parseInt(req.query.page, 10) || 1));
+    const limitN = Math.max(1, Math.min(100, Number.parseInt(req.query.limit, 10) || 50));
+    const action = sanitizeString(String(req.query.action || ""), 80);
+    const actor = sanitizeString(String(req.query.actor || ""), 64);
+    const targetType = sanitizeString(String(req.query.targetType || ""), 40);
+    const targetId = sanitizeString(String(req.query.targetId || ""), 120);
+    const where = [];
+    const params = [];
+    if (action) { where.push("action = ?"); params.push(action); }
+    if (actor) { where.push("(actor_username LIKE ? OR CAST(actor_user_id AS TEXT) = ?)"); params.push(`%${actor}%`, actor); }
+    if (targetType) { where.push("target_type = ?"); params.push(targetType); }
+    if (targetId) { where.push("target_id = ?"); params.push(targetId); }
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const total = db.prepare(`SELECT COUNT(*) AS n FROM admin_audit ${clause}`).get(...params).n;
+    const rows = db.prepare(`SELECT id, actor_user_id, actor_username, action, target_type, target_id, details, ip, created_at
+      FROM admin_audit ${clause} ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, limitN, (page - 1) * limitN);
+    const entries = rows.map((row) => {
+      let details = {};
+      try { details = JSON.parse(row.details || "{}"); } catch { details = {}; }
+      return { ...row, details };
+    });
+    return sendApiSuccess(res, { entries, page, limit: limitN, total, pages: Math.ceil(total / limitN) });
+  });
+
   // M3: daftar user student saja. Pencarian dan pagination dibatasi di server.
   app.get("/api/admin/users", (req, res) => {
     const search = sanitizeString(String(req.query.search || ""), 100);
@@ -328,6 +354,28 @@ function registerAdminApi(app, deps) {
     if(!r) return sendApiError(res,404,"Plugin tidak ditemukan.","NOT_FOUND");
     const m=JSON.parse(r.manifest_json), origin=process.env.PLUGIN_PUBLIC_ORIGIN||"https://plugins.domain.com";
     return sendApiSuccess(res,{plugin:{id:r.plugin_id,name:r.name,category:{id:r.category_id,name:r.category_name},version:r.version,entry:m.entry,grades:m.grades,permissions:m.permissions,network:{allow:m.network?.allow||[]},origin,url:`${origin}/${r.plugin_id}/${r.version}/${m.entry}`,publishedAt:r.published_at}});
+  });
+
+  // Mengaktifkan kembali versi published/disabled/rolled_back yang file live-nya masih ada.
+  // Versi published lain untuk plugin yang sama ditandai rolled_back agar hanya satu versi aktif.
+  app.post("/api/admin/plugins/:versionId/rollback", pluginDeveloper, (req,res)=>{
+    const v=pluginVersionById(req.params.versionId);
+    if(!v) return sendApiError(res,404,"Versi plugin tidak ditemukan.","NOT_FOUND");
+    if(!["published","disabled","rolled_back"].includes(v.status) || !v.live_path) return sendApiError(res,409,"Hanya versi yang pernah dipublish yang dapat di-rollback.","INVALID_PLUGIN_STATE");
+    const active=db.prepare("SELECT id,version FROM plugin_versions WHERE plugin_id=? AND status='published' ORDER BY id DESC LIMIT 1").get(v.plugin_id);
+    if(active && active.id===v.id) return sendApiError(res,409,"Versi ini sudah aktif.","PLUGIN_ALREADY_ACTIVE");
+    const manifest=JSON.parse(v.manifest_json);
+    const root=path.join(liveRoot,v.plugin_id,v.version);
+    if(!fs.existsSync(path.join(root,manifest.entry))) return sendApiError(res,409,"File live versi tujuan tidak tersedia.","PLUGIN_ENTRY_MISSING");
+    const tx=db.transaction(()=>{
+      db.prepare("UPDATE plugin_versions SET status='rolled_back' WHERE plugin_id=? AND status='published' AND id<>?").run(v.plugin_id,v.id);
+      db.prepare("UPDATE plugin_versions SET status='published' WHERE id=?").run(v.id);
+      db.prepare("UPDATE plugins SET status='published',updated_at=CURRENT_TIMESTAMP WHERE plugin_id=?").run(v.plugin_id);
+      audit(req,"plugin.rollback","plugin_version",`${v.plugin_id}@${v.version}`,{fromVersion:active?active.version:null,toVersion:v.version});
+    });
+    tx();
+    const origin=process.env.PLUGIN_PUBLIC_ORIGIN||"https://plugins.domain.com";
+    return sendApiSuccess(res,{id:v.id,status:"published",version:v.version,url:`${origin}/${v.plugin_id}/${v.version}/${manifest.entry}`},"Rollback berhasil; versi lama aktif kembali.");
   });
 
   app.post("/api/admin/plugins/:versionId/disable", pluginDeveloper, (req,res)=>{
