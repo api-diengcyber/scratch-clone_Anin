@@ -237,7 +237,9 @@
       // ==================================================
 
       window.location.replace(
-        "/dashboard.html"
+        data.role === "admin"
+          ? "/admin/"
+          : "/dashboard.html"
       );
 
     } catch (error) {

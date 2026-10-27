@@ -98,7 +98,7 @@ Aturan:
 
 **Sinkronisasi katalog:** `backend/shop-catalog.js` adalah salinan server-side dari `LP.HADIAH` di `kurikulum/core/jalur-belajar.js`. Id, jenis, dan harga harus sama persis. Kalau frontend menambah/mengubah item, backend wajib ikut diperbarui.
 
-## Admin API (M1–M3)
+## Admin API
 
 Semua endpoint di bawah wajib role `admin`. Endpoint plugin juga wajib `users.id` admin ada di `PLUGIN_DEVELOPER_USER_IDS`.
 
@@ -106,9 +106,13 @@ Semua endpoint di bawah wajib role `admin`. Endpoint plugin juga wajib `users.id
 |---|---|---|---|
 | GET | `/api/admin/me` | - | `{ id, username, role, status, mustChangePassword }` |
 | GET | `/api/admin/audit?action=&actor=&targetType=&targetId=&page=&limit=` | - | `{ entries, page, limit, total, pages }`; `details` sudah di-parse |
-| GET | `/api/admin/users?search=&status=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student` |
+| GET | `/api/admin/stats` | - | `{ students, content, plugins, activity, grades, curriculum }` |
+| GET | `/api/admin/activity?limit=5` | - | `{ entries: [{ completed_at, task_id, user_id, username, full_name, title, points }] }`; submisi selesai terbaru |
+| GET | `/api/admin/curriculum` | - | `{ exists, curriculum: { tahap, jalur }, version, updatedAt }` |
+| PUT | `/api/admin/curriculum` | `{ version, tahap, jalur }` | `{ exists, curriculum, version, updatedAt }`; `version` untuk optimistic concurrency |
+| GET | `/api/admin/users?search=&status=&grade=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student`; `grade` = `SD`, `SMP`, atau `SMK` |
 | GET | `/api/admin/users/:id` | - | `{ user, points, progress, progressRows, items, sessions, activeSessions }` |
-| POST | `/api/admin/users` | `{ username, email?, fullName?, password? }` | `{ id, username, email, temporaryPassword? }` |
+| POST | `/api/admin/users` | `{ username?, email?, fullName?, password?, allowedGrades? }` | `{ id, username, email, allowedGrades, temporaryPassword? }` |
 | PATCH | `/api/admin/users/:id` | `{ username?, email?, fullName?, bio?, avatarUrl?, allowedGrades? }` | `{ user }` |
 | POST | `/api/admin/users/:id/reset-password` | `{ password? }` | `{ id, temporaryPassword? }`; semua sesi dicabut |
 | POST | `/api/admin/users/:id/suspend` | `{}` atau `{ status: "active" }` | `{ id, status }` |
@@ -119,9 +123,16 @@ Perilaku penting:
 
 - Admin tidak bisa membuat/mengubah akun admin lewat API; akun admin hanya lewat CLI.
 - Admin hanya melihat dan mengelola user role `student`.
+- Filter `grade` pada daftar siswa menyertakan murid dengan `allowed_grades` kosong karena kosong berarti semua jenjang.
+- `GET /api/admin/users` mengembalikan `stats.tasks_total` agar UI dapat menghitung persentase progres terhadap total task.
+- `GET /api/admin/stats` menghitung `grades` dari penempatan jenjang eksplisit; satu murid dengan beberapa jenjang dapat terhitung di lebih dari satu jenjang.
 - `POST /api/admin/users` selalu membuat role `student` dan `must_change_password = 1`.
+- `username` boleh dihilangkan. Server akan membuat username unik dari bagian sebelum `@` pada email (atau `fullName`), sehingga form Admin cukup mengirim `email`, `fullName`, dan `allowedGrades`.
 - Reset password dan suspend mencabut semua sesi murid. Soft delete mencabut sesi dan menolak login.
 - Rename username aman untuk data murid karena relasi memakai `user_id`.
+- `PUT /api/admin/curriculum` menyimpan seluruh dokumen `tahap` + `jalur` + `materi` secara atomik. Kirim `version` yang didapat dari GET; jika sudah berubah, server membalas `409 CURRICULUM_VERSION_CONFLICT` dengan `details.currentVersion`.
+- HTML materi ditolak bila mengandung `<script>`, `<iframe>`, `<object>`, `<embed>`, event handler inline, `javascript:`, `vbscript:`, `srcdoc`, atau `data:text/html`.
+- Endpoint kurikulum masih khusus Admin. Halaman murid saat ini tetap memakai data statis di `users/kurikulum/data/`; endpoint publik untuk murid belum dibuat.
 - Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`).
 - Rate limit admin: 60 request/menit per admin per path.
 

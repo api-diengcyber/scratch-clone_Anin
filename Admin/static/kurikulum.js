@@ -1,9 +1,7 @@
 /* Modul & Kurikulum: CRUD Jalur Belajar + Materi, tampilan kartu bergaya baru.
-   Data sementara disimpan di localStorage lewat objek `api`.
-   Nanti cukup ganti isi api.* dengan fetch('/api/admin/...'). */
+   Data disimpan di backend lewat /api/admin/curriculum. Seed awal hanya dipakai
+   saat server belum punya dokumen kurikulum. */
 (function () {
-  const KEY = 'dc_admin_jalur_v8';
-  const TAHAP_KEY = 'dc_admin_tahap_v1';
   const $ = (s, r = document) => r.querySelector(s);
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // `teks` di antara backtick tampil sebagai <code>
@@ -130,21 +128,104 @@
     mk('SMK', 3, 'Capstone: Proyek Data & AI', '#7c3aed', 'fa-solid fa-graduation-cap', 'Proyek dari pertanyaan sampai kesimpulan.', { capstone: true }),
   ];
 
+  const seedTahap = () => Object.entries(TAHAP_INFO).map(([k, v]) => {
+    const [jenjang, no] = k.split('|');
+    return { jenjang, no: Number(no), nama: v.nama, ikon: v.ikon || IKON_DEFAULT, warna: v.warna || TAHAP_WARNA[no], meta: v.meta || '' };
+  });
+  const seedJalur = () => structuredClone(SEED);
+
+  const doc = { exists: false, version: 0, tahap: [], jalur: [], loaded: false };
+  let loadPromise = null;
+  let saveChain = Promise.resolve(true);
+
+  function client() {
+    if (!window.DCAdminApi) throw new Error('Klien API Admin belum dimuat.');
+    return window.DCAdminApi;
+  }
+  function setDocument(data) {
+    const curriculum = data.curriculum || data;
+    doc.exists = Boolean(data.exists);
+    doc.version = Number(data.version) || 0;
+    doc.tahap = Array.isArray(curriculum.tahap) ? curriculum.tahap : [];
+    doc.jalur = Array.isArray(curriculum.jalur) ? curriculum.jalur : [];
+    doc.loaded = true;
+    if (doc.exists) {
+      try {
+        window.dispatchEvent(new CustomEvent('dc:curriculum-updated', {
+          detail: { version: doc.version, paths: doc.jalur.length }
+        }));
+      } catch (_) {}
+    }
+    return doc;
+  }
+  async function loadDocument() {
+    if (doc.loaded) return doc;
+    if (loadPromise) return loadPromise;
+    loadPromise = (async () => {
+      try {
+        const res = await client().curriculum();
+        if (res.exists) return setDocument(res);
+        // Server belum punya dokumen: unggah seed sekali agar semua admin
+        // berikutnya melihat data yang sama.
+        const saved = await client().saveCurriculum({
+          version: Number(res.version) || 0,
+          tahap: seedTahap(),
+          jalur: seedJalur()
+        });
+        return setDocument(saved);
+      } catch (err) {
+        if (err.code === 'CURRICULUM_VERSION_CONFLICT') {
+          try { return setDocument(await client().curriculum()); } catch (_) {}
+        }
+        console.error('Gagal memuat kurikulum:', err);
+        if (typeof showToast === 'function') showToast(err.message || 'Gagal memuat kurikulum dari server.');
+        // Tetap tampilkan seed agar halaman tidak kosong; simpan berikutnya
+        // akan mencoba lagi dan melaporkan error bila server tetap gagal.
+        return setDocument({ exists: false, version: 0, curriculum: { tahap: seedTahap(), jalur: seedJalur() } });
+      } finally {
+        loadPromise = null;
+      }
+    })();
+    return loadPromise;
+  }
+  async function persistDocument(jalurList, tahapListData) {
+    await loadDocument();
+    const run = saveChain.then(async () => {
+      try {
+        const res = await client().saveCurriculum({
+          version: doc.version,
+          tahap: structuredClone(tahapListData),
+          jalur: structuredClone(jalurList)
+        });
+        setDocument(res);
+        return true;
+      } catch (err) {
+        const message = err.code === 'CURRICULUM_VERSION_CONFLICT'
+          ? 'Kurikulum sudah diubah admin lain. Muat ulang halaman sebelum menyimpan lagi.'
+          : (err.message || 'Gagal menyimpan kurikulum.');
+        if (typeof showToast === 'function') showToast(message);
+        return false;
+      }
+    });
+    saveChain = run.catch(() => false);
+    return run;
+  }
+
   const api = {
-    async list() {
-      try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch (_) {}
-      return structuredClone(SEED);
+    async list() { await loadDocument(); return structuredClone(doc.jalur); },
+    async listTahap() { await loadDocument(); return structuredClone(doc.tahap); },
+    async saveAll(list) {
+      await loadDocument();
+      return persistDocument(list, doc.tahap);
     },
-    async saveAll(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (_) {} return list; },
-    // Daftar tahap (Konfigurasi > Kelola Tahap). Awalnya diisi dari TAHAP_INFO.
-    async listTahap() {
-      try { const raw = localStorage.getItem(TAHAP_KEY); if (raw) return JSON.parse(raw); } catch (_) {}
-      return Object.entries(TAHAP_INFO).map(([k, v]) => {
-        const [jenjang, no] = k.split('|');
-        return { jenjang, no: Number(no), nama: v.nama, ikon: v.ikon || IKON_DEFAULT, warna: v.warna || TAHAP_WARNA[no], meta: v.meta || '' };
-      });
+    async saveTahap(list) {
+      await loadDocument();
+      return persistDocument(doc.jalur, list);
     },
-    async saveTahap(list) { try { localStorage.setItem(TAHAP_KEY, JSON.stringify(list)); } catch (_) {} return list; },
+    async saveDocument(jalurList, tahapListData) {
+      await loadDocument();
+      return persistDocument(jalurList, tahapListData);
+    },
   };
 
   // ---------- STATE ----------
@@ -497,7 +578,7 @@
       while (jalur.some((x) => x.id === id)) id = base + '-' + n++;
       jalur.push({ id, siswa: null, materi: [], ...data });
     }
-    await api.saveAll(jalur);
+    if (!(await api.saveAll(jalur))) return;
     toggleModal('modalJalur'); render();
     showToast(existing ? 'Jalur belajar diperbarui.' : 'Jalur belajar baru ditambahkan.');
   });
@@ -570,15 +651,25 @@
     if (!t.nama) return;
     const newKey = tahapKey(t);
     if (newKey !== oldKey && tahapList.some((x) => tahapKey(x) === newKey)) return showToast(`Tahap ${t.no} untuk jenjang itu sudah ada.`);
+    const previousJalur = structuredClone(jalur);
+    let nextTahapList;
     if (oldKey) {
       const old = tahapList.find((x) => tahapKey(x) === oldKey);
       if (old && old.no !== t.no) { // nomor berubah: jalur yang memakai tahap ini ikut pindah
         jalur.forEach((j) => { if (j.jenjang === jenjang && tahapOf(j) === old.no) j.tahap = t.no; });
-        await api.saveAll(jalur);
       }
-      tahapList = tahapList.map((x) => (tahapKey(x) === oldKey ? t : x));
-    } else tahapList.push(t);
-    await api.saveTahap(tahapList);
+      nextTahapList = tahapList.map((x) => (tahapKey(x) === oldKey ? t : x));
+    } else {
+      nextTahapList = [...tahapList, t];
+    }
+    // Simpan tahap dan jalur sekaligus agar nomor tahap yang berubah tidak
+    // sempat divalidasi terhadap daftar tahap lama.
+    if (!(await api.saveDocument(jalur, nextTahapList))) {
+      jalur = previousJalur;
+      render();
+      return;
+    }
+    tahapList = nextTahapList;
     toggleModal('modalTahap'); render();
     showToast(oldKey ? 'Tahap diperbarui.' : 'Tahap baru ditambahkan.');
   });
@@ -589,7 +680,8 @@
     if (n) return showToast(`Tahap ${t.no} masih dipakai ${n} jalur. Pindahkan atau hapus jalurnya dulu.`);
     if (!confirm(`Hapus Tahap ${t.no} "${t.nama}"?`)) return;
     tahapList = tahapList.filter((x) => tahapKey(x) !== key);
-    await api.saveTahap(tahapList); render();
+    if (!(await api.saveTahap(tahapList))) return;
+    render();
     showToast('Tahap dihapus.');
   }
 
@@ -597,7 +689,8 @@
     const j = jalur.find((x) => x.id === id);
     if (!j || !confirm(`Hapus jalur "${j.nama}"? Materi di dalamnya ikut terhapus.`)) return;
     jalur = jalur.filter((x) => x.id !== id);
-    await api.saveAll(jalur); render();
+    if (!(await api.saveAll(jalur))) return;
+    render();
     showToast('Jalur belajar dihapus.');
   }
 
@@ -630,7 +723,8 @@
           first.materi = first.materi.filter((m) => m.id !== cur.id);
           target.materi.push(Object.assign(cur, rec));
         } else target.materi.push({ id: Date.now().toString(36), durasi: '', tes: false, ...rec });
-        await api.saveAll(jalur); render();
+        if (!(await api.saveAll(jalur))) return;
+        render();
         if (typeof renderPreview === 'function' && !$('#modalPreview').classList.contains('hidden')) renderPreview();
         showToast(cur ? 'Materi diperbarui.' : 'Materi ditambahkan ke ' + target.nama + '.');
       },
@@ -663,7 +757,7 @@
     if (window.innerWidth < 768) $('#sidebar').classList.add('hidden');
   }
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const v = e.target.closest('[data-view]'); if (v) { e.preventDefault(); return showView(v.dataset.view); }
     const io = e.target.closest('[data-ikon-open]'); if (io) return openIkon(io.closest('form'));
     const ip = e.target.closest('[data-ikon-pick]'); if (ip) return pickIkon(ip.dataset.ikonPick);
@@ -690,7 +784,12 @@
     if (dm) {
       const [jid, mid] = dm.dataset.delmat.split('|');
       const j = jalur.find((x) => x.id === jid);
-      if (j && confirm('Hapus materi ini?')) { j.materi = j.materi.filter((m) => m.id !== mid); api.saveAll(jalur); render(); showToast('Materi dihapus.'); }
+      if (j && confirm('Hapus materi ini?')) {
+        j.materi = j.materi.filter((m) => m.id !== mid);
+        if (!(await api.saveAll(jalur))) return;
+        render();
+        showToast('Materi dihapus.');
+      }
       return;
     }
     const fl = e.target.closest('[data-filter]'); if (fl) { filter = fl.dataset.filter; render(); }
