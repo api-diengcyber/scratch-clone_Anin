@@ -50,8 +50,8 @@
   function renderFilter() {
     const count = (k) => (k === 'all' ? data.length : data.filter((d) => d.jenjang === k).length);
     const items = [['all', 'Semua Jenjang'], ['SD', 'SD'], ['SMP', 'SMP'], ['SMA', 'SMA/SMK']];
-    // gaya disamakan dengan filter di halaman Kurikulum; bobot font sama supaya lebar tombol tidak berubah saat dipilih
-    const base = 'shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition ';
+    // gaya disamakan dengan filter di halaman Kurikulum; bobot font dan lebar (w-36) sama supaya semua tombol seragam dan tidak bergeser saat dipilih
+    const base = 'shrink-0 w-36 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-2 transition ';
     const on = base + 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25';
     const off = base + 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60';
     const badge = 'min-w-[1.25rem] px-1.5 py-0.5 rounded-md text-[10px] leading-none font-mono font-bold text-center ';
