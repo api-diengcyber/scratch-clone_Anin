@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "seed": "node seed-tasks-smp.js && node seed-tasks-sd-smk.js && node seed-materials.js",
+    "seed": "node seed-tasks-smp.js && node seed-tasks-sd-smk.js && node seed-materials.js && node seed-codelab.js",
+    "seed:codelab": "node seed-codelab.js",
     "backup": "node backup.js",
     "smoke": "node smoke-test.js",
     "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js",

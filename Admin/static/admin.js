@@ -577,71 +577,84 @@ function showToast(message, type) {
 
 
 // --- 7. Notification Bell ---
-// Data awal masih contoh (belum ada backend). Status baca/hapus disimpan di localStorage.
-const NOTIF_SEED = [
-  { id: 'n1', icon: 'fa-solid fa-code-pull-request', tone: 'sky',     title: 'Submisi baru dari Alvaro Kenzo',  desc: 'Tugas Tipe Data String, Int & Float menunggu review kode.', time: '5 mnt lalu',  view: 'dashboard' },
-  { id: 'n2', icon: 'fa-solid fa-circle-xmark',      tone: 'rose',    title: 'Tes otomatis gagal',              desc: 'Dina Oktavia: 3 dari 8 test case tidak lolos.',            time: '32 mnt lalu', view: 'dashboard' },
-  { id: 'n3', icon: 'fa-solid fa-circle-check',      tone: 'emerald', title: 'Fadly Naufal menyelesaikan modul', desc: 'Ketuntasan modul mencapai 100%.',                          time: '2 jam lalu',  view: 'dashboard' },
-  { id: 'n4', icon: 'fa-solid fa-book-open',         tone: 'amber',   title: 'Kurikulum diperbarui',            desc: 'Ada perubahan pada Kurikulum Standar 2026/2027.',          time: 'Kemarin',     view: 'kurikulum' },
-];
+// Notifikasi berasal dari backend dan disimpan per akun admin.
 const NOTIF_TONE = {
   sky:     'bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
   rose:    'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400',
   emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
   amber:   'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
 };
-const NOTIF_KEY = 'dc-notif';
+const notifState = { items: [], unread: 0, loading: false };
 
-function notifLoad() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(NOTIF_KEY));
-    if (raw && Array.isArray(raw.removed) && Array.isArray(raw.read)) return raw;
-  } catch (e) {}
-  return { read: [], removed: [] };
-}
-function notifSave(st) {
-  try { localStorage.setItem(NOTIF_KEY, JSON.stringify(st)); } catch (e) {}
-}
 function notifEsc(t) {
   return String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function notifTone(tone) {
+  return NOTIF_TONE[tone] || NOTIF_TONE.sky;
 }
 
 function renderNotif() {
   const list = document.getElementById('notifList');
   if (!list) return;
-  const st = notifLoad();
-  const items = NOTIF_SEED.filter((n) => !st.removed.includes(n.id));
-  const unread = items.filter((n) => !st.read.includes(n.id)).length;
+  const items = notifState.items;
+  const unread = Math.max(0, Number(notifState.unread) || 0);
 
-  document.getElementById('notifDot').classList.toggle('hidden', unread === 0);
+  const dot = document.getElementById('notifDot');
+  if (dot) dot.classList.toggle('hidden', unread === 0);
   const cnt = document.getElementById('notifCount');
-  cnt.textContent = unread + ' baru';
-  cnt.classList.toggle('hidden', unread === 0);
-  document.getElementById('notifReadAll').disabled = unread === 0;
-  document.getElementById('notifClear').classList.toggle('hidden', items.length === 0);
+  if (cnt) {
+    cnt.textContent = notifState.loading ? 'Memuat...' : unread + ' baru';
+    cnt.classList.toggle('hidden', unread === 0);
+  }
+  const readAll = document.getElementById('notifReadAll');
+  if (readAll) readAll.disabled = unread === 0 || notifState.loading;
+  const clear = document.getElementById('notifClear');
+  if (clear) clear.classList.toggle('hidden', items.length === 0);
 
   if (!items.length) {
-    list.innerHTML = '<li class="px-4 py-10 text-center"><i class="fa-regular fa-bell-slash text-2xl text-slate-300 dark:text-slate-600"></i><p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Belum ada notifikasi</p></li>';
+    list.innerHTML = notifState.loading
+      ? '<li class="px-4 py-10 text-center"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-slate-300 dark:text-slate-600"></i><p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Memuat notifikasi...</p></li>'
+      : '<li class="px-4 py-10 text-center"><i class="fa-regular fa-bell-slash text-2xl text-slate-300 dark:text-slate-600"></i><p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Belum ada notifikasi</p></li>';
     return;
   }
   list.innerHTML = items.map((n) => {
-    const isRead = st.read.includes(n.id);
+    const isRead = Boolean(n.read);
+    const id = Number(n.id);
     return '<li>' +
-      '<button type="button" data-notif-id="' + n.id + '" class="w-full text-left flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/60 ' + (isRead ? '' : 'bg-sky-50/50 dark:bg-sky-500/5') + '">' +
-        '<span class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs ' + (NOTIF_TONE[n.tone] || NOTIF_TONE.sky) + '"><i class="' + n.icon + '"></i></span>' +
+      '<button type="button" data-notif-id="' + id + '" class="w-full text-left flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/60 ' + (isRead ? '' : 'bg-sky-50/50 dark:bg-sky-500/5') + '">' +
+        '<span class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs ' + notifTone(n.tone) + '"><i class="' + notifEsc(n.icon || 'fa-solid fa-bell') + '"></i></span>' +
         '<span class="flex-1 min-w-0">' +
           '<span class="block text-xs ' + (isRead ? 'font-medium text-slate-600 dark:text-slate-300' : 'font-bold text-slate-900 dark:text-white') + '">' + notifEsc(n.title) + '</span>' +
-          '<span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">' + notifEsc(n.desc) + '</span>' +
-          '<span class="block text-[11px] font-mono text-slate-400 mt-1">' + notifEsc(n.time) + '</span>' +
+          '<span class="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">' + notifEsc(n.body || '') + '</span>' +
+          '<span class="block text-[11px] font-mono text-slate-400 mt-1">' + notifEsc(relativeTime(n.createdAt)) + '</span>' +
         '</span>' +
         (isRead ? '' : '<span class="w-2 h-2 mt-1.5 shrink-0 rounded-full bg-sky-500" aria-label="Belum dibaca"></span>') +
       '</button></li>';
   }).join('');
 }
 
+async function loadNotif() {
+  if (!window.DCAdminApi) return;
+  notifState.loading = true;
+  renderNotif();
+  try {
+    const data = await window.DCAdminApi.notifications(20);
+    notifState.items = Array.isArray(data.notifications) ? data.notifications : [];
+    notifState.unread = Number(data.unreadCount) || 0;
+  } catch (error) {
+    if (error.status !== 401) console.warn('Gagal memuat notifikasi:', error.message);
+    notifState.items = [];
+    notifState.unread = 0;
+  } finally {
+    notifState.loading = false;
+    renderNotif();
+  }
+}
+
 function setNotifOpen(open) {
   const panel = document.getElementById('notifPanel');
   const btn = document.getElementById('notifBtn');
+  if (!panel || !btn) return;
   panel.classList.toggle('hidden', !open);
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
@@ -650,39 +663,88 @@ function setNotifOpen(open) {
   const wrap = document.getElementById('notifWrap');
   if (!wrap) return;
   renderNotif();
+  loadNotif();
 
   document.getElementById('notifBtn').addEventListener('click', () => {
-    setNotifOpen(document.getElementById('notifPanel').classList.contains('hidden'));
+    const open = document.getElementById('notifPanel').classList.contains('hidden');
+    setNotifOpen(open);
+    if (open) loadNotif();
   });
 
-  document.getElementById('notifReadAll').addEventListener('click', () => {
-    const st = notifLoad();
-    st.read = NOTIF_SEED.map((n) => n.id);
-    notifSave(st); renderNotif();
+  document.getElementById('notifReadAll').addEventListener('click', async () => {
+    if (notifState.loading) return;
+    try {
+      await window.DCAdminApi.readAllNotifications();
+      notifState.items = notifState.items.map((n) => ({ ...n, read: true }));
+      notifState.unread = 0;
+      renderNotif();
+    } catch (error) {
+      if (error.status !== 401) showToast(error.message || 'Gagal menandai notifikasi.', 'error');
+    }
   });
 
-  document.getElementById('notifClear').addEventListener('click', () => {
-    const st = notifLoad();
-    st.removed = NOTIF_SEED.map((n) => n.id);
-    notifSave(st); renderNotif();
-    showToast('Semua notifikasi dihapus');
+  document.getElementById('notifClear').addEventListener('click', async () => {
+    if (notifState.loading) return;
+    try {
+      await window.DCAdminApi.clearNotifications();
+      notifState.items = [];
+      notifState.unread = 0;
+      renderNotif();
+      showToast('Semua notifikasi dihapus');
+    } catch (error) {
+      if (error.status !== 401) showToast(error.message || 'Gagal menghapus notifikasi.', 'error');
+    }
   });
 
   document.getElementById('notifList').addEventListener('click', (e) => {
     const item = e.target.closest('[data-notif-id]');
     if (!item) return;
-    const id = item.dataset.notifId;
-    const n = NOTIF_SEED.find((x) => x.id === id);
-    const st = notifLoad();
-    if (!st.read.includes(id)) { st.read.push(id); notifSave(st); }
-    renderNotif();
+    const id = Number(item.dataset.notifId);
+    const n = notifState.items.find((x) => Number(x.id) === id);
+    if (n && !n.read) {
+      n.read = true;
+      notifState.unread = Math.max(0, notifState.unread - 1);
+      renderNotif();
+      window.DCAdminApi.readNotification(id).catch((error) => {
+        if (error.status !== 401) console.warn('Gagal menandai notifikasi:', error.message);
+      });
+    }
     setNotifOpen(false);
     // pindah halaman lewat link sidebar yang sudah ada
-    const nav = n && document.querySelector('aside [data-view="' + n.view + '"]');
+    const view = n && String(n.view || 'dashboard');
+    const nav = (n && /^[a-z0-9-]+$/.test(view)) ? document.querySelector('aside [data-view="' + view + '"]') : null;
     if (nav) nav.click();
   });
 
   // tutup kalau klik di luar atau tekan Esc
   document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) setNotifOpen(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setNotifOpen(false); });
+})();
+
+// --- 11. Auth guard & initial load ---
+// Pull frontend sempat menghapus blok ini; tanpa initAdmin, loadDashboard()
+// tidak pernah dipanggil dan kartu statistik terus menampilkan "Memuat".
+(async function initAdmin() {
+  if (!window.DCAdminApi) {
+    showToast('Klien API Admin gagal dimuat.');
+    return;
+  }
+  try {
+    const me = await window.DCAdminApi.me();
+    if (me.role !== 'admin') {
+      showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
+      setTimeout(() => location.replace('/dashboard.html'), 1200);
+      return;
+    }
+    adminState.me = me;
+    window.DCAdminMe = me;
+    await loadDashboard();
+  } catch (error) {
+    if (error.status === 403) {
+      showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
+      setTimeout(() => location.replace('/dashboard.html'), 1200);
+    } else if (error.status !== 401) {
+      showToast(error.message || 'Gagal memverifikasi sesi admin.');
+    }
+  }
 })();
