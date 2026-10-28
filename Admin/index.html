@@ -19,11 +19,11 @@
 
   <script src="static/tailwind-config.js?v=3"></script>
 
-  <link rel="stylesheet" href="static/admin.css?v=3">
+  <link rel="stylesheet" href="static/admin.css?v=6">
+  <link rel="stylesheet" href="static/glass.css?v=1">
 </head>
 
-<body class="bg-slate-50/70 text-slate-800 dark:bg-[#0b1120] dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
-
+<body class="bg-white text-slate-800 dark:bg-[#0b1120] dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
   <!-- Mobile Topbar Header -->
   <div class="md:hidden flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 p-4 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-3">
@@ -47,23 +47,28 @@
     </div>
   </div>
 
+  <!-- Backdrop drawer (mobile) -->
+  <div id="sbBackdrop" class="sb-backdrop" aria-hidden="true"></div>
+
   <!-- Sidebar Navigasi -->
-  <aside id="sidebar" class="hidden md:flex flex-col w-full md:w-72 bg-white dark:bg-slate-900/95 border-r border-slate-200/80 dark:border-slate-800/80 shrink-0 select-none transition-all duration-300 z-40">
+<aside id="sidebar" class="hidden md:flex flex-col w-full md:w-72 bg-white dark:bg-[#0b1120] shrink-0 select-none transition-all duration-300 z-40">
+    <button id="sbToggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Ciutkan / buka menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
     
     <!-- Logo Brand Dieng Cyber -->
-    <div class="h-16 px-5 shrink-0 flex items-center gap-3.5 border-b border-slate-200/80 dark:border-slate-800/80">
+    <div id="sidebarBrand" class="h-16 px-5 shrink-0 flex items-center gap-3.5 border-b border-slate-200/80 dark:border-slate-800/80">
       <img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="40" height="40" class="w-10 h-10 object-contain shrink-0">
       <div>
         <div class="flex items-center gap-1.5">
           <span class="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">Dieng<span class="text-[#3fa83f] dark:text-[#70d050]">Cyber</span></span>
           <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded-md font-semibold bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">Edu</span>
         </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pusat Belajar Coding</p>
-      </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pusat Belajar Coding</p>      </div>
     </div>
 
     <!-- Main Navigation Items -->
-    <div class="px-3.5 py-5 flex-1 space-y-1.5 overflow-y-auto">
+    <div id="sidebarNav" class="px-3.5 py-5 flex-1 space-y-1.5 overflow-y-auto">
       
       <div class="text-[11px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3 pb-1 font-mono">
         Menu Utama
@@ -91,7 +96,7 @@
       </a>
 
       <!-- Siswa & Kelas Coding -->
-      <a href="#" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
+      <a href="#" data-view="siswa" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
         <div class="flex items-center gap-3.5">
           <i class="fa-solid fa-user-graduate w-4 text-center text-slate-400 group-hover:text-cyan-500 text-sm"></i>
           <span>Manajemen Siswa</span>
@@ -139,7 +144,7 @@
     </div>
 
     <!-- User / Admin Profile Footer Box -->
-    <div class="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
+    <div id="sidebarFoot" class="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
       <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
         <div class="w-9 h-9 rounded-lg bg-sky-600/20 text-sky-600 dark:text-sky-400 ring-2 ring-sky-500/30 flex items-center justify-center font-mono font-bold text-sm" aria-label="Avatar Admin">DC</div>
         <div class="flex-1 min-w-0">
@@ -156,13 +161,13 @@
   </aside>
 
   <!-- Main Content Body -->
-  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-
-    <!-- Top Navigation Header -->
-    <header class="h-16 bg-white/90 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto md:my-3 md:mr-3 md:rounded-3xl bg-[#e9edf4] dark:bg-slate-900">    
+          <!-- Top Navigation Header -->
+    <header class="h-16 bg-[#e9edf4]/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-between sticky top-0 z-30 md:rounded-t-3xl" style="padding-left:2rem;padding-right:2rem">
+      
       
       <!-- Search Bar -->
-      <div class="flex items-center gap-3 flex-1 max-w-lg">
+      <div class="flex items-center gap-3 flex-1" style="max-width:32rem">
         <div class="relative w-full">
           <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 text-xs">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -171,14 +176,13 @@
             type="text" 
             id="globalSearch"
             placeholder="Cari modul coding, nama siswa, atau tugas praktikum..." 
-            class="w-full bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm rounded-xl pl-9 pr-4 py-2 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium">
+            class="w-full bg-white dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-sm text-xs sm:text-sm rounded-xl pl-9 pr-4 py-2 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium">
         </div>
       </div>
 
       <!-- Action Tools & Theme Switcher -->
-      <div class="flex items-center gap-2.5 sm:gap-3 ml-3">
-        
-        <!-- Light / Dark Mode Switcher Button -->
+      <div class="flex items-center gap-2.5 sm:gap-3 ml-auto pl-3">
+         <!-- Light / Dark Mode Switcher Button -->
         <button 
           onclick="toggleTheme()" 
           id="themeToggleBtn"
@@ -352,6 +356,10 @@
                   <i class="fa-solid fa-arrows-rotate text-xs"></i>
                   <span>Sinkronisasi</span>
                 </button>
+                <button type="button" data-goto="siswa" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-table-list text-xs"></i>
+                  <span>Kelola Semua</span>
+                </button>
                 <button onclick="toggleModal('modalAddStudent')" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20 border border-sky-200/80 dark:border-sky-500/30 transition flex items-center gap-1.5">
                   <i class="fa-solid fa-user-plus text-xs"></i>
                   <span>+ Siswa</span>
@@ -480,28 +488,39 @@
     <!-- View: Modul & Kurikulum -->
     <div id="view-kurikulum" class="hidden p-4 md:p-8 space-y-6">
 
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
-            <span>Portal Admin</span><span>/</span>
-            <span class="text-sky-600 dark:text-sky-400 font-medium">Kurikulum &amp; Silabus</span>
+      <div class="relative overflow-hidden rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-white/80 dark:border-slate-700/60 p-5 sm:p-6 shadow-card">
+        <div class="absolute -top-12 -left-12 w-40 h-40 bg-sky-200/30 dark:bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 right-20 w-48 h-32 bg-blue-200/25 dark:bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
+              <span>Portal Admin</span><span>/</span>
+              <span class="text-sky-600 dark:text-sky-400 font-medium">Kurikulum &amp; Silabus</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2.5">
+              Modul &amp; Kurikulum
+              <span class="inline-flex items-center gap-1.5 text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/50 dark:border-sky-500/30">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                </span>
+                <span id="kurCount">0 Modul Aktif</span>
+              </span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola jalur belajar dan materi praktikum coding yang tampil di portal siswa.</p>
           </div>
-          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2.5">
-            Modul &amp; Kurikulum
-            <span id="kurCount" class="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">0 Modul Aktif</span>
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola jalur belajar dan materi praktikum coding yang tampil di portal siswa.</p>
-        </div>
-        <div class="flex items-center gap-2.5 self-start md:self-auto">
-          <button data-act="new-jalur" class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-xs flex items-center gap-2 transition">
-            <i class="fa-solid fa-layer-group text-sky-600 dark:text-sky-400"></i><span>Tambah Jalur</span>
-          </button>
-          <button data-act="new-materi" class="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition-all">
-            <i class="fa-solid fa-plus text-xs"></i><span>Tambah Materi</span>
-          </button>
-          <button data-act="export" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs transition" title="Export kurikulum (JSON)" aria-label="Export kurikulum">
-            <i class="fa-solid fa-download"></i>
-          </button>
+          <div class="flex items-center gap-2.5 self-start md:self-auto">
+            <button data-act="new-jalur" class="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-sky-600 border border-slate-200/90 dark:border-slate-700 text-xs font-semibold shadow-xs flex items-center gap-2 active:scale-95 transition-all">
+              <i class="fa-solid fa-layer-group text-sky-600 dark:text-sky-400"></i><span>Tambah Jalur</span>
+            </button>
+            <button data-act="new-materi" class="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition-all">
+              <i class="fa-solid fa-plus text-xs"></i><span>Tambah Materi</span>
+            </button>
+            <button data-act="export" class="px-3 py-2 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700 text-xs active:scale-95 transition-all" title="Export kurikulum (JSON)" aria-label="Export kurikulum">
+              <i class="fa-solid fa-download"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -528,7 +547,7 @@
     <!-- View: Code Lab & Blockly -->
     <div id="view-codelab" class="hidden p-4 md:p-8 space-y-6">
 
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
             <span>Portal Admin</span><span>/</span>
@@ -562,7 +581,7 @@
 
     <!-- View: Kelola Tahap -->
     <div id="view-tahap" class="hidden p-4 md:p-8 space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
             <span>Portal Admin</span><span>/</span><span>Konfigurasi</span><span>/</span>
@@ -579,6 +598,9 @@
     </div>
     <!-- View: Plugin (diisi static/plugins.js) -->
     <div id="view-plugin" class="hidden p-4 md:p-8 space-y-6"></div>
+
+    <!-- View: Manajemen Siswa (diisi static/siswa.js) -->
+    <div id="view-siswa" class="hidden p-4 md:p-8 space-y-6"></div>
   </main>
 
   <!-- Modal 1: Tambah Materi Coding Baru -->
@@ -839,9 +861,10 @@
 <script src="static/admin.js?v=10"></script>
 <script src="static/dialog.js?v=1"></script>
 <script src="static/editor.js?v=11"></script>
-<script src="static/kurikulum.js?v=16"></script>
+<script src="static/kurikulum.js?v=17"></script>
 <script src="static/plugins.js?v=1"></script>
 <script src="static/codelab.js?v=1"></script>
+<script src="static/siswa.js?v=2"></script>
 
 </body>
 </html>

@@ -55,7 +55,7 @@
 
   // ---------- KERANGKA HALAMAN ----------
   view.innerHTML = `
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
           <span>Portal Admin</span><span>/</span><span>Konfigurasi</span><span>/</span>

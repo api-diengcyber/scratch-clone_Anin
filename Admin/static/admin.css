@@ -38,3 +38,173 @@
   padding: 0 0.25rem;
   border-radius: 0.25rem;
 }
+
+/* ==========================================================================
+   Header halaman (disamakan dengan halaman Kurikulum): kartu kaca + blob warna
+   ========================================================================== */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, .8);
+  background: rgba(255, 255, 255, .7);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .05), 0 20px 25px -5px rgba(0, 0, 0, .02);
+}
+@media (min-width: 640px) { .page-hero { padding: 1.5rem; } }
+html.dark .page-hero {
+  border-color: rgba(51, 65, 85, .6);
+  background: rgba(15, 23, 42, .6);
+}
+.page-hero::before,
+.page-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  pointer-events: none;
+}
+.page-hero::before { top: -3rem; left: -3rem; width: 10rem; height: 10rem; background: rgba(186, 230, 253, .3); }
+.page-hero::after  { bottom: -2.5rem; right: 5rem; width: 12rem; height: 8rem; background: rgba(191, 219, 254, .25); }
+html.dark .page-hero::before { background: rgba(14, 165, 233, .10); }
+html.dark .page-hero::after  { background: rgba(99, 102, 241, .10); }
+.page-hero > * { position: relative; z-index: 1; }
+
+/* ==========================================================================
+   Dashboard: kaca lebih bening & blur lebih kuat (halaman lain tidak terpengaruh)
+   ========================================================================== */
+#view-dashboard { --g-blur: 22px; }
+html.light #view-dashboard, html:not(.dark) #view-dashboard { --g-surface: rgba(255, 255, 255, .46); }
+html.dark #view-dashboard { --g-surface: rgba(255, 255, 255, .06); }
+
+/* ==========================================================================
+   Burger sidebar
+   ========================================================================== */
+.sb-backdrop { display: none; }
+
+/* --- Layar kecil: drawer + overlay --- */
+@media (max-width: 767.98px) {
+  #sidebar {
+    display: flex !important;
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(18rem, 85vw) !important;
+    height: 100%;
+    z-index: 60;
+    transform: translateX(-105%);
+    transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+    box-shadow: none;
+  }
+  body.sb-open #sidebar { transform: translateX(0); box-shadow: 0 0 40px rgba(0, 0, 0, .35); }
+  .sb-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(15, 23, 42, .5);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  body.sb-open .sb-backdrop { opacity: 1; pointer-events: auto; }
+  body.sb-open { overflow: hidden; }
+}
+
+/* --- Desktop: sidebar ciut jadi rail ikon --- */
+@media (min-width: 768px) {
+  #sidebar { transition: width .28s cubic-bezier(.4, 0, .2, 1); }
+  body.sb-collapsed #sidebar { width: 5rem; }
+
+  body.sb-collapsed #sidebarBrand { padding-left: 0; padding-right: 0; justify-content: center; }
+  body.sb-collapsed #sidebarBrand > div { display: none; }
+
+  body.sb-collapsed #sidebarNav { padding-left: .75rem; padding-right: .75rem; overflow-x: hidden; }
+  body.sb-collapsed #sidebarNav > div { /* judul seksi */
+    height: 0; padding: 0; margin: 0; overflow: hidden; visibility: hidden;
+  }
+  body.sb-collapsed #sidebarNav > div + a { margin-top: 0; }
+  body.sb-collapsed #sidebarNav a {
+    justify-content: center;
+    padding-left: 0; padding-right: 0;
+  }
+  body.sb-collapsed #sidebarNav a span { display: none; }       /* label & badge */
+  body.sb-collapsed #sidebarNav a i { font-size: 1rem; }
+
+  body.sb-collapsed #sidebarFoot { padding-left: .5rem; padding-right: .5rem; }
+  body.sb-collapsed #sidebarFoot > div { justify-content: center; padding: .25rem; }
+  body.sb-collapsed #sidebarFoot > div > div:not(:first-child),
+  body.sb-collapsed #sidebarFoot > div > button { display: none; }
+}
+
+/* ==========================================================================
+   Tombol burger: di samping logo Dieng Cyber; saat rail, menonjol di tepi kanan tengah
+   ========================================================================== */
+#sbToggle { display: none; }
+@media (min-width: 768px) {
+  html body #sidebar { overflow: visible; }            /* supaya tombol bisa menonjol keluar */
+  html body #sidebarFoot { border-radius: 0 0 1.5rem 1.5rem; }
+
+  #sbToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    z-index: 5;
+    top: .75rem;                    /* sejajar baris logo (tinggi 4rem) */
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: .75rem;
+    font-size: .875rem;
+    color: #475569;
+    background: rgba(100, 116, 139, .11);
+    border: 1px solid rgba(148, 163, 184, .35);
+    cursor: pointer;
+    transition: all .28s cubic-bezier(.4, 0, .2, 1);
+  }
+  #sbToggle:hover { color: #0369a1; background: rgba(14, 165, 233, .15); }
+  html.dark #sbToggle { color: #cbd5e1; background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .14); }
+  html.dark #sbToggle:hover { color: #7dd3fc; background: rgba(14, 165, 233, .18); }
+
+  body.sb-collapsed #sidebar #sbToggle {
+    top: 50%;
+    right: -.9rem;                  /* separuh keluar dari rail */
+    transform: translateY(-50%);
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 9999px;
+    font-size: .7rem;
+    color: #fff;
+    background: linear-gradient(135deg, #0284c7, #4f46e5);
+    border-color: rgba(255, 255, 255, .7);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, .45);
+  }
+  body.sb-collapsed #sidebar #sbToggle:hover { color: #fff; filter: brightness(1.1); transform: translateY(-50%) scale(1.1); }
+}
+
+/* ==========================================================================
+   Panel notifikasi: dibuat solid supaya mudah dibaca.
+   (Di dalam header berkaca, backdrop-filter anak tidak mengaburkan latar,
+   jadi kartu terlihat transparan. Solusinya: latar pekat.)
+   ========================================================================== */
+html body #notifPanel,
+html.light body #notifPanel {
+  background-color: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 20px 50px -10px rgba(15, 23, 42, .35);
+}
+html.dark body #notifPanel {
+  background-color: #0f1526;
+  border-color: rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, .8);
+}
+html body #notifPanel > div:last-child { background-color: #f8fafc; }
+html.dark body #notifPanel > div:last-child { background-color: #0b1120; }
+html.dark body #notifPanel > div:first-child { background-color: #0f1526; }

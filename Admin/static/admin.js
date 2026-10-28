@@ -29,14 +29,43 @@ function toggleTheme() {
 
 initTheme();
 
-// --- 2. Mobile Sidebar Toggle ---
+// --- 2. Burger Sidebar ---
+// Desktop: sidebar ciut jadi rail ikon (body.sb-collapsed). Layar kecil (<768px): drawer + overlay (body.sb-open).
 const mobileBtn = document.getElementById('mobileMenuBtn');
 const sidebar = document.getElementById('sidebar');
+const sbToggle = document.getElementById('sbToggle');
+const sbBackdrop = document.getElementById('sbBackdrop');
+const SB_KEY = 'dc-sb-collapsed';
 
-if (mobileBtn && sidebar) {
-  mobileBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('hidden');
+function isMobileNav() { return window.innerWidth < 768; }
+function setDrawer(open) {
+  document.body.classList.toggle('sb-open', open);
+  if (mobileBtn) mobileBtn.setAttribute('aria-expanded', String(open));
+}
+function setCollapsed(collapsed, persist) {
+  document.body.classList.toggle('sb-collapsed', collapsed);
+  if (sbToggle) sbToggle.setAttribute('aria-expanded', String(!collapsed));
+  if (persist) { try { localStorage.setItem(SB_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+}
+function applyAutoSidebar() {
+  // Preferensi pengguna menang; kalau belum pernah memilih, ciut otomatis di lebar < 1100px.
+  let pref = null;
+  try { pref = localStorage.getItem(SB_KEY); } catch (e) {}
+  setCollapsed(pref === null ? window.innerWidth < 1100 : pref === '1', false);
+  if (!isMobileNav()) setDrawer(false);
+}
+if (sidebar) {
+  // Tooltip nama menu saat sidebar berbentuk rail
+  document.querySelectorAll('#sidebarNav a').forEach((a) => {
+    const label = a.querySelector('span');
+    if (label && !a.title) a.title = label.textContent.trim();
   });
+  if (mobileBtn) mobileBtn.addEventListener('click', () => setDrawer(!document.body.classList.contains('sb-open')));
+  if (sbToggle) sbToggle.addEventListener('click', () => setCollapsed(!document.body.classList.contains('sb-collapsed'), true));
+  if (sbBackdrop) sbBackdrop.addEventListener('click', () => setDrawer(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setDrawer(false); });
+  window.addEventListener('resize', applyAutoSidebar);
+  applyAutoSidebar();
 }
 
 // --- 3. Modal Controllers ---
@@ -500,6 +529,12 @@ document.getElementById('globalSearch')?.addEventListener('input', (e) => {
           renderStudentError(error.message);
         }
       });
+    } else if (document.getElementById('view-siswa') && !document.getElementById('view-siswa').classList.contains('hidden')) {
+      const input = document.getElementById('swSearch');
+      if (input) {
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
     } else if (kurikulum && !kurikulum.classList.contains('hidden')) {
       const input = document.getElementById('kurSearch');
       if (input) {

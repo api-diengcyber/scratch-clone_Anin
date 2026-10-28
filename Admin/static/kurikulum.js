@@ -234,6 +234,7 @@
   let filter = 'all';
   let query = '';
   let sortBy = 'default';
+  let onlyCapstone = false;
   let previewId = '';
 
   // Status materi: 'terbit' = tersedia di portal siswa, 'draft' = belum diunggah.
@@ -246,25 +247,48 @@
   const nextTahapNo = (jenjang) => Math.max(0, ...tahapList.filter((t) => t.jenjang === jenjang).map((t) => t.no), ...jalur.filter((j) => j.jenjang === jenjang).map(tahapOf)) + 1;
 
   // ---------- RENDER: STATISTIK, FILTER ----------
+  const statPrev = {};
+  function animateStats() {
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll('#kurStats [data-count]').forEach((el) => {
+      const key = el.dataset.key, to = Number(el.dataset.count) || 0;
+      const from = statPrev[key] === undefined ? 0 : statPrev[key];
+      statPrev[key] = to;
+      if (calm || from === to) return;
+      const t0 = performance.now();
+      const tick = (now) => {
+        const p = Math.min(1, (now - t0) / 600);
+        el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))).toLocaleString('id-ID');
+        if (p < 1 && el.isConnected) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
   function renderStats() {
     const totalLab = jalur.reduce((n, j) => n + labCount(j), 0);
     const totalSiswa = jalur.reduce((n, j) => n + (j.siswa || 0), 0);
     const capstone = jalur.filter((j) => j.capstone).length;
-    const box = (label, icon, tone, value, unit, note) => `
-      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card">
+    const box = (m) => `
+      <div data-metric="${m.key}" role="button" tabindex="0" aria-pressed="${m.active}" title="${m.hint}"
+        class="group cursor-pointer select-none p-4 rounded-2xl bg-white dark:bg-slate-900 border shadow-card hover:shadow-card-hover hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ${m.active ? 'border-sky-400 ring-2 ring-sky-500/20 dark:border-sky-500' : 'border-slate-200/90 dark:border-slate-800'} ${m.hover}">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">${label}</span>
-          <div class="w-7 h-7 rounded-lg ${tone} flex items-center justify-center text-xs"><i class="${icon}"></i></div>
+          <span class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider ${m.text} transition-colors">${m.label}</span>
+          <div class="w-7 h-7 rounded-lg ${m.tone} flex items-center justify-center text-xs group-hover:scale-110 transition-transform"><i class="${m.icon}"></i></div>
         </div>
-        <p class="text-2xl font-extrabold text-slate-900 dark:text-white">${value.toLocaleString('id-ID')} <span class="text-xs font-normal text-slate-400">${unit}</span></p>
-        <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-1 block">${note}</span>
+        <p class="text-2xl font-extrabold text-slate-900 dark:text-white ${m.text} transition-colors"><span data-key="${m.key}" data-count="${m.value}">${m.value.toLocaleString('id-ID')}</span> <span class="text-xs font-normal text-slate-400">${m.unit}</span></p>
+        <div class="mt-1 flex items-center justify-between text-[11px] font-mono">
+          <span class="text-slate-500 dark:text-slate-400">${m.note}</span>
+          <span class="${m.active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-sky-600 dark:text-sky-400 font-bold transition-opacity">${m.active ? 'Aktif ✕' : m.hint + ' →'}</span>
+        </div>
       </div>`;
     $('#kurStats').innerHTML =
-      box('Total Modul', 'fa-solid fa-cube', 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400', jalur.length, 'Modul', `${Object.keys(JENJANG).filter((k) => jalur.some((j) => j.jenjang === k)).length} jenjang`) +
-      box('Total Code Lab', 'fa-solid fa-code', 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400', totalLab, 'Lab', 'Praktikum interaktif') +
-      box('Siswa Aktif', 'fa-solid fa-users', 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', totalSiswa, 'Siswa', 'Jumlah per modul') +
-      box('Proyek Akhir', 'fa-solid fa-trophy', 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400', capstone, 'Capstone', 'Penutup tiap tahap');
+      box({ key: 'modul', label: 'Total Modul', icon: 'fa-solid fa-cube', tone: 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400', hover: 'hover:border-sky-300 dark:hover:border-sky-500/50', text: 'group-hover:text-sky-600 dark:group-hover:text-sky-400', value: jalur.length, unit: 'Modul', note: `${Object.keys(JENJANG).filter((k) => jalur.some((j) => j.jenjang === k)).length} jenjang`, hint: 'Reset filter', active: false }) +
+      box({ key: 'lab', label: 'Total Code Lab', icon: 'fa-solid fa-code', tone: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400', hover: 'hover:border-indigo-300 dark:hover:border-indigo-500/50', text: 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400', value: totalLab, unit: 'Lab', note: 'Praktikum interaktif', hint: 'Urutkan', active: sortBy === 'lab' }) +
+      box({ key: 'siswa', label: 'Siswa Aktif', icon: 'fa-solid fa-users', tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', hover: 'hover:border-emerald-300 dark:hover:border-emerald-500/50', text: 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400', value: totalSiswa, unit: 'Siswa', note: 'Jumlah per modul', hint: 'Urutkan', active: sortBy === 'siswa' }) +
+      box({ key: 'capstone', label: 'Proyek Akhir', icon: 'fa-solid fa-trophy', tone: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400', hover: 'hover:border-amber-300 dark:hover:border-amber-500/50', text: 'group-hover:text-amber-600 dark:group-hover:text-amber-400', value: capstone, unit: 'Capstone', note: 'Penutup tiap tahap', hint: 'Filter', active: onlyCapstone });
     $('#kurCount').textContent = `${jalur.length} Modul Aktif`;
+    animateStats();
   }
 
   function renderFilter() {
@@ -343,6 +367,7 @@
     renderFilter();
     const q = query.trim().toLowerCase();
     let rows = jalur.filter((j) => (filter === 'all' || j.jenjang === filter) &&
+      (!onlyCapstone || j.capstone) &&
       (!q || [j.nama, j.ringkas, ...(j.tags || [])].join(' ').toLowerCase().includes(q)));
 
     // kelompokkan per jenjang + tahap (urutan tetap, lalu urutkan di dalam grup)
@@ -783,12 +808,14 @@
     $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
     $('#view-codelab').classList.toggle('hidden', name !== 'codelab');
     const vPlugin = $('#view-plugin'); if (vPlugin) vPlugin.classList.toggle('hidden', name !== 'plugin');
+    const vSiswa = $('#view-siswa'); if (vSiswa) vSiswa.classList.toggle('hidden', name !== 'siswa');
     document.querySelectorAll('[data-view]').forEach((a) => {
       const active = a.dataset.view === name;
       a.classList.remove(...(active ? OFF : ON)); a.classList.add(...(active ? ON : OFF));
     });
     if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
-    if (window.innerWidth < 768) $('#sidebar').classList.add('hidden');
+    document.body.classList.remove('sb-open');
+    window.dispatchEvent(new CustomEvent('dc:view', { detail: name }));
   }
 
   document.addEventListener('click', async (e) => {
@@ -824,16 +851,34 @@
         .then(async (ok) => { if (!ok) return; j.materi = j.materi.filter((x) => x.id !== mid); if (!(await api.saveAll(jalur))) return; render(); showToast('Materi dihapus.'); });
       return;
     }
+    const mt = e.target.closest('[data-metric]'); if (mt) return pickMetric(mt.dataset.metric);
     const fl = e.target.closest('[data-filter]'); if (fl) { filter = fl.dataset.filter; render(); }
   });
 
   $('#kurSearch').addEventListener('input', (e) => { query = e.target.value; render(); });
   $('#kurSort').addEventListener('change', (e) => { sortBy = e.target.value; render(); });
+  function pickMetric(key) {
+    if (key === 'modul') { filter = 'all'; query = ''; sortBy = 'default'; onlyCapstone = false; }
+    else if (key === 'lab') sortBy = sortBy === 'lab' ? 'default' : 'lab';
+    else if (key === 'siswa') sortBy = sortBy === 'siswa' ? 'default' : 'siswa';
+    else if (key === 'capstone') onlyCapstone = !onlyCapstone;
+    $('#kurSearch').value = query;
+    $('#kurSort').value = sortBy;
+    render();
+    const g = $('#jalurGrid');
+    if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const mt = e.target.closest && e.target.closest('[data-metric]');
+    if (mt) { e.preventDefault(); pickMetric(mt.dataset.metric); }
+  });
 
   // ---------- INIT ----------
   Promise.all([api.list(), api.listTahap()]).then(([list, tl]) => {
     jalur = list; tahapList = tl; render();
     const h = location.hash.slice(1);
-    showView(['kurikulum', 'tahap', 'codelab', 'plugin'].includes(h) ? h : 'dashboard');
+    showView(['kurikulum', 'tahap', 'codelab', 'plugin', 'siswa'].includes(h) ? h : 'dashboard');
   });
 })();
