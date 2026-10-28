@@ -509,7 +509,12 @@ document.getElementById('globalSearch')?.addEventListener('input', (e) => {
     }
   }, 300);
 });
-
+let toastTimer = null;
+const TOAST_TONE = {
+  success: { badge: 'bg-emerald-100 text-emerald-600', icon: 'fa-solid fa-check' },
+  warning: { badge: 'bg-amber-100 text-amber-600', icon: 'fa-solid fa-triangle-exclamation' },
+  error:   { badge: 'bg-rose-100 text-rose-600', icon: 'fa-solid fa-circle-xmark' },
+};
 // --- 10. Toast Notification Engine ---
 function showToast(message, type) {
   const toast = document.getElementById('toast');
