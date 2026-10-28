@@ -24,3 +24,5 @@ backend/plugin-data/
 # OS / editor
 .DS_Store
 Thumbs.db
+/Admin.zip
+/Admin.zip
