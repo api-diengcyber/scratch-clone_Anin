@@ -75,11 +75,28 @@
     </div>
   </div>`);
 
+  // Gaya cadangan: dipakai kalau /shared/css/materi.css gagal dimuat (404 / server tidak menyajikannya).
+  // Ditaruh SEBELUM link materi.css, jadi kalau file aslinya termuat, gayanya yang menang.
+  const baseCss = `html{-webkit-text-size-adjust:100%}body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b;line-height:1.7;font-size:16px}
+  .container{max-width:860px;margin:0 auto}
+  .header{background:linear-gradient(135deg,#4361ee,#3a0ca3);color:#fff;border-radius:20px;padding:32px 28px;margin-bottom:24px;box-shadow:0 10px 30px -12px rgba(67,97,238,.55)}
+  .header .badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:999px;margin-bottom:12px}
+  .header h1{font-size:30px;line-height:1.25;font-weight:800;margin:0 0 8px;color:inherit}
+  .header p{margin:0;opacity:.9;font-size:15px}
+  .content{padding:0}
+  .content .section-title{font-size:20px;font-weight:800;color:#0f172a;margin:28px 0 12px;padding-left:12px;border-left:4px solid #4361ee}
+  .content .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .content .card p{margin:0 0 8px}.content .card p:last-child{margin-bottom:0}
+  .content ul,.content ol{margin:6px 0;padding-left:22px}
+  .content a{color:#4361ee}
+  .highlight-box{background:#fef9c3;border-left:4px solid #facc15;border-radius:12px;padding:14px 18px;margin:14px 0}
+  .highlight-box p{margin:0}
+  .code-block{background:#0f172a;color:#e2e8f0;font-family:'Fira Code',ui-monospace,Consolas,monospace;font-size:13.5px;line-height:1.65;border-radius:12px;padding:16px 18px;margin:14px 0;white-space:pre-wrap;overflow-x:auto}`;
   const frameCss = `body{margin:0;padding:24px 12px 80px}[contenteditable]:hover{outline:1px dashed #93c5fd;outline-offset:3px}.dce-active{box-shadow:0 0 0 3px #4361ee55!important}.header.dce-active{box-shadow:inset 0 0 0 4px #ffffffaa!important}[data-ph]:empty:before{content:attr(data-ph);opacity:.55}[contenteditable]:focus{outline:2px solid #4361ee;outline-offset:3px}
   .content img,.content video{max-width:100%;border-radius:12px;display:block;margin:10px 0}.file-chip{display:inline-flex;gap:8px;align-items:center;padding:8px 14px;margin:6px 6px 6px 0;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;color:#1e293b;font-size:13px;font-weight:600;text-decoration:none}`;
   const tpl = () => `<!doctype html><html lang="id"><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/css/materi.css"><style>${frameCss}</style></head><body>
+  <style>${baseCss}</style><link rel="stylesheet" href="/shared/css/materi.css"><style>${frameCss}</style></head><body>
   <div class="container"><div class="header"><span class="badge" id="eBadge" data-ph="Label modul" contenteditable="true"></span><h1 id="eJudul" data-ph="Klik untuk menulis judul materi" contenteditable="true"></h1><p id="eSub" data-ph="Ringkasan singkat" contenteditable="true"></p></div>
   <div class="content" id="eBody" contenteditable="true"></div></div></body></html>`;
 
@@ -90,7 +107,7 @@
   // ---------- PRATINJAU TAMPILAN SISWA (hanya baca) ----------
   const pvTpl = (d) => `<!doctype html><html lang="id"><head><meta charset="utf-8"><base target="_blank">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/css/materi.css"><style>${frameCss.split('\n')[1] || ''}body{margin:0;padding:24px 12px 60px}</style></head><body>
+  <style>${baseCss}</style><link rel="stylesheet" href="/shared/css/materi.css"><style>${frameCss.split('\n')[1] || ''}body{margin:0;padding:24px 12px 60px}</style></head><body>
   <div class="container"><div class="header"${d.headerStyle ? ` style="${esc(d.headerStyle)}"` : ''}>${d.badge ? `<span class="badge">${esc(d.badge)}</span>` : ''}<h1>${esc(d.judul || 'Tanpa judul')}</h1>${d.subjudul ? `<p>${esc(d.subjudul)}</p>` : ''}</div>
   <div class="content">${d.html || '<div class="card"><p><em>Materi ini belum punya isi.</em></p></div>'}</div></div></body></html>`;
 
