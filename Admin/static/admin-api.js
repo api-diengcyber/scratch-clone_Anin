@@ -20,7 +20,9 @@
 
   async function request(path, options = {}) {
     const headers = { ...(options.headers || {}) };
+    const raw = options.rawBody !== undefined; // unggah file mentah (ZIP plugin), bukan JSON
     if (options.body !== undefined) headers["Content-Type"] = "application/json";
+    if (raw) headers["Content-Type"] = options.contentType || "application/octet-stream";
     const authToken = token();
     if (authToken) headers.Authorization = "Bearer " + authToken;
 
@@ -29,7 +31,7 @@
       response = await fetch(path, {
         method: options.method || "GET",
         headers,
-        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        body: raw ? options.rawBody : (options.body === undefined ? undefined : JSON.stringify(options.body)),
         cache: "no-store"
       });
     } catch (_) {
@@ -92,6 +94,11 @@
     readAllNotifications: () => request("/api/admin/notifications/read-all", { method: "POST" }),
     clearNotifications: () => request("/api/admin/notifications", { method: "DELETE" }),
     audit: (params = {}) => request("/api/admin/audit" + query(params)),
-    plugins: () => request("/api/admin/plugins")
+    plugins: () => request("/api/admin/plugins"),
+    uploadPlugin: (file) => request("/api/admin/plugins/upload", { method: "POST", rawBody: file, contentType: "application/zip" }),
+    pluginAction: (versionId, action, body = {}) => {
+      if (!["approve", "reject", "publish", "rollback", "disable", "preview-ticket"].includes(action)) throw new Error("Aksi plugin tidak dikenal.");
+      return request("/api/admin/plugins/" + encodeURIComponent(versionId) + "/" + action, { method: "POST", body });
+    }
   });
 })();

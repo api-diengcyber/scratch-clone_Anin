@@ -782,6 +782,7 @@
     $('#view-kurikulum').classList.toggle('hidden', name !== 'kurikulum');
     $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
     $('#view-codelab').classList.toggle('hidden', name !== 'codelab');
+    const vPlugin = $('#view-plugin'); if (vPlugin) vPlugin.classList.toggle('hidden', name !== 'plugin');
     document.querySelectorAll('[data-view]').forEach((a) => {
       const active = a.dataset.view === name;
       a.classList.remove(...(active ? OFF : ON)); a.classList.add(...(active ? ON : OFF));
@@ -833,6 +834,6 @@
   Promise.all([api.list(), api.listTahap()]).then(([list, tl]) => {
     jalur = list; tahapList = tl; render();
     const h = location.hash.slice(1);
-    showView(['kurikulum', 'tahap', 'codelab'].includes(h) ? h : 'dashboard');
+    showView(['kurikulum', 'tahap', 'codelab', 'plugin'].includes(h) ? h : 'dashboard');
   });
 })();
