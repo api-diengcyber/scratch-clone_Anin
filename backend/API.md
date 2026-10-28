@@ -106,10 +106,20 @@ Semua endpoint di bawah wajib role `admin`. Endpoint plugin juga wajib `users.id
 |---|---|---|---|
 | GET | `/api/admin/me` | - | `{ id, username, role, status, mustChangePassword }` |
 | GET | `/api/admin/audit?action=&actor=&targetType=&targetId=&page=&limit=` | - | `{ entries, page, limit, total, pages }`; `details` sudah di-parse |
-| GET | `/api/admin/stats` | - | `{ students, content, plugins, activity, grades, curriculum }` |
+| GET | `/api/admin/stats` | - | `{ students, content, plugins, codelab, activity, grades, curriculum }` |
 | GET | `/api/admin/activity?limit=5` | - | `{ entries: [{ completed_at, task_id, user_id, username, full_name, title, points }] }`; submisi selesai terbaru |
 | GET | `/api/admin/curriculum` | - | `{ exists, curriculum: { tahap, jalur }, version, updatedAt }` |
 | PUT | `/api/admin/curriculum` | `{ version, tahap, jalur }` | `{ exists, curriculum, version, updatedAt }`; `version` untuk optimistic concurrency |
+| GET | `/api/admin/code-lab?search=&grade=&status=&type=` | - | `{ challenges, total }` |
+| GET | `/api/admin/code-lab/:id` | - | `{ challenge }` |
+| POST | `/api/admin/code-lab` | `{ title, type, grade, language, instructions, goal?, blocks?, blockLimit?, starterCode?, tests?, criteria?, status? }` | `{ challenge }` |
+| PATCH | `/api/admin/code-lab/:id` | field yang diubah | `{ challenge }` |
+| DELETE | `/api/admin/code-lab/:id` | - | `{ id }` |
+| GET | `/api/admin/notifications?limit=20` | - | `{ notifications, unreadCount }`; notifikasi milik admin yang login |
+| POST | `/api/admin/notifications/:id/read` | - | `{ id, read, unreadCount }` |
+| POST | `/api/admin/notifications/read-all` | - | `{ updated, unreadCount: 0 }` |
+| DELETE | `/api/admin/notifications` | - | `{ deleted, unreadCount: 0 }` |
+| DELETE | `/api/admin/notifications/:id` | - | `{ id, deleted, unreadCount }` |
 | GET | `/api/admin/users?search=&status=&grade=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student`; `grade` = `SD`, `SMP`, atau `SMK` |
 | GET | `/api/admin/users/:id` | - | `{ user, points, progress, progressRows, items, sessions, activeSessions }` |
 | POST | `/api/admin/users` | `{ username?, email?, fullName?, password?, allowedGrades? }` | `{ id, username, email, allowedGrades, temporaryPassword? }` |
@@ -133,8 +143,23 @@ Perilaku penting:
 - `PUT /api/admin/curriculum` menyimpan seluruh dokumen `tahap` + `jalur` + `materi` secara atomik. Kirim `version` yang didapat dari GET; jika sudah berubah, server membalas `409 CURRICULUM_VERSION_CONFLICT` dengan `details.currentVersion`.
 - HTML materi ditolak bila mengandung `<script>`, `<iframe>`, `<object>`, `<embed>`, event handler inline, `javascript:`, `vbscript:`, `srcdoc`, atau `data:text/html`.
 - Endpoint kurikulum masih khusus Admin. Halaman murid saat ini tetap memakai data statis di `users/kurikulum/data/`; endpoint publik untuk murid belum dibuat.
-- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`).
+- **Code Lab & Blockly** disimpan di tabel `code_lab_challenges`, bukan localStorage. `type` = `blockly` atau `kode`.
+- Blockly wajib `grade: "SD"`, `language: "Blockly"`, `goal`, `blocks` (1-20), dan `blockLimit` (1-50). Blok yang dikenal: `Maju`, `Belok kiri`, `Belok kanan`, `Ulangi`, `Jika`.
+- Soal kode wajib `grade: "SMP"` atau `"SMK"` dan `language`: `HTML/CSS`, `Python`, atau `JavaScript`. `Python`/`JavaScript` wajib punya 1-100 `tests` berisi `{ i, o }`; `HTML/CSS` wajib punya `criteria`.
+- `status` Code Lab = `draft` atau `published`. Hanya `published` yang muncul di endpoint murid.
+- Endpoint murid `GET /api/code-lab` dan `GET /api/code-lab/:id` wajib login. `tests` tidak dikirim ke murid agar jawaban tidak bocor. `GET /api/code-lab/:id` membalas `403 GRADE_FORBIDDEN` bila jenjang tantangan tidak ada di `allowed_grades` murid.
+- Notifikasi admin disimpan di tabel `admin_notifications` per akun admin, sehingga status baca/hapus admin1 tidak memengaruhi admin2. Notifikasi dibuat untuk `student.create`, `progress.complete`, `curriculum.update`, `code_lab.published`, `plugin.upload`, dan `plugin.publish`; `dedupe_key` mencegah duplikasi.
+- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`.
 - Rate limit admin: 60 request/menit per admin per path.
+
+## Code Lab API untuk Murid
+
+Wajib login. Hanya tantangan `published` yang dikembalikan, dan `tests` tidak disertakan.
+
+| Method | Alamat | Hasil |
+|---|---|---|
+| GET | `/api/code-lab?grade=SD\|SMP\|SMK` | `{ challenges, total }` |
+| GET | `/api/code-lab/:id` | `{ challenge }`; `403 GRADE_FORBIDDEN` bila di luar `allowed_grades` |
 
 ## Plugin API (M4–M5)
 

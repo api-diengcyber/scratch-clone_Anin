@@ -30,6 +30,7 @@ const compression = require("compression");
 const db = require("./database");
 const auth = require("./auth");
 const shop = require("./shop-catalog");
+const { notifyAdmins } = require("./notifications");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1248,6 +1249,22 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
         if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
         const result = applyProgress(req.userId, String(taskId), completed);
         if (result.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+        if (completed && result.earned && result.earned.base > 0) {
+            const student = db.prepare("SELECT username, full_name FROM users WHERE id = ?").get(req.userId);
+            const task = db.prepare("SELECT title FROM tasks WHERE task_id = ?").get(String(taskId));
+            if (student && task) {
+                const points = result.earned.base + result.earned.bonus;
+                notifyAdmins(db, {
+                    kind: "progress.complete",
+                    title: `${student.full_name || student.username} menyelesaikan task`,
+                    body: `${task.title} · +${points} poin`,
+                    view: "dashboard",
+                    icon: "fa-solid fa-circle-check",
+                    tone: "emerald",
+                    dedupeKey: `progress.complete:${req.userId}:${taskId}`
+                });
+            }
+        }
         sendApiSuccess(res, { username, taskId: String(taskId), completed, points: result.points, earned: result.earned }, "Progress berhasil disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress:", error);

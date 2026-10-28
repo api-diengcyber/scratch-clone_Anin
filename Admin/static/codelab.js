@@ -1,12 +1,11 @@
-/* Code Lab & Blockly: daftar tantangan + form tantangan baru.
-   Data disimpan di localStorage ('dc-codelab'). Belum ada backend.
+/* Code Lab & Blockly: daftar tantangan + form tantangan.
+   Data disimpan di backend melalui /api/admin/code-lab.
    Soal Blockly (SD) dinilai lewat tujuan; soal kode (SMP, SMA/SMK) dinilai lewat kasus uji. */
 (function () {
-  const KEY = 'dc-codelab';
   const $ = (s, r = document) => r.querySelector(s);
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  const JENJANG = { SD: 'SD', SMP: 'SMP', SMA: 'SMA/SMK' };
+  const JENJANG = { SD: 'SD', SMP: 'SMP', SMK: 'SMA/SMK' };
   const BLOK = ['Maju', 'Belok kiri', 'Belok kanan', 'Ulangi', 'Jika'];
   const TUJUAN = ['Sampai ke bintang', 'Kumpulkan semua koin', 'Gambar sebuah bentuk'];
   const TAG = {
@@ -16,40 +15,68 @@
     'JavaScript': 'bg-violet-50 text-violet-700 border-violet-200/80 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20',
   };
 
-  const blockly = (id, judul, instruksi, tujuan, blok, batas, status, selesai) =>
-    ({ id, judul, jenis: 'blockly', bahasa: 'Blockly', jenjang: 'SD', instruksi, tujuan, blok, batas, status, selesai });
-  const kode = (id, judul, bahasa, jenjang, instruksi, kodeAwal, tes, syarat, status, selesai) =>
-    ({ id, judul, jenis: 'kode', bahasa, jenjang, instruksi, kodeAwal, tes, syarat, status, selesai });
-
-  const SEED = [
-    blockly('s1', 'Robot menuju bintang', 'Bantu robot berjalan ke bintang. Susun blok perintah supaya robot sampai.', 'Sampai ke bintang', ['Maju', 'Belok kiri', 'Belok kanan', 'Ulangi'], 6, 'Terbit', 42),
-    blockly('s2', 'Logika percabangan IF-ELSE', 'Robot harus memilih jalan. Pakai blok Jika supaya robot tidak menabrak dinding.', 'Kumpulkan semua koin', ['Maju', 'Belok kiri', 'Belok kanan', 'Jika'], 8, 'Terbit', 31),
-    kode('s3', 'Membuat kartu profil dengan HTML', 'HTML/CSS', 'SMP', 'Buat kartu profil berisi foto, nama, dan satu paragraf tentang dirimu.', '<!-- tulis HTML kamu di sini -->', [], 'Ada elemen <img>\nAda elemen <h2> berisi nama\nAda minimal satu <p>', 'Terbit', 27),
-    kode('s4', 'Menata tombol dengan Flexbox', 'HTML/CSS', 'SMP', 'Susun tiga tombol sejajar dan rata tengah memakai Flexbox.', '', [], 'Container memakai display: flex\nTombol berjumlah tiga', 'Draf', 0),
-    kode('s5', 'Hitung luas persegi', 'Python', 'SMA', 'Tulis fungsi luas_persegi(sisi) yang mengembalikan luas persegi.', 'def luas_persegi(sisi):\n    # tulis jawabanmu di sini\n    pass', [{ i: '2', o: '4' }, { i: '3', o: '9' }, { i: '5', o: '25' }], '', 'Terbit', 18),
-    kode('s6', 'Cek bilangan prima', 'JavaScript', 'SMA', 'Tulis fungsi isPrima(n) yang mengembalikan true jika n bilangan prima.', 'function isPrima(n) {\n  // tulis jawabanmu di sini\n}', [{ i: '2', o: 'true' }, { i: '9', o: 'false' }, { i: '13', o: 'true' }], '', 'Terbit', 9),
-  ];
-
-  let data = load();
+  let data = [];
   let filter = 'all';
   let q = '';
   let editId = null;
+  let saving = false;
 
-  function load() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(KEY));
-      if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return JSON.parse(JSON.stringify(SEED));
+  function fromApi(c) {
+    return {
+      id: c.id,
+      judul: c.title,
+      jenis: c.type,
+      bahasa: c.language,
+      jenjang: c.grade,
+      instruksi: c.instructions,
+      tujuan: c.goal || '',
+      blok: Array.isArray(c.blocks) ? c.blocks : [],
+      batas: c.blockLimit,
+      kodeAwal: c.starterCode || '',
+      tes: Array.isArray(c.tests) ? c.tests : [],
+      syarat: c.criteria || '',
+      status: c.status,
+      selesai: Number(c.completions || 0),
+    };
   }
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+
+  function toApi(item) {
+    return {
+      title: item.judul,
+      type: item.jenis,
+      grade: item.jenjang,
+      language: item.bahasa,
+      instructions: item.instruksi,
+      goal: item.tujuan || '',
+      blocks: item.blok || [],
+      blockLimit: item.batas,
+      starterCode: item.kodeAwal || '',
+      tests: item.tes || [],
+      criteria: item.syarat || '',
+      status: item.status,
+    };
+  }
+
+  async function loadData() {
+    if (!window.DCAdminApi) {
+      data = [];
+      renderList('API admin belum dimuat. Muat ulang halaman.');
+      return;
+    }
+    try {
+      const result = await window.DCAdminApi.codeLab();
+      data = (result.challenges || []).map(fromApi);
+      renderList();
+    } catch (e) {
+      data = [];
+      renderList(e.message || 'Gagal memuat tantangan dari server.');
+    }
   }
 
   // ---------- DAFTAR ----------
   function renderFilter() {
     const count = (k) => (k === 'all' ? data.length : data.filter((d) => d.jenjang === k).length);
-    const items = [['all', 'Semua Jenjang'], ['SD', 'SD'], ['SMP', 'SMP'], ['SMA', 'SMA/SMK']];
+    const items = [['all', 'Semua Jenjang'], ['SD', 'SD'], ['SMP', 'SMP'], ['SMK', 'SMA/SMK']];
     // gaya disamakan dengan filter di halaman Kurikulum; bobot font dan lebar (w-36) sama supaya semua tombol seragam dan tidak bergeser saat dipilih
     const base = 'shrink-0 w-36 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-2 transition ';
     const on = base + 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25';
@@ -62,10 +89,19 @@
     }).join('');
   }
 
-  function renderList() {
-    const rows = data.filter((d) => (filter === 'all' || d.jenjang === filter) && (!q || d.judul.toLowerCase().includes(q)));
+  function renderList(error) {
     $('#clCount').textContent = data.length + ' Tantangan';
     renderFilter();
+    if (error) {
+      $('#clList').innerHTML = '<div class="px-6 py-14 text-center">' +
+        '<i class="fa-solid fa-triangle-exclamation text-3xl text-rose-300 dark:text-rose-600"></i>' +
+        '<p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-3">Gagal memuat tantangan</p>' +
+        '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">' + esc(error) + '</p>' +
+        '<button type="button" data-cl="reset" class="mt-4 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold">Coba lagi</button>' +
+        '</div>';
+      return;
+    }
+    const rows = data.filter((d) => (filter === 'all' || d.jenjang === filter) && (!q || d.judul.toLowerCase().includes(q)));
     if (!rows.length) {
       $('#clList').innerHTML = '<div class="px-6 py-14 text-center">' +
         '<i class="fa-solid fa-laptop-code text-3xl text-slate-300 dark:text-slate-600"></i>' +
@@ -76,16 +112,16 @@
       return;
     }
     $('#clList').innerHTML = rows.map((d) => {
-      const terbit = d.status === 'Terbit';
+      const terbit = d.status === 'published';
       return '<div class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">' +
         '<div class="flex-1 min-w-0">' +
           '<p class="text-sm font-bold text-slate-900 dark:text-white truncate">' + esc(d.judul) + '</p>' +
-          '<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Jenjang ' + esc(JENJANG[d.jenjang]) + ' · ' + d.selesai + ' siswa selesai</p>' +
+          '<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Jenjang ' + esc(JENJANG[d.jenjang] || d.jenjang) + ' · ' + d.selesai + ' siswa selesai</p>' +
         '</div>' +
         '<span class="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold border ' + (TAG[d.bahasa] || TAG.Python) + '">' + esc(d.bahasa) + '</span>' +
         '<button type="button" data-cl="status" data-id="' + esc(d.id) + '" title="Klik untuk ' + (terbit ? 'jadikan draf' : 'terbitkan') + '" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold border transition ' +
           (terbit ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'
-                  : 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20') + '">' + esc(d.status) + '</button>' +
+                  : 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20') + '">' + (terbit ? 'Terbit' : 'Draf') + '</button>' +
         '<button type="button" data-cl="edit" data-id="' + esc(d.id) + '" aria-label="Ubah ' + esc(d.judul) + '" class="w-8 h-8 rounded-lg text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i class="fa-regular fa-pen-to-square text-xs"></i></button>' +
         '<button type="button" data-cl="del" data-id="' + esc(d.id) + '" aria-label="Hapus ' + esc(d.judul) + '" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i class="fa-regular fa-trash-can text-xs"></i></button>' +
       '</div>';
@@ -142,8 +178,8 @@
           '<p id="clErr" role="alert" class="hidden text-rose-600 dark:text-rose-400 font-medium"></p>' +
           '<div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">' +
             '<button type="button" data-cl="close" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium">Batal</button>' +
-            '<button type="submit" data-status="Draf" class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold">Simpan sebagai draf</button>' +
-            '<button type="submit" data-status="Terbit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-md shadow-sky-600/20 transition">Terbitkan</button>' +
+            '<button type="submit" data-status="draft" class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold">Simpan sebagai draf</button>' +
+            '<button type="submit" data-status="published" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-md shadow-sky-600/20 transition">Terbitkan</button>' +
           '</div>' +
         '</form>' +
       '</div>';
@@ -153,7 +189,7 @@
     $('#clBahasa').addEventListener('change', syncForm);
     m.addEventListener('mousedown', (e) => { if (e.target === m) closeModal(); });
 
-    let clicked = 'Draf';
+    let clicked = 'draft';
     $('#clForm').addEventListener('click', (e) => {
       const b = e.target.closest('button[type="submit"]'); if (b) clicked = b.dataset.status;
     });
@@ -177,8 +213,8 @@
     const bahasa = $('#clBahasa').value;
     const jj = $('#clJenjang');
     const prev = jj.value;
-    jj.innerHTML = isB ? opt('SD', 'SD', true) : opt('SMP', 'SMP') + opt('SMA', 'SMA/SMK');
-    if (!isB && (prev === 'SMP' || prev === 'SMA')) jj.value = prev;
+    jj.innerHTML = isB ? opt('SD', 'SD', true) : opt('SMP', 'SMP') + opt('SMK', 'SMA/SMK');
+    if (!isB && (prev === 'SMP' || prev === 'SMK')) jj.value = prev;
     jj.disabled = isB;
     $('#clBahasaWrap').classList.toggle('hidden', isB);
     $('#clSecBlockly').classList.toggle('hidden', !isB);
@@ -223,7 +259,8 @@
     const e = $('#clErr'); e.textContent = msg; e.classList.remove('hidden');
   }
 
-  function submitForm(status) {
+  async function submitForm(status) {
+    if (saving) return;
     const isB = $('#clJenis').value === 'blockly';
     const judul = $('#clJudul').value.trim();
     const instruksi = $('#clInstruksi').value.trim();
@@ -231,7 +268,7 @@
     if (!instruksi) return fail('Isi instruksi untuk siswa dulu.');
 
     const old = editId ? data.find((x) => x.id === editId) : null;
-    const base = { id: old ? old.id : 'c' + Date.now(), judul, instruksi, status, selesai: old ? old.selesai : 0 };
+    const base = { id: old ? old.id : null, judul, instruksi, status, selesai: old ? old.selesai : 0 };
     let item;
 
     if (isB) {
@@ -258,9 +295,18 @@
       item = { ...base, jenis: 'kode', bahasa, jenjang: $('#clJenjang').value, kodeAwal: $('#clKodeAwal').value, tes, syarat };
     }
 
-    if (old) data[data.indexOf(old)] = item; else data.unshift(item);
-    save(); renderList(); closeModal();
-    showToast(status === 'Terbit' ? 'Tantangan "' + judul + '" diterbitkan' : 'Tantangan "' + judul + '" disimpan sebagai draf');
+    saving = true;
+    try {
+      if (old) await window.DCAdminApi.updateCodeLab(old.id, toApi(item));
+      else await window.DCAdminApi.createCodeLab(toApi(item));
+      await loadData();
+      closeModal();
+      showToast(status === 'published' ? 'Tantangan "' + judul + '" diterbitkan' : 'Tantangan "' + judul + '" disimpan sebagai draf');
+    } catch (e) {
+      fail(e.message || 'Gagal menyimpan tantangan.');
+    } finally {
+      saving = false;
+    }
   }
 
   // ---------- AKSI ----------
@@ -278,9 +324,14 @@
       case 'rmtes': return a.closest('div').remove();
       case 'status': {
         const d = data.find((x) => x.id === id); if (!d) return;
-        d.status = d.status === 'Terbit' ? 'Draf' : 'Terbit';
-        save(); renderList();
-        return showToast(d.status === 'Terbit' ? 'Tantangan diterbitkan' : 'Tantangan dijadikan draf');
+        try {
+          await window.DCAdminApi.updateCodeLab(d.id, { status: d.status === 'published' ? 'draft' : 'published' });
+          await loadData();
+          showToast(d.status === 'published' ? 'Tantangan dijadikan draf' : 'Tantangan diterbitkan');
+        } catch (err) {
+          showToast(err.message || 'Gagal mengubah status tantangan.', 'error');
+        }
+        return;
       }
       case 'del': {
         const d = data.find((x) => x.id === id); if (!d) return;
@@ -290,19 +341,18 @@
           confirmText: 'Hapus', cancelText: 'Batal', tone: 'danger',
         });
         if (!ok) return;
-        data = data.filter((x) => x.id !== id);
-        save(); renderList();
-        return showToast('Tantangan dihapus');
+        try {
+          await window.DCAdminApi.deleteCodeLab(d.id);
+          await loadData();
+          showToast('Tantangan dihapus');
+        } catch (err) {
+          showToast(err.message || 'Gagal menghapus tantangan.', 'error');
+        }
+        return;
       }
       case 'reset': {
-        const ok = await dcConfirm({
-          title: 'Kembalikan data contoh?', message: 'Semua perubahan di daftar tantangan akan diganti dengan data contoh.',
-          confirmText: 'Kembalikan', cancelText: 'Batal', tone: 'warning',
-        });
-        if (!ok) return;
-        data = JSON.parse(JSON.stringify(SEED));
-        save(); renderList();
-        return showToast('Data contoh dikembalikan');
+        await loadData();
+        return showToast('Data tantangan dimuat ulang dari server.');
       }
     }
   });
@@ -315,5 +365,5 @@
   const search = $('#clSearch');
   if (search) search.addEventListener('input', (e) => { q = e.target.value.trim().toLowerCase(); renderList(); });
 
-  renderList();
+  loadData();
 })();

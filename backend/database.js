@@ -140,6 +140,65 @@ db.exec(`
 `);
 
 // ============================================================
+// CODE LAB & BLOCKLY
+// ============================================================
+// Tantangan dikelola Admin. `status` draft/published menentukan apakah
+// tantangan boleh muncul di endpoint murid. Data tes disimpan JSON agar
+// fleksibel, tetapi divalidasi ketat sebelum masuk DB.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS code_lab_challenges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL CHECK (type IN ('blockly', 'kode')),
+        grade TEXT NOT NULL CHECK (grade IN ('SD', 'SMP', 'SMK')),
+        language TEXT NOT NULL,
+        instructions TEXT NOT NULL,
+        goal TEXT NOT NULL DEFAULT '',
+        blocks_json TEXT NOT NULL DEFAULT '[]',
+        block_limit INTEGER,
+        starter_code TEXT NOT NULL DEFAULT '',
+        tests_json TEXT NOT NULL DEFAULT '[]',
+        criteria TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+        completions INTEGER NOT NULL DEFAULT 0 CHECK (completions >= 0),
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(created_by) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_code_lab_status_grade
+        ON code_lab_challenges(status, grade, id DESC);
+`);
+
+// ============================================================
+// NOTIFIKASI ADMIN
+// ============================================================
+// Notifikasi disimpan per admin supaya status baca/hapus tidak saling
+// mengganggu antar akun admin. `dedupe_key` mencegah notifikasi yang sama
+// masuk berulang untuk admin yang sama.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL DEFAULT '',
+        view TEXT NOT NULL DEFAULT 'dashboard',
+        icon TEXT NOT NULL DEFAULT 'fa-solid fa-bell',
+        tone TEXT NOT NULL DEFAULT 'sky',
+        dedupe_key TEXT,
+        read_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_admin_notifications_user
+        ON admin_notifications(user_id, id DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_notifications_dedupe
+        ON admin_notifications(user_id, dedupe_key)
+        WHERE dedupe_key IS NOT NULL AND dedupe_key <> '';
+`);
+
+// ============================================================
 // PLUGIN REGISTRY (M4) — tidak menyajikan file karantina ke publik
 // ============================================================
 db.exec(`

@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { extractZipSafely, sha256, MAX_ZIP_BYTES } = require("./plugin-zip");
+const { notifyAdmins } = require("./notifications");
 
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
@@ -232,6 +233,133 @@ function registerAdminApi(app, deps) {
     return candidate;
   }
 
+  // ------------------------------------------------------------
+  // Code Lab & Blockly.
+  // Semua input divalidasi di server; UI hanya alat bantu. Tantangan
+  // berstatus draft tidak boleh muncul di endpoint murid.
+  // ------------------------------------------------------------
+  const CODE_LAB_BLOCKS = new Set(["Maju", "Belok kiri", "Belok kanan", "Ulangi", "Jika"]);
+  const CODE_LAB_LANGUAGES = new Set(["Blockly", "HTML/CSS", "Python", "JavaScript"]);
+
+  function codeLabError(message, field) {
+    const err = new Error(message);
+    err.code = "CODELAB_INVALID";
+    err.field = field || null;
+    throw err;
+  }
+  function codeLabText(value, field, max, required = false) {
+    if (value === undefined || value === null) {
+      if (required) codeLabError(`${field} wajib diisi.`, field);
+      return "";
+    }
+    if (typeof value !== "string") codeLabError(`${field} harus berupa teks.`, field);
+    const text = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim();
+    if (required && !text) codeLabError(`${field} wajib diisi.`, field);
+    if (text.length > max) codeLabError(`${field} maksimal ${max} karakter.`, field);
+    return text;
+  }
+  function codeLabInteger(value, field, min, max) {
+    const num = typeof value === "number" ? value : Number(value);
+    if (!Number.isInteger(num) || num < min || num > max) {
+      codeLabError(`${field} harus bilangan bulat ${min}-${max}.`, field);
+    }
+    return num;
+  }
+  function codeLabEnum(value, field, allowed) {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (!allowed.includes(text)) codeLabError(`${field} harus salah satu: ${allowed.join(", ")}.`, field);
+    return text;
+  }
+  function codeLabJson(value, fallback) {
+    if (value === undefined || value === null || value === "") return fallback;
+    if (typeof value !== "string") return fallback;
+    try { return JSON.parse(value); } catch { return fallback; }
+  }
+  function normalizeCodeLab(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      codeLabError("Body tantangan harus berupa objek.", "body");
+    }
+    const title = codeLabText(input.title, "title", 200, true);
+    if (title.length < 3) codeLabError("title minimal 3 karakter.", "title");
+    const type = codeLabEnum(input.type, "type", ["blockly", "kode"]);
+    const instructions = codeLabText(input.instructions, "instructions", 20_000, true);
+    const status = codeLabEnum(input.status || "draft", "status", ["draft", "published"]);
+
+    let grade;
+    let language;
+    let goal = "";
+    let blocks = [];
+    let blockLimit = null;
+    let starterCode = "";
+    let tests = [];
+    let criteria = "";
+
+    if (type === "blockly") {
+      grade = "SD";
+      language = "Blockly";
+      goal = codeLabText(input.goal, "goal", 200, true);
+      if (!Array.isArray(input.blocks) || input.blocks.length < 1 || input.blocks.length > 20) {
+        codeLabError("blocks harus berisi 1-20 blok.", "blocks");
+      }
+      blocks = [...new Set(input.blocks.map((block, index) => {
+        const name = codeLabText(block, `blocks[${index}]`, 40, true);
+        if (!CODE_LAB_BLOCKS.has(name)) codeLabError(`blocks[${index}] tidak dikenal.`, `blocks[${index}]`);
+        return name;
+      }))];
+      blockLimit = codeLabInteger(input.blockLimit, "blockLimit", 1, 50);
+    } else {
+      grade = codeLabEnum(input.grade, "grade", ["SMP", "SMK"]);
+      language = codeLabEnum(input.language, "language", ["HTML/CSS", "Python", "JavaScript"]);
+      starterCode = codeLabText(input.starterCode, "starterCode", 50_000);
+      criteria = codeLabText(input.criteria, "criteria", 20_000, language === "HTML/CSS");
+      if (language === "Python" || language === "JavaScript") {
+        if (!Array.isArray(input.tests)) input.tests = [];
+        if (input.tests.length < 1 || input.tests.length > 100) {
+          codeLabError("tests harus berisi 1-100 kasus uji.", "tests");
+        }
+        tests = input.tests.map((test, index) => {
+          if (!test || typeof test !== "object" || Array.isArray(test)) {
+            codeLabError(`tests[${index}] harus objek.`, `tests[${index}]`);
+          }
+          return {
+            i: codeLabText(test.i, `tests[${index}].i`, 2_000, true),
+            o: codeLabText(test.o, `tests[${index}].o`, 2_000, true)
+          };
+        });
+      }
+    }
+
+    return { title, type, grade, language, instructions, goal, blocks, blockLimit, starterCode, tests, criteria, status };
+  }
+  function codeLabRow(row) {
+    const blocks = codeLabJson(row.blocks_json, []);
+    const tests = codeLabJson(row.tests_json, []);
+    return {
+      id: Number(row.id),
+      title: row.title,
+      type: row.type,
+      grade: row.grade,
+      language: row.language,
+      instructions: row.instructions,
+      goal: row.goal || "",
+      blocks: Array.isArray(blocks) ? blocks : [],
+      blockLimit: row.block_limit === null || row.block_limit === undefined ? null : Number(row.block_limit),
+      starterCode: row.starter_code || "",
+      tests: Array.isArray(tests) ? tests : [],
+      criteria: row.criteria || "",
+      status: row.status,
+      completions: Number(row.completions || 0),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
+  function publicCodeLabRow(row) {
+    const item = codeLabRow(row);
+    // Kasus uji tidak dikirim ke murid agar jawaban tidak bocor.
+    delete item.tests;
+    return item;
+  }
+
   function pluginDeveloper(req, res, next) {
     const ids = String(process.env.PLUGIN_DEVELOPER_USER_IDS || "").split(",").map(x => x.trim()).filter(Boolean);
     if (!ids.includes(String(req.userId))) return sendApiError(res, 403, "Upload/review/publish plugin hanya untuk admin developer yang di-allowlist. Set PLUGIN_DEVELOPER_USER_IDS ke users.id tepercaya.", "PLUGIN_DEVELOPER_REQUIRED");
@@ -260,6 +388,64 @@ function registerAdminApi(app, deps) {
     status: req.status,
     mustChangePassword: req.mustChangePassword
   }));
+
+  // Notifikasi lonceng Admin. Data disimpan per admin, bukan localStorage.
+  function notificationDto(row) {
+    return {
+      id: Number(row.id),
+      kind: row.kind,
+      title: row.title,
+      body: row.body || "",
+      view: row.view || "dashboard",
+      icon: row.icon || "fa-solid fa-bell",
+      tone: row.tone || "sky",
+      read: Boolean(row.read_at),
+      readAt: row.read_at || null,
+      createdAt: row.created_at
+    };
+  }
+  function unreadNotificationCount(userId) {
+    return Number(db.prepare("SELECT COUNT(*) AS n FROM admin_notifications WHERE user_id = ? AND read_at IS NULL").get(userId).n || 0);
+  }
+
+  app.get("/api/admin/notifications", (req, res) => {
+    const limitN = Math.max(1, Math.min(100, Number.parseInt(req.query.limit, 10) || 20));
+    const rows = db.prepare(`SELECT id, kind, title, body, view, icon, tone, read_at, created_at
+      FROM admin_notifications WHERE user_id = ? ORDER BY id DESC LIMIT ?`).all(req.userId, limitN);
+    return sendApiSuccess(res, {
+      notifications: rows.map(notificationDto),
+      unreadCount: unreadNotificationCount(req.userId)
+    });
+  });
+
+  app.post("/api/admin/notifications/read-all", (req, res) => {
+    const result = db.prepare("UPDATE admin_notifications SET read_at = CURRENT_TIMESTAMP WHERE user_id = ? AND read_at IS NULL").run(req.userId);
+    return sendApiSuccess(res, { updated: result.changes, unreadCount: 0 }, "Semua notifikasi ditandai sudah dibaca.");
+  });
+
+  app.post("/api/admin/notifications/:id/read", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID notifikasi tidak valid.", "VALIDATION_ERROR");
+    const result = db.prepare("UPDATE admin_notifications SET read_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ? AND read_at IS NULL").run(id, req.userId);
+    if (!result.changes) {
+      const exists = db.prepare("SELECT 1 FROM admin_notifications WHERE id = ? AND user_id = ?").get(id, req.userId);
+      if (!exists) return sendApiError(res, 404, "Notifikasi tidak ditemukan.", "NOT_FOUND");
+    }
+    return sendApiSuccess(res, { id, read: true, unreadCount: unreadNotificationCount(req.userId) }, "Notifikasi ditandai sudah dibaca.");
+  });
+
+  app.delete("/api/admin/notifications", (req, res) => {
+    const result = db.prepare("DELETE FROM admin_notifications WHERE user_id = ?").run(req.userId);
+    return sendApiSuccess(res, { deleted: result.changes, unreadCount: 0 }, "Semua notifikasi dihapus.");
+  });
+
+  app.delete("/api/admin/notifications/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID notifikasi tidak valid.", "VALIDATION_ERROR");
+    const result = db.prepare("DELETE FROM admin_notifications WHERE id = ? AND user_id = ?").run(id, req.userId);
+    if (!result.changes) return sendApiError(res, 404, "Notifikasi tidak ditemukan.", "NOT_FOUND");
+    return sendApiSuccess(res, { id, deleted: 1, unreadCount: unreadNotificationCount(req.userId) }, "Notifikasi dihapus.");
+  });
 
   // M1: audit log admin dengan filter dan pagination.
   app.get("/api/admin/audit", (req, res) => {
@@ -304,6 +490,11 @@ function registerAdminApi(app, deps) {
       SUM(CASE WHEN status = 'quarantine' THEN 1 ELSE 0 END) AS quarantine,
       SUM(CASE WHEN status = 'disabled' THEN 1 ELSE 0 END) AS disabled
       FROM plugins`).get();
+    const codelab = db.prepare(`SELECT COUNT(*) AS total,
+      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published,
+      SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
+      SUM(completions) AS completions
+      FROM code_lab_challenges`).get();
     const activity = db.prepare(`SELECT
       (SELECT COUNT(*) FROM attempts WHERE date(updated_at) = date('now')) AS attemptsToday,
       (SELECT COUNT(*) FROM progress WHERE completed = 1 AND date(completed_at) = date('now')) AS completedToday,
@@ -336,6 +527,7 @@ function registerAdminApi(app, deps) {
         curriculumMaterials: curriculum.materials
       },
       plugins: numbers(plugins),
+      codelab: numbers(codelab),
       activity: numbers(activity),
       grades: numbers(grades),
       curriculum
@@ -400,6 +592,15 @@ function registerAdminApi(app, deps) {
       });
     });
     tx();
+    notifyAdmins(db, {
+      kind: "curriculum.update",
+      title: "Kurikulum diperbarui",
+      body: `Versi ${nextVersion}: ${curriculum.tahap.length} tahap, ${curriculum.jalur.length} jalur.`,
+      view: "kurikulum",
+      icon: "fa-solid fa-book-open",
+      tone: "amber",
+      dedupeKey: `curriculum.update:${nextVersion}`
+    });
     const saved = db.prepare("SELECT updated_at FROM curriculum_documents WHERE id = 'default'").get();
     return sendApiSuccess(res, {
       exists: true,
@@ -407,6 +608,150 @@ function registerAdminApi(app, deps) {
       version: nextVersion,
       updatedAt: saved ? saved.updated_at : null
     }, "Kurikulum disimpan.");
+  });
+
+  // Code Lab Admin: CRUD tantangan. UI memakai endpoint ini, bukan localStorage.
+  app.get("/api/admin/code-lab", (req, res) => {
+    const search = sanitizeString(String(req.query.search || ""), 100);
+    const grade = ["SD", "SMP", "SMK"].includes(String(req.query.grade || "").toUpperCase())
+      ? String(req.query.grade).toUpperCase() : "";
+    const status = ["draft", "published"].includes(String(req.query.status || ""))
+      ? String(req.query.status) : "";
+    const type = ["blockly", "kode"].includes(String(req.query.type || ""))
+      ? String(req.query.type) : "";
+    const where = [];
+    const params = [];
+    if (search) { where.push("(title LIKE ? OR instructions LIKE ?)"); params.push(`%${search}%`, `%${search}%`); }
+    if (grade) { where.push("grade = ?"); params.push(grade); }
+    if (status) { where.push("status = ?"); params.push(status); }
+    if (type) { where.push("type = ?"); params.push(type); }
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const rows = db.prepare(`SELECT * FROM code_lab_challenges ${clause} ORDER BY id DESC LIMIT 500`).all(...params);
+    return sendApiSuccess(res, { challenges: rows.map(codeLabRow), total: rows.length });
+  });
+
+  app.get("/api/admin/code-lab/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID tantangan tidak valid.", "VALIDATION_ERROR");
+    const row = db.prepare("SELECT * FROM code_lab_challenges WHERE id = ?").get(id);
+    if (!row) return sendApiError(res, 404, "Tantangan tidak ditemukan.", "NOT_FOUND");
+    return sendApiSuccess(res, { challenge: codeLabRow(row) });
+  });
+
+  app.post("/api/admin/code-lab", (req, res) => {
+    let item;
+    try { item = normalizeCodeLab(req.body || {}); }
+    catch (e) {
+      if (e.code === "CODELAB_INVALID") return sendApiError(res, 400, e.message, "CODELAB_INVALID", e.field ? { field: e.field } : undefined);
+      throw e;
+    }
+    const info = db.prepare(`INSERT INTO code_lab_challenges
+      (title,type,grade,language,instructions,goal,blocks_json,block_limit,starter_code,tests_json,criteria,status,created_by)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+      item.title, item.type, item.grade, item.language, item.instructions, item.goal,
+      JSON.stringify(item.blocks), item.blockLimit, item.starterCode, JSON.stringify(item.tests),
+      item.criteria, item.status, req.userId
+    );
+    const id = Number(info.lastInsertRowid);
+    audit(req, "code_lab.create", "code_lab", id, { title: item.title, type: item.type, grade: item.grade, status: item.status });
+    if (item.status === "published") {
+      notifyAdmins(db, {
+        kind: "code_lab.published",
+        title: `Code Lab diterbitkan: ${item.title}`,
+        body: `${item.grade} · ${item.language}`,
+        view: "codelab",
+        icon: "fa-solid fa-laptop-code",
+        tone: "emerald",
+        dedupeKey: `code_lab.published:${id}:${Date.now()}`
+      });
+    }
+    const row = db.prepare("SELECT * FROM code_lab_challenges WHERE id = ?").get(id);
+    return sendApiSuccess(res, { challenge: codeLabRow(row) }, "Tantangan berhasil dibuat.", 201);
+  });
+
+  app.patch("/api/admin/code-lab/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID tantangan tidak valid.", "VALIDATION_ERROR");
+    const current = db.prepare("SELECT * FROM code_lab_challenges WHERE id = ?").get(id);
+    if (!current) return sendApiError(res, 404, "Tantangan tidak ditemukan.", "NOT_FOUND");
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return sendApiError(res, 400, "Body tantangan harus berupa objek.", "CODELAB_INVALID", { field: "body" });
+    }
+    let item;
+    try { item = normalizeCodeLab({ ...codeLabRow(current), ...body }); }
+    catch (e) {
+      if (e.code === "CODELAB_INVALID") return sendApiError(res, 400, e.message, "CODELAB_INVALID", e.field ? { field: e.field } : undefined);
+      throw e;
+    }
+    db.prepare(`UPDATE code_lab_challenges SET
+      title=?, type=?, grade=?, language=?, instructions=?, goal=?, blocks_json=?, block_limit=?,
+      starter_code=?, tests_json=?, criteria=?, status=?, updated_at=CURRENT_TIMESTAMP
+      WHERE id=?`).run(
+      item.title, item.type, item.grade, item.language, item.instructions, item.goal,
+      JSON.stringify(item.blocks), item.blockLimit, item.starterCode, JSON.stringify(item.tests),
+      item.criteria, item.status, id
+    );
+    audit(req, "code_lab.update", "code_lab", id, {
+      title: item.title,
+      type: item.type,
+      grade: item.grade,
+      status: item.status,
+      fields: Object.keys(body)
+    });
+    if (item.status === "published" && current.status !== "published") {
+      notifyAdmins(db, {
+        kind: "code_lab.published",
+        title: `Code Lab diterbitkan: ${item.title}`,
+        body: `${item.grade} · ${item.language}`,
+        view: "codelab",
+        icon: "fa-solid fa-laptop-code",
+        tone: "emerald",
+        dedupeKey: `code_lab.published:${id}:${Date.now()}`
+      });
+    }
+    const row = db.prepare("SELECT * FROM code_lab_challenges WHERE id = ?").get(id);
+    return sendApiSuccess(res, { challenge: codeLabRow(row) }, "Tantangan diperbarui.");
+  });
+
+  app.delete("/api/admin/code-lab/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID tantangan tidak valid.", "VALIDATION_ERROR");
+    const row = db.prepare("SELECT * FROM code_lab_challenges WHERE id = ?").get(id);
+    if (!row) return sendApiError(res, 404, "Tantangan tidak ditemukan.", "NOT_FOUND");
+    db.prepare("DELETE FROM code_lab_challenges WHERE id = ?").run(id);
+    audit(req, "code_lab.delete", "code_lab", id, { title: row.title, type: row.type, grade: row.grade });
+    return sendApiSuccess(res, { id }, "Tantangan dihapus.");
+  });
+
+  // Endpoint murid: hanya tantangan published. Kasus uji tidak dikirim.
+  app.get("/api/code-lab", auth.requireAuth, (req, res) => {
+    const grade = ["SD", "SMP", "SMK"].includes(String(req.query.grade || "").toUpperCase())
+      ? String(req.query.grade).toUpperCase() : "";
+    const user = db.prepare("SELECT allowed_grades FROM users WHERE id = ?").get(req.userId);
+    const allowed = jsonAllowedGrades(user && user.allowed_grades);
+    const where = ["status = 'published'"];
+    const params = [];
+    if (grade) { where.push("grade = ?"); params.push(grade); }
+    if (allowed.length) {
+      where.push(`grade IN (${allowed.map(() => "?").join(",")})`);
+      params.push(...allowed);
+    }
+    const rows = db.prepare(`SELECT * FROM code_lab_challenges WHERE ${where.join(" AND ")} ORDER BY id DESC LIMIT 500`).all(...params);
+    return sendApiSuccess(res, { challenges: rows.map(publicCodeLabRow), total: rows.length });
+  });
+
+  app.get("/api/code-lab/:id", auth.requireAuth, (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID tantangan tidak valid.", "VALIDATION_ERROR");
+    const row = db.prepare("SELECT * FROM code_lab_challenges WHERE id = ? AND status = 'published'").get(id);
+    if (!row) return sendApiError(res, 404, "Tantangan tidak ditemukan.", "NOT_FOUND");
+    const user = db.prepare("SELECT allowed_grades FROM users WHERE id = ?").get(req.userId);
+    const allowed = jsonAllowedGrades(user && user.allowed_grades);
+    if (allowed.length && !allowed.includes(row.grade)) {
+      return sendApiError(res, 403, "Tantangan ini tidak tersedia untuk jenjang akunmu.", "GRADE_FORBIDDEN");
+    }
+    return sendApiSuccess(res, { challenge: publicCodeLabRow(row) });
   });
 
   // M3: daftar user student saja. Pencarian dan pagination dibatasi di server.
@@ -477,6 +822,15 @@ function registerAdminApi(app, deps) {
       const id = Number(db.prepare(`INSERT INTO users (username,email,full_name,password_hash,password_salt,role,status,must_change_password,allowed_grades)
         VALUES (?,?,?,?,?,'student','active',1,?)`).run(username, email, fullName, hash, salt, JSON.stringify(allowedGrades)).lastInsertRowid);
       audit(req, "student.create", "user", id, { username, email, allowedGrades, autoUsername: !usernameProvided });
+      notifyAdmins(db, {
+        kind: "student.create",
+        title: `Siswa baru: ${fullName || username}`,
+        body: `${username}${email ? " · " + email : ""}${allowedGrades.length ? " · " + allowedGrades.join("/") : ""}`,
+        view: "dashboard",
+        icon: "fa-solid fa-user-plus",
+        tone: "sky",
+        dedupeKey: `student.create:${id}`
+      });
       return sendApiSuccess(res, { id, username, email, allowedGrades, temporaryPassword: body.password ? undefined : password }, "Murid berhasil dibuat.", 201);
     } catch (e) {
       if (String(e.code || "").startsWith("SQLITE_CONSTRAINT")) return sendApiError(res, 409, "Username/email sudah digunakan.", "DUPLICATE_USER");
@@ -598,6 +952,15 @@ function registerAdminApi(app, deps) {
       throw e;
     }
     fs.writeFileSync(path.join(qDir,"validation-report.json"),JSON.stringify(report,null,2));
+    notifyAdmins(db, {
+      kind: "plugin.upload",
+      title: `Plugin menunggu review: ${m.name}`,
+      body: `${m.id} v${m.version} · ${report.fileCount} file`,
+      view: "dashboard",
+      icon: "fa-solid fa-plug",
+      tone: "amber",
+      dedupeKey: `plugin.upload:${uploadId}`
+    });
     return sendApiSuccess(res,{ uploadId, pluginId:m.id, version:m.version, status:"needs_review", sha256:report.sha256, report },"ZIP masuk karantina dan menunggu review.",201);
   });
 
@@ -647,6 +1010,15 @@ function registerAdminApi(app, deps) {
       audit(req,"plugin.publish","plugin_version",`${v.plugin_id}@${v.version}`,{livePath:`${v.plugin_id}/${v.version}`});
     });
     try{tx();}catch(e){try{fs.rmSync(to,{recursive:true,force:true});}catch{} throw e;}
+    notifyAdmins(db, {
+      kind: "plugin.publish",
+      title: `Plugin dipublikasikan: ${manifest.name || v.plugin_id}`,
+      body: `${v.plugin_id} v${v.version} · ${manifest.category?.name || "Tanpa kategori"}`,
+      view: "dashboard",
+      icon: "fa-solid fa-rocket",
+      tone: "emerald",
+      dedupeKey: `plugin.publish:${v.id}`
+    });
     return sendApiSuccess(res,{id:v.id,status:"published",url:`${process.env.PLUGIN_PUBLIC_ORIGIN || "https://plugins.domain.com"}/${v.plugin_id}/${v.version}/${manifest.entry}`},"Versi plugin dipublikasikan.");
   });
 
