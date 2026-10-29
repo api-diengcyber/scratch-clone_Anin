@@ -278,6 +278,17 @@ npm run create-admin
 CLI meminta username, email opsional, dan password. Role yang dibuat adalah
 `admin`; admin hanya mengelola murid. Simpan `users.id` yang dicetak CLI.
 
+Kalau akunnya sudah ada tetapi masih `student` (mis. hasil migrasi dari mesin
+lain), promosikan tanpa membuat ulang password:
+
+```bash
+cd /opt/dcc/backend
+npm run promote-admin -- admin@diengcyber.local
+```
+
+Perintah ini idempoten dan tidak mengubah password maupun `status`. Pastikan
+akun berstatus `active` setelahnya.
+
 Kalau plugin dipakai:
 
 1. Set `PLUGIN_DIR` ke volume persistent yang sama untuk backend dan runtime.

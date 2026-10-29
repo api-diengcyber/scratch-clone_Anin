@@ -37,6 +37,9 @@ Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habi
 - `username` adalah nama login/display yang **boleh diubah admin**. Rename tidak memindahkan progress, poin, attempt, item, atau sesi karena semuanya memakai `user_id`.
 - Role DB saat ini: `student` dan `admin`. Akun admin dibuat lewat CLI, bukan lewat UI admin:
   `cd backend && npm run create-admin`.
+- Akun yang **sudah ada** bisa dipromosikan tanpa membuat akun baru dan tanpa mengubah password:
+  `cd backend && npm run promote-admin -- admin@diengcyber.local`. Idempoten; menulis audit `admin.promoted.cli`.
+  Status akun tidak diubah otomatis, jadi pastikan `status = active`.
 - Status akun: `active`, `suspended`, `deleted`. Akun suspended/deleted ditolak saat login dan saat memakai token lama.
 - Endpoint lama `/api/progress/:username`, `/api/points/:username`, dan `/api/attempts/:username` masih menerima username untuk kompatibilitas frontend. Otorisasi tetap membandingkan `users.id`; setelah rename, frontend harus memakai username baru (ambil ulang `/api/auth/me`).
 - Akses upload/review/publish plugin memakai allowlist admin developer: `PLUGIN_DEVELOPER_USER_IDS` (daftar `users.id` dipisah koma). Role `superadmin` belum diaktifkan di schema; allowlist ini adalah mekanisme developer untuk MVP.

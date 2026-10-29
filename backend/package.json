@@ -12,6 +12,7 @@
     "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js",
     "test:admin": "node test-admin.js",
     "create-admin": "node create-admin.js",
+    "promote-admin": "node promote-admin.js",
     "start:plugins": "node plugin-runtime-server.js",
     "test:m0-m5": "node test-m0-m5.js"
   },
