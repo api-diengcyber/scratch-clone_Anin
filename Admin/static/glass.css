@@ -1,151 +1,60 @@
 /* ==========================================================================
-   Glass UI: lapisan tampilan untuk mode Day (html.light) dan Night (html.dark).
-   Hanya mengubah warna latar, blur, border, dan bayangan. Tidak menyentuh
-   struktur, JS, atau fitur apa pun. Untuk mematikan seluruhnya, hapus tag
-   <link> ke file ini di index.html.
-
-   Cara menyetel cepat (ubah variabel di bawah):
-   --g-blur     : kekuatan blur kaca (turunkan kalau terasa berat di PC lama)
-   --g-surface  : kepekatan kartu (alpha lebih kecil = lebih bening)
+   Tampilan: latar abu-abu polos, efek kaca (glass) HANYA di header.
+   - Latar halaman : abu-abu polos (tanpa gradasi warna).
+   - Kartu, sidebar, modal, tabel : solid (bawaan Tailwind, tanpa blur).
+   - Header kaca  : bar atas (pencarian) dan header tiap halaman (.page-hero).
+   Ukuran header halaman disamakan dengan banner di Dashboard.
+   Mau ganti abu-abunya? Ubah --bg-grey di bawah.
    ========================================================================== */
 
+html.light, html:not(.dark) {
+  --bg-grey: #e6e9ef;
+  --g-surface: rgba(255, 255, 255, .62);
+  --g-line:    rgba(255, 255, 255, .85);
+  --g-shadow:  0 4px 20px rgba(30, 41, 90, .07), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+html.dark {
+  --bg-grey: #0b1120;
+  --g-surface: rgba(30, 41, 59, .55);
+  --g-line:    rgba(255, 255, 255, .10);
+  --g-shadow:  0 4px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
 :root { --g-blur: 16px; }
 
-/* ---------- Token: DAY ---------- */
-html.light, html:not(.dark) {
-  --g-bg-color: #e9eef8;
-  --g-bg-img:
-    radial-gradient(900px 620px at 8% -8%,  rgba(56, 189, 248, .38), transparent 62%),
-    radial-gradient(820px 600px at 98% 2%,  rgba(167, 139, 250, .32), transparent 62%),
-    radial-gradient(900px 700px at 58% 112%, rgba(251, 146, 60, .24), transparent 62%);
-  --g-surface:        rgba(255, 255, 255, .58);
-  --g-surface-2:      rgba(255, 255, 255, .38);
-  --g-surface-strong: rgba(255, 255, 255, .84);
-  --g-fill:           rgba(100, 116, 139, .11);
-  --g-fill-2:         rgba(100, 116, 139, .06);
-  --g-line:           rgba(148, 163, 184, .30);
-  --g-shadow: 0 8px 30px rgba(30, 41, 90, .08), inset 0 1px 0 rgba(255, 255, 255, .85);
-}
-
-/* ---------- Token: NIGHT ---------- */
-html.dark {
-  --g-bg-color: #070a14;
-  --g-bg-img:
-    radial-gradient(900px 620px at 6% -10%,  rgba(249, 115, 22, .24), transparent 62%),
-    radial-gradient(820px 600px at 100% 0%,  rgba(59, 130, 246, .24), transparent 62%),
-    radial-gradient(900px 700px at 55% 115%, rgba(168, 85, 247, .22), transparent 62%);
-  --g-surface:        rgba(255, 255, 255, .055);
-  --g-surface-2:      rgba(255, 255, 255, .035);
-  --g-surface-strong: rgba(15, 19, 34, .80);
-  --g-fill:           rgba(255, 255, 255, .07);
-  --g-fill-2:         rgba(255, 255, 255, .04);
-  --g-line:           rgba(255, 255, 255, .10);
-  --g-shadow: 0 12px 40px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .07);
-}
-
-/* ==========================================================================
-   LATAR HALAMAN
-   ========================================================================== */
+/* ---------- Latar polos ---------- */
 :where(html.light) body[class],
 html.dark body[class] {
-  background-color: var(--g-bg-color);
-  background-image: var(--g-bg-img);
-  background-attachment: fixed;
-  background-size: cover;
+  background-color: var(--bg-grey);
+  background-image: none;
 }
-
-/* ==========================================================================
-   DAY: permukaan kaca
-   (selector memakai :where(html.light) supaya efek hover bawaan tetap jalan)
-   ========================================================================== */
-:where(html.light) body [class~="bg-white"]:where(:not(.rounded-full)),
-:where(html.light) body [class~="bg-white/90"]:where(:not(.rounded-full)),
-:where(html.light) body [class~="bg-white/80"]:where(:not(.rounded-full)),
-:where(html.light) body [class~="bg-white/70"]:where(:not(.rounded-full)),
-:where(html.light) body [class~="bg-white/60"]:where(:not(.rounded-full)) {
-  background-color: var(--g-surface);
-}
-
-/* isian ringan (input, baris, chip) */
-:where(html.light) body [class~="bg-slate-100"]:where(:not(.rounded-full)),
-:where(html.light) body [class~="bg-slate-100/80"],
-:where(html.light) body [class~="bg-slate-100/70"] { background-color: var(--g-fill); }
-:where(html.light) body [class~="bg-slate-50"],
-:where(html.light) body [class~="bg-slate-50/80"],
-:where(html.light) body [class~="bg-slate-50/70"],
-:where(html.light) body [class~="bg-slate-50/60"] { background-color: var(--g-fill-2); }
-
-/* chip ikon berwarna: pastel jadi bening */
-:where(html.light) body [class~="bg-sky-50"]     { background-color: rgba(14, 165, 233, .12); }
-:where(html.light) body [class~="bg-indigo-50"]  { background-color: rgba(99, 102, 241, .12); }
-:where(html.light) body [class~="bg-emerald-50"] { background-color: rgba(16, 185, 129, .12); }
-:where(html.light) body [class~="bg-amber-50"]   { background-color: rgba(245, 158, 11, .13); }
-:where(html.light) body [class~="bg-rose-50"]    { background-color: rgba(244, 63, 94, .11); }
-
-/* garis pemisah / tepi */
-:where(html.light) body [class*="border-slate-"]:where(:not(input, select, textarea)) { border-color: var(--g-line); }
-:where(html.light) body :is(input, select, textarea)[class*="border-slate-"] { border-color: rgba(148, 163, 184, .45); }
-
-/* ==========================================================================
-   NIGHT: permukaan kaca
-   ========================================================================== */
-html.dark body [class*="dark:bg-slate-900"]  { background-color: var(--g-surface); }
-html.dark body [class*="dark:bg-slate-900/"] { background-color: var(--g-surface-2); }
-html.dark body [class*="dark:bg-slate-800"]  { background-color: var(--g-fill); }
-html.dark body [class*="dark:bg-slate-950"]  { background-color: rgba(0, 0, 0, .28); }
-
-html.dark body [class*="dark:border-slate-"]:where(:not(input, select, textarea)) { border-color: var(--g-line); }
-html.dark body :is(input, select, textarea)[class*="dark:border-slate-"] { border-color: rgba(255, 255, 255, .14); }
-
-/* ==========================================================================
-   BLUR + BAYANGAN (dua mode)
-   ========================================================================== */
-#sidebar,
-body main > header[class],
-body [class~="sticky"],
-body [class*="shadow-card"],
-body [class~="shadow-soft"],
-body [class~="shadow-xl"],
-body [class~="shadow-2xl"],
-:where(html.light) body [class~="rounded-2xl"][class~="bg-white"],
-html.dark body [class~="rounded-2xl"][class*="dark:bg-slate-900"] {
-  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(150%);
-          backdrop-filter: blur(var(--g-blur)) saturate(150%);
-}
-
-/* bayangan kartu (lewat variabel Tailwind, jadi ring aktif & hover tetap jalan) */
-body [class*="shadow-card"],
-body [class~="shadow-soft"] { --tw-shadow: var(--g-shadow); --tw-shadow-colored: var(--g-shadow); }
-
-/* panel modal / dialog: lebih pekat supaya teks tetap terbaca */
-:where(html.light) body [class~="shadow-2xl"]:where([class~="bg-white"]),
-html.dark body [class~="shadow-2xl"][class*="dark:bg-slate-900"] {
-  background-color: var(--g-surface-strong);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-          backdrop-filter: blur(24px) saturate(160%);
-}
-
-/* ==========================================================================
-   KERANGKA: sidebar melayang, area utama transparan, header kaca
-   ========================================================================== */
 :where(html.light) body main[class],
 html.dark body main[class] { background-color: transparent; }
 
+/* ---------- Sidebar: solid, melayang di atas latar abu-abu ---------- */
 @media (min-width: 768px) {
   body #sidebar {
     margin: .75rem 0 .75rem .75rem;
     border-radius: 1.5rem;
-    border: 1px solid var(--g-line);
     position: sticky;
     top: .75rem;
     align-self: flex-start;
     height: calc(100vh - 1.5rem);
-    box-shadow: var(--g-shadow);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 10px 25px -8px rgba(15, 23, 42, .08);
     overflow: hidden;
   }
-  :where(html.light) body #sidebar[class] { background-color: var(--g-surface); }
-  html.dark body #sidebar[class]          { background-color: var(--g-surface); }
+}
 
+/* ==========================================================================
+   HEADER KACA (satu-satunya bagian yang berkaca)
+   ========================================================================== */
+
+/* 1) Bar atas (pencarian, tema, notifikasi) */
+body main > header[class] {
+  background-color: var(--g-surface);
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(150%);
+          backdrop-filter: blur(var(--g-blur)) saturate(150%);
+}
+@media (min-width: 768px) {
   body main > header[class] {
     margin: .75rem 1rem 0;
     border-radius: 1.25rem;
@@ -153,20 +62,132 @@ html.dark body main[class] { background-color: transparent; }
     box-shadow: var(--g-shadow);
   }
 }
-:where(html.light) body main > header[class] { background-color: var(--g-surface); }
-html.dark body main > header[class]          { background-color: var(--g-surface); }
+
+/* 2) Header tiap halaman (Kurikulum, Code Lab, Tahap, Plugin, Siswa).
+      Ukuran = banner Dashboard: padding p-6 / md:p-8, sudut rounded-2xl,
+      judul text-2xl / sm:text-3xl. */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--g-line);
+  background: var(--g-surface);
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(150%);
+          backdrop-filter: blur(var(--g-blur)) saturate(150%);
+  box-shadow: var(--g-shadow);
+}
+@media (min-width: 768px) { .page-hero { padding: 2rem; } }
+.page-hero::before,
+.page-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  pointer-events: none;
+}
+.page-hero::before { top: -3rem; left: -3rem; width: 10rem; height: 10rem; background: rgba(125, 211, 252, .35); }
+.page-hero::after  { bottom: -2.5rem; right: 5rem; width: 12rem; height: 8rem; background: rgba(165, 180, 252, .30); }
+html.dark .page-hero::before { background: rgba(14, 165, 233, .14); }
+html.dark .page-hero::after  { background: rgba(99, 102, 241, .14); }
+.page-hero > * { position: relative; z-index: 1; }
+.page-hero h1 { font-size: 1.5rem; line-height: 2rem; }
+@media (min-width: 640px) { .page-hero h1 { font-size: 1.875rem; line-height: 2.25rem; } }
+.page-hero h1 + p { line-height: 1.625; }
 
 /* ==========================================================================
-   Cadangan jika browser belum mendukung backdrop-filter: naikkan kepekatan
+   KARTU STATISTIK di bawah header (Dashboard, Kurikulum, Siswa, Plugin)
+   Gaya gradien berwarna + lingkaran transparan. Ukuran SAMA di semua halaman.
+   Warna kartu otomatis mengikuti warna ikon di dalamnya
+   (sky, indigo, emerald, amber, rose), jadi tiap kartu beda warna.
+   Ubah ukuran kartu: --sc-height / --sc-pad. Ubah warna: variabel --sc-*.
    ========================================================================== */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  html.light, html:not(.dark) { --g-surface: rgba(255, 255, 255, .88); --g-surface-2: rgba(255, 255, 255, .7); }
-  html.dark { --g-surface: rgba(20, 26, 46, .92); --g-surface-2: rgba(20, 26, 46, .8); }
+:root {
+  --sc-height: 9rem;
+  --sc-pad: 1.25rem;
+  --sc-sky:     linear-gradient(135deg, #5eb0f7 0%, #2f6fe4 100%);
+  --sc-indigo:  linear-gradient(135deg, #b197fc 0%, #6d5ce8 100%);
+  --sc-emerald: linear-gradient(135deg, #3ddbb8 0%, #14b890 100%);
+  --sc-amber:   linear-gradient(135deg, #ffa56b 0%, #ff6b8b 100%);
+  --sc-rose:    linear-gradient(135deg, #ff7a93 0%, #e5365f 100%);
 }
 
-/* Hormati pengaturan pengguna yang meminta transparansi dikurangi */
+/* grid seragam: 1 kolom (HP), 2 kolom (tablet), 4 kolom (desktop) */
+:is(#dashStats, #kurStats, #plStats, #swStats) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+@media (min-width: 560px)  { :is(#dashStats, #kurStats, #plStats, #swStats) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { :is(#dashStats, #kurStats, #plStats, #swStats) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* kartu */
+:is(#dashStats, #kurStats, #plStats, #swStats) > * {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--sc-height);
+  padding: var(--sc-pad);
+  border: 0;
+  border-radius: 1rem;
+  background-image: var(--sc-grad, var(--sc-sky));
+  background-color: transparent;
+  box-shadow: 0 10px 22px -12px rgba(15, 23, 42, .45);
+  text-align: left;
+}
+:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-sky-50)     { --sc-grad: var(--sc-sky); }
+:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-indigo-50)  { --sc-grad: var(--sc-indigo); }
+:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-emerald-50) { --sc-grad: var(--sc-emerald); }
+:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-amber-50)   { --sc-grad: var(--sc-amber); }
+:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-rose-50)    { --sc-grad: var(--sc-rose); }
+
+/* lingkaran transparan sebagai hiasan */
+:is(#dashStats, #kurStats, #plStats, #swStats) > *::before,
+:is(#dashStats, #kurStats, #plStats, #swStats) > *::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, .16);
+  pointer-events: none;
+}
+:is(#dashStats, #kurStats, #plStats, #swStats) > *::before { width: 7.5rem; height: 7.5rem; right: -1.75rem; bottom: -3rem; }
+:is(#dashStats, #kurStats, #plStats, #swStats) > *::after  { width: 5.5rem; height: 5.5rem; right: 1.75rem; top: -3rem; background: rgba(255, 255, 255, .12); }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * > * { position: relative; z-index: 1; }
+
+/* isi kartu: semua teks putih, ukuran seragam */
+:is(#dashStats, #kurStats, #plStats, #swStats) > * * { color: rgba(255, 255, 255, .88); }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * .font-extrabold,
+:is(#dashStats, #kurStats, #plStats, #swStats) > * .font-extrabold * { color: #fff; }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * .font-extrabold { font-size: 1.875rem; line-height: 2.25rem; letter-spacing: -.01em; }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * > div:first-child { margin-bottom: .5rem; align-items: flex-start; }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * > div:first-child > span:first-child { font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * > :last-child { margin-top: auto; padding-top: .5rem; }
+:is(#dashStats, #kurStats, #plStats, #swStats) > * > :last-child,
+:is(#dashStats, #kurStats, #plStats, #swStats) > * > :last-child > * { font-size: .75rem; line-height: 1rem; }
+
+/* ikon di pojok kanan atas: ukuran sama, latar bening */
+:is(#dashStats, #kurStats, #plStats, #swStats) > * .w-7,
+:is(#dashStats, #kurStats, #plStats, #swStats) > * .w-9 {
+  width: 2.25rem; height: 2.25rem; flex-shrink: 0;
+  border-radius: .75rem;
+  background-color: rgba(255, 255, 255, .2);
+  font-size: .875rem;
+}
+
+/* kartu yang sedang aktif sebagai filter (Kurikulum) */
+:is(#dashStats, #kurStats, #plStats, #swStats) > [aria-pressed="true"] {
+  outline: 2px solid rgba(255, 255, 255, .95);
+  outline-offset: -5px;
+}
+
+/* ---------- Cadangan & aksesibilitas ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.light, html:not(.dark) { --g-surface: rgba(255, 255, 255, .9); }
+  html.dark { --g-surface: rgba(20, 26, 46, .92); }
+}
 @media (prefers-reduced-transparency: reduce) {
   :root { --g-blur: 0px; }
-  html.light, html:not(.dark) { --g-surface: rgba(255, 255, 255, .95); }
+  html.light, html:not(.dark) { --g-surface: rgba(255, 255, 255, .96); }
   html.dark { --g-surface: rgba(20, 26, 46, .96); }
 }

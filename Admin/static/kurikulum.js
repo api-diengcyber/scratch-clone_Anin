@@ -282,7 +282,7 @@
           <span class="${m.active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-sky-600 dark:text-sky-400 font-bold transition-opacity">${m.active ? 'Aktif ✕' : m.hint + ' →'}</span>
         </div>
       </div>`;
-    $('#kurStats').innerHTML =
+    (document.getElementById('kurStats') || document.createElement('div')).innerHTML =
       box({ key: 'modul', label: 'Total Modul', icon: 'fa-solid fa-cube', tone: 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400', hover: 'hover:border-sky-300 dark:hover:border-sky-500/50', text: 'group-hover:text-sky-600 dark:group-hover:text-sky-400', value: jalur.length, unit: 'Modul', note: `${Object.keys(JENJANG).filter((k) => jalur.some((j) => j.jenjang === k)).length} jenjang`, hint: 'Reset filter', active: false }) +
       box({ key: 'lab', label: 'Total Code Lab', icon: 'fa-solid fa-code', tone: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400', hover: 'hover:border-indigo-300 dark:hover:border-indigo-500/50', text: 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400', value: totalLab, unit: 'Lab', note: 'Praktikum interaktif', hint: 'Urutkan', active: sortBy === 'lab' }) +
       box({ key: 'siswa', label: 'Siswa Aktif', icon: 'fa-solid fa-users', tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', hover: 'hover:border-emerald-300 dark:hover:border-emerald-500/50', text: 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400', value: totalSiswa, unit: 'Siswa', note: 'Jumlah per modul', hint: 'Urutkan', active: sortBy === 'siswa' }) +
@@ -802,18 +802,29 @@
   // ---------- VIEW SWITCH ----------
   const ON = ['text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold', 'border', 'border-sky-200/80', 'dark:border-sky-500/20'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
-  function showView(name) {
+  // URL bersih: /admin/dashboard, /admin/siswa, dst. (server harus mengarahkan path ini ke index.html)
+  const VIEWS = ['dashboard', 'kurikulum', 'tahap', 'codelab', 'plugin', 'siswa', 'badge', 'tugas', 'pengaturan', 'akses'];
+  const BASE = ((location.pathname.match(/^(.*?\/admin)(?:\/|$)/) || [])[1] || '/admin') + '/';
+  function viewFromUrl() {
+    const seg = location.pathname.slice(BASE.length).split('/')[0];
+    if (VIEWS.includes(seg)) return seg;
+    const h = location.hash.slice(1); // tautan lama: /admin/#siswa
+    return VIEWS.includes(h) ? h : 'dashboard';
+  }
+  function showView(name, mode) {
     $('#view-dashboard').classList.toggle('hidden', name !== 'dashboard');
     $('#view-kurikulum').classList.toggle('hidden', name !== 'kurikulum');
     $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
     $('#view-codelab').classList.toggle('hidden', name !== 'codelab');
     const vPlugin = $('#view-plugin'); if (vPlugin) vPlugin.classList.toggle('hidden', name !== 'plugin');
     const vSiswa = $('#view-siswa'); if (vSiswa) vSiswa.classList.toggle('hidden', name !== 'siswa');
+    ['badge', 'tugas', 'pengaturan', 'akses'].forEach((n) => { const el = $('#view-' + n); if (el) el.classList.toggle('hidden', name !== n); });
     document.querySelectorAll('[data-view]').forEach((a) => {
       const active = a.dataset.view === name;
       a.classList.remove(...(active ? OFF : ON)); a.classList.add(...(active ? ON : OFF));
     });
-    if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+    const target = BASE + name;
+    if (mode !== 'none' && (location.pathname !== target || location.hash)) history[mode === 'replace' ? 'replaceState' : 'pushState'](null, '', target);
     document.body.classList.remove('sb-open');
     window.dispatchEvent(new CustomEvent('dc:view', { detail: name }));
   }
@@ -878,7 +889,8 @@
   // ---------- INIT ----------
   Promise.all([api.list(), api.listTahap()]).then(([list, tl]) => {
     jalur = list; tahapList = tl; render();
-    const h = location.hash.slice(1);
-    showView(['kurikulum', 'tahap', 'codelab', 'plugin', 'siswa'].includes(h) ? h : 'dashboard');
+    showView(viewFromUrl(), 'replace');
+    // tombol back/forward browser
+    window.addEventListener('popstate', () => showView(viewFromUrl(), 'none'));
   });
 })();

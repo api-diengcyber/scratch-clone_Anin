@@ -1185,5 +1185,5 @@
   }
 
   window.addEventListener('dc:view', (e) => { if (e.detail === 'siswa') start(); });
-  if (location.hash === '#siswa' && !view.classList.contains('hidden')) start();
+  if (/\/siswa\/?$/.test(location.pathname) && !view.classList.contains('hidden')) start();
 })();

@@ -19,8 +19,8 @@
 
   <script src="static/tailwind-config.js?v=3"></script>
 
-  <link rel="stylesheet" href="static/admin.css?v=6">
-  <link rel="stylesheet" href="static/glass.css?v=1">
+  <link rel="stylesheet" href="static/admin.css?v=7">
+  <link rel="stylesheet" href="static/glass.css?v=4">
 </head>
 
 <body class="bg-white text-slate-800 dark:bg-[#0b1120] dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
@@ -105,13 +105,13 @@
       </a>
 
       <!-- Tugas, Kuis & Ujian Praktik -->
-      <a href="#" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
+      <a href="#" data-view="tugas" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
         <i class="fa-solid fa-list-check w-4 text-center text-slate-400 group-hover:text-amber-500 text-sm"></i>
         <span>Tugas & Review Kode</span>
       </a>
 
       <!-- Sertifikasi & Poin Belajar -->
-      <a href="#" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
+      <a href="#" data-view="badge" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
         <i class="fa-solid fa-award w-4 text-center text-slate-400 group-hover:text-yellow-500 text-sm"></i>
         <span>Sertifikat & Badges</span>
       </a>
@@ -131,14 +131,14 @@
       </a>
 
 
-      <a href="#" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
+      <a href="#" data-view="pengaturan" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
         <i class="fa-solid fa-sliders w-4 text-center text-slate-400 group-hover:text-sky-500 text-sm"></i>
         <span>Pengaturan Instansi</span>
       </a>
 
-      <a href="#" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
+      <a href="#" data-view="akses" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
         <i class="fa-solid fa-shield-halved w-4 text-center text-slate-400 group-hover:text-emerald-500 text-sm"></i>
-        <span>Akses & Hak Instruktur</span>
+        <span>Akses & Hak Pengguna</span>
       </a>
 
     </div>
@@ -146,14 +146,14 @@
     <!-- User / Admin Profile Footer Box -->
     <div id="sidebarFoot" class="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
       <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
-        <div class="w-9 h-9 rounded-lg bg-sky-600/20 text-sky-600 dark:text-sky-400 ring-2 ring-sky-500/30 flex items-center justify-center font-mono font-bold text-sm" aria-label="Avatar Admin">DC</div>
+        <div class="w-9 h-9 rounded-lg bg-sky-600/20 text-sky-600 dark:text-sky-400 ring-2 ring-sky-500/30 flex items-center justify-center font-mono font-bold text-sm" aria-label="Avatar Admin" id="sidebarAvatar">..</div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-bold text-slate-900 dark:text-white truncate">Nurul Hidayah</p>
+          <p id="sidebarName" class="text-xs font-bold text-slate-900 dark:text-white truncate">Memuat...</p>
           <span class="text-[11px] font-mono text-sky-600 dark:text-sky-400 font-medium flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Lead Tutor
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> <span id="sidebarRole" class="truncate">Administrator</span>
           </span>
         </div>
-        <button title="Keluar Akun" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition p-1.5">
+        <button id="btnLogout" type="button" title="Keluar Akun" aria-label="Keluar Akun" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition p-1.5">
           <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
         </button>
       </div>
@@ -251,7 +251,7 @@
       </div>
 
       <!-- Quick Metrics Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+      <div id="dashStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         
         <!-- Metric 1: Total Siswa -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft hover:shadow-soft-hover transition-all">
@@ -488,10 +488,7 @@
     <!-- View: Modul & Kurikulum -->
     <div id="view-kurikulum" class="hidden p-4 md:p-8 space-y-6">
 
-      <div class="relative overflow-hidden rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-white/80 dark:border-slate-700/60 p-5 sm:p-6 shadow-card">
-        <div class="absolute -top-12 -left-12 w-40 h-40 bg-sky-200/30 dark:bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute -bottom-10 right-20 w-48 h-32 bg-blue-200/25 dark:bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
+      <div class="page-hero">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
@@ -523,8 +520,6 @@
           </div>
         </div>
       </div>
-
-      <div id="kurStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4"></div>
 
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card">
         <div id="jalurFilter" class="flex items-center gap-1.5 overflow-x-auto p-0.5"></div>
@@ -601,6 +596,12 @@
 
     <!-- View: Manajemen Siswa (diisi static/siswa.js) -->
     <div id="view-siswa" class="hidden p-4 md:p-8 space-y-6"></div>
+
+    <!-- View: Badge & Tugas -->
+    <div id="view-badge" class="hidden p-4 md:p-8 space-y-6"></div>
+    <div id="view-tugas" class="hidden p-4 md:p-8 space-y-6"></div>
+    <div id="view-pengaturan" class="hidden p-4 md:p-8 space-y-6"></div>
+    <div id="view-akses" class="hidden p-4 md:p-8 space-y-6"></div>
   </main>
 
   <!-- Modal 1: Tambah Materi Coding Baru -->
@@ -856,14 +857,16 @@
     <span id="toastMessage" class="leading-snug">Operasi berhasil dijalankan!</span>
   </div>
 <!-- Javascript Logic -->
-<script src="static/admin-api.js?v=3"></script>
+<script src="static/admin-api.js?v=4"></script>
 <script src="static/admin.js?v=12"></script>
 <script src="static/dialog.js?v=1"></script>
 <script src="static/editor.js?v=11"></script>
-<script src="static/kurikulum.js?v=17"></script>
+<script src="static/kurikulum.js?v=20"></script>
 <script src="static/plugins.js?v=1"></script>
    <script src="static/codelab.js?v=2"></script>
-   <script src="static/siswa.js?v=2"></script>
+   <script src="static/siswa.js?v=3"></script>
+   <script src="static/badge-tugas.js?v=4"></script>
+   <script src="static/pengaturan-akses.js?v=7"></script>
    </body>
 
 </body>

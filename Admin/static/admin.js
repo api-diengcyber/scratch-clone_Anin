@@ -639,17 +639,8 @@ async function loadNotif() {
   renderNotif();
   try {
     const data = await window.DCAdminApi.notifications(20);
-    const fetched = Array.isArray(data.notifications) ? data.notifications : [];
-    // Jangan timpa status baca yang baru diubah lokal oleh respons fetch yang telat.
-    const locallyRead = new Set(notifState.items.filter((n) => n.read).map((n) => Number(n.id)));
-    let unread = Number(data.unreadCount) || 0;
-    for (const n of fetched) {
-      if (!n.read && locallyRead.has(Number(n.id))) unread -= 1;
-    }
-    notifState.items = fetched.map((n) => (
-      locallyRead.has(Number(n.id)) ? { ...n, read: true } : n
-    ));
-    notifState.unread = Math.max(0, unread);
+    notifState.items = Array.isArray(data.notifications) ? data.notifications : [];
+    notifState.unread = Number(data.unreadCount) || 0;
   } catch (error) {
     if (error.status !== 401) console.warn('Gagal memuat notifikasi:', error.message);
     notifState.items = [];
@@ -730,6 +721,44 @@ function setNotifOpen(open) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setNotifOpen(false); });
 })();
 
+// --- 10b. Akun admin di sidebar & tombol keluar ---
+function renderSidebarAccount(me) {
+  const u = (me && me.user) ? me.user : (me || {});
+  const name = u.full_name || u.fullName || u.name || u.username || (u.email ? String(u.email).split('@')[0] : 'Admin');
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  const initials = ((parts[0] || 'A')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+  const nameEl = document.getElementById('sidebarName');
+  const roleEl = document.getElementById('sidebarRole');
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (nameEl) { nameEl.textContent = name; nameEl.title = u.email ? name + ' (' + u.email + ')' : name; }
+  if (roleEl) roleEl.textContent = 'Administrator';
+  if (avatarEl) avatarEl.textContent = initials;
+}
+
+(function initLogout() {
+  const btn = document.getElementById('btnLogout');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    let ok = true;
+    if (typeof window.dcConfirm === 'function') {
+      ok = await window.dcConfirm({
+        title: 'Keluar dari akun?',
+        message: 'Kamu akan dibawa ke halaman login.',
+        confirmText: 'Keluar',
+        cancelText: 'Batal',
+        tone: 'warning'
+      });
+    }
+    if (!ok) return;
+    if (window.DCAdminApi && window.DCAdminApi.logout) {
+      window.DCAdminApi.logout();
+    } else {
+      ['authToken', 'isLoggedIn', 'username', 'email', 'scratch_user'].forEach((k) => { try { localStorage.removeItem(k); } catch (_) {} });
+      location.replace('/index.html');
+    }
+  });
+})();
+
 // --- 11. Auth guard & initial load ---
 // Pull frontend sempat menghapus blok ini; tanpa initAdmin, loadDashboard()
 // tidak pernah dipanggil dan kartu statistik terus menampilkan "Memuat".
@@ -747,6 +776,7 @@ function setNotifOpen(open) {
     }
     adminState.me = me;
     window.DCAdminMe = me;
+    renderSidebarAccount(me);
     await loadDashboard();
   } catch (error) {
     if (error.status === 403) {

@@ -71,6 +71,7 @@
 
   window.DCAdminApi = Object.freeze({
     request,
+    logout: () => { clearAuth(); location.replace("/index.html"); },
     me: () => request("/api/admin/me"),
     stats: () => request("/api/admin/stats"),
     activity: (limit = 5) => request("/api/admin/activity?limit=" + encodeURIComponent(limit)),
