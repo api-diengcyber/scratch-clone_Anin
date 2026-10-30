@@ -92,7 +92,7 @@ if (!existingUserColumns.includes("equipped_title")) {
     db.exec("ALTER TABLE users ADD COLUMN equipped_title TEXT");
 }
 if (!existingUserColumns.includes("role")) {
-    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin'))");
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin', 'instruktur', 'ortu'))");
 }
 if (!existingUserColumns.includes("status")) {
     db.exec("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'deleted'))");
@@ -103,6 +103,73 @@ if (!existingUserColumns.includes("must_change_password")) {
 if (!existingUserColumns.includes("last_login_at")) {
     db.exec("ALTER TABLE users ADD COLUMN last_login_at DATETIME");
 }
+
+// ============================================================
+// MIGRASI NILAI ROLE
+// ============================================================
+// SQLite tidak bisa mengubah CHECK lewat ALTER TABLE, jadi tabel users
+// dibangun ulang dengan definisi role yang baru. `id` dipertahankan sehingga
+// relasi tabel anak (sessions, progress, points, dst.) tetap utuh.
+(function migrateUserRoles() {
+    const table = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
+    if (!table || !table.sql || table.sql.includes("'instruktur'")) return;
+
+    db.pragma("foreign_keys = OFF");
+    try {
+        db.transaction(() => {
+            db.exec(`
+                CREATE TABLE users_role_migration (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    password_hash TEXT,
+                    password_salt TEXT,
+                    email TEXT,
+                    firebase_uid TEXT,
+                    allowed_grades TEXT,
+                    full_name TEXT,
+                    bio TEXT,
+                    avatar_url TEXT,
+                    equipped_frame TEXT,
+                    equipped_title TEXT,
+                    role TEXT NOT NULL DEFAULT 'student'
+                        CHECK (role IN ('student', 'admin', 'instruktur', 'ortu')),
+                    status TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active', 'suspended', 'deleted')),
+                    must_change_password INTEGER NOT NULL DEFAULT 0
+                        CHECK (must_change_password IN (0, 1)),
+                    last_login_at DATETIME
+                )
+            `);
+            db.exec(`
+                INSERT INTO users_role_migration
+                    (id, username, created_at, password_hash, password_salt, email, firebase_uid,
+                     allowed_grades, full_name, bio, avatar_url, equipped_frame, equipped_title,
+                     role, status, must_change_password, last_login_at)
+                SELECT id, username, created_at, password_hash, password_salt, email, firebase_uid,
+                     allowed_grades, full_name, bio, avatar_url, equipped_frame, equipped_title,
+                     role, status, must_change_password, last_login_at
+                FROM users
+            `);
+            db.exec("DROP TABLE users");
+            db.exec("ALTER TABLE users_role_migration RENAME TO users");
+            db.exec(`
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique
+                    ON users(email COLLATE NOCASE)
+                    WHERE email IS NOT NULL AND email <> '';
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid_unique
+                    ON users(firebase_uid)
+                    WHERE firebase_uid IS NOT NULL AND firebase_uid <> '';
+            `);
+        })();
+    } finally {
+        db.pragma("foreign_keys = ON");
+    }
+
+    const broken = db.prepare("PRAGMA foreign_key_check").all();
+    if (broken.length) throw new Error("Migrasi role users meninggalkan relasi yang rusak.");
+    console.log("[MIGRASI] Role users diperluas: student, admin, instruktur, ortu.");
+})();
 
 // ============================================================
 // ADMIN AUDIT
@@ -196,6 +263,93 @@ db.exec(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_notifications_dedupe
         ON admin_notifications(user_id, dedupe_key)
         WHERE dedupe_key IS NOT NULL AND dedupe_key <> '';
+`);
+
+// ============================================================
+// BADGE, TUGAS, PENGUMPULAN, PENGATURAN INSTANSI
+// ============================================================
+// Badge dan tugas di sini adalah fitur Admin (penghargaan & penugasan),
+// terpisah dari tabel `tasks` yang menyimpan langkah materi kurikulum.
+// Semua data disimpan di SQLite supaya tidak hilang saat browser dibersihkan.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_badges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        icon TEXT NOT NULL DEFAULT 'fa-star',
+        color TEXT NOT NULL DEFAULT 'sky' CHECK (color IN ('sky', 'indigo', 'emerald', 'amber', 'rose')),
+        rule TEXT NOT NULL DEFAULT 'manual' CHECK (rule IN ('manual', 'tasks', 'points')),
+        threshold INTEGER NOT NULL DEFAULT 0 CHECK (threshold >= 0),
+        active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_badges_name
+        ON admin_badges(name COLLATE NOCASE);
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        grade TEXT NOT NULL CHECK (grade IN ('SD', 'SMP', 'SMK')),
+        type TEXT NOT NULL CHECK (type IN ('kode', 'proyek', 'kuis')),
+        points INTEGER NOT NULL DEFAULT 0 CHECK (points >= 0 AND points <= 1000),
+        due TEXT,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'terbit', 'ditutup')),
+        badge_id INTEGER,
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(badge_id) REFERENCES admin_badges(id) ON DELETE SET NULL,
+        FOREIGN KEY(created_by) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_admin_tasks_status_grade
+        ON admin_tasks(status, grade, id DESC);
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_task_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        answer TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'dikumpulkan' CHECK (status IN ('dikumpulkan', 'revisi', 'dinilai')),
+        score INTEGER CHECK (score IS NULL OR (score >= 0 AND score <= 100)),
+        feedback TEXT NOT NULL DEFAULT '',
+        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        graded_at DATETIME,
+        UNIQUE(task_id, user_id),
+        FOREIGN KEY(task_id) REFERENCES admin_tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_admin_task_submissions_task
+        ON admin_task_submissions(task_id, status);
+    CREATE INDEX IF NOT EXISTS idx_admin_task_submissions_user
+        ON admin_task_submissions(user_id);
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_settings (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        payload_json TEXT NOT NULL DEFAULT '{}',
+        updated_by INTEGER,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(updated_by) REFERENCES users(id)
+    );
+`);
+
+// Hak akses per peran (permission matrix): fitur mana yang bisa dipakai
+// tiap peran. Disimpan agar perubahan dari Admin UI bersifat server-side.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_role_permissions (
+        role TEXT PRIMARY KEY CHECK (role IN ('admin', 'instruktur', 'siswa', 'ortu')),
+        permissions TEXT NOT NULL DEFAULT '[]',
+        updated_by INTEGER,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(updated_by) REFERENCES users(id)
+    );
 `);
 
 // ============================================================

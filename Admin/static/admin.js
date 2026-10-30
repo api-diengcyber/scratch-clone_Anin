@@ -639,8 +639,17 @@ async function loadNotif() {
   renderNotif();
   try {
     const data = await window.DCAdminApi.notifications(20);
-    notifState.items = Array.isArray(data.notifications) ? data.notifications : [];
-    notifState.unread = Number(data.unreadCount) || 0;
+    const fetched = Array.isArray(data.notifications) ? data.notifications : [];
+    // Jangan timpa status baca yang baru diubah lokal oleh respons fetch yang telat.
+    const locallyRead = new Set(notifState.items.filter((n) => n.read).map((n) => Number(n.id)));
+    let unread = Number(data.unreadCount) || 0;
+    for (const n of fetched) {
+      if (!n.read && locallyRead.has(Number(n.id))) unread -= 1;
+    }
+    notifState.items = fetched.map((n) => (
+      locallyRead.has(Number(n.id)) ? { ...n, read: true } : n
+    ));
+    notifState.unread = Math.max(0, unread);
   } catch (error) {
     if (error.status !== 401) console.warn('Gagal memuat notifikasi:', error.message);
     notifState.items = [];
@@ -780,6 +789,10 @@ function renderSidebarAccount(me) {
     await loadDashboard();
   } catch (error) {
     if (error.status === 403) {
+      if (error.code === 'PASSWORD_CHANGE_REQUIRED') {
+        location.replace('/ganti-password.html');
+        return;
+      }
       showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
       setTimeout(() => location.replace('/dashboard.html'), 1200);
     } else if (error.status !== 401) {

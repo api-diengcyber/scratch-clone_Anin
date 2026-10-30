@@ -134,7 +134,6 @@
         <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono">
           <span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">${esc(ruleText(b))}</span>
           <span class="px-2 py-0.5 rounded-full border ${b.active ? STATUS.terbit[1] : STATUS.draft[1]}">${b.active ? 'Aktif' : 'Nonaktif'}</span>
-          <span class="text-slate-400"><i class="fa-solid fa-user-graduate mr-1"></i>${Number(b.awarded || 0)} siswa</span>
         </div>
         <div class="flex justify-end gap-1 mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
           <button type="button" data-b="edit" data-id="${b.id}" class="${BTN_GHOST}" title="Ubah"><i class="fa-solid fa-pen text-xs"></i></button>
