@@ -10,7 +10,7 @@
   if (!vBadge || !vTugas) return;
 
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const toast = (m, t) => (window.showToast ? window.showToast(m, t) : alert(m));
+  const toast = (m, t) => (window.showToast ? window.showToast(m, t) : console.warn(m));
   const $ = (s, r = document) => r.querySelector(s);
 
   const INPUT = 'w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40';
