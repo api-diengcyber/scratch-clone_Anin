@@ -10,8 +10,14 @@
   if (!view) return;
   // MODE DATA: false = data contoh di browser (localStorage), true = backend (DCAdminApi).
   // Bentuk respons LocalStore sengaja sama dengan API asli, jadi cukup ubah flag ini setelah backend siap.
-  const USE_BACKEND = false;
-  const api = () => (USE_BACKEND ? window.DCAdminApi : LocalStore);
+  let USE_BACKEND = true; // otomatis: coba server dulu, pindah ke data contoh bila endpoint belum ada
+  const api = () => new Proxy({}, { get: (_, name) => async (...args) => {
+    if (USE_BACKEND) {
+      try { return await window.DCAdminApi[name](...args); }
+      catch (e) { if (![0, 404, 405, 501].includes(e && e.status)) throw e; USE_BACKEND = false; }
+    }
+    return LocalStore[name](...args);
+  } });
   const esc = escHtml; // helper global dari admin.js
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));

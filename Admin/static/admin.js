@@ -454,7 +454,7 @@ async function handleStudentSubmit(e) {
     form.reset();
     adminState.page = 1;
     if (result.temporaryPassword) {
-      alert(`Siswa berhasil dibuat.\n\nUsername: ${result.username}\nPassword sementara: ${result.temporaryPassword}\n\nMinta siswa mengganti password setelah login.`);
+      window.dcShowCredentials(result.username, result.temporaryPassword);
     } else {
       showToast(`Siswa ${result.username} berhasil dibuat.`);
     }
