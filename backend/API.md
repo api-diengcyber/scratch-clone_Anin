@@ -28,7 +28,6 @@ Catatan auth:
 - Akun Firebase (punya `email`/`firebase_uid` tetapi belum punya password) **tidak bisa diklaim lewat login biasa**. Pemilik harus login lewat Firebase dulu, lalu memanggil `POST /api/auth/change-password` untuk mengatur password DB.
 - `POST /api/auth/change-password` mewajibkan `currentPassword` bila akun sudah punya password. Sesi di perangkat lain otomatis dicabut; sesi yang sedang dipakai tetap aktif.
 - Profil (`PUT /api/profile`) juga menerima `email`; email yang sudah dipakai akun lain ditolak `409 EMAIL_EXISTS`.
-- Masa sesi login (`sessionHours`) dan password minimum (`minPassword`) diambil dari pengaturan instansi yang disimpan lewat `PUT /api/admin/settings`; default backend: sesi 12 jam, password minimal 8 karakter. Login/register/firebase-register membuat sesi dengan TTL sesuai pengaturan; `POST /api/auth/change-password` memakai batas password minimum yang sama.
 
 Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habis, `403` akun suspended/deleted atau membuka data user lain, `409` email/username sudah terdaftar, `429` terlalu banyak percobaan.
 
@@ -36,7 +35,7 @@ Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habi
 
 - Identitas kanonis adalah `users.id`. Tabel `sessions`, `progress`, `points`, `attempts`, dan `user_items` memakai `user_id` dengan FK ke `users(id)`.
 - `username` adalah nama login/display yang **boleh diubah admin**. Rename tidak memindahkan progress, poin, attempt, item, atau sesi karena semuanya memakai `user_id`.
-- Role DB saat ini: `student`, `admin`, `instruktur`, dan `ortu`. Akun admin dibuat lewat CLI, bukan lewat UI admin:
+- Role DB saat ini: `student` dan `admin`. Akun admin dibuat lewat CLI, bukan lewat UI admin:
   `cd backend && npm run create-admin`.
 - Akun yang **sudah ada** bisa dipromosikan tanpa membuat akun baru dan tanpa mengubah password:
   `cd backend && npm run promote-admin -- admin@diengcyber.local`. Idempoten; menulis audit `admin.promoted.cli`.
@@ -104,13 +103,11 @@ Aturan:
 
 ## Admin API
 
-Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permission per fitur lewat matriks `admin_role_permissions`; `admin` selalu punya semua). Endpoint plugin juga wajib `users.id` admin ada di `PLUGIN_DEVELOPER_USER_IDS`.
+Semua endpoint di bawah wajib role `admin`. Endpoint plugin juga wajib `users.id` admin ada di `PLUGIN_DEVELOPER_USER_IDS`.
 
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
-| GET | `/api/admin/me` | - | `{ id, username, fullName, email, role, status, mustChangePassword, permissions }` |
-| GET | `/api/admin/roles` | - | `{ roles: { admin, instruktur, siswa, ortu } }`; permission array tiap peran |
-| PUT | `/api/admin/roles` | `{ roles: { admin?, instruktur?, siswa?, ortu? } }` | `{ roles }`; permission wajib dikenal; admin selalu semua; hanya admin yang boleh menulis |
+| GET | `/api/admin/me` | - | `{ id, username, role, status, mustChangePassword }` |
 | GET | `/api/admin/audit?action=&actor=&targetType=&targetId=&page=&limit=` | - | `{ entries, page, limit, total, pages }`; `details` sudah di-parse |
 | GET | `/api/admin/stats` | - | `{ students, content, plugins, codelab, activity, grades, curriculum }` |
 | GET | `/api/admin/activity?limit=5` | - | `{ entries: [{ completed_at, task_id, user_id, username, full_name, title, points }] }`; submisi selesai terbaru |
@@ -126,18 +123,6 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/notifications/read-all` | - | `{ updated, unreadCount: 0 }` |
 | DELETE | `/api/admin/notifications` | - | `{ deleted, unreadCount: 0 }` |
 | DELETE | `/api/admin/notifications/:id` | - | `{ id, deleted, unreadCount }` |
-| GET | `/api/admin/badges` | - | `{ items, total }`; `rule` = `manual`, `tasks`, atau `points` |
-| POST | `/api/admin/badges` | `{ name, description?, icon?, color?, rule?, threshold?, active? }` | `{ item }`; nama unik (409 `BADGE_NAME_EXISTS`) |
-| PATCH | `/api/admin/badges/:id` | field yang diubah | `{ item }` |
-| DELETE | `/api/admin/badges/:id` | - | `{ id }`; badge otomatis dilepas dari tugas |
-| GET | `/api/admin/tasks?search=&grade=&status=` | - | `{ items, total }`; tiap item memuat `submitted` dan `pending` |
-| POST | `/api/admin/tasks` | `{ title, description?, grade, type, points?, due, status?, badgeId? }` | `{ item }` |
-| PATCH | `/api/admin/tasks/:id` | field yang diubah | `{ item }` |
-| DELETE | `/api/admin/tasks/:id` | - | `{ id }`; pengumpulan ikut terhapus |
-| GET | `/api/admin/tasks/:id/submissions` | - | `{ items, total }`; berisi `student_id`, `student_name`, `status`, `answer`, `score`, `feedback` |
-| PATCH | `/api/admin/submissions/:id` | `{ status, score?, feedback? }` | `{ item }`; `status` = `revisi` atau `dinilai` |
-| GET | `/api/admin/settings` | - | `{ settings, updatedAt }` |
-| PUT | `/api/admin/settings` | `{ settings }` | `{ settings }` |
 | GET | `/api/admin/users?search=&status=&grade=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student`; `grade` = `SD`, `SMP`, atau `SMK` |
 | GET | `/api/admin/users/:id` | - | `{ user, points, progress, progressRows, items, sessions, activeSessions }` |
 | POST | `/api/admin/users` | `{ username?, email?, fullName?, password?, allowedGrades? }` | `{ id, username, email, allowedGrades, temporaryPassword? }` |
@@ -146,15 +131,8 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/users/:id/suspend` | `{}` atau `{ status: "active" }` | `{ id, status }` |
 | POST | `/api/admin/users/:id/revoke-sessions` | - | `{ revoked }` |
 | DELETE | `/api/admin/users/:id` | - | soft delete `{ id, status: "deleted" }` |
-| GET | `/api/admin/instructors?limit=500` | - | `{ items, total }`; `{ id, username, name, email, role, grades, active }`; `role` = `admin`, `instruktur`, `siswa`, atau `ortu`; hanya akun non-deleted |
-| POST | `/api/admin/instructors` | `{ name, email, role, grades, password?, active }` | `{ item, temporaryPassword? }` | 201; `must_change_password = 1`; `password` default dibuat otomatis |
-| PATCH | `/api/admin/instructors/:id` | `{ name?, email?, role?, grades?, active? }` | `{ item }` | boleh diubah kecuali akun sendiri; admin tidak bisa diubah oleh instruktur |
 
 Perilaku penting:
-
-- Semua endpoint admin (termasuk `/api/admin/roles` dan `/api/admin/instructors`) diblokir instruktur kecuali memilikikan permission dari matriks `admin_role_permissions`; `admin` selalu punya semua. Penolakan memakai kode `PERMISSION_DENIED`. Mutasi berat (`PUT /roles`) hanya boleh admin.
-- Peran yang didukung: `student`, `admin`, `instruktur`, `ortu` (sudah ada di CHECK `users.role` setelah migrasi).
-- Akun dengan role `instruktur`/`ortu` login memakai `/api/auth/*` normal, tetapi akses ke panel Admin masih dibatasi UI (hanya akun admin yang masuk ke `/admin/`). Permission server tetap ditegakkan per endpoint.
 
 - Admin tidak bisa membuat/mengubah akun admin lewat API; akun admin hanya lewat CLI.
 - Admin hanya melihat dan mengelola user role `student`.
@@ -174,12 +152,6 @@ Perilaku penting:
 - `status` Code Lab = `draft` atau `published`. Hanya `published` yang muncul di endpoint murid.
 - Endpoint murid `GET /api/code-lab` dan `GET /api/code-lab/:id` wajib login. `tests` tidak dikirim ke murid agar jawaban tidak bocor. `GET /api/code-lab/:id` membalas `403 GRADE_FORBIDDEN` bila jenjang tantangan tidak ada di `allowed_grades` murid.
 - Notifikasi admin disimpan di tabel `admin_notifications` per akun admin, sehingga status baca/hapus admin1 tidak memengaruhi admin2. Notifikasi dibuat untuk `student.create`, `progress.complete`, `curriculum.update`, `code_lab.published`, `plugin.upload`, dan `plugin.publish`; `dedupe_key` mencegah duplikasi.
-- **Badge & Tugas Admin** disimpan di tabel `admin_badges`, `admin_tasks`, dan `admin_task_submissions` (bukan localStorage). Tabel `admin_tasks` terpisah dari `tasks` kurikulum.
-- Badge: `name` wajib (maks. 40, unik tanpa beda kapital), `rule` = `manual`/`tasks`/`points`, `threshold` ≥ 1 untuk rule non-manual, `color` = `sky`/`indigo`/`emerald`/`amber`/`rose`.
-- Tugas admin: `grade` = `SD`/`SMP`/`SMK`, `type` = `kode`/`proyek`/`kuis`, `status` = `draft`/`terbit`/`ditutup`, `points` 0-1000, `due` wajib format `YYYY-MM-DD`, `badgeId` harus ada bila diisi.
-- Pengumpulan: `status` = `dikumpulkan`/`revisi`/`dinilai`. `dinilai` wajib `score` 0-100; `revisi` wajib `feedback`. Aksi penilaian tercatat sebagai `admin_task.grade`.
-- `GET /api/admin/settings` mengembalikan `{}` bila belum pernah disimpan. `logo` disimpan sebagai data URL gambar (maks. ±900.000 karakter) atau URL http(s).
-- Endpoint `/api/admin/roles` dan `/api/admin/instructors` kini tersedia. Hak akses disimpan di tabel `admin_role_permissions` (peran → daftar permission); `PUT /api/admin/roles` hanya boleh admin dan melakukan validasi permission yang dikenal. `student`/`admin`, jadi UI Akses & Hak Pengguna masih memakai mode contoh di browser. Menambah instruktur/orang tua perlu migrasi role dan pengecekan izin di server lebih dulu.
 - Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`.
 - Rate limit admin: 60 request/menit per admin per path.
 

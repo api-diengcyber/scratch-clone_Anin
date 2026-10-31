@@ -15,33 +15,31 @@
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <script src="static/tailwind-config.js?v=3"></script>
+  <script src="static/tailwind-config.js?v=4"></script>
 
-  <link rel="stylesheet" href="static/admin.css?v=7">
-  <link rel="stylesheet" href="static/glass.css?v=4">
+  <link rel="stylesheet" href="static/admin.css?v=9">
+  <link rel="stylesheet" href="static/glass.css?v=5">
 </head>
 
-<body class="bg-white text-slate-800 dark:bg-[#0b1120] dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
+<body class="text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
   <!-- Mobile Topbar Header -->
-  <div class="md:hidden flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 p-4 sticky top-0 z-50 shadow-sm">
+  <div class="md:hidden flex items-center justify-between bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-jade-100 dark:border-slate-800 px-4 py-3 sticky top-0 z-50">
     <div class="flex items-center gap-3">
       <img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="36" height="36" class="w-9 h-9 object-contain shrink-0">
       <div>
-        <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">Dieng<span class="text-[#3fa83f] dark:text-[#70d050]">Cyber</span></span>
-        <span class="block text-[11px] font-mono text-sky-600 dark:text-sky-400 font-medium">LMS Coding Admin</span>
+        <span class="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">Dieng<span class="text-jade-600 dark:text-jade-400">Cyber</span></span>
+        <span class="block text-[11px] text-jade-700 dark:text-jade-300 font-semibold">LMS Coding Admin</span>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <!-- Theme Switch Mobile -->
-      <button onclick="toggleTheme()" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/60 transition">
+      <button onclick="toggleTheme()" aria-label="Ganti tema" class="w-10 h-10 grid place-items-center rounded-full text-slate-600 dark:text-slate-300 bg-jade-50 dark:bg-slate-800 hover:bg-jade-100 transition">
         <i class="fa-solid fa-sun text-amber-500 dark:hidden text-sm"></i>
-        <i class="fa-solid fa-moon text-sky-300 hidden dark:block text-sm"></i>
+        <i class="fa-solid fa-moon text-jade-300 hidden dark:block text-sm"></i>
       </button>
-
-      <button id="mobileMenuBtn" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/60">
+      <button id="mobileMenuBtn" aria-label="Buka menu" class="w-10 h-10 grid place-items-center rounded-full text-slate-600 dark:text-slate-300 bg-jade-50 dark:bg-slate-800 hover:bg-jade-100 transition">
         <i class="fa-solid fa-bars text-base"></i>
       </button>
     </div>
@@ -51,108 +49,105 @@
   <div id="sbBackdrop" class="sb-backdrop" aria-hidden="true"></div>
 
   <!-- Sidebar Navigasi -->
-<aside id="sidebar" class="hidden md:flex flex-col w-full md:w-72 bg-white dark:bg-[#0b1120] shrink-0 select-none transition-all duration-300 z-40">
+  <aside id="sidebar" class="hidden md:flex flex-col w-full md:w-72 bg-white dark:bg-[#0f1a15] shrink-0 select-none transition-all duration-300 z-40">
     <button id="sbToggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Ciutkan / buka menu">
-    <i class="fa-solid fa-bars"></i>
-  </button>
-    
-    <!-- Logo Brand Dieng Cyber -->
-    <div id="sidebarBrand" class="h-16 px-5 shrink-0 flex items-center gap-3.5 border-b border-slate-200/80 dark:border-slate-800/80">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <!-- Logo Brand -->
+    <div id="sidebarBrand" class="h-[4.5rem] px-6 shrink-0 flex items-center gap-3">
       <img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="40" height="40" class="w-10 h-10 object-contain shrink-0">
-      <div>
-        <div class="flex items-center gap-1.5">
-          <span class="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">Dieng<span class="text-[#3fa83f] dark:text-[#70d050]">Cyber</span></span>
-          <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded-md font-semibold bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">Edu</span>
-        </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pusat Belajar Coding</p>      </div>
+      <div class="leading-tight">
+        <span class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">Dieng<span class="text-jade-600 dark:text-jade-400">Cyber</span></span>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Pusat Belajar Coding</p>
+      </div>
     </div>
 
     <!-- Main Navigation Items -->
-    <div id="sidebarNav" class="px-3.5 py-5 flex-1 space-y-1.5 overflow-y-auto">
-      
-      <div class="text-[11px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3 pb-1 font-mono">
-        Menu Utama
-      </div>
+    <div id="sidebarNav" class="px-4 pt-2 pb-4 flex-1 space-y-1 overflow-y-auto">
 
-      <!-- Item Aktif: Dashboard -->
-      <a href="#" data-view="dashboard" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10 font-semibold border border-sky-200/80 dark:border-sky-500/20 shadow-xs">
-        <i class="fa-solid fa-chart-pie w-4 text-center text-sky-600 dark:text-sky-400 text-sm"></i>
+      <div class="nav-title">Menu</div>
+
+      <a href="#" data-view="dashboard" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10 font-semibold is-active">
+        <i class="fa-solid fa-chart-pie w-4 text-center text-sm"></i>
         <span class="text-sm">Ringkasan Dashboard</span>
       </a>
 
-      <!-- Modul Tingkatan SD/SMP/SMA -->
-      <a href="#" data-view="kurikulum" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <div class="flex items-center gap-3.5">
-          <i class="fa-solid fa-cubes-stacked w-4 text-center text-slate-400 group-hover:text-sky-500 text-sm"></i>
-          <span>Modul & Kurikulum</span>
+      <a href="#" data-view="kurikulum" class="nav-link group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-cubes-stacked w-4 text-center text-sm"></i>
+          <span>Modul &amp; Kurikulum</span>
         </div>
-        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md font-medium bg-slate-200/70 text-slate-700 dark:bg-slate-800 dark:text-slate-300">3 Level</span>
+        <span class="nav-chip">3 Level</span>
       </a>
 
-      <!-- Blockly & Interactive Code Lab -->
-      <a href="#" data-view="codelab" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-laptop-code w-4 text-center text-slate-400 group-hover:text-indigo-500 text-sm"></i>
-        <span>Code Lab & Blockly</span>
+      <a href="#" data-view="codelab" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-laptop-code w-4 text-center text-sm"></i>
+        <span>Code Lab &amp; Blockly</span>
       </a>
 
-      <!-- Siswa & Kelas Coding -->
-      <a href="#" data-view="siswa" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <div class="flex items-center gap-3.5">
-          <i class="fa-solid fa-user-graduate w-4 text-center text-slate-400 group-hover:text-cyan-500 text-sm"></i>
+      <a href="#" data-view="siswa" class="nav-link group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-user-graduate w-4 text-center text-sm"></i>
           <span>Manajemen Siswa</span>
         </div>
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="w-2 h-2 rounded-full bg-jade-500"></span>
       </a>
 
-      <!-- Tugas, Kuis & Ujian Praktik -->
-      <a href="#" data-view="tugas" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-list-check w-4 text-center text-slate-400 group-hover:text-amber-500 text-sm"></i>
-        <span>Tugas & Review Kode</span>
+      <a href="#" data-view="tugas" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-list-check w-4 text-center text-sm"></i>
+        <span>Tugas &amp; Review Kode</span>
       </a>
 
-      <!-- Sertifikasi & Poin Belajar -->
-      <a href="#" data-view="badge" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-award w-4 text-center text-slate-400 group-hover:text-yellow-500 text-sm"></i>
-        <span>Sertifikat & Badges</span>
+      <a href="#" data-view="badge" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-award w-4 text-center text-sm"></i>
+        <span>Sertifikat &amp; Badges</span>
       </a>
 
-      <div class="text-[11px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3 pt-5 pb-1 font-mono">
-        Konfigurasi
-      </div>
+      <div class="nav-title pt-5">Konfigurasi</div>
 
-      <a href="#" data-view="tahap" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-stairs w-4 text-center text-slate-400 group-hover:text-violet-500 text-sm"></i>
+      <a href="#" data-view="tahap" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-stairs w-4 text-center text-sm"></i>
         <span>Kelola Tahap</span>
       </a>
 
-      <a href="#" data-view="plugin" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-puzzle-piece w-4 text-center text-slate-400 group-hover:text-sky-500 text-sm"></i>
+      <a href="#" data-view="plugin" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-puzzle-piece w-4 text-center text-sm"></i>
         <span>Plugin</span>
       </a>
 
-
-      <a href="#" data-view="pengaturan" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-sliders w-4 text-center text-slate-400 group-hover:text-sky-500 text-sm"></i>
+      <a href="#" data-view="pengaturan" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-sliders w-4 text-center text-sm"></i>
         <span>Pengaturan Instansi</span>
       </a>
 
-      <a href="#" data-view="akses" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 font-medium text-sm group">
-        <i class="fa-solid fa-shield-halved w-4 text-center text-slate-400 group-hover:text-emerald-500 text-sm"></i>
-        <span>Akses & Hak Pengguna</span>
+      <a href="#" data-view="akses" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-shield-halved w-4 text-center text-sm"></i>
+        <span>Akses &amp; Hak Pengguna</span>
       </a>
-
-
     </div>
 
-    <!-- User / Admin Profile Footer Box -->
+    <!-- Promo + Profil Admin -->
     <a href="#" data-view="profil" id="goProfil" class="hidden" aria-hidden="true" tabindex="-1"></a>
-    <div id="sidebarFoot" class="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
-      <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
-        <div class="w-9 h-9 rounded-lg bg-sky-600/20 text-sky-600 dark:text-sky-400 ring-2 ring-sky-500/30 flex items-center justify-center font-mono font-bold text-sm" aria-label="Avatar Admin" id="sidebarAvatar">..</div>
+    <div id="sidebarFoot" class="px-4 pb-4 pt-2 space-y-3">
+
+      <div id="sidebarPromo" class="promo-card">
+        <button type="button" id="promoClose" aria-label="Tutup" class="promo-close"><i class="fa-solid fa-xmark"></i></button>
+        <p class="text-[13px] font-extrabold text-slate-900 dark:text-white">Materi Baru</p>
+        <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 mt-1 pr-4">Tambahkan materi dan tantangan coding terbaru untuk siswa.</p>
+        <div class="promo-art" aria-hidden="true">
+          <i class="fa-solid fa-code"></i>
+          <span>&lt;/&gt;</span>
+        </div>
+        <button type="button" data-act="new-materi" class="promo-btn">Tambah Materi</button>
+      </div>
+
+      <div class="flex items-center gap-3 p-2 rounded-2xl bg-jade-50/70 dark:bg-slate-800/70">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-jade-400 to-jade-600 text-white flex items-center justify-center font-bold text-sm shrink-0" aria-label="Avatar Admin" id="sidebarAvatar">..</div>
         <div class="flex-1 min-w-0">
           <p id="sidebarName" class="text-xs font-bold text-slate-900 dark:text-white truncate">Memuat...</p>
-          <span class="text-[11px] font-mono text-sky-600 dark:text-sky-400 font-medium flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> <span id="sidebarRole" class="truncate">Administrator</span>
+          <span class="text-[11px] text-jade-700 dark:text-jade-300 font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0"></span> <span id="sidebarRole" class="truncate">Administrator</span>
           </span>
         </div>
         <button id="btnLogout" type="button" title="Keluar Akun" aria-label="Keluar Akun" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition p-1.5">
@@ -163,56 +158,47 @@
   </aside>
 
   <!-- Main Content Body -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto md:my-3 md:mr-3 md:rounded-3xl bg-[#e9edf4] dark:bg-slate-900">    
-          <!-- Top Navigation Header -->
-    <header class="h-16 bg-[#e9edf4]/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-between sticky top-0 z-30 md:rounded-t-3xl" style="padding-left:2rem;padding-right:2rem">
-      
-      
+  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <!-- Top Navigation Header -->
+    <header class="topbar h-[4.5rem] flex items-center justify-between sticky top-0 z-30 px-4 md:px-8">
+
       <!-- Search Bar -->
-      <div class="flex items-center gap-3 flex-1" style="max-width:32rem">
+      <div class="flex items-center gap-3 flex-1" style="max-width:26rem">
         <div class="relative w-full">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 text-xs">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-jade-600/70 text-xs">
             <i class="fa-solid fa-magnifying-glass"></i>
           </span>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="globalSearch"
-            placeholder="Cari modul coding, nama siswa, atau tugas praktikum..." 
-            class="w-full bg-white dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-sm text-xs sm:text-sm rounded-xl pl-9 pr-4 py-2 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium">
+            placeholder="Cari modul, siswa, atau tugas..."
+            class="w-full bg-white dark:bg-slate-800/70 border border-jade-100 dark:border-slate-700 shadow-soft text-xs sm:text-sm rounded-full pl-10 pr-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-jade-500/15 focus:border-jade-400 transition-all font-medium">
         </div>
       </div>
 
-      <!-- Action Tools & Theme Switcher -->
+      <!-- Action Tools -->
       <div class="flex items-center gap-2.5 sm:gap-3 ml-auto pl-3">
-         <!-- Light / Dark Mode Switcher Button -->
-        <button 
-          onclick="toggleTheme()" 
+        <!-- Light / Dark Mode -->
+        <button
+          onclick="toggleTheme()"
           id="themeToggleBtn"
-          class="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700/80 transition-all shadow-xs text-xs font-medium"
+          class="top-icon-btn hidden md:grid"
+          aria-label="Ganti mode tampilan"
           title="Ganti Mode Tampilan (Light / Dark)">
-          <!-- Day Icon -->
-          <span class="flex items-center gap-1.5 dark:hidden text-amber-600 font-medium">
-            <i class="fa-solid fa-sun text-sm"></i>
-            <span class="hidden sm:inline">Day</span>
-          </span>
-          <!-- Night Icon -->
-          <span class="hidden dark:flex items-center gap-1.5 text-sky-400 font-medium">
-            <i class="fa-solid fa-moon text-sm"></i>
-            <span class="hidden sm:inline">Night</span>
-          </span>
+          <i class="fa-solid fa-sun text-amber-500 dark:hidden text-sm"></i>
+          <i class="fa-solid fa-moon text-jade-300 hidden dark:block text-sm"></i>
         </button>
 
         <!-- Notification Bell + Dropdown -->
         <div class="relative" id="notifWrap">
-          <button id="notifBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel" title="Notifikasi"
-            class="relative p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition shadow-xs">
+          <button id="notifBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel" title="Notifikasi" class="top-icon-btn grid relative">
             <i class="fa-regular fa-bell text-sm"></i>
-            <span id="notifDot" class="hidden absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+            <span id="notifDot" class="hidden absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
           </button>
 
           <div id="notifPanel" role="dialog" aria-label="Notifikasi"
-            class="hidden absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[24rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800">
+            class="hidden absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[24rem] bg-white dark:bg-slate-900 border border-jade-100 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden z-50">
+            <div class="flex items-center justify-between px-5 py-3.5 border-b border-jade-100/80 dark:border-slate-800">
               <div class="flex items-center gap-2">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white">Notifikasi</h3>
                 <span id="notifCount" class="hidden px-1.5 py-0.5 rounded-md text-[10px] font-bold font-mono bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400"></span>
@@ -220,273 +206,198 @@
               <button id="notifReadAll" type="button" class="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-default">Tandai semua dibaca</button>
             </div>
             <ul id="notifList" class="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"></ul>
-            <div class="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 text-right">
+            <div class="px-5 py-3 border-t border-jade-100/80 dark:border-slate-800 bg-jade-50/50 dark:bg-slate-900/60 text-right">
               <button id="notifClear" type="button" class="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition">Hapus semua</button>
             </div>
           </div>
         </div>
 
+        <span class="hidden sm:block w-px h-7 bg-jade-200/70 dark:bg-slate-700"></span>
+
+        <!-- Profil singkat -->
+        <button type="button" id="topProfile" class="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-full hover:bg-white/70 dark:hover:bg-slate-800/60 transition" aria-label="Buka profil admin"
+          onclick="document.getElementById('goProfil').click()">
+          <span id="topAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-jade-400 to-jade-600 text-white grid place-items-center text-xs font-bold ring-2 ring-white dark:ring-slate-800 shadow-soft">..</span>
+          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 hidden sm:block"></i>
+        </button>
       </div>
     </header>
 
-    <!-- Main Content Container -->
-    <div id="view-dashboard" class="p-4 md:p-8 space-y-6">
+    <!-- ======================= DASHBOARD ======================= -->
+    <div id="view-dashboard" class="dc-dashboard px-4 pb-8 pt-2 md:px-8 space-y-6">
 
-      <!-- Hero Welcome Banner -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-600 via-indigo-600 to-slate-900 p-6 md:p-8 text-white shadow-soft">
-        <div class="relative z-10 max-w-2xl">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-white/15 backdrop-blur-sm border border-white/20 mb-3 text-sky-100">
-            <i class="fa-solid fa-sparkles text-amber-300"></i> Platform Edukasi Coding Dieng Cyber
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-            Panel Instruktur & Pembelajaran Coding
-          </h1>
-          <p class="text-sm text-sky-100/90 leading-relaxed font-normal">
-            Kelola tantangan logika komputasional untuk tingkat SD (Blockly/Scratch), SMP (Dasar HTML/CSS), hingga SMA/SMK (Algoritma Python & JS Fullstack) secara terpadu.
-          </p>
+      <!-- Heading -->
+      <section class="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
+        <div>
+          <h1 class="dc-page-title">Selamat datang kembali, <span id="welcomeName">Admin</span>!</h1>
+          <p class="dc-page-subtitle">Pantau aktivitas belajar, perkembangan siswa, dan pengelolaan konten Dieng Cyber Coding.</p>
         </div>
-
-        <!-- Decorative background shapes -->
-        <div class="absolute -right-8 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute right-36 -top-10 w-44 h-44 bg-cyan-400/20 rounded-full blur-xl pointer-events-none"></div>
-        <i class="fa-solid fa-laptop-code absolute right-8 bottom-6 text-7xl text-white/10 hidden md:block"></i>
-      </div>
-
-      <!-- Quick Metrics Grid -->
-      <div id="dashStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-        
-        <!-- Metric 1: Total Siswa -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft hover:shadow-soft-hover transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono tracking-wider">TOTAL SISWA AKTIF</span>
-            <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm">
-              <i class="fa-solid fa-users"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span id="statActiveStudents" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">—</span>
-            <span id="statActiveTrend" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center font-mono">
-              <i class="fa-solid fa-arrow-trend-up mr-1 text-[10px]"></i>Memuat
-            </span>
-          </div>
-          <p id="statActiveNote" class="text-xs text-slate-500 dark:text-slate-400 mt-2">Menunggu data server</p>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button type="button" onclick="refreshData()" class="dc-action-btn dc-action-secondary">
+            <i class="fa-solid fa-arrows-rotate"></i><span>Sinkronisasi data</span>
+          </button>
+          <button type="button" onclick="toggleModal('modalAddStudent')" class="dc-action-btn dc-action-primary">
+            <i class="fa-solid fa-user-plus"></i><span>Tambah siswa</span>
+          </button>
         </div>
+      </section>
 
-        <!-- Metric 2: Modul Coding -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft hover:shadow-soft-hover transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono tracking-wider">MODUL & CODE LAB</span>
-            <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
-              <i class="fa-solid fa-book-bookmark"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span id="statModules" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">—</span>
-            <span id="statModulesTrend" class="text-xs font-semibold text-sky-600 dark:text-sky-400 font-mono">Memuat</span>
-          </div>
-          <p id="statModulesNote" class="text-xs text-slate-500 dark:text-slate-400 mt-2">Menunggu data server</p>
-        </div>
-
-        <!-- Metric 3: Submisi Praktikum -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft hover:shadow-soft-hover transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono tracking-wider">SUBMISI KODE HARI INI</span>
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
-              <i class="fa-solid fa-square-check"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span id="statSubmissions" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">—</span>
-            <span id="statSubmissionsTrend" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">Memuat</span>
-          </div>
-          <p id="statSubmissionsNote" class="text-xs text-slate-500 dark:text-slate-400 mt-2">Menunggu data server</p>
-        </div>
-
-        <!-- Metric 4: Tantangan Selesai -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft hover:shadow-soft-hover transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono tracking-wider">RATA-RATA KETUNTASAN</span>
-            <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
-              <i class="fa-solid fa-trophy"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span id="statCompletion" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">—</span>
-            <span id="statCompletionTrend" class="text-xs font-semibold text-amber-600 dark:text-amber-400 font-mono">Memuat</span>
-          </div>
-          <p id="statCompletionNote" class="text-xs text-slate-500 dark:text-slate-400 mt-2">Menunggu data server</p>
-        </div>
-
-      </div>
-
-      <!-- Quick Level Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1">
-        <span class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-2 shrink-0">Filter Tingkat:</span>
-        <button onclick="filterTable('all', this)" class="level-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-sky-600 text-white shadow-xs">
-          Semua Jenjang
-        </button>
-        <button onclick="filterTable('sd', this)" class="level-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 transition shadow-xs shrink-0">
-          <i class="fa-solid fa-shapes mr-1.5 text-amber-500"></i>SD (Blockly & Scratch)
-        </button>
-        <button onclick="filterTable('smp', this)" class="level-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 transition shadow-xs shrink-0">
-          <i class="fa-solid fa-code mr-1.5 text-sky-500"></i>SMP (Web Dasar HTML/CSS)
-        </button>
-        <button onclick="filterTable('sma', this)" class="level-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 transition shadow-xs shrink-0">
-          <i class="fa-brands fa-python mr-1.5 text-indigo-500"></i>SMA/SMK (Python & JS Logic)
-        </button>
-      </div>
-
-      <!-- Main Section: Data Table & Interactive Activity Box -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Kolom Tabel Siswa (2 Kolom) -->
-        <div class="lg:col-span-2">
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-soft overflow-hidden">
-            
-            <!-- Table Header Bar -->
-            <div class="p-5 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <i class="fa-solid fa-user-check text-sky-600 dark:text-sky-400"></i>
-                  Aktivitas & Ketuntasan Siswa
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pemantauan pengerjaan project coding secara real-time</p>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <button onclick="refreshData()" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-arrows-rotate text-xs"></i>
-                  <span>Sinkronisasi</span>
-                </button>
-                <button type="button" data-goto="siswa" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-table-list text-xs"></i>
-                  <span>Kelola Semua</span>
-                </button>
-                <button onclick="toggleModal('modalAddStudent')" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20 border border-sky-200/80 dark:border-sky-500/30 transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-user-plus text-xs"></i>
-                  <span>+ Siswa</span>
-                </button>
+      <!-- KPI cards: ID dipertahankan untuk admin.js -->
+      <section aria-label="Ringkasan statistik">
+        <div id="dashStats" class="dc-kpi-grid">
+          <article class="dc-kpi-card">
+            <div class="dc-kpi-top"><span class="dc-kpi-label">Siswa aktif</span><span class="dc-live-indicator" title="Data terhubung"><span></span></span></div>
+            <div class="dc-kpi-body">
+              <span class="dc-kpi-icon tone-jade"><i class="fa-solid fa-users"></i></span>
+              <div class="min-w-0">
+                <div class="dc-kpi-value" id="statActiveStudents">—</div>
+                <span class="dc-kpi-trend" id="statActiveTrend">Memuat</span>
               </div>
             </div>
-
-            <!-- Table Responsive -->
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm text-slate-700 dark:text-slate-200">
-                <thead class="bg-slate-50 dark:bg-slate-950/50 text-[11px] font-mono uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                  <tr>
-                    <th scope="col" class="px-5 py-3.5 font-semibold">Nama Siswa</th>
-                    <th scope="col" class="px-5 py-3.5 font-semibold">Jenjang & Kelas</th>
-                    <th scope="col" class="px-5 py-3.5 font-semibold">Modul Berjalan</th>
-                    <th scope="col" class="px-5 py-3.5 font-semibold">Progres</th>
-                    <th scope="col" class="px-5 py-3.5 font-semibold text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="studentTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/70">
-                  <tr>
-                    <td colspan="5" class="px-5 py-10 text-center text-xs text-slate-500 dark:text-slate-400">
-                      <i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Memuat data siswa dari server...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Table Footer -->
-            <div class="p-4 bg-slate-50/70 dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span id="studentTableInfo">Memuat data siswa...</span>
-              <div class="flex items-center gap-1 font-mono">
-                <button id="studentPrev" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed">Prev</button>
-                <button id="studentPageBtn" class="px-2.5 py-1 rounded-lg bg-sky-600 text-white font-bold">1</button>
-                <button id="studentNext" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+            <p class="dc-kpi-note" id="statActiveNote">Menunggu data server</p>
+          </article>
+          <article class="dc-kpi-card">
+            <div class="dc-kpi-top"><span class="dc-kpi-label">Konten pembelajaran</span><span class="dc-live-indicator"><span></span></span></div>
+            <div class="dc-kpi-body">
+              <span class="dc-kpi-icon tone-teal"><i class="fa-solid fa-book-open"></i></span>
+              <div class="min-w-0">
+                <div class="dc-kpi-value" id="statModules">—</div>
+                <span class="dc-kpi-trend" id="statModulesTrend">Memuat</span>
               </div>
             </div>
+            <p class="dc-kpi-note" id="statModulesNote">Menunggu data server</p>
+          </article>
+          <article class="dc-kpi-card">
+            <div class="dc-kpi-top"><span class="dc-kpi-label">Tugas selesai hari ini</span><span class="dc-live-indicator"><span></span></span></div>
+            <div class="dc-kpi-body">
+              <span class="dc-kpi-icon tone-lime"><i class="fa-solid fa-circle-check"></i></span>
+              <div class="min-w-0">
+                <div class="dc-kpi-value" id="statSubmissions">—</div>
+                <span class="dc-kpi-trend" id="statSubmissionsTrend">Memuat</span>
+              </div>
+            </div>
+            <p class="dc-kpi-note" id="statSubmissionsNote">Menunggu data server</p>
+          </article>
+          <article class="dc-kpi-card">
+            <div class="dc-kpi-top"><span class="dc-kpi-label">Tingkat penyelesaian</span><span class="dc-live-indicator"><span></span></span></div>
+            <div class="dc-kpi-body">
+              <span class="dc-kpi-icon tone-amber"><i class="fa-solid fa-chart-line"></i></span>
+              <div class="min-w-0">
+                <div class="dc-kpi-value" id="statCompletion">—</div>
+                <span class="dc-kpi-trend" id="statCompletionTrend">Memuat</span>
+              </div>
+            </div>
+            <p class="dc-kpi-note" id="statCompletionNote">Menunggu data server</p>
+          </article>
+        </div>
+      </section>
 
+      <!-- Grafik -->
+      <section class="dc-chart-grid">
+        <div class="dc-panel">
+          <div class="dc-panel-header">
+            <div>
+              <h2>Aktivitas Penyelesaian Tugas</h2>
+              <p id="weekChartNote">7 hari terakhir</p>
+            </div>
+            <span class="dc-date-chip" id="weekChartRange"><i class="fa-regular fa-calendar"></i><span>7 hari</span></span>
+          </div>
+          <div class="dc-chart-body">
+            <div id="weekChart" class="wk-chart" role="img" aria-label="Grafik batang jumlah tugas selesai per hari"></div>
           </div>
         </div>
 
-        <!-- Kolom Kanan: Live Code Submissions & Curriculum Distribution (1 Kolom) -->
-        <div class="space-y-6">
-
-          <!-- Live Activity Stream (Auto Test Results) -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft">
-            <div class="flex items-center justify-between pb-3.5 border-b border-slate-200/80 dark:border-slate-800 mb-4">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
-                Submisi Praktik Terkini
-              </h3>
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <div class="dc-panel">
+          <div class="dc-panel-header">
+            <div>
+              <h2>Distribusi Jenjang</h2>
+              <p id="gradeDistributionNote">Siswa dengan jenjang eksplisit</p>
             </div>
-
-            <div id="activityFeed" class="space-y-3 font-mono text-xs">
-              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                <i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Memuat submisi terbaru...
+            <span class="dc-distribution-icon"><i class="fa-solid fa-chart-pie"></i></span>
+          </div>
+          <div class="px-5 pt-5 pb-2 flex justify-center">
+            <div class="donut-wrap">
+              <svg id="gradeDonut" viewBox="0 0 120 120" class="w-full h-full -rotate-90" aria-hidden="true"></svg>
+              <div class="donut-center">
+                <span id="donutTotal">—</span>
+                <small>Siswa</small>
               </div>
             </div>
           </div>
-
-          <!-- Distribusi Kelas Coding & Target -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-soft">
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
-              <i class="fa-solid fa-chart-simple text-indigo-600 dark:text-indigo-400"></i>
-              Distribusi Siswa per Jenjang
-            </h3>
-            <p id="gradeDistributionNote" class="text-xs text-slate-500 dark:text-slate-400 mb-4">Siswa dengan jenjang eksplisit</p>
-
-            <div class="space-y-3.5 text-xs">
-              
-              <!-- SD -->
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> SD (Blockly / Scratch)
-                  </span>
-                  <span id="gradeSdCount" class="font-mono text-slate-500 dark:text-slate-400 font-medium">—</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
-                  <div id="gradeSdBar" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-              </div>
-
-              <!-- SMP -->
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> SMP (Web Design Dasar)
-                  </span>
-                  <span id="gradeSmpCount" class="font-mono text-slate-500 dark:text-slate-400 font-medium">—</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
-                  <div id="gradeSmpBar" class="bg-sky-500 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-              </div>
-
-              <!-- SMA -->
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span> SMA/SMK (Python & Fullstack)
-                  </span>
-                  <span id="gradeSmkCount" class="font-mono text-slate-500 dark:text-slate-400 font-medium">—</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
-                  <div id="gradeSmkBar" class="bg-indigo-600 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-              </div>
-
+          <div class="dc-grade-list">
+            <div class="dc-grade-item">
+              <div class="dc-grade-meta"><span><i class="dc-grade-dot dc-grade-sd"></i> Sekolah Dasar</span><strong id="gradeSdCount">—</strong></div>
+              <div class="dc-grade-track"><div id="gradeSdBar" class="dc-grade-fill dc-grade-fill-sd" style="width:0%"></div></div>
             </div>
+            <div class="dc-grade-item">
+              <div class="dc-grade-meta"><span><i class="dc-grade-dot dc-grade-smp"></i> SMP</span><strong id="gradeSmpCount">—</strong></div>
+              <div class="dc-grade-track"><div id="gradeSmpBar" class="dc-grade-fill dc-grade-fill-smp" style="width:0%"></div></div>
+            </div>
+            <div class="dc-grade-item">
+              <div class="dc-grade-meta"><span><i class="dc-grade-dot dc-grade-smk"></i> SMA / SMK</span><strong id="gradeSmkCount">—</strong></div>
+              <div class="dc-grade-track"><div id="gradeSmkBar" class="dc-grade-fill dc-grade-fill-smk" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <!-- Quick Info Badge -->
-            <div class="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span>Kurikulum Standar 2026/2027</span>
-              <span class="font-mono font-semibold text-sky-600 dark:text-sky-400">Terakreditasi</span>
+      <!-- Tabel siswa + aktivitas -->
+      <section class="dc-dashboard-grid">
+        <div class="dc-panel dc-students-panel">
+          <div class="dc-panel-header">
+            <div><h2>Aktivitas &amp; Ketuntasan Siswa</h2><p>Pantau progres belajar siswa yang terdaftar.</p></div>
+            <button type="button" data-goto="siswa" class="dc-view-all">Lihat semua <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+
+          <div class="dc-filter-row">
+            <span class="dc-filter-label">Jenjang</span>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="filterTable('all', this)" class="level-pill is-active">Semua</button>
+              <button onclick="filterTable('sd', this)" class="level-pill"><i class="fa-solid fa-shapes"></i> SD</button>
+              <button onclick="filterTable('smp', this)" class="level-pill"><i class="fa-solid fa-code"></i> SMP</button>
+              <button onclick="filterTable('sma', this)" class="level-pill"><i class="fa-brands fa-python"></i> SMA/SMK</button>
             </div>
           </div>
 
+          <div class="dc-table-wrap">
+            <table class="dc-student-table w-full text-left text-sm">
+              <thead><tr>
+                <th scope="col">Nama siswa</th><th scope="col">Jenjang</th><th scope="col">Modul berjalan</th><th scope="col">Progres</th><th scope="col" class="text-right">Aksi</th>
+              </tr></thead>
+              <tbody id="studentTableBody">
+                <tr><td colspan="5" class="px-5 py-10 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Memuat data siswa dari server...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="dc-table-footer">
+            <span id="studentTableInfo">Memuat data siswa...</span>
+            <div class="flex items-center gap-2">
+              <button id="studentPrev" class="dc-page-btn">Sebelumnya</button>
+              <span id="studentPageBtn" class="dc-page-current">1</span>
+              <button id="studentNext" class="dc-page-btn">Berikutnya</button>
+            </div>
+          </div>
         </div>
 
-      </div>
+        <aside class="dc-side-column">
+          <section class="dc-panel">
+            <div class="dc-panel-header dc-panel-header-compact">
+              <div><h2>Aktivitas terbaru</h2><p>Penyelesaian tugas terkini</p></div>
+              <span class="dc-live-chip"><span></span> Live</span>
+            </div>
+            <div id="activityFeed" class="dc-activity-feed">
+              <div class="dc-empty-loading"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Memuat aktivitas terbaru...</div>
+            </div>
+          </section>
 
+          <section class="dc-shortcut-panel">
+            <div><span class="dc-shortcut-kicker">AKSES CEPAT</span><h3>Kelola pembelajaran</h3><p>Perbarui materi dan jalur belajar siswa.</p></div>
+            <button type="button" data-goto="kurikulum" aria-label="Buka pengelolaan kurikulum"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+          </section>
+        </aside>
+      </section>
     </div>
+
     <!-- View: Modul & Kurikulum -->
     <div id="view-kurikulum" class="hidden p-4 md:p-8 space-y-6">
 
@@ -861,7 +772,8 @@
   </div>
 <!-- Javascript Logic -->
 <script src="static/admin-api.js?v=4"></script>
-<script src="static/admin.js?v=13"></script>
+<script src="static/dashboard.js?v=1"></script>
+<script src="static/admin.js?v=14"></script>
 <script src="static/common.js?v=1"></script>
 <script src="static/dialog.js?v=1"></script>
 <script src="static/editor.js?v=11"></script>
@@ -872,7 +784,5 @@
    <script src="static/badge-tugas.js?v=5"></script>
    <script src="static/pengaturan-akses.js?v=7"></script>
    <script src="static/profil.js?v=9"></script>
-   </body>
-
 </body>
 </html>

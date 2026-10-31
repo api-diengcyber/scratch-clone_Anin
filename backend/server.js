@@ -94,31 +94,6 @@ function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Kebijakan keamanan dari pengaturan instansi (admin_settings): masa sesi
-// login dan password minimal baru diambil dari nilai admin yang disimpan.
-function sessionHoursFromSettings() {
-    try {
-        const row = db.prepare("SELECT payload_json FROM admin_settings WHERE id = 1").get();
-        if (row) {
-            const settings = JSON.parse(row.payload_json || "{}");
-            const hours = Number(settings.sessionHours);
-            if (Number.isFinite(hours) && hours > 0) return Math.min(168, Math.max(1, Math.floor(hours)));
-        }
-    } catch (_) { /* default */ }
-    return 12;
-}
-function minPasswordFromSettings() {
-    try {
-        const row = db.prepare("SELECT payload_json FROM admin_settings WHERE id = 1").get();
-        if (row) {
-            const settings = JSON.parse(row.payload_json || "{}");
-            const min = Number(settings.minPassword);
-            if (Number.isFinite(min) && min >= 6) return Math.min(32, Math.floor(min));
-        }
-    } catch (_) { /* default */ }
-    return 8;
-}
-
 // Grade canonical: SD/SMP/SMK (huruf besar). Seeds + frontend SMP memakai huruf besar.
 const VALID_GRADES = ["SD", "SMP", "SMK"];
 function normalizeGrade(g) { return sanitizeString(g, 16).toUpperCase(); }
@@ -513,8 +488,7 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
     }
     if (usernameInput.length > 32) return sendApiError(res, 400, "Username maksimal 32 karakter", "VALIDATION_ERROR");
     if (emailInput && !isValidEmail(emailInput)) return sendApiError(res, 400, "Email tidak valid", "VALIDATION_ERROR");
-    const minPassword = minPasswordFromSettings();
-    if (typeof password !== "string" || password.length < minPassword) return sendApiError(res, 400, "Password minimal " + minPassword + " karakter", "VALIDATION_ERROR");
+    if (typeof password !== "string" || password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
 
     const loginByEmail = Boolean(emailInput);
     const attemptKey = req.ip + "|" + (loginByEmail ? "email:" : "user:") + identifier.toLowerCase();
@@ -525,12 +499,12 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
 
     const user = loginByEmail
         ? db.prepare(`
-            SELECT id, username, email, password_hash, password_salt, firebase_uid, role, status, must_change_password
+            SELECT id, username, email, password_hash, password_salt, firebase_uid, role, status
             FROM users
             WHERE email = ? COLLATE NOCASE
         `).get(identifier)
         : db.prepare(`
-            SELECT id, username, email, password_hash, password_salt, firebase_uid, role, status, must_change_password
+            SELECT id, username, email, password_hash, password_salt, firebase_uid, role, status
             FROM users
             WHERE username = ?
         `).get(identifier);
@@ -577,7 +551,7 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
     auth.clearFails(attemptKey);
     db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
 
-    const token = auth.createSession(user.id, { sessionHours: sessionHoursFromSettings() });
+    const token = auth.createSession(user.id);
     sendApiSuccess(res, {
         id: user.id,
         username: user.username,
@@ -585,8 +559,7 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
         token,
         status,
         role: user.role || "student",
-        accountStatus: user.status || "active",
-        mustChangePassword: Boolean(user.must_change_password)
+        accountStatus: user.status || "active"
     }, "Login berhasil");
 });
 
@@ -616,7 +589,7 @@ app.post("/api/auth/firebase-login", async (req, res) => {
         `).run(username, firebaseUser.email, firebaseUser.uid);
 
         const user = db.prepare(`
-            SELECT id, username, email, role, status, must_change_password FROM users WHERE username = ?
+            SELECT id, username, email, role, status FROM users WHERE username = ?
         `).get(username);
         if (!user) return sendApiError(res, 401, "User Firebase tidak ditemukan", "FIREBASE_AUTH_ERROR");
         if (user.status === "suspended") return sendApiError(res, 403, "Akun sedang ditangguhkan", "ACCOUNT_SUSPENDED");
@@ -624,15 +597,14 @@ app.post("/api/auth/firebase-login", async (req, res) => {
 
         db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
 
-        const token = auth.createSession(user.id, { sessionHours: sessionHoursFromSettings() });
+        const token = auth.createSession(user.id);
         sendApiSuccess(res, {
             id: user.id,
             username: user.username,
             token,
             email: firebaseUser.email,
             role: user.role || "student",
-            accountStatus: user.status || "active",
-            mustChangePassword: Boolean(user.must_change_password)
+            accountStatus: user.status || "active"
         }, "Login Firebase berhasil");
     } catch (error) {
         console.error("Firebase login error:", error);
@@ -653,7 +625,7 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
     if (!email && !usernameInput) {
         return sendApiError(res, 400, "Email atau username wajib diisi", "VALIDATION_ERROR");
     }
-    if (typeof password !== "string" || password.length < minPasswordFromSettings()) return sendApiError(res, 400, "Password minimal " + minPasswordFromSettings() + " karakter", "VALIDATION_ERROR");
+    if (typeof password !== "string" || password.length < 4) return sendApiError(res, 400, "Password minimal 4 karakter", "VALIDATION_ERROR");
 
     let username = usernameInput;
     let finalEmail = email || null;
@@ -711,7 +683,7 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
     }
 
     db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
-    const token = auth.createSession(userId, { sessionHours: sessionHoursFromSettings() });
+    const token = auth.createSession(userId);
     sendApiSuccess(res, { id: userId, username, token, email: finalEmail, role: "student", accountStatus: "active" }, "Registrasi berhasil", 201);
 });
 
@@ -745,7 +717,7 @@ app.post("/api/auth/firebase-register", async (req, res) => {
         const userId = Number(info.lastInsertRowid);
 
         db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
-        const token = auth.createSession(userId, { sessionHours: sessionHoursFromSettings() });
+        const token = auth.createSession(userId);
         sendApiSuccess(res, {
             id: userId,
             username,
@@ -801,9 +773,8 @@ app.post("/api/auth/change-password", auth.requireAuth, rateLimitMiddleware(10),
     const currentPassword = body.currentPassword;
     const newPassword = body.newPassword;
 
-    const minPassword = minPasswordFromSettings();
-    if (typeof newPassword !== "string" || newPassword.length < minPassword) {
-        return sendApiError(res, 400, "Password baru minimal " + minPassword + " karakter", "VALIDATION_ERROR");
+    if (typeof newPassword !== "string" || newPassword.length < 4) {
+        return sendApiError(res, 400, "Password baru minimal 4 karakter", "VALIDATION_ERROR");
     }
     if (newPassword.length > 128) {
         return sendApiError(res, 400, "Password baru maksimal 128 karakter", "VALIDATION_ERROR");

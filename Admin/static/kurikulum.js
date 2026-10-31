@@ -800,7 +800,7 @@
   }
 
   // ---------- VIEW SWITCH ----------
-  const ON = ['text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold', 'border', 'border-sky-200/80', 'dark:border-sky-500/20'];
+  const ON = ['text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold', 'is-active'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   // URL bersih: /admin/dashboard, /admin/siswa, dst. (server harus mengarahkan path ini ke index.html)
   const VIEWS = ['dashboard', 'kurikulum', 'tahap', 'codelab', 'plugin', 'siswa', 'badge', 'tugas', 'pengaturan', 'akses', 'profil'];

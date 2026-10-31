@@ -1,0 +1,85 @@
+
+/* Dashboard LMS refresh — layered over Tailwind utilities.
+   Scope is intentionally limited to #view-dashboard; other Admin views and Users are untouched. */
+#view-dashboard.dc-dashboard {
+  --lms-ink:#18233d; --lms-muted:#77839b; --lms-line:#e9edf5;
+  --lms-surface:#fff; --lms-soft:#f8f9fd;
+  color:var(--lms-ink); background:transparent;
+}
+html.dark #view-dashboard.dc-dashboard {
+  --lms-ink:#edf2ff; --lms-muted:#9aa8c1; --lms-line:rgba(148,163,184,.16);
+  --lms-surface:#111a2d; --lms-soft:#172238;
+}
+#view-dashboard .dc-page-title {font-size:clamp(1.65rem,2.3vw,2.15rem);font-weight:850;letter-spacing:-.055em;color:var(--lms-ink);line-height:1.1}
+#view-dashboard .dc-page-subtitle {font-size:12px;color:var(--lms-muted);margin-top:8px;max-width:650px}
+#view-dashboard .dc-eyebrow {font-size:9px;letter-spacing:.14em;font-weight:850;color:#8b70d8;margin-bottom:8px}
+#view-dashboard .dc-eyebrow-dot {background:#8b5cf6;box-shadow:0 0 0 4px rgba(139,92,246,.12)}
+#view-dashboard .dc-welcome-panel {
+  min-height:174px;padding:27px 30px;border:1px solid rgba(139,92,246,.12);
+  background:linear-gradient(112deg,#28204e 0%,#51418d 55%,#8c78d6 100%);
+  box-shadow:0 12px 30px rgba(69,54,130,.14);border-radius:18px;
+}
+#view-dashboard .dc-welcome-content {max-width:690px}
+#view-dashboard .dc-welcome-label {font-size:9px;letter-spacing:.14em;color:#d9d0ff;font-weight:850}
+#view-dashboard .dc-welcome-content h2 {font-size:clamp(1.25rem,2vw,1.7rem);line-height:1.22;max-width:560px;font-weight:850;letter-spacing:-.04em;color:white;margin-top:13px}
+#view-dashboard .dc-welcome-content p {font-size:11px;line-height:1.7;color:#e3def9;margin-top:8px}
+#view-dashboard .dc-welcome-link {display:inline-flex;align-items:center;gap:9px;color:#fff;font-size:10px;font-weight:800;margin-top:14px}
+#view-dashboard .dc-welcome-link:hover {gap:13px}
+#view-dashboard .dc-welcome-art {right:6%;opacity:.82;transform:scale(.88)}
+#view-dashboard .dc-section-heading h2 {font-size:14px;font-weight:850;color:var(--lms-ink);letter-spacing:-.025em}
+#view-dashboard .dc-section-heading p {font-size:10px;color:var(--lms-muted);margin-top:3px}
+#view-dashboard .dc-live-indicator {font-size:9px;font-weight:750;color:#15966a;white-space:nowrap}
+#view-dashboard .dc-kpi-grid {gap:13px}
+#view-dashboard .dc-kpi-card {background:var(--lms-surface);border:1px solid var(--lms-line);border-radius:15px;padding:17px 18px;box-shadow:0 4px 18px rgba(32,42,75,.035)}
+#view-dashboard .dc-kpi-card:hover {transform:translateY(-3px);box-shadow:0 12px 26px rgba(32,42,75,.08)}
+#view-dashboard .dc-kpi-label {font-size:10px;color:var(--lms-muted);font-weight:750}
+#view-dashboard .dc-kpi-icon {width:36px;height:36px;border-radius:12px;font-size:14px}
+#view-dashboard .dc-kpi-blue .dc-kpi-icon {color:#6474df;background:#eeefff}
+#view-dashboard .dc-kpi-violet .dc-kpi-icon {color:#8b5cf6;background:#f3edff}
+#view-dashboard .dc-kpi-green .dc-kpi-icon {color:#16a477;background:#e8f8f1}
+#view-dashboard .dc-kpi-amber .dc-kpi-icon {color:#d69b2d;background:#fff6e5}
+#view-dashboard .dc-kpi-value {font-size:clamp(1.55rem,2.2vw,1.9rem);margin:14px 0 10px;color:var(--lms-ink)}
+#view-dashboard .dc-kpi-foot span:first-child {font-size:9px}
+#view-dashboard .dc-kpi-foot span:last-child {font-size:9px;color:var(--lms-muted)}
+#view-dashboard .dc-panel {background:var(--lms-surface);border:1px solid var(--lms-line);border-radius:16px;box-shadow:0 4px 18px rgba(32,42,75,.035)}
+#view-dashboard .dc-panel-header {padding:17px 19px 14px;border-color:var(--lms-line)}
+#view-dashboard .dc-panel-header h2 {font-size:13px;color:var(--lms-ink)}
+#view-dashboard .dc-panel-header p {font-size:10px;color:var(--lms-muted)}
+#view-dashboard .dc-panel-kicker {font-size:8px;letter-spacing:.13em;color:#9278d8;font-weight:850}
+#view-dashboard .dc-text-link {color:#7255cf;font-size:10px}
+#view-dashboard .dc-filter-row {padding:12px 17px;border-color:var(--lms-line)}
+#view-dashboard .dc-filter-label {font-size:9px;color:var(--lms-muted)}
+#view-dashboard .level-pill {padding:6px 11px;font-size:9px;background:var(--lms-soft);border-color:var(--lms-line);color:var(--lms-muted)}
+#view-dashboard .level-pill.is-active,#view-dashboard .level-pill.bg-sky-600 {background:#7659d6;border-color:#7659d6;color:white}
+#view-dashboard .dc-student-table {color:var(--lms-ink)}
+#view-dashboard .dc-student-table thead {background:var(--lms-soft)}
+#view-dashboard .dc-student-table th {font-size:8px;letter-spacing:.09em;color:var(--lms-muted);padding:12px 14px}
+#view-dashboard .dc-student-table td {font-size:10px;border-color:var(--lms-line);padding:13px 14px}
+#view-dashboard .dc-table-footer {background:var(--lms-soft);border-color:var(--lms-line);font-size:9px}
+#view-dashboard .dc-page-btn {background:var(--lms-surface);border-color:var(--lms-line);color:var(--lms-muted);font-size:9px}
+#view-dashboard .dc-page-current {background:#7659d6}
+#view-dashboard .dc-activity-feed {padding:13px}
+#view-dashboard .dc-activity-feed > div {background:var(--lms-soft);border-color:var(--lms-line);border-radius:12px}
+#view-dashboard .dc-grade-list {gap:16px;padding:16px 18px}
+#view-dashboard .dc-grade-meta {font-size:10px}
+#view-dashboard .dc-grade-track {height:8px;background:var(--lms-soft)}
+#view-dashboard .dc-panel-note {border-color:var(--lms-line);font-size:9px}
+#view-dashboard .dc-shortcut-panel {background:linear-gradient(110deg,#f1edff,#f7f4ff);border:1px solid #e7defd;border-radius:15px}
+#view-dashboard .dc-shortcut-panel h3 {color:#30245e}
+#view-dashboard .dc-shortcut-panel p {color:#81769e}
+#view-dashboard .dc-shortcut-kicker {font-size:8px;letter-spacing:.12em;font-weight:850;color:#8c72d5}
+#view-dashboard .dc-shortcut-panel button {color:#7659d6}
+html.dark #view-dashboard .dc-kpi-blue .dc-kpi-icon,
+html.dark #view-dashboard .dc-kpi-violet .dc-kpi-icon,
+html.dark #view-dashboard .dc-kpi-green .dc-kpi-icon,
+html.dark #view-dashboard .dc-kpi-amber .dc-kpi-icon {background:rgba(255,255,255,.07)}
+html.dark #view-dashboard .dc-shortcut-panel {background:linear-gradient(110deg,#211c3a,#292342);border-color:rgba(167,139,250,.2)}
+html.dark #view-dashboard .dc-shortcut-panel h3 {color:#eee9ff}
+html.dark #view-dashboard .dc-shortcut-panel p {color:#b6add4}
+@media(max-width:767px) {
+  #view-dashboard .dc-welcome-panel {padding:22px 20px;min-height:190px}
+  #view-dashboard .dc-welcome-art {right:-95px;opacity:.35}
+  #view-dashboard .dc-kpi-card {padding:14px}
+  #view-dashboard .dc-panel-header {padding:15px}
+  #view-dashboard .dc-table-footer {align-items:flex-start;flex-direction:column}
+}

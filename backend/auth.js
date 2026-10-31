@@ -73,11 +73,9 @@ function sha256(text) {
     return crypto.createHash("sha256").update(text).digest("hex");
 }
 
-function createSession(userId, { sessionHours } = {}) {
+function createSession(userId) {
     const token = crypto.randomBytes(32).toString("hex");
-    const hours = Number(sessionHours);
-    const ttlMs = (Number.isFinite(hours) && hours > 0 ? Math.min(hours, 168) * 60 * 60 * 1000 : SESSION_DAYS * 24 * 60 * 60 * 1000);
-    const expiresAt = new Date(Date.now() + ttlMs).toISOString();
+    const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     const user = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
     if (!user) throw new Error("User tidak ditemukan saat membuat sesi.");
@@ -127,14 +125,6 @@ function authError(res, status, message, code) {
 // MIDDLEWARE
 // ============================================================
 
-// Endpoint yang tetap boleh dipakai saat akun wajib mengganti password.
-// Tanpa pengecualian ini, pengguna tidak bisa keluar atau mengganti password.
-const PASSWORD_CHANGE_EXEMPT = new Set([
-    "/api/auth/me",
-    "/api/auth/logout",
-    "/api/auth/change-password"
-]);
-
 // "Satpam": wajib membawa session token dari backend.
 function requireAuth(req, res, next) {
     const token = readToken(req);
@@ -160,8 +150,8 @@ function requireAuth(req, res, next) {
     }
 
     const role = session.role || "student";
-    if (!["student", "admin", "instruktur", "ortu"].includes(role)) {
-        return authError(res, 403, "Role akun belum didukung. Gunakan student, admin, instruktur, atau ortu.", "ROLE_NOT_SUPPORTED");
+    if (role !== "student" && role !== "admin") {
+        return authError(res, 403, "Role akun belum didukung. Gunakan student atau admin.", "ROLE_NOT_SUPPORTED");
     }
     req.userId = session.user_id;
     req.user = session.username;
@@ -169,13 +159,6 @@ function requireAuth(req, res, next) {
     req.status = session.status;
     req.mustChangePassword = Boolean(session.must_change_password);
     req.token = token;
-
-    // Akun baru (buatan admin / CLI) wajib mengganti password dulu.
-    // Pengecualian hanya untuk melihat identitas, logout, dan ganti password.
-    if (req.mustChangePassword && !PASSWORD_CHANGE_EXEMPT.has(req.path)) {
-        return authError(res, 403, "Wajib mengganti password sebelum melanjutkan.", "PASSWORD_CHANGE_REQUIRED");
-    }
-
     next();
 }
 
@@ -184,28 +167,6 @@ function requireAdmin(req, res, next) {
         return authError(res, 403, "Akses admin diperlukan", "ADMIN_REQUIRED");
     }
     next();
-}
-
-// Satpam untuk fitur admin: admin (semua) atau instruktur (dibatasi
-// permission per fitur lewat matriks admin_role_permissions).
-function requireStaff(req, res, next) {
-    if (req.role !== "admin" && req.role !== "instruktur") {
-        return authError(res, 403, "Akses admin diperlukan", "ADMIN_REQUIRED");
-    }
-    next();
-}
-
-// Satpam pembeda: apakah pengguna memiliki permission tertentu.
-// Admin selalu punya semua; instruktur memakai matriks dari admin_role_permissions.
-function requirePermission(permission) {
-    const permsModule = require("./permissions");
-    return (req, res, next) => {
-        const allowed = req.role === "admin" || permsModule.permissionsForRole(db, req.role).includes(permission);
-        if (!allowed) {
-            return authError(res, 403, "Permission tidak cukup: " + permission, "PERMISSION_DENIED");
-        }
-        next();
-    };
 }
 
 // Reserved untuk fase berikutnya. Schema role saat ini hanya student/admin;
@@ -291,8 +252,6 @@ module.exports = {
     deleteAllSessions,
     requireAuth,
     requireAdmin,
-    requireStaff,
-    requirePermission,
     requireSuperadmin,
     requireSameUser,
     isBlocked,

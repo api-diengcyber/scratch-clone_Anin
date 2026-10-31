@@ -50,13 +50,6 @@
       }
     }
 
-    // Akun baru wajib ganti password sebelum memakai API lain.
-    if (response.status === 403 && data && data.code === "PASSWORD_CHANGE_REQUIRED") {
-      if (!/\/ganti-password\.html?$/.test(location.pathname)) {
-        location.replace("/ganti-password.html");
-      }
-    }
-
     if (!response.ok || (data && data.ok === false)) {
       const err = new Error((data && data.message) || `Permintaan gagal (HTTP ${response.status}).`);
       err.status = response.status;

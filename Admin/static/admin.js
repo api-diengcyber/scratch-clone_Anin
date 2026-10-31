@@ -220,6 +220,7 @@ function renderGradeDistribution(stats) {
     if (bar) bar.style.width = percent + '%';
   }
   setText('gradeDistributionNote', `${fmtNum(grades.unassigned)} siswa belum ditentukan jenjangnya`);
+  if (window.dcDash) window.dcDash.renderDonut(stats);
 }
 
 function studentRow(user, totalTasks) {
@@ -383,6 +384,7 @@ async function loadStudents() {
 async function loadActivity() {
   const data = await window.DCAdminApi.activity(5);
   renderActivity(data.entries);
+  if (window.dcDash) window.dcDash.loadWeek(data.entries);
   return data;
 }
 
@@ -485,10 +487,10 @@ function filterTable(level, buttonElement) {
   adminState.page = 1;
 
   document.querySelectorAll('.level-pill').forEach((btn) => {
-    btn.className = "level-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 transition shadow-xs shrink-0";
+    btn.className = "level-pill";
   });
   if (buttonElement) {
-    buttonElement.className = "level-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-sky-600 text-white shadow-xs shrink-0";
+    buttonElement.className = "level-pill is-active";
   }
   loadStudents().catch((error) => {
     if (error.status !== 401) {
@@ -639,17 +641,8 @@ async function loadNotif() {
   renderNotif();
   try {
     const data = await window.DCAdminApi.notifications(20);
-    const fetched = Array.isArray(data.notifications) ? data.notifications : [];
-    // Jangan timpa status baca yang baru diubah lokal oleh respons fetch yang telat.
-    const locallyRead = new Set(notifState.items.filter((n) => n.read).map((n) => Number(n.id)));
-    let unread = Number(data.unreadCount) || 0;
-    for (const n of fetched) {
-      if (!n.read && locallyRead.has(Number(n.id))) unread -= 1;
-    }
-    notifState.items = fetched.map((n) => (
-      locallyRead.has(Number(n.id)) ? { ...n, read: true } : n
-    ));
-    notifState.unread = Math.max(0, unread);
+    notifState.items = Array.isArray(data.notifications) ? data.notifications : [];
+    notifState.unread = Number(data.unreadCount) || 0;
   } catch (error) {
     if (error.status !== 401) console.warn('Gagal memuat notifikasi:', error.message);
     notifState.items = [];
@@ -742,6 +735,7 @@ function renderSidebarAccount(me) {
   if (nameEl) { nameEl.textContent = name; nameEl.title = u.email ? name + ' (' + u.email + ')' : name; }
   if (roleEl) roleEl.textContent = 'Administrator';
   if (avatarEl) avatarEl.textContent = initials;
+  if (window.dcDash) window.dcDash.setAccount(name, initials);
 }
 
 (function initLogout() {
@@ -789,10 +783,6 @@ function renderSidebarAccount(me) {
     await loadDashboard();
   } catch (error) {
     if (error.status === 403) {
-      if (error.code === 'PASSWORD_CHANGE_REQUIRED') {
-        location.replace('/ganti-password.html');
-        return;
-      }
       showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
       setTimeout(() => location.replace('/dashboard.html'), 1200);
     } else if (error.status !== 401) {

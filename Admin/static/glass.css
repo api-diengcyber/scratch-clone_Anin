@@ -1,193 +1,115 @@
 /* ==========================================================================
-   Tampilan: latar abu-abu polos, efek kaca (glass) HANYA di header.
-   - Latar halaman : abu-abu polos (tanpa gradasi warna).
-   - Kartu, sidebar, modal, tabel : solid (bawaan Tailwind, tanpa blur).
-   - Header kaca  : bar atas (pencarian) dan header tiap halaman (.page-hero).
-   Ukuran header halaman disamakan dengan banner di Dashboard.
-   Mau ganti abu-abunya? Ubah --bg-grey di bawah.
+   Latar halaman, sidebar melayang, header halaman, dan kartu statistik.
+   (Nama file dipertahankan "glass.css" agar tautan di index.html tidak berubah.)
+
+   - Latar    : hijau-abu sangat lembut + cahaya hijau halus di pojok (seperti UStudy).
+   - Sidebar  : kartu putih melayang, sudut bulat.
+   - Header   : .page-hero = kartu putih bersudut bulat dengan hiasan hijau lembut.
+   - Statistik: kartu putih dengan ikon bulat berwarna (tanpa gradien penuh).
+   Mau ganti warna latar? Ubah --page-bg di bawah.
    ========================================================================== */
 
 html.light, html:not(.dark) {
-  --bg-grey: #e6e9ef;
-  --g-surface: rgba(255, 255, 255, .62);
-  --g-line:    rgba(255, 255, 255, .85);
-  --g-shadow:  0 4px 20px rgba(30, 41, 90, .07), inset 0 1px 0 rgba(255, 255, 255, .9);
+  --page-bg: #eef4f0;
+  --g-surface: #ffffff;
+  --g-line:    #e0eee6;
+  --g-shadow:  0 1px 2px rgba(16, 70, 49, .04), 0 14px 30px -16px rgba(16, 70, 49, .14);
 }
 html.dark {
-  --bg-grey: #0b1120;
-  --g-surface: rgba(30, 41, 59, .55);
-  --g-line:    rgba(255, 255, 255, .10);
-  --g-shadow:  0 4px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06);
+  --page-bg: #0a120e;
+  --g-surface: #101c16;
+  --g-line:    rgba(255, 255, 255, .08);
+  --g-shadow:  0 10px 30px -14px rgba(0, 0, 0, .6);
 }
-:root { --g-blur: 16px; }
 
-/* ---------- Latar polos ---------- */
+/* ---------- Latar ---------- */
 :where(html.light) body[class],
-html.dark body[class] {
-  background-color: var(--bg-grey);
-  background-image: none;
+html:not(.dark) body[class] {
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(900px 460px at 88% -6%, rgba(120, 209, 168, .34), transparent 62%),
+    radial-gradient(700px 420px at -4% 104%, rgba(166, 209, 56, .13), transparent 60%);
+  background-attachment: fixed;
 }
-:where(html.light) body main[class],
-html.dark body main[class] { background-color: transparent; }
+html.dark body[class] {
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(900px 460px at 88% -6%, rgba(31, 160, 110, .16), transparent 62%),
+    radial-gradient(700px 420px at -4% 104%, rgba(166, 209, 56, .05), transparent 60%);
+  background-attachment: fixed;
+}
+body main[class] { background-color: transparent; }
 
-/* ---------- Sidebar: solid, melayang di atas latar abu-abu ---------- */
+/* ---------- Sidebar: putih, melayang di atas latar ---------- */
 @media (min-width: 768px) {
   body #sidebar {
     margin: .75rem 0 .75rem .75rem;
-    border-radius: 1.5rem;
+    border-radius: 1.75rem;
     position: sticky;
     top: .75rem;
     align-self: flex-start;
     height: calc(100vh - 1.5rem);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 10px 25px -8px rgba(15, 23, 42, .08);
-    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16, 70, 49, .05), 0 18px 40px -18px rgba(16, 70, 49, .22);
   }
+  html.dark body #sidebar { box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .7); border: 1px solid rgba(255, 255, 255, .05); }
 }
 
-/* ==========================================================================
-   HEADER KACA (satu-satunya bagian yang berkaca)
-   ========================================================================== */
-
-/* 1) Bar atas (pencarian, tema, notifikasi) */
-body main > header[class] {
-  background-color: var(--g-surface);
-  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(150%);
-          backdrop-filter: blur(var(--g-blur)) saturate(150%);
-}
-@media (min-width: 768px) {
-  body main > header[class] {
-    margin: .75rem 1rem 0;
-    border-radius: 1.25rem;
-    border: 1px solid var(--g-line);
-    box-shadow: var(--g-shadow);
-  }
-}
-
-/* 2) Header tiap halaman (Kurikulum, Code Lab, Tahap, Plugin, Siswa).
-      Ukuran = banner Dashboard: padding p-6 / md:p-8, sudut rounded-2xl,
-      judul text-2xl / sm:text-3xl. */
+/* ---------- Header tiap halaman (Kurikulum, Code Lab, Tahap, Plugin, Siswa, dst.) ---------- */
 .page-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   padding: 1.5rem;
   border: 1px solid var(--g-line);
   background: var(--g-surface);
-  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(150%);
-          backdrop-filter: blur(var(--g-blur)) saturate(150%);
   box-shadow: var(--g-shadow);
 }
-@media (min-width: 768px) { .page-hero { padding: 2rem; } }
+@media (min-width: 768px) { .page-hero { padding: 1.75rem 2rem; } }
 .page-hero::before,
 .page-hero::after {
   content: "";
   position: absolute;
   border-radius: 9999px;
-  filter: blur(40px);
   pointer-events: none;
 }
-.page-hero::before { top: -3rem; left: -3rem; width: 10rem; height: 10rem; background: rgba(125, 211, 252, .35); }
-.page-hero::after  { bottom: -2.5rem; right: 5rem; width: 12rem; height: 8rem; background: rgba(165, 180, 252, .30); }
-html.dark .page-hero::before { background: rgba(14, 165, 233, .14); }
-html.dark .page-hero::after  { background: rgba(99, 102, 241, .14); }
+.page-hero::before { top: -4.5rem; right: -3rem; width: 14rem; height: 14rem; background: radial-gradient(circle at 30% 30%, rgba(120, 209, 168, .45), rgba(120, 209, 168, 0) 70%); }
+.page-hero::after  { bottom: -3.5rem; right: 9rem; width: 9rem; height: 9rem; background: radial-gradient(circle, rgba(166, 209, 56, .22), rgba(166, 209, 56, 0) 70%); }
+html.dark .page-hero::before { background: radial-gradient(circle at 30% 30%, rgba(31, 160, 110, .28), rgba(31, 160, 110, 0) 70%); }
+html.dark .page-hero::after  { background: radial-gradient(circle, rgba(166, 209, 56, .10), rgba(166, 209, 56, 0) 70%); }
 .page-hero > * { position: relative; z-index: 1; }
-.page-hero h1 { font-size: 1.5rem; line-height: 2rem; }
-@media (min-width: 640px) { .page-hero h1 { font-size: 1.875rem; line-height: 2.25rem; } }
+.page-hero h1 { font-size: 1.5rem; line-height: 2rem; letter-spacing: -.03em; }
+@media (min-width: 640px) { .page-hero h1 { font-size: 1.75rem; line-height: 2.25rem; } }
 .page-hero h1 + p { line-height: 1.625; }
 
-/* ==========================================================================
-   KARTU STATISTIK di bawah header (Dashboard, Kurikulum, Siswa, Plugin)
-   Gaya gradien berwarna + lingkaran transparan. Ukuran SAMA di semua halaman.
-   Warna kartu otomatis mengikuti warna ikon di dalamnya
-   (sky, indigo, emerald, amber, rose), jadi tiap kartu beda warna.
-   Ubah ukuran kartu: --sc-height / --sc-pad. Ubah warna: variabel --sc-*.
-   ========================================================================== */
-:root {
-  --sc-height: 9rem;
-  --sc-pad: 1.25rem;
-  --sc-sky:     linear-gradient(135deg, #5eb0f7 0%, #2f6fe4 100%);
-  --sc-indigo:  linear-gradient(135deg, #b197fc 0%, #6d5ce8 100%);
-  --sc-emerald: linear-gradient(135deg, #3ddbb8 0%, #14b890 100%);
-  --sc-amber:   linear-gradient(135deg, #ffa56b 0%, #ff6b8b 100%);
-  --sc-rose:    linear-gradient(135deg, #ff7a93 0%, #e5365f 100%);
-}
+/* Kartu putih di halaman lain: tepi bernuansa hijau (hanya mode terang) */
+html:not(.dark) main .shadow-card { border-color: var(--g-line); }
 
-/* grid seragam: 1 kolom (HP), 2 kolom (tablet), 4 kolom (desktop) */
-:is(#dashStats, #kurStats, #plStats, #swStats) {
+/* ==========================================================================
+   KARTU STATISTIK di halaman Kurikulum, Siswa, dan Plugin
+   Kartu putih + ikon bulat berwarna (warna ikon dari class bawaan masing-masing halaman).
+   ========================================================================== */
+:is(#kurStats, #plStats, #swStats) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
-@media (min-width: 560px)  { :is(#dashStats, #kurStats, #plStats, #swStats) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { :is(#dashStats, #kurStats, #plStats, #swStats) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 560px)  { :is(#kurStats, #plStats, #swStats) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { :is(#kurStats, #plStats, #swStats) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* kartu */
-:is(#dashStats, #kurStats, #plStats, #swStats) > * {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: var(--sc-height);
-  padding: var(--sc-pad);
-  border: 0;
-  border-radius: 1rem;
-  background-image: var(--sc-grad, var(--sc-sky));
-  background-color: transparent;
-  box-shadow: 0 10px 22px -12px rgba(15, 23, 42, .45);
-  text-align: left;
+:is(#kurStats, #plStats, #swStats) > * {
+  border-radius: 1.4rem;
+  border: 1px solid transparent;
+  background-color: var(--g-surface);
+  box-shadow: var(--g-shadow);
+  transition: transform .25s, box-shadow .25s, border-color .25s;
 }
-:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-sky-50)     { --sc-grad: var(--sc-sky); }
-:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-indigo-50)  { --sc-grad: var(--sc-indigo); }
-:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-emerald-50) { --sc-grad: var(--sc-emerald); }
-:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-amber-50)   { --sc-grad: var(--sc-amber); }
-:is(#dashStats, #kurStats, #plStats, #swStats) > *:has(.bg-rose-50)    { --sc-grad: var(--sc-rose); }
-
-/* lingkaran transparan sebagai hiasan */
-:is(#dashStats, #kurStats, #plStats, #swStats) > *::before,
-:is(#dashStats, #kurStats, #plStats, #swStats) > *::after {
-  content: "";
-  position: absolute;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, .16);
-  pointer-events: none;
-}
-:is(#dashStats, #kurStats, #plStats, #swStats) > *::before { width: 7.5rem; height: 7.5rem; right: -1.75rem; bottom: -3rem; }
-:is(#dashStats, #kurStats, #plStats, #swStats) > *::after  { width: 5.5rem; height: 5.5rem; right: 1.75rem; top: -3rem; background: rgba(255, 255, 255, .12); }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * > * { position: relative; z-index: 1; }
-
-/* isi kartu: semua teks putih, ukuran seragam */
-:is(#dashStats, #kurStats, #plStats, #swStats) > * * { color: rgba(255, 255, 255, .88); }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * .font-extrabold,
-:is(#dashStats, #kurStats, #plStats, #swStats) > * .font-extrabold * { color: #fff; }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * .font-extrabold { font-size: 1.875rem; line-height: 2.25rem; letter-spacing: -.01em; }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * > div:first-child { margin-bottom: .5rem; align-items: flex-start; }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * > div:first-child > span:first-child { font-size: 11px; font-weight: 700; letter-spacing: .06em; }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * > :last-child { margin-top: auto; padding-top: .5rem; }
-:is(#dashStats, #kurStats, #plStats, #swStats) > * > :last-child,
-:is(#dashStats, #kurStats, #plStats, #swStats) > * > :last-child > * { font-size: .75rem; line-height: 1rem; }
-
-/* ikon di pojok kanan atas: ukuran sama, latar bening */
-:is(#dashStats, #kurStats, #plStats, #swStats) > * .w-7,
-:is(#dashStats, #kurStats, #plStats, #swStats) > * .w-9 {
-  width: 2.25rem; height: 2.25rem; flex-shrink: 0;
-  border-radius: .75rem;
-  background-color: rgba(255, 255, 255, .2);
-  font-size: .875rem;
-}
-
+:is(#kurStats, #plStats, #swStats) > *:hover { transform: translateY(-3px); border-color: rgba(120, 209, 168, .55); box-shadow: 0 18px 34px -14px rgba(20, 135, 91, .28); }
+/* ikon: bulat seperti UStudy */
+:is(#kurStats, #plStats, #swStats) > * .w-7,
+:is(#kurStats, #plStats, #swStats) > * .w-9 { border-radius: 9999px; }
 /* kartu yang sedang aktif sebagai filter (Kurikulum) */
-:is(#dashStats, #kurStats, #plStats, #swStats) > [aria-pressed="true"] {
-  outline: 2px solid rgba(255, 255, 255, .95);
-  outline-offset: -5px;
-}
+:is(#kurStats, #plStats, #swStats) > [aria-pressed="true"] { outline: 2px solid var(--j-500); outline-offset: -2px; }
 
-/* ---------- Cadangan & aksesibilitas ---------- */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  html.light, html:not(.dark) { --g-surface: rgba(255, 255, 255, .9); }
-  html.dark { --g-surface: rgba(20, 26, 46, .92); }
-}
-@media (prefers-reduced-transparency: reduce) {
-  :root { --g-blur: 0px; }
-  html.light, html:not(.dark) { --g-surface: rgba(255, 255, 255, .96); }
-  html.dark { --g-surface: rgba(20, 26, 46, .96); }
+@media (prefers-reduced-motion: reduce) {
+  :is(#kurStats, #plStats, #swStats) > *:hover { transform: none; }
 }

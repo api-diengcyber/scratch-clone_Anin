@@ -9,7 +9,6 @@ const os = require("os");
 const path = require("path");
 const zlib = require("zlib");
 const http = require("http");
-const crypto = require("crypto");
 const { spawn } = require("child_process");
 
 const BACKEND = __dirname;
@@ -313,7 +312,6 @@ async function cleanup() {
   let previewPath = null;
   let codeLabSdId = null;
   let codeLabPythonId = null;
-  let instrId = null;
 
   await t("GET /api/admin/users tanpa token -> 401", async () => {
     const { r, d } = await api("GET", "/api/admin/users");
@@ -336,8 +334,6 @@ async function cleanup() {
     eq(r.status, 200, "status");
     eq(d.id, adminId, "id");
     eq(d.username, "admin1", "username");
-    eq(d.email, "admin1@example.com", "email");
-    eq(d.fullName, null, "fullName");
     eq(d.role, "admin", "role");
     eq(d.status, "active", "status akun");
   });
@@ -372,59 +368,6 @@ async function cleanup() {
     eq(me.d.role, "student", "role /me");
     eq(me.d.status, "active", "status /me");
     eq(me.d.mustChangePassword, true, "mustChangePassword");
-    eq(d.mustChangePassword, true, "login mustChangePassword");
-
-    // Bersihkan flag supaya tes lain bisa memakai token ini.
-    // Penegakan aturannya diuji terpisah di bawah.
-    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(studentId);
-  });
-
-  await t("Wajib ganti password: blokir API, endpoint pengecualian, dan buka blokir", async () => {
-    const pwUserId = addUser("student-pw", "student-pw@example.com", "TempPass123!", "student");
-    db.prepare("UPDATE users SET must_change_password = 1 WHERE id = ?").run(pwUserId);
-
-    let res;
-
-    // Sesi dibuat langsung agar tidak menambah pemakaian rate limit login
-    // (kuota login dipakai bersama seluruh suite).
-    const pwToken = auth.createSession(pwUserId);
-
-    res = await api("GET", "/api/auth/me", { token: pwToken });
-    eq(res.r.status, 200, "me tetap boleh");
-    eq(res.d.mustChangePassword, true, "flag /me");
-
-    res = await api("GET", "/api/shop", { token: pwToken });
-    eq(res.r.status, 403, "API lain diblokir");
-    eq(res.d.code, "PASSWORD_CHANGE_REQUIRED", "code blokir");
-
-    res = await api("GET", "/api/admin/users", { token: pwToken });
-    eq(res.r.status, 403, "admin API diblokir");
-    eq(res.d.code, "PASSWORD_CHANGE_REQUIRED", "code admin blokir");
-
-    res = await api("POST", "/api/auth/change-password", {
-      token: pwToken,
-      body: { currentPassword: "SalahPass123!", newPassword: "BaruPass123!" }
-    });
-    eq(res.r.status, 401, "password lama salah");
-    eq(res.d.code, "INVALID_CREDENTIALS", "code password lama");
-
-    res = await api("POST", "/api/auth/change-password", {
-      token: pwToken,
-      body: { currentPassword: "TempPass123!", newPassword: "BaruPass123!" }
-    });
-    eq(res.r.status, 200, "ganti password");
-
-    res = await api("GET", "/api/auth/me", { token: pwToken });
-    eq(res.d.mustChangePassword, false, "flag hilang");
-
-    res = await api("GET", "/api/shop", { token: pwToken });
-    eq(res.r.status, 200, "API terbuka lagi");
-
-    // Verifikasi password langsung ke DB: login tambahan akan menghabiskan
-    // kuota rate limit yang dipakai bersama seluruh suite.
-    const stored = db.prepare("SELECT password_hash, password_salt FROM users WHERE id = ?").get(pwUserId);
-    eq(auth.verifyPassword("BaruPass123!", stored.password_salt, stored.password_hash), true, "password baru tersimpan");
-    eq(auth.verifyPassword("TempPass123!", stored.password_salt, stored.password_hash), false, "password lama tidak berlaku");
   });
 
   await t("murid membuka /api/admin/users -> 403 ADMIN_REQUIRED", async () => {
@@ -702,10 +645,6 @@ async function cleanup() {
 
     res = await api("GET", "/api/auth/me", { token: studentToken });
     eq(res.d.mustChangePassword, true, "mustChangePassword");
-
-    // Tes berikutnya memakai token ini untuk fitur murid; kewajiban ganti
-    // password sudah diuji di atas, jadi flag dimatikan agar tidak memblokir.
-    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(studentId);
   });
 
   await t("suspend menolak login; reactivate mengizinkan lagi", async () => {
@@ -1174,303 +1113,6 @@ async function cleanup() {
     eq(res.r.status, 200, "list setelah hapus");
     eq(res.d.notifications.length, 0, "notifikasi kosong");
     eq(res.d.unreadCount, 0, "unread nol");
-  });
-
-  await t("Badge: CRUD, validasi, dan hapus melepas badge dari tugas", async () => {
-    let res = await api("GET", "/api/admin/badges", { token: adminToken });
-    eq(res.r.status, 200, "list awal");
-    eq(res.d.items.length, 0, "kosong");
-
-    res = await api("POST", "/api/admin/badges", {
-      token: adminToken,
-      body: { name: "Si Rajin", description: "10 tugas", icon: "fa-fire", color: "amber", rule: "tasks", threshold: 10, active: true }
-    });
-    eq(res.r.status, 201, "create");
-    eq(res.d.item.name, "Si Rajin", "nama");
-    eq(res.d.item.rule, "tasks", "rule");
-    eq(res.d.item.threshold, 10, "threshold");
-    const badgeId = res.d.item.id;
-
-    res = await api("POST", "/api/admin/badges", { token: adminToken, body: { name: "si rajin" } });
-    eq(res.r.status, 409, "nama duplikat");
-    eq(res.d.code, "BADGE_NAME_EXISTS", "code duplikat");
-
-    res = await api("POST", "/api/admin/badges", { token: adminToken, body: { name: "Salah", rule: "tasks", threshold: 0 } });
-    eq(res.r.status, 400, "threshold minimal");
-    eq(res.d.code, "ADMIN_DATA_INVALID", "code validasi");
-
-    res = await api("PATCH", `/api/admin/badges/${badgeId}`, { token: adminToken, body: { color: "sky", active: false } });
-    eq(res.r.status, 200, "patch");
-    eq(res.d.item.color, "sky", "patch color");
-    eq(res.d.item.active, false, "patch active");
-    eq(res.d.item.name, "Si Rajin", "field lain dipertahankan");
-
-    res = await api("GET", "/api/admin/badges", { token: studentToken });
-    eq(res.r.status, 403, "murid dilarang");
-  });
-
-  await t("Tugas admin: CRUD, validasi, filter, dan relasi badge", async () => {
-    let res = await api("GET", "/api/admin/badges", { token: adminToken });
-    const badgeId = res.d.items[0].id;
-
-    res = await api("POST", "/api/admin/tasks", {
-      token: adminToken,
-      body: {
-        title: "Percabangan If-Else", description: "Tentukan lulus atau tidak.", grade: "SMP",
-        type: "kode", points: 50, due: "2026-12-31", status: "terbit", badgeId
-      }
-    });
-    eq(res.r.status, 201, "create");
-    eq(res.d.item.grade, "SMP", "grade");
-    eq(res.d.item.badgeId, badgeId, "badgeId");
-    eq(res.d.item.submitted, 0, "submitted");
-    eq(res.d.item.pending, 0, "pending");
-    const taskId = res.d.item.id;
-
-    res = await api("POST", "/api/admin/tasks", {
-      token: adminToken,
-      body: { title: "Tanpa tenggat", grade: "SD", type: "kuis", points: 10, status: "draft" }
-    });
-    eq(res.r.status, 400, "due wajib");
-    eq(res.d.details.field, "due", "field due");
-
-    res = await api("POST", "/api/admin/tasks", {
-      token: adminToken,
-      body: { title: "Poin salah", grade: "SD", type: "kuis", points: 1001, due: "2026-12-31" }
-    });
-    eq(res.r.status, 400, "poin maksimal");
-
-    res = await api("POST", "/api/admin/tasks", {
-      token: adminToken,
-      body: { title: "Badge salah", grade: "SD", type: "kuis", points: 10, due: "2026-12-31", badgeId: 999999 }
-    });
-    eq(res.r.status, 400, "badge tidak ada");
-    eq(res.d.details.field, "badgeId", "field badgeId");
-
-    res = await api("GET", "/api/admin/tasks?grade=SD", { token: adminToken });
-    eq(res.r.status, 200, "filter list");
-    eq(res.d.items.length, 0, "filter grade kosong");
-
-    res = await api("PATCH", `/api/admin/tasks/${taskId}`, { token: adminToken, body: { status: "ditutup", points: 70 } });
-    eq(res.r.status, 200, "patch");
-    eq(res.d.item.status, "ditutup", "status patch");
-    eq(res.d.item.points, 70, "points patch");
-    eq(res.d.item.title, "Percabangan If-Else", "judul tetap");
-
-    // Pengumpulan siswa (dibuat langsung; endpoint murid untuk submit belum ada).
-    const info = db.prepare(`
-      INSERT INTO admin_task_submissions (task_id, user_id, answer, status)
-      VALUES (?, ?, ?, 'dikumpulkan')
-    `).run(taskId, studentId, "if nilai >= 75: print('Lulus')");
-    const submissionId = Number(info.lastInsertRowid);
-
-    res = await api("GET", `/api/admin/tasks/${taskId}/submissions`, { token: adminToken });
-    eq(res.r.status, 200, "submissions list");
-    eq(res.d.items.length, 1, "jumlah pengumpulan");
-    eq(res.d.items[0].student_id, studentId, "student_id");
-    ok(res.d.items[0].student_name, "student_name");
-    eq(res.d.items[0].status, "dikumpulkan", "status kumpul");
-
-    res = await api("GET", "/api/admin/tasks", { token: adminToken });
-    const listed = res.d.items.find((x) => x.id === taskId);
-    eq(listed.submitted, 1, "submitted dihitung");
-    eq(listed.pending, 1, "pending dihitung");
-
-    res = await api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body: { status: "dinilai", feedback: "Bagus" } });
-    eq(res.r.status, 400, "nilai wajib");
-    eq(res.d.details.field, "score", "field score");
-
-    res = await api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body: { status: "revisi", score: null } });
-    eq(res.r.status, 400, "feedback wajib untuk revisi");
-    eq(res.d.details.field, "feedback", "field feedback");
-
-    res = await api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body: { status: "dinilai", score: 90, feedback: "Mantap" } });
-    eq(res.r.status, 200, "nilai");
-    eq(res.d.item.status, "dinilai", "status dinilai");
-    eq(res.d.item.score, 90, "score");
-    ok(res.d.item.graded_at, "graded_at");
-
-    res = await api("GET", "/api/admin/tasks", { token: adminToken });
-    eq(res.d.items.find((x) => x.id === taskId).pending, 0, "pending nol setelah dinilai");
-
-    res = await api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body: { status: "revisi", feedback: "Perbaiki validasi" } });
-    eq(res.r.status, 200, "revisi");
-    eq(res.d.item.graded_at, null, "graded_at kosong saat revisi");
-
-    res = await api("PATCH", "/api/admin/submissions/999999", { token: adminToken, body: { status: "dinilai", score: 80 } });
-    eq(res.r.status, 404, "submission tidak ada");
-
-    // Hapus badge: tugas tetap ada tetapi badgeId menjadi null.
-    res = await api("DELETE", `/api/admin/badges/${badgeId}`, { token: adminToken });
-    eq(res.r.status, 200, "hapus badge");
-    res = await api("GET", "/api/admin/tasks", { token: adminToken });
-    eq(res.d.items.find((x) => x.id === taskId).badgeId, null, "badge dilepas");
-
-    res = await api("GET", `/api/admin/tasks/${taskId}/submissions`, { token: studentToken });
-    eq(res.r.status, 403, "murid tidak boleh menilai");
-
-    res = await api("DELETE", `/api/admin/tasks/${taskId}`, { token: adminToken });
-    eq(res.r.status, 200, "hapus tugas");
-    res = await api("GET", `/api/admin/tasks/${taskId}/submissions`, { token: adminToken });
-    eq(res.r.status, 404, "tugas terhapus");
-  });
-
-  await t("Pengaturan instansi: simpan, baca ulang, dan validasi", async () => {
-    let res = await api("GET", "/api/admin/settings", { token: adminToken });
-    eq(res.r.status, 200, "get awal");
-    eqJson(res.d.settings, {}, "belum ada pengaturan");
-
-    const settings = {
-      name: "Dieng Cyber", tagline: "Platform Edukasi Coding", email: "info@diengcyber.local",
-      phone: "", website: "https://diengcyber.local", address: "Wonosobo", logo: "",
-      year: "2026/2027", semester: "Ganjil", grades: ["SD", "SMP", "SMK"], kkm: 75,
-      defaultDueDays: 7, allowLate: true, latePenalty: 10, minPassword: 8, sessionHours: 12,
-      forceChangePassword: true, notifNewTask: true, notifGraded: true
-    };
-    res = await api("PUT", "/api/admin/settings", { token: adminToken, body: { settings } });
-    eq(res.r.status, 200, "put");
-    eq(res.d.settings.name, "Dieng Cyber", "nama");
-    eq(res.d.settings.grades.length, 3, "grades");
-
-    res = await api("GET", "/api/admin/settings", { token: adminToken });
-    eq(res.r.status, 200, "get ulang");
-    eq(res.d.settings.kkm, 75, "kkm tersimpan");
-    eq(res.d.settings.notifGraded, true, "notif tersimpan");
-
-    res = await api("PUT", "/api/admin/settings", { token: adminToken, body: { settings: { ...settings, name: "" } } });
-    eq(res.r.status, 400, "nama wajib");
-    eq(res.d.details.field, "name", "field name");
-
-    res = await api("PUT", "/api/admin/settings", { token: adminToken, body: { settings: { ...settings, grades: [] } } });
-    eq(res.r.status, 400, "grades wajib");
-
-    res = await api("PUT", "/api/admin/settings", { token: adminToken, body: { settings: { ...settings, kkm: 101 } } });
-    eq(res.r.status, 400, "kkm range");
-
-    res = await api("PUT", "/api/admin/settings", { token: adminToken, body: { settings: { ...settings, website: "diengcyber.local" } } });
-    eq(res.r.status, 400, "website harus http");
-
-    res = await api("GET", "/api/admin/settings", { token: studentToken });
-    eq(res.r.status, 403, "murid dilarang");
-  });
-
-  await t("Keamanan & sesi: password minimum dan masa sesi diambil dari pengaturan instansi", async () => {
-    const settings = {
-      name: "Dieng Cyber", tagline: "Platform Edukasi Coding", email: "info@diengcyber.local",
-      phone: "", website: "https://diengcyber.local", address: "Wonosobo", logo: "",
-      year: "2026/2027", semester: "Ganjil", grades: ["SD", "SMP", "SMK"], kkm: 75,
-      defaultDueDays: 7, allowLate: true, latePenalty: 10, minPassword: 10, sessionHours: 5,
-      forceChangePassword: true, notifNewTask: true, notifGraded: true
-    };
-    let res = await api("PUT", "/api/admin/settings", { token: adminToken, body: { settings } });
-    eq(res.r.status, 200, "put settings");
-    eq(res.d.settings.minPassword, 10, "minPassword tersimpan");
-    eq(res.d.settings.sessionHours, 5, "sessionHours tersimpan");
-
-    res = await api("POST", "/api/auth/change-password", {
-      token: adminToken,
-      body: { currentPassword: "AdminPass123!", newPassword: "Pendek1!" }
-    });
-    eq(res.r.status, 400, "password baru di bawah min");
-    eq(res.d.code, "VALIDATION_ERROR", "code password min");
-
-    const t2 = auth.createSession(adminId, { sessionHours: 5 });
-    const hash = crypto.createHash("sha256").update(t2).digest("hex");
-    const row = db.prepare("SELECT expires_at FROM sessions WHERE token_hash = ?").get(hash);
-    ok(row && row.expires_at, "sesi dibuat");
-    const exp = new Date(row.expires_at).getTime();
-    ok(Math.abs(exp - (Date.now() + 5 * 3600_000)) < 60_000, "sesi sekitar 5 jam");
-  });
-
-  // ------------------------------------------------------------
-  // AKSES & HAK AKSES: matriks permission dan akun instruktur/orang tua.
-  // Catatan: sesi instruktur dipakai langsung via auth.createSession agar
-  // tidak menambah pemakaian rate limit login yang sudah dipakai suite.
-  // ------------------------------------------------------------
-  await t("Akses: GET /api/admin/roles membaca matriks hak akses", async () => {
-    const res = await api("GET", "/api/admin/roles", { token: adminToken });
-    eq(res.r.status, 200, "status");
-    ok(res.d.roles && res.d.roles.admin, "ada roles");
-    eq(res.d.roles.admin.length, 12, "admin punya semua hak");
-    eq(res.d.roles.instruktur.length, 6, "instruktur default");
-    eq(res.d.roles.siswa.length, 2, "siswa default");
-    eq(res.d.roles.ortu.length, 1, "ortu default");
-    eq(res.d.roles.instruktur.includes("codelab.kelola"), true, "instruktur punya codelab");
-
-    const me = await api("GET", "/api/admin/me", { token: adminToken });
-    ok(Array.isArray(me.d.permissions) && me.d.permissions.includes("codelab.kelola"), "me memuat permissions");
-  });
-
-  await t("Akses: PUT /api/admin/roles validasi dan simpan", async () => {
-    const putRoles = async (roles) => api("PUT", "/api/admin/roles", { token: adminToken, body: { roles } });
-    let res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["codelab.kelola"], siswa: ["materi.akses"], ortu: [] });
-    eq(res.r.status, 200, "put valid");
-
-    res = await putRoles({ admin: ["siswa.zzz"], instruktur: ["siswa.zzz"], siswa: ["materi.akses"], ortu: ["anak.lihat"] });
-    eq(res.r.status, 400, "permission tidak dikenal");
-    eq(res.d.code, "ADMIN_DATA_INVALID", "code permission");
-
-    res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["akses.kelola"], siswa: ["materi.akses"], ortu: ["anak.lihat"] });
-    eq(res.r.status, 200, "put valid 2");
-    res = await api("GET", "/api/admin/roles", { token: adminToken });
-    eq(res.d.roles.instruktur.includes("akses.kelola"), true, "instruktur punya akses.kelola");
-    eq(res.d.roles.admin.length, 12, "admin tetap semua");
-
-    res = await putRoles({
-      admin: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola", "plugin.kelola", "pengaturan.ubah", "akses.kelola", "materi.akses", "tugas.kumpul", "anak.lihat"],
-      instruktur: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
-      siswa: ["materi.akses", "tugas.kumpul"],
-      ortu: ["anak.lihat"]
-    });
-    eq(res.r.status, 200, "put default");
-  });
-
-  await t("Akses: instruktur dibuat, boleh codelab, dilarang user management, dan tidak bisa mengubah hak akses", async () => {
-    let res = await api("POST", "/api/admin/instructors", {
-      token: adminToken,
-      body: { name: "Instruktur Uji", email: "instr1@diengcyber.local", role: "instruktur", grades: ["SMP", "SMK"], active: true }
-    });
-    eq(res.r.status, 201, "create instruktur");
-    ok(res.d.temporaryPassword, "temporaryPassword");
-    instrId = res.d.item.id;
-    const instrToken = auth.createSession(instrId);
-    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(instrId);
-
-    res = await api("GET", "/api/admin/instructors", { token: adminToken });
-    eq(res.r.status, 200, "list instruktur");
-    ok(res.d.items.some((x) => Number(x.id) === instrId), "instruktur ada di list");
-    eq(res.d.items.find((x) => Number(x.id) === instrId).role, "instruktur", "role UI instruktur");
-    eq(res.d.items.find((x) => Number(x.id) === instrId).grades.includes("SMP"), true, "grades diterima");
-
-    res = await api("GET", "/api/admin/me", { token: instrToken });
-    eq(res.r.status, 200, "me instruktur");
-    eq(res.d.role, "instruktur", "me role");
-    ok(res.d.permissions.includes("codelab.kelola"), "me permissions default");
-
-    res = await api("GET", "/api/admin/code-lab", { token: instrToken });
-    eq(res.r.status, 200, "instruktur boleh akses codelab");
-
-    res = await api("GET", "/api/admin/users", { token: instrToken });
-    eq(res.r.status, 200, "instruktur boleh user management (siswa.kelola)");
-
-    res = await api("GET", "/api/admin/audit", { token: instrToken });
-    eq(res.r.status, 403, "instruktur dilarang audit (akses.kelola)");
-    eq(res.d.code, "PERMISSION_DENIED", "code PERMISSION_DENIED");
-
-    res = await api("PUT", "/api/admin/roles", { token: instrToken, body: { roles: {} } });
-    eq(res.r.status, 403, "PUT roles hanya admin");
-    eq(res.d.code, "PERMISSION_DENIED", "code PUT roles");
-  });
-
-  await t("Akses: self-protection dan hapus akun instruktur", async () => {
-    let res = await api("PATCH", `/api/admin/instructors/${adminId}`, { token: adminToken, body: { role: "instruktur" } });
-    eq(res.r.status, 400, "tidak bisa ganti peran self");
-    eq(res.d.code, "SELF_ROLE_FORBIDDEN", "code SELF_ROLE_FORBIDDEN");
-
-    res = await api("DELETE", `/api/admin/instructors/${instrId}`, { token: adminToken });
-    eq(res.r.status, 200, "hapus instruktur");
-    res = await api("GET", "/api/admin/instructors", { token: adminToken });
-    ok(!res.d.items.some((x) => Number(x.id) === instrId), "instruktur terhapus");
   });
 
   const fails = results.filter((r) => r[0] === "FAIL");
