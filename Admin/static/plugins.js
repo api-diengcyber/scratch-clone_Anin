@@ -31,16 +31,16 @@
     ['inactive', 'Nonaktif', (v) => v.status === 'disabled' || v.status === 'rolled_back'],
     ['rejected', 'Ditolak', (v) => v.status === 'rejected'],
   ];
-  const BTN = 'px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none ';
-  const NEUTRAL = BTN + 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700';
+  const BTN = 'dc-btn dc-btn-sm ';
+  const NEUTRAL = BTN + 'dc-btn-sec';
   const ACTIONS = {
     report:   { label: 'Laporan', icon: 'fa-solid fa-file-shield', cls: NEUTRAL },
     preview:  { label: 'Preview', icon: 'fa-solid fa-eye', cls: NEUTRAL },
-    approve:  { label: 'Setujui', icon: 'fa-solid fa-check', cls: BTN + 'bg-emerald-600 hover:bg-emerald-500 text-white border-transparent' },
-    reject:   { label: 'Tolak', icon: 'fa-solid fa-ban', cls: BTN + 'bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-950/40' },
-    publish:  { label: 'Terbitkan', icon: 'fa-solid fa-rocket', cls: BTN + 'bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white border-transparent' },
-    disable:  { label: 'Nonaktifkan', icon: 'fa-solid fa-power-off', cls: BTN + 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30 hover:bg-amber-50 dark:hover:bg-amber-950/30' },
-    rollback: { label: 'Aktifkan lagi', icon: 'fa-solid fa-clock-rotate-left', cls: BTN + 'bg-sky-600 hover:bg-sky-500 text-white border-transparent' },
+    approve:  { label: 'Setujui', icon: 'fa-solid fa-check', cls: BTN + 'dc-btn-ok' },
+    reject:   { label: 'Tolak', icon: 'fa-solid fa-ban', cls: BTN + 'dc-btn-danger' },
+    publish:  { label: 'Terbitkan', icon: 'fa-solid fa-rocket', cls: BTN + 'dc-btn-pri' },
+    disable:  { label: 'Nonaktifkan', icon: 'fa-solid fa-power-off', cls: BTN + 'dc-btn-warn' },
+    rollback: { label: 'Aktifkan lagi', icon: 'fa-solid fa-clock-rotate-left', cls: BTN + 'dc-btn-pri' },
   };
   const BY_STATUS = {
     needs_review: ['report', 'preview', 'approve', 'reject'],
@@ -68,8 +68,8 @@
         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Mini-aplikasi (game dan latihan interaktif) untuk portal siswa. Setiap ZIP masuk karantina dan harus direview sebelum terbit.</p>
       </div>
       <div class="flex items-center gap-2.5 self-start md:self-auto">
-        <button type="button" id="plRefresh" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs transition" title="Muat ulang daftar" aria-label="Muat ulang daftar plugin"><i class="fa-solid fa-rotate"></i></button>
-        <button type="button" id="plPick" class="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition-all disabled:opacity-60">
+        <button type="button" id="plRefresh" class="dc-btn dc-btn-sec" title="Muat ulang daftar" aria-label="Muat ulang daftar plugin"><i class="fa-solid fa-rotate"></i></button>
+        <button type="button" id="plPick" class="dc-btn dc-btn-pri">
           <i class="fa-solid fa-upload text-xs"></i><span id="plPickLabel">Unggah Plugin</span>
         </button>
       </div>
@@ -101,11 +101,11 @@
           <h3 id="plrTitle" class="text-base font-bold text-slate-900 dark:text-white truncate"></h3>
           <p id="plrSub" class="text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5 break-all"></p>
         </div>
-        <button type="button" data-plr-close class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" data-plr-close class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div id="plrBody" class="p-5 overflow-y-auto space-y-4 text-xs"></div>
       <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-        <button type="button" data-plr-close class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition">Tutup</button>
+        <button type="button" data-plr-close class="dc-btn dc-btn-sec">Tutup</button>
       </div>
     </div>
   </div>`);
@@ -154,8 +154,8 @@
   }
 
   function renderFilter() {
-    const on = 'px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25 whitespace-nowrap flex items-center gap-1.5';
-    const off = 'px-4 py-2 rounded-xl text-xs font-semibold bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition whitespace-nowrap flex items-center gap-1.5';
+    const on = 'dc-pill-tab is-active';
+    const off = 'dc-pill-tab';
     $('#plFilter').innerHTML = FILTERS.map(([key, label, fn]) =>
       `<button type="button" data-pl-filter="${key}" class="${key === state.filter ? on : off}">${esc(label)}<span class="opacity-70 font-mono">${state.items.filter(fn).length}</span></button>`).join('');
   }
@@ -165,7 +165,7 @@
       <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-xl"><i class="${icon}"></i></div>
       <p class="mt-3 text-sm font-bold text-slate-800 dark:text-slate-100">${esc(title)}</p>
       <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">${esc(text)}</p>
-      ${retry ? '<button type="button" data-pl-retry class="mt-4 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold">Coba lagi</button>' : ''}
+      ${retry ? '<button type="button" data-pl-retry class="dc-btn dc-btn-pri mt-4">Coba lagi</button>' : ''}
     </div>`;
   }
 

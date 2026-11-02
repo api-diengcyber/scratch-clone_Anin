@@ -7,10 +7,10 @@
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   const TONES = {
-    danger:  { icon: 'fa-solid fa-trash-can',            badge: 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400',     btn: 'bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400/60' },
-    warning: { icon: 'fa-solid fa-triangle-exclamation', badge: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400', btn: 'bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-400/60' },
-    info:    { icon: 'fa-solid fa-circle-question',      badge: 'bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',         btn: 'bg-sky-600 hover:bg-sky-500 focus-visible:ring-sky-400/60' },
-    success: { icon: 'fa-solid fa-circle-check',         badge: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400', btn: 'bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400/60' },
+    danger:  { icon: 'fa-solid fa-trash-can',            badge: 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400',     btn: 'dc-btn-danger-solid' },
+    warning: { icon: 'fa-solid fa-triangle-exclamation', badge: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400', btn: 'dc-btn-warn-solid' },
+    info:    { icon: 'fa-solid fa-circle-question',      badge: 'bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',         btn: 'dc-btn-pri' },
+    success: { icon: 'fa-solid fa-circle-check',         badge: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400', btn: 'dc-btn-pri' },
   };
 
   let host = null;
@@ -49,8 +49,8 @@
             </div>
           </div>
           <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <button type="button" data-dcd-no class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/60">${esc(cfg.cancelText || 'Batal')}</button>
-            <button type="button" data-dcd-ok class="px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm transition focus:outline-none focus-visible:ring-2 ${t.btn}">${esc(cfg.confirmText || 'Ya, lanjutkan')}</button>
+            <button type="button" data-dcd-no class="dc-btn dc-btn-sec">${esc(cfg.cancelText || 'Batal')}</button>
+            <button type="button" data-dcd-ok class="dc-btn ${t.btn}">${esc(cfg.confirmText || 'Ya, lanjutkan')}</button>
           </div>
         </div>`;
 

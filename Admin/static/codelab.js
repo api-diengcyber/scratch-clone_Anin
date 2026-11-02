@@ -79,8 +79,8 @@
     const items = [['all', 'Semua Jenjang'], ['SD', 'SD'], ['SMP', 'SMP'], ['SMK', 'SMA/SMK']];
     // gaya disamakan dengan filter di halaman Kurikulum; bobot font dan lebar (w-36) sama supaya semua tombol seragam dan tidak bergeser saat dipilih
     const base = 'shrink-0 w-36 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-2 transition ';
-    const on = base + 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25';
-    const off = base + 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60';
+    const on = 'dc-pill-tab is-active';
+    const off = 'dc-pill-tab';
     const badge = 'min-w-[1.25rem] px-1.5 py-0.5 rounded-md text-[10px] leading-none font-mono font-bold text-center ';
     $('#clFilter').innerHTML = items.map(([k, label]) => {
       const active = filter === k;
@@ -97,7 +97,7 @@
         '<i class="fa-solid fa-triangle-exclamation text-3xl text-rose-300 dark:text-rose-600"></i>' +
         '<p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-3">Gagal memuat tantangan</p>' +
         '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">' + esc(error) + '</p>' +
-        '<button type="button" data-cl="reset" class="mt-4 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold">Coba lagi</button>' +
+        '<button type="button" data-cl="reset" class="dc-btn dc-btn-pri mt-4">Coba lagi</button>' +
         '</div>';
       return;
     }
@@ -107,7 +107,7 @@
         '<i class="fa-solid fa-laptop-code text-3xl text-slate-300 dark:text-slate-600"></i>' +
         '<p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-3">' + (data.length ? 'Tidak ada tantangan yang cocok' : 'Mulai tantangan pertamamu') + '</p>' +
         '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">' + (data.length ? 'Ubah filter jenjang atau kata pencarian.' : 'Buat soal Blockly untuk SD atau soal kode untuk SMP dan SMA/SMK.') + '</p>' +
-        (data.length ? '' : '<button type="button" data-cl="new" class="mt-4 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold">Tantangan Baru</button>') +
+        (data.length ? '' : '<button type="button" data-cl="new" class="dc-btn dc-btn-pri mt-4">Tantangan Baru</button>') +
         '</div>';
       return;
     }
@@ -122,8 +122,8 @@
         '<button type="button" data-cl="status" data-id="' + esc(d.id) + '" title="Klik untuk ' + (terbit ? 'jadikan draf' : 'terbitkan') + '" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold border transition ' +
           (terbit ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'
                   : 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20') + '">' + (terbit ? 'Terbit' : 'Draf') + '</button>' +
-        '<button type="button" data-cl="edit" data-id="' + esc(d.id) + '" aria-label="Ubah ' + esc(d.judul) + '" class="w-8 h-8 rounded-lg text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i class="fa-regular fa-pen-to-square text-xs"></i></button>' +
-        '<button type="button" data-cl="del" data-id="' + esc(d.id) + '" aria-label="Hapus ' + esc(d.judul) + '" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i class="fa-regular fa-trash-can text-xs"></i></button>' +
+        '<button type="button" data-cl="edit" data-id="' + esc(d.id) + '" aria-label="Ubah ' + esc(d.judul) + '" class="dc-ib dc-ib-edit"><i class="fa-regular fa-pen-to-square text-xs"></i></button>' +
+        '<button type="button" data-cl="del" data-id="' + esc(d.id) + '" aria-label="Hapus ' + esc(d.judul) + '" class="dc-ib dc-ib-danger"><i class="fa-regular fa-trash-can text-xs"></i></button>' +
       '</div>';
     }).join('');
   }
@@ -142,7 +142,7 @@
       '<div role="dialog" aria-modal="true" aria-labelledby="clTitle" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-2xl">' +
         '<div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">' +
           '<h3 id="clTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="fa-solid fa-laptop-code text-sky-600 dark:text-sky-400"></i><span id="clTitleText">Tantangan Baru</span></h3>' +
-          '<button type="button" data-cl="close" aria-label="Tutup" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg"><i class="fa-solid fa-xmark text-lg"></i></button>' +
+          '<button type="button" data-cl="close" aria-label="Tutup" class="dc-close"><i class="fa-solid fa-xmark text-lg"></i></button>' +
         '</div>' +
         '<form id="clForm" class="space-y-4 pt-4 text-xs" novalidate>' +
           '<div><label class="' + LBL + '" for="clJenis">Jenis soal</label>' +
@@ -170,16 +170,16 @@
             '<div id="clSecTes"><span class="' + LBL + '">Kasus uji</span>' +
               '<p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">Masukan dan hasil yang benar. Beberapa masukan dipisah koma.</p>' +
               '<div id="clTes" class="space-y-2"></div>' +
-              '<button type="button" data-cl="addtes" class="mt-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold"><i class="fa-solid fa-plus mr-1"></i>Tambah kasus uji</button></div>' +
+              '<button type="button" data-cl="addtes" class="dc-btn dc-btn-sec dc-btn-sm mt-2"><i class="fa-solid fa-plus mr-1"></i>Tambah kasus uji</button></div>' +
             '<div id="clSecSyarat"><label class="' + LBL + '" for="clSyarat">Syarat lolos (satu per baris)</label>' +
               '<textarea id="clSyarat" rows="3" placeholder="Contoh: Ada elemen &lt;h1&gt;" class="' + INP + '"></textarea></div>' +
           '</div>' +
 
           '<p id="clErr" role="alert" class="hidden text-rose-600 dark:text-rose-400 font-medium"></p>' +
           '<div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">' +
-            '<button type="button" data-cl="close" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium">Batal</button>' +
-            '<button type="submit" data-status="draft" class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold">Simpan sebagai draf</button>' +
-            '<button type="submit" data-status="published" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-md shadow-sky-600/20 transition">Terbitkan</button>' +
+            '<button type="button" data-cl="close" class="dc-btn dc-btn-ghost">Batal</button>' +
+            '<button type="submit" data-status="draft" class="dc-btn dc-btn-sec">Simpan sebagai draf</button>' +
+            '<button type="submit" data-status="published" class="dc-btn dc-btn-pri">Terbitkan</button>' +
           '</div>' +
         '</form>' +
       '</div>';
@@ -203,7 +203,7 @@
       '<input type="text" data-tes="i" placeholder="Masukan, contoh: 2" value="' + esc(i) + '" class="' + INP + ' font-mono">' +
       '<span class="text-slate-400"><i class="fa-solid fa-arrow-right text-[10px]"></i></span>' +
       '<input type="text" data-tes="o" placeholder="Hasil, contoh: 4" value="' + esc(o) + '" class="' + INP + ' font-mono">' +
-      '<button type="button" data-cl="rmtes" aria-label="Hapus kasus uji" class="w-8 h-8 shrink-0 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-regular fa-trash-can text-xs"></i></button>';
+      '<button type="button" data-cl="rmtes" aria-label="Hapus kasus uji" class="dc-ib dc-ib-danger"><i class="fa-regular fa-trash-can text-xs"></i></button>';
     $('#clTes').appendChild(row);
   }
 

@@ -267,7 +267,7 @@ function studentRow(user, totalTasks) {
         </div>
       </td>
       <td class="px-5 py-4 text-right">
-        <button onclick="openDetailModal(${Number(user.id)})" class="px-2.5 py-1 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 rounded-lg border border-sky-200/80 dark:border-sky-500/30 transition">
+        <button onclick="openDetailModal(${Number(user.id)})" class="dc-btn dc-btn-sec dc-btn-sm">
           Detail
         </button>
       </td>

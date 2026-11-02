@@ -135,9 +135,9 @@
 
   const INPUT = 'w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20';
   const LBL = 'block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider';
-  const BTN_PRI = 'flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none';
-  const BTN_SEC = 'px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold shadow-xs flex items-center gap-2 transition disabled:opacity-50 disabled:pointer-events-none';
-  const CARD = 'bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-card';
+  const BTN_PRI = 'sw-btn-pri dc-btn dc-btn-pri';
+  const BTN_SEC = 'sw-btn-sec dc-btn dc-btn-sec';
+  const CARD = 'sw-card bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-card';
 
   const TONE = {
     sky: 'text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10',
@@ -146,6 +146,7 @@
     rose: 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10',
     slate: 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
   };
+  const IBTONE = { sky: 'view', slate: 'edit', amber: 'warn', emerald: 'ok', rose: 'danger' };
   const STATUS_PILL = {
     active: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20',
     suspended: 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
@@ -182,8 +183,8 @@
 
   function gradeBadges(u) {
     const gs = gradeOrder(u.allowedGrades);
-    if (!gs.length) return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border font-mono ' + GRADE_META.ALL.badge + '">Belum diatur</span>';
-    return gs.map((g) => '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border font-mono ' + GRADE_META[g].badge + '"><i class="' + GRADE_META[g].icon + ' text-[10px]"></i>' + esc(GRADE_META[g].label) + '</span>').join(' ');
+    if (!gs.length) return '<span class="sw-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border font-mono ' + GRADE_META.ALL.badge + '">Belum diatur</span>';
+    return gs.map((g) => '<span class="sw-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border font-mono ' + GRADE_META[g].badge + '"><i class="' + GRADE_META[g].icon + ' text-[10px]"></i>' + esc(GRADE_META[g].label) + '</span>').join(' ');
   }
   function statusPill(status) {
     const m = statusMeta(status);
@@ -191,22 +192,22 @@
   }
   function avatar(u, size) {
     const m = metaOf(u);
-    return '<div class="' + (size || 'w-9 h-9 text-xs') + ' rounded-xl ' + m.avatar + ' font-bold flex items-center justify-center border shrink-0">' + esc(initials(nameOf(u))) + '</div>';
+    return '<div class="' + (size || 'w-9 h-9 text-xs') + ' sw-avatar rounded-xl ' + m.avatar + ' font-bold flex items-center justify-center border shrink-0">' + esc(initials(nameOf(u))) + '</div>';
   }
   function iconBtn(act, id, icon, title, tone) {
-    return '<button type="button" data-sw="' + act + '" data-id="' + id + '" title="' + esc(title) + '" aria-label="' + esc(title) + '" class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs transition ' + (TONE[tone] || TONE.slate) + '"><i class="' + icon + '"></i></button>';
+    return '<button type="button" data-sw="' + act + '" data-id="' + id + '" title="' + esc(title) + '" aria-label="' + esc(title) + '" class="dc-ib dc-ib-' + (IBTONE[tone] || 'mute') + '"><i class="' + icon + '"></i></button>';
   }
   function rowActions(u) {
     const id = Number(u.id);
     let h = iconBtn('view', id, 'fa-solid fa-eye', 'Lihat detail', 'sky');
-    if (u.status === 'deleted') return h;
+    if (u.status === 'deleted') return '<div class="dc-ib-group">' + h + '</div>';
     h += iconBtn('edit', id, 'fa-solid fa-pen', 'Edit data', 'slate');
     h += iconBtn('reset', id, 'fa-solid fa-key', 'Reset password', 'amber');
     h += u.status === 'suspended'
       ? iconBtn('unsuspend', id, 'fa-solid fa-circle-play', 'Aktifkan kembali', 'emerald')
       : iconBtn('suspend', id, 'fa-solid fa-circle-pause', 'Suspend akun', 'amber');
     h += iconBtn('delete', id, 'fa-solid fa-trash-can', 'Hapus siswa', 'rose');
-    return h;
+    return '<div class="dc-ib-group">' + h + '</div>';
   }
   function progressBar(u) {
     const m = metaOf(u);
@@ -247,7 +248,7 @@
 
       <div id="swStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4"></div>
 
-      <div id="swDist" class="${CARD} p-4 sm:p-5"></div>
+      <div id="swDist" class="${CARD}"></div>
 
       <div class="${CARD} p-2.5 flex flex-col gap-2.5">
         <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
@@ -288,39 +289,59 @@
       ['suspended', 'Disuspend', stu.suspended, 'Akses sementara dihentikan', 'fa-solid fa-user-lock', 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'],
       ['', 'Belum Ada Jenjang', gr.unassigned, 'Perlu diatur jenjangnya', 'fa-solid fa-user-tag', 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'],
     ];
+    const tones = ['tone-jade', 'tone-lime', 'tone-amber', 'tone-teal'];
     $('#swStats').innerHTML = cards.map(([status, label, val, note, icon, tone], i) => {
       const clickable = i <= 2;
       const active = (i === 1 || i === 2) && S.status === status;
-      return `<button type="button" ${clickable ? `data-sw-stat="${status}"` : 'tabindex="-1"'} class="text-left ${CARD} p-4 sm:p-5 hover:shadow-soft-hover transition-all ${active ? 'ring-2 ring-sky-500/40' : ''} ${clickable ? '' : 'cursor-default'}">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase">${label}</span>
-          <div class="w-9 h-9 rounded-xl ${tone} flex items-center justify-center text-sm"><i class="${icon}"></i></div>
+      return `<button type="button" ${clickable ? `data-sw-stat="${status}"` : 'tabindex="-1"'} class="text-left dc-kpi-card ${active ? 'is-active' : ''} ${clickable ? '' : 'cursor-default'}">
+        <div class="dc-kpi-top"><span class="dc-kpi-label">${label}</span></div>
+        <div class="dc-kpi-body">
+          <span class="dc-kpi-icon ${tones[i]}"><i class="${icon}"></i></span>
+          <div class="min-w-0"><div class="dc-kpi-value">${S.stats ? fmtNum(val) : '—'}</div></div>
         </div>
-        <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">${S.stats ? fmtNum(val) : '—'}</span>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5">${note}</p>
+        <p class="dc-kpi-note">${note}</p>
       </button>`;
     }).join('');
 
     const sd = Number(gr.sd || 0), smp = Number(gr.smp || 0), smk = Number(gr.smk || 0), un = Number(gr.unassigned || 0);
     const sum = sd + smp + smk + un;
-    const seg = (n, cls, label) => n && sum ? `<div class="${cls} h-full transition-all" style="width:${(n / sum) * 100}%" title="${label}: ${fmtNum(n)}"></div>` : '';
-    const leg = (n, cls, label) => `<span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full ${cls}"></span><span class="font-semibold text-slate-700 dark:text-slate-300">${label}</span><span class="font-mono text-slate-500 dark:text-slate-400">${S.stats ? fmtNum(n) : '—'}${sum ? ' · ' + Math.round((n / sum) * 100) + '%' : ''}</span></span>`;
+    const pct = (n) => (sum ? Math.round((n / sum) * 100) : 0);
+    const R = 46, C = 2 * Math.PI * R;
+    const parts = [
+      { n: sd, k: 'sd', label: 'Sekolah Dasar' }, { n: smp, k: 'smp', label: 'SMP' },
+      { n: smk, k: 'smk', label: 'SMA / SMK' }, { n: un, k: 'un', label: 'Belum diatur' },
+    ];
+    const gap = sum > 0 && parts.filter((p) => p.n > 0).length > 1 ? 3 : 0;
+    let ring = '<circle class="dn-track" cx="60" cy="60" r="' + R + '" fill="none" stroke-width="14"></circle>', acc = 0;
+    if (sum > 0) for (const p of parts) {
+      if (!p.n) continue;
+      const len = (p.n / sum) * C, dash = Math.max(0, len - gap);
+      ring += '<circle class="dn-' + p.k + '" cx="60" cy="60" r="' + R + '" fill="none" stroke-width="14" stroke-dasharray="' + dash.toFixed(2) + ' ' + (C - dash).toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '"><title>' + p.label + ': ' + fmtNum(p.n) + '</title></circle>';
+      acc += len;
+    }
+    const row = (p) => `<div class="dc-grade-item">
+        <div class="dc-grade-meta"><span><i class="dc-grade-dot dc-grade-${p.k}"></i> ${p.label}</span><strong>${S.stats ? fmtNum(p.n) + (sum ? ' · ' + pct(p.n) + '%' : '') : '—'}</strong></div>
+        <div class="dc-grade-track"><div class="dc-grade-fill dc-grade-fill-${p.k}" style="width:${pct(p.n)}%"></div></div>
+      </div>`;
     $('#swDist').innerHTML = `
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="fa-solid fa-chart-simple text-indigo-600 dark:text-indigo-400"></i>Komposisi Jenjang</h3>
-        <span class="text-[11px] font-mono text-slate-400">${S.stats ? fmtNum(sum) + ' siswa' : ''}</span>
+      <div class="sw-dist-head">
+        <div><h3>Komposisi Jenjang</h3><p>Sebaran siswa berdasarkan jenjang</p></div>
+        <span class="sw-dist-ico"><i class="fa-solid fa-chart-pie"></i></span>
       </div>
-      <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">${seg(sd, 'bg-amber-500', 'SD')}${seg(smp, 'bg-sky-500', 'SMP')}${seg(smk, 'bg-indigo-600', 'SMA/SMK')}${seg(un, 'bg-slate-400', 'Belum diatur')}</div>
-      <div class="flex flex-wrap gap-x-5 gap-y-1.5 mt-3 text-xs">${leg(sd, 'bg-amber-500', 'SD')}${leg(smp, 'bg-sky-500', 'SMP')}${leg(smk, 'bg-indigo-600', 'SMA/SMK')}${leg(un, 'bg-slate-400', 'Belum diatur')}</div>`;
+      <div class="sw-dist-body">
+        <div class="donut-wrap"><svg viewBox="0 0 120 120" class="w-full h-full -rotate-90" aria-hidden="true">${ring}</svg>
+          <div class="donut-center"><span>${S.stats ? fmtNum(sum) : '—'}</span><small>Siswa</small></div></div>
+        <div class="dc-grade-list">${parts.filter((p) => p.k !== 'un' || p.n > 0).map(row).join('')}</div>
+      </div>`;
   }
 
     function renderFilter() {
     const gr = (S.stats && S.stats.grades) || {};
     const total = S.stats && S.stats.students ? S.stats.students.total : null;
     const items = [['', 'Semua Jenjang', total], ['SD', 'SD', gr.sd], ['SMP', 'SMP', gr.smp], ['SMK', 'SMA / SMK', gr.smk]];
-    const base = 'shrink-0 w-36 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-2 transition ';
-    const on = base + 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25';
-    const off = base + 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60';
+    const base = 'sw-pill shrink-0 text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-2 transition ';
+    const on = base + 'is-active';
+    const off = base;
     $('#swFilter').innerHTML = items.map(([k, label, n]) => {
       const active = S.grade === k;
       const badge = n == null ? '' : `<span class="min-w-[1.25rem] px-1.5 py-0.5 rounded-md text-[10px] leading-none font-mono font-bold text-center ${active ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}">${fmtNum(n)}</span>`;
@@ -395,12 +416,12 @@
     const all = list.length && list.every((u) => S.selected.has(Number(u.id)));
     const some = list.some((u) => S.selected.has(Number(u.id)));
     return `<div class="overflow-x-auto"><table class="w-full text-left text-sm text-slate-700 dark:text-slate-200">
-      <thead class="bg-slate-50 dark:bg-slate-950/50 text-[11px] font-mono uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+      <thead class="bg-slate-50 dark:bg-slate-950/50 text-xs text-center border-b border-slate-200 dark:border-slate-800">
         <tr>
           <th class="pl-5 pr-2 py-3.5 w-8"><input type="checkbox" id="swCheckAll" ${all ? 'checked' : ''} data-some="${some && !all ? '1' : ''}" aria-label="Pilih semua di halaman ini" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500/40 cursor-pointer"></th>
-          <th class="px-3 py-3.5 font-semibold">Siswa</th><th class="px-3 py-3.5 font-semibold">Jenjang</th><th class="px-3 py-3.5 font-semibold">Status</th>
-          <th class="px-3 py-3.5 font-semibold">Progres</th><th class="px-3 py-3.5 font-semibold hidden lg:table-cell">Poin</th>
-          <th class="px-3 py-3.5 font-semibold hidden xl:table-cell">Terakhir Aktif</th><th class="pl-3 pr-4 py-3.5 font-semibold text-right">Aksi</th>
+          <th class="px-3 py-3.5 font-bold text-center">Siswa</th><th class="px-3 py-3.5 font-bold text-center">Jenjang</th><th class="px-3 py-3.5 font-bold text-center">Status</th>
+          <th class="px-3 py-3.5 font-bold text-center">Progres</th><th class="px-3 py-3.5 font-bold text-center hidden lg:table-cell">Poin</th>
+          <th class="px-3 py-3.5 font-bold text-center hidden xl:table-cell">Terakhir Aktif</th><th class="pl-3 pr-4 py-3.5 font-bold text-center">Aksi</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100 dark:divide-slate-800/70">${list.map(tableRow).join('')}</tbody></table></div>`;
@@ -409,7 +430,7 @@
   function cardHtml(u) {
     const id = Number(u.id);
     const seen = lastSeen(u);
-    return `<div class="relative rounded-2xl border ${S.selected.has(id) ? 'border-sky-400 dark:border-sky-500/60 bg-sky-50/50 dark:bg-sky-500/5' : 'border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900'} p-4 hover:shadow-card-hover transition-all ${u.status === 'active' ? '' : 'opacity-80'}">
+    return `<div class="sw-ucard relative rounded-2xl border ${S.selected.has(id) ? 'border-sky-400 dark:border-sky-500/60 bg-sky-50/50 dark:bg-sky-500/5' : 'border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900'} p-4 hover:shadow-card-hover transition-all ${u.status === 'active' ? '' : 'opacity-80'}">
       <input type="checkbox" data-sw-check="${id}" ${S.selected.has(id) ? 'checked' : ''} aria-label="Pilih ${esc(nameOf(u))}" class="absolute top-3.5 right-3.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500/40 cursor-pointer">
       <button type="button" data-sw="view" data-id="${id}" class="flex items-center gap-3 text-left w-full pr-7 group">
         ${avatar(u, 'w-11 h-11 text-sm')}
@@ -482,13 +503,13 @@
     const n = S.selected.size;
     bar.classList.toggle('hidden', n === 0);
     if (!n) return;
-    const b = (act, icon, label, tone) => `<button type="button" data-sw-bulk="${act}" ${S.busy ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition disabled:opacity-50 ${tone}"><i class="${icon}"></i><span>${label}</span></button>`;
+    const b = (act, icon, label, tone) => `<button type="button" data-sw-bulk="${act}" ${S.busy ? 'disabled' : ''} class="dc-btn dc-btn-sm ${tone}"><i class="${icon}"></i><span>${label}</span></button>`;
     bar.innerHTML = `<span class="font-bold text-sky-700 dark:text-sky-300 mr-1"><i class="fa-solid fa-square-check mr-1.5"></i>${fmtNum(n)} dipilih</span>
-      ${b('activate', 'fa-solid fa-circle-play', 'Aktifkan', 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10')}
-      ${b('suspend', 'fa-solid fa-circle-pause', 'Suspend', 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10')}
-      ${b('reset', 'fa-solid fa-key', 'Reset password', 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700')}
-      ${b('delete', 'fa-solid fa-trash-can', 'Hapus', 'bg-white dark:bg-slate-800 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10')}
-      <button type="button" data-sw-bulk="clear" class="ml-auto text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium">Batal pilih</button>`;
+      ${b('activate', 'fa-solid fa-circle-play', 'Aktifkan', 'dc-btn-sec')}
+      ${b('suspend', 'fa-solid fa-circle-pause', 'Suspend', 'dc-btn-warn')}
+      ${b('reset', 'fa-solid fa-key', 'Reset password', 'dc-btn-sec')}
+      ${b('delete', 'fa-solid fa-trash-can', 'Hapus', 'dc-btn-danger')}
+      <button type="button" data-sw-bulk="clear" class="dc-btn dc-btn-ghost dc-btn-sm ml-auto">Batal pilih</button>`;
   }
 
   // ---------- PEMUATAN DATA ----------
@@ -602,7 +623,7 @@
     const panel = $('#swDrawerPanel');
     if (!panel) return;
     const D = S.drawer;
-    const head = (inner) => `<div class="shrink-0 flex items-center justify-between px-5 h-14 border-b border-slate-200 dark:border-slate-800"><h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="fa-solid fa-user-graduate text-cyan-600 dark:text-cyan-400"></i>Detail Siswa</h3><button type="button" data-sw-close-drawer class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button></div>${inner}`;
+    const head = (inner) => `<div class="shrink-0 flex items-center justify-between px-5 h-14 border-b border-slate-200 dark:border-slate-800"><h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="fa-solid fa-user-graduate text-cyan-600 dark:text-cyan-400"></i>Detail Siswa</h3><button type="button" data-sw-close-drawer class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button></div>${inner}`;
     if (D.loading || !D.data) {
       panel.innerHTML = head('<div class="p-5 space-y-4 animate-pulse"><div class="flex items-center gap-4"><div class="w-16 h-16 rounded-2xl bg-slate-200 dark:bg-slate-800"></div><div class="flex-1 space-y-2"><div class="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-3 w-52 rounded bg-slate-100 dark:bg-slate-800/70"></div></div></div><div class="grid grid-cols-3 gap-3"><div class="h-16 rounded-xl bg-slate-100 dark:bg-slate-800"></div><div class="h-16 rounded-xl bg-slate-100 dark:bg-slate-800"></div><div class="h-16 rounded-xl bg-slate-100 dark:bg-slate-800"></div></div><div class="h-40 rounded-xl bg-slate-100 dark:bg-slate-800/70"></div></div>');
       return;
@@ -681,7 +702,7 @@
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
         <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
           <h3 id="swFormTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"></h3>
-          <button type="button" data-sw-close-form class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
+          <button type="button" data-sw-close-form class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <form id="swFormEl" class="space-y-4 pt-4 text-xs" novalidate>
           <div><label class="${LBL}" for="swfName">Nama Lengkap</label><input id="swfName" name="fullName" type="text" required maxlength="80" placeholder="Contoh: Raditya Pratama" class="${INPUT}"></div>
@@ -693,8 +714,8 @@
           <p id="swFormNote" class="text-[11px] text-slate-500 dark:text-slate-400 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800"></p>
           <p id="swFormErr" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"></p>
           <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <button type="button" data-sw-close-form class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
-            <button type="submit" id="swFormSubmit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold disabled:opacity-50"></button>
+            <button type="button" data-sw-close-form class="dc-btn dc-btn-ghost">Batal</button>
+            <button type="submit" id="swFormSubmit" class="dc-btn dc-btn-pri"></button>
           </div>
         </form>
       </div></div>`);
@@ -779,19 +800,19 @@
       <div class="flex items-start gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div class="w-11 h-11 shrink-0 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 flex items-center justify-center text-lg"><i class="fa-solid fa-key"></i></div>
         <div class="min-w-0 flex-1"><h3 class="text-base font-bold text-slate-900 dark:text-white">${esc(title)}</h3><p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${esc(note)}</p></div>
-        <button type="button" data-sw-close-cred class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" data-sw-close-cred class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="py-4 space-y-2 overflow-y-auto">
         ${entries.map((en, i) => `<div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800">
           <div class="min-w-0 flex-1"><p class="text-xs font-bold text-slate-900 dark:text-white truncate">${esc(en.name)}</p>
           <p class="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">Username: ${esc(en.username || '-')}</p>
           <p class="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400 select-all">${esc(en.password)}</p></div>
-          <button type="button" data-sw-copy="${i}" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition"><i class="fa-regular fa-copy mr-1"></i>Salin</button></div>`).join('')}
+          <button type="button" data-sw-copy="${i}" class="dc-btn dc-btn-sec dc-btn-sm"><i class="fa-regular fa-copy mr-1"></i>Salin</button></div>`).join('')}
       </div>
       <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
         ${entries.length > 1 ? `<button type="button" data-sw-cred-csv class="${BTN_SEC} justify-center"><i class="fa-solid fa-file-arrow-down"></i>Unduh CSV</button>` : ''}
         <button type="button" data-sw-copy="all" class="${BTN_SEC} justify-center"><i class="fa-regular fa-copy"></i>Salin ${entries.length > 1 ? 'semua' : 'username & password'}</button>
-        <button type="button" data-sw-close-cred class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold">Selesai</button>
+        <button type="button" data-sw-close-cred class="dc-btn dc-btn-pri">Selesai</button>
       </div></div>`;
     m.classList.remove('hidden');
   }
@@ -925,7 +946,7 @@
     m.innerHTML = `<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[92vh] flex flex-col">
       <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="fa-solid fa-file-import text-indigo-600 dark:text-indigo-400"></i>Impor Siswa dari CSV</h3>
-        <button type="button" data-sw-close-import class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" data-sw-close-import class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="py-4 space-y-4 overflow-y-auto text-xs">
         ${!rows.length ? `
@@ -938,7 +959,7 @@
           <div><label class="${LBL}" for="swImportText">Atau tempel isi CSV</label>
             <textarea id="swImportText" rows="4" placeholder="nama,email,jenjang&#10;Raditya Pratama,radit@sekolah.sch.id,SMP" class="${INPUT} font-mono resize-y"></textarea>
             <div class="flex items-center justify-between mt-2"><button type="button" data-sw-import-tpl class="text-sky-600 dark:text-sky-400 font-semibold hover:underline"><i class="fa-solid fa-download mr-1"></i>Unduh template CSV</button>
-            <button type="button" data-sw-import-parse class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold">Periksa Data</button></div></div>
+            <button type="button" data-sw-import-parse class="dc-btn dc-btn-pri dc-btn-sm">Periksa Data</button></div></div>
           <p class="text-[11px] text-slate-500 dark:text-slate-400">Jenjang yang dikenali: <span class="font-mono">SD</span>, <span class="font-mono">SMP</span>, <span class="font-mono">SMA</span>/<span class="font-mono">SMK</span>. Untuk lebih dari satu jenjang, pisahkan dengan <span class="font-mono">|</span>, misalnya <span class="font-mono">SMP|SMK</span>.</p>`
         : `
           <div class="flex flex-wrap items-center gap-2">
@@ -953,11 +974,11 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">${rows.map((r) => `<tr class="${r.error ? 'bg-rose-50/40 dark:bg-rose-500/5' : ''}"><td class="px-3 py-2 font-mono text-slate-400">${r.n}</td><td class="px-3 py-2 font-medium text-slate-800 dark:text-slate-100">${esc(r.name || '—')}</td><td class="px-3 py-2 font-mono text-slate-500 dark:text-slate-400">${esc(r.email || '—')}</td><td class="px-3 py-2 font-mono">${esc(r.grades.map((g) => GRADE_META[g].label).join(' / ') || '—')}</td><td class="px-3 py-2">${stateBadge(r)}</td></tr>`).join('')}</tbody></table></div></div>`}
       </div>
       <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-        ${rows.length && !S.importRunning && !processed ? `<button type="button" data-sw-import-back class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Ganti file</button>` : ''}
+        ${rows.length && !S.importRunning && !processed ? `<button type="button" data-sw-import-back class="dc-btn dc-btn-ghost">Ganti file</button>` : ''}
         ${S.importRunning ? `<button type="button" data-sw-import-stop class="${BTN_SEC} justify-center text-rose-600"><i class="fa-solid fa-hand"></i>Hentikan</button>` : ''}
         ${done ? `<button type="button" data-sw-import-creds class="${BTN_SEC} justify-center"><i class="fa-solid fa-file-arrow-down"></i>Unduh kredensial</button>` : ''}
         ${rows.length && !processed && !S.importRunning ? `<button type="button" data-sw-import-run ${valid.length ? '' : 'disabled'} class="${BTN_PRI} justify-center"><i class="fa-solid fa-user-plus"></i>Impor ${fmtNum(valid.length)} Siswa</button>` : ''}
-        ${finished || (!S.importRunning && processed) ? `<button type="button" data-sw-close-import class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold">Selesai</button>` : ''}
+        ${finished || (!S.importRunning && processed) ? `<button type="button" data-sw-close-import class="dc-btn dc-btn-pri">Selesai</button>` : ''}
       </div></div>`;
 
     const sc1 = m.querySelector('.max-h-72');

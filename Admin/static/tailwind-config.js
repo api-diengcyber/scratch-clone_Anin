@@ -7,6 +7,8 @@
 //   jade  = hijau utama (brand)
 //   teal  = hijau kebiruan (pendamping)
 //   lime  = hijau muda (aksen kecil)
+//   sage  = netral abu-hijau (menggantikan slate)
+// Font hanya 2: Plus Jakarta Sans (UI) dan JetBrains Mono (khusus kode).
 // amber / rose / emerald tetap dipakai sebagai warna status (peringatan, bahaya, sukses).
 
 const jade = {
@@ -35,6 +37,21 @@ const teal = {
   900: '#12443f',
   950: '#052826',
 };
+// Netral abu-hijau: menggantikan slate bawaan Tailwind (yang kebiruan) supaya teks, garis,
+// dan permukaan mode gelap di SEMUA halaman senada dengan dashboard.
+const sage = {
+  50:  '#f4f8f6',
+  100: '#e9f1ed',
+  200: '#d9e6df',
+  300: '#bccfc5',
+  400: '#8aa398',
+  500: '#647a6f',
+  600: '#4a5f55',
+  700: '#364a40',
+  800: '#1d2c24',
+  900: '#101c16',   // permukaan kartu mode gelap
+  950: '#0a120e',   // latar halaman mode gelap
+};
 const lime = {
   50:  '#f7fce8',
   100: '#eaf7c6',
@@ -54,11 +71,12 @@ tailwind.config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
         jade,
+        slate: sage,
         sky: jade,
         blue: jade,
         indigo: teal,

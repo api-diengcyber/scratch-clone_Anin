@@ -12,14 +12,14 @@
   <!-- Font Awesome 6 CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <!-- Google Fonts: Plus Jakarta Sans (UI) & JetBrains Mono (kode) — hanya 2 font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <script src="static/tailwind-config.js?v=4"></script>
+  <script src="static/tailwind-config.js?v=5"></script>
 
-  <link rel="stylesheet" href="static/admin.css?v=9">
+  <link rel="stylesheet" href="static/admin.css?v=20">
   <link rel="stylesheet" href="static/glass.css?v=5">
 </head>
 
@@ -49,7 +49,7 @@
   <div id="sbBackdrop" class="sb-backdrop" aria-hidden="true"></div>
 
   <!-- Sidebar Navigasi -->
-  <aside id="sidebar" class="hidden md:flex flex-col w-full md:w-72 bg-white dark:bg-[#0f1a15] shrink-0 select-none transition-all duration-300 z-40">
+  <aside id="sidebar" class="hidden md:flex flex-col w-full md:w-72 bg-white dark:bg-slate-900 shrink-0 select-none transition-all duration-300 z-40">
     <button id="sbToggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Ciutkan / buka menu">
       <i class="fa-solid fa-chevron-left"></i>
     </button>
@@ -233,10 +233,10 @@
           <p class="dc-page-subtitle">Pantau aktivitas belajar, perkembangan siswa, dan pengelolaan konten Dieng Cyber Coding.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5">
-          <button type="button" onclick="refreshData()" class="dc-action-btn dc-action-secondary">
+          <button type="button" onclick="refreshData()" class="dc-btn dc-btn-sec">
             <i class="fa-solid fa-arrows-rotate"></i><span>Sinkronisasi data</span>
           </button>
-          <button type="button" onclick="toggleModal('modalAddStudent')" class="dc-action-btn dc-action-primary">
+          <button type="button" onclick="toggleModal('modalAddStudent')" class="dc-btn dc-btn-pri">
             <i class="fa-solid fa-user-plus"></i><span>Tambah siswa</span>
           </button>
         </div>
@@ -399,7 +399,7 @@
     </div>
 
     <!-- View: Modul & Kurikulum -->
-    <div id="view-kurikulum" class="hidden p-4 md:p-8 space-y-6">
+    <div id="view-kurikulum" class="kur-page hidden px-4 pb-8 pt-2 md:px-8 space-y-6">
 
       <div class="page-hero">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -421,20 +421,20 @@
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola jalur belajar dan materi praktikum coding yang tampil di portal siswa.</p>
           </div>
           <div class="flex items-center gap-2.5 self-start md:self-auto">
-            <button data-act="new-jalur" class="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-sky-600 border border-slate-200/90 dark:border-slate-700 text-xs font-semibold shadow-xs flex items-center gap-2 active:scale-95 transition-all">
+            <button data-act="new-jalur" class="dc-btn dc-btn-sec">
               <i class="fa-solid fa-layer-group text-sky-600 dark:text-sky-400"></i><span>Tambah Jalur</span>
             </button>
-            <button data-act="new-materi" class="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition-all">
+            <button data-act="new-materi" class="dc-btn dc-btn-pri">
               <i class="fa-solid fa-plus text-xs"></i><span>Tambah Materi</span>
             </button>
-            <button data-act="export" class="px-3 py-2 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700 text-xs active:scale-95 transition-all" title="Export kurikulum (JSON)" aria-label="Export kurikulum">
+            <button data-act="export" class="dc-btn dc-btn-sec" title="Export kurikulum (JSON)" aria-label="Export kurikulum">
               <i class="fa-solid fa-download"></i>
             </button>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card">
+      <div class="kur-toolbar flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card">
         <div id="jalurFilter" class="flex items-center gap-1.5 overflow-x-auto p-0.5"></div>
         <div class="flex items-center gap-2 px-1">
           <div class="relative flex-1 lg:w-60">
@@ -453,7 +453,7 @@
     </div>
 
     <!-- View: Code Lab & Blockly -->
-    <div id="view-codelab" class="hidden p-4 md:p-8 space-y-6">
+    <div id="view-codelab" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6">
 
       <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -467,7 +467,7 @@
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola tantangan koding: soal Blockly untuk SD, soal kode untuk SMP dan SMA/SMK.</p>
         </div>
-        <button type="button" data-cl="new" class="flex items-center gap-2 self-start md:self-auto bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition">
+        <button type="button" data-cl="new" class="dc-btn dc-btn-pri self-start md:self-auto">
           <i class="fa-solid fa-plus text-xs"></i><span>Tantangan Baru</span>
         </button>
       </div>
@@ -488,7 +488,7 @@
     </div>
 
     <!-- View: Kelola Tahap -->
-    <div id="view-tahap" class="hidden p-4 md:p-8 space-y-6">
+    <div id="view-tahap" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6">
       <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
@@ -498,24 +498,24 @@
           <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Kelola Tahap</h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Atur tahap belajar tiap jenjang. Tahap yang dibuat di sini bisa dipilih saat menambah jalur belajar.</p>
         </div>
-        <button data-act="new-tahap" class="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-xl self-start md:self-auto">
+        <button data-act="new-tahap" class="dc-btn dc-btn-pri self-start md:self-auto">
           <i class="fa-solid fa-plus text-xs"></i><span>Tambah Tahap</span>
         </button>
       </div>
       <div id="tahapList" class="space-y-8"></div>
     </div>
     <!-- View: Plugin (diisi static/plugins.js) -->
-    <div id="view-plugin" class="hidden p-4 md:p-8 space-y-6"></div>
+    <div id="view-plugin" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
 
     <!-- View: Manajemen Siswa (diisi static/siswa.js) -->
-    <div id="view-siswa" class="hidden p-4 md:p-8 space-y-6"></div>
+    <div id="view-siswa" class="sw-page hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
 
     <!-- View: Badge & Tugas -->
-    <div id="view-badge" class="hidden p-4 md:p-8 space-y-6"></div>
-    <div id="view-tugas" class="hidden p-4 md:p-8 space-y-6"></div>
-    <div id="view-pengaturan" class="hidden p-4 md:p-8 space-y-6"></div>
-    <div id="view-akses" class="hidden p-4 md:p-8 space-y-6"></div>
-    <div id="view-profil" class="hidden p-4 md:p-8 space-y-6"></div>
+    <div id="view-badge" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-tugas" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-pengaturan" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-akses" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-profil" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
   </main>
 
   <!-- Modal 1: Tambah Materi Coding Baru -->
@@ -530,7 +530,7 @@
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Materi akan langsung diterbitkan ke portal siswa</p>
         </div>
-        <button onclick="toggleModal('modalAddCourse')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg">
+        <button onclick="toggleModal('modalAddCourse')" class="dc-close">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -567,8 +567,8 @@
         </div>
 
         <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <button type="button" onclick="toggleModal('modalAddCourse')" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium">Batal</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-md shadow-sky-600/20 transition">Simpan & Terbitkan</button>
+          <button type="button" onclick="toggleModal('modalAddCourse')" class="dc-btn dc-btn-ghost">Batal</button>
+          <button type="submit" class="dc-btn dc-btn-pri">Simpan & Terbitkan</button>
         </div>
       </form>
     </div>
@@ -582,7 +582,7 @@
           <i class="fa-solid fa-user-plus text-sky-600 dark:text-sky-400"></i>
           Pendaftaran Siswa Baru
         </h3>
-        <button onclick="toggleModal('modalAddStudent')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1">
+        <button onclick="toggleModal('modalAddStudent')" class="dc-close">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -605,8 +605,8 @@
           <input type="email" name="email" id="addStudentEmail" required placeholder="siswa@diengcyber.sch.id" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:border-sky-500">
         </div>
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <button type="button" onclick="toggleModal('modalAddStudent')" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold">Daftarkan Siswa</button>
+          <button type="button" onclick="toggleModal('modalAddStudent')" class="dc-btn dc-btn-ghost">Batal</button>
+          <button type="submit" class="dc-btn dc-btn-pri">Daftarkan Siswa</button>
         </div>
       </form>
     </div>
@@ -620,7 +620,7 @@
           <h3 id="modalStudentName" class="text-base font-bold text-slate-900 dark:text-white">Nama Siswa</h3>
           <p id="modalStudentCourse" class="text-xs text-sky-600 dark:text-sky-400 font-mono mt-0.5">Jenjang Coding</p>
         </div>
-        <button onclick="toggleModal('modalDetail')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
+        <button onclick="toggleModal('modalDetail')" class="dc-close">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -647,7 +647,7 @@
       </div>
 
       <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
-        <button onclick="toggleModal('modalDetail')" class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition">
+        <button onclick="toggleModal('modalDetail')" class="dc-btn dc-btn-sec w-full">
           Tutup Detail
         </button>
       </div>
@@ -661,7 +661,7 @@
         <h3 id="tahapModalTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <i class="fa-solid fa-stairs text-violet-600 dark:text-violet-400"></i> Tambah Tahap
         </h3>
-        <button type="button" onclick="toggleModal('modalTahap')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" onclick="toggleModal('modalTahap')" class="dc-close"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <form id="tahapForm" class="space-y-3.5 pt-4 text-xs">
         <input type="hidden" name="tid">
@@ -677,8 +677,8 @@
         </div>
         <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Info Singkat <span class="normal-case font-normal text-slate-400">(opsional)</span></label><input name="meta" maxlength="80" placeholder="Usia 15–18 tahun · 36 Pertemuan" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 placeholder-slate-400"></div>
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <button type="button" onclick="toggleModal('modalTahap')" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold">Simpan Tahap</button>
+          <button type="button" onclick="toggleModal('modalTahap')" class="dc-btn dc-btn-ghost">Batal</button>
+          <button type="submit" class="dc-btn dc-btn-pri">Simpan Tahap</button>
         </div>
       </form>
     </div>
@@ -689,14 +689,14 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-2xl p-5 shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="fa-solid fa-icons text-sky-600 dark:text-sky-400"></i> Pilih Ikon</h3>
-        <button type="button" onclick="toggleModal('modalIkon')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" onclick="toggleModal('modalIkon')" class="dc-close"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <input id="ikonSearch" type="search" placeholder="Cari ikon (game, robot, web, data, buku...)" class="mt-3 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500">
       <div id="ikonGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-2 overflow-y-auto mt-3 pr-1 min-h-[160px]"></div>
       <div class="pt-3 mt-3 border-t border-slate-200 dark:border-slate-800 space-y-2 text-xs">
         <div class="flex items-center gap-2">
           <input id="ikonManual" maxlength="40" placeholder="Atau ketik kode Font Awesome, mis. fa-solid fa-dragon" class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-          <button type="button" id="ikonManualBtn" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-200 dark:hover:bg-slate-700">Pakai</button>
+          <button type="button" id="ikonManualBtn" class="dc-btn dc-btn-sec dc-btn-sm">Pakai</button>
         </div>
         <button type="button" data-ikon-pick="" class="text-slate-500 hover:text-sky-600 dark:hover:text-sky-400">Pakai ikon bawaan (kubus)</button>
       </div>
@@ -710,7 +710,7 @@
         <h3 id="jalurModalTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <i class="fa-solid fa-route text-sky-600 dark:text-sky-400"></i> Tambah Jalur Belajar
         </h3>
-        <button type="button" onclick="toggleModal('modalJalur')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" onclick="toggleModal('modalJalur')" class="dc-close"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <form id="jalurForm" class="space-y-3.5 pt-4 text-xs">
         <input type="hidden" name="jid">
@@ -736,8 +736,8 @@
         <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Ringkasan</label><textarea name="ringkas" rows="2" maxlength="200" placeholder="Dari print() pertama sampai game 2D." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></textarea></div>
         <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Proyek Akhir</label><input name="proyek" maxlength="100" placeholder="Game 2D buatan sendiri" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></div>
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <button type="button" onclick="toggleModal('modalJalur')" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold">Simpan Jalur</button>
+          <button type="button" onclick="toggleModal('modalJalur')" class="dc-btn dc-btn-ghost">Batal</button>
+          <button type="submit" class="dc-btn dc-btn-pri">Simpan Jalur</button>
         </div>
       </form>
     </div>
@@ -752,14 +752,14 @@
           <h3 id="prevTitle" class="text-base font-bold text-slate-900 dark:text-white mt-1"></h3>
           <p id="prevSub" class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5"></p>
         </div>
-        <button type="button" onclick="toggleModal('modalPreview')" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button type="button" onclick="toggleModal('modalPreview')" class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div id="prevList" class="py-4 space-y-2.5 max-h-72 overflow-y-auto text-xs"></div>
       <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center gap-2">
         <span id="prevFoot" class="text-xs text-slate-400 font-mono"></span>
         <div class="flex items-center gap-2">
-          <button type="button" data-act="new-materi" class="px-3.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-500/30 hover:bg-sky-100 text-xs font-semibold transition"><i class="fa-solid fa-plus mr-1"></i>Tambah Materi</button>
-          <button type="button" onclick="toggleModal('modalPreview')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition">Tutup</button>
+          <button type="button" data-act="new-materi" class="dc-btn dc-btn-sec"><i class="fa-solid fa-plus mr-1"></i>Tambah Materi</button>
+          <button type="button" onclick="toggleModal('modalPreview')" class="dc-btn dc-btn-sec">Tutup</button>
         </div>
       </div>
     </div>
@@ -773,16 +773,16 @@
 <!-- Javascript Logic -->
 <script src="static/admin-api.js?v=5"></script>
 <script src="static/dashboard.js?v=1"></script>
-<script src="static/admin.js?v=15"></script>
-<script src="static/common.js?v=1"></script>
-<script src="static/dialog.js?v=1"></script>
-<script src="static/editor.js?v=11"></script>
-<script src="static/kurikulum.js?v=21"></script>
-<script src="static/plugins.js?v=1"></script>
-   <script src="static/codelab.js?v=2"></script>
-   <script src="static/siswa.js?v=4"></script>
+<script src="static/admin.js?v=16"></script>
+<script src="static/common.js?v=2"></script>
+<script src="static/dialog.js?v=2"></script>
+<script src="static/editor.js?v=12"></script>
+<script src="static/kurikulum.js?v=23"></script>
+<script src="static/plugins.js?v=2"></script>
+   <script src="static/codelab.js?v=3"></script>
+   <script src="static/siswa.js?v=8"></script>
    <script src="static/badge-tugas.js?v=6"></script>
-   <script src="static/pengaturan-akses.js?v=7"></script>
-   <script src="static/profil.js?v=9"></script>
+   <script src="static/pengaturan-akses.js?v=9"></script>
+   <script src="static/profil.js?v=10"></script>
 </body>
 </html>

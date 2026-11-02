@@ -18,8 +18,8 @@
       <div class="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 font-mono text-xs space-y-1">
         <div>Username: <b>${esc(username)}</b></div><div>Password: <b>${esc(password)}</b></div></div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" data-copy class="px-3 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white">Salin</button>
-        <button type="button" data-close class="px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800">Tutup</button></div></div>`;
+        <button type="button" data-copy class="dc-btn dc-btn-pri dc-btn-sm">Salin</button>
+        <button type="button" data-close class="dc-btn dc-btn-ghost dc-btn-sm">Tutup</button></div></div>`;
     const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey, true); if (prev && prev.focus) prev.focus(); };
     const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     wrap.addEventListener('click', (e) => { if (e.target === wrap || e.target.closest('[data-close]')) close(); });

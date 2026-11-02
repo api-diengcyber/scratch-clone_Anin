@@ -292,8 +292,8 @@
   }
 
   function renderFilter() {
-    const on = 'filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25 whitespace-nowrap flex items-center gap-1.5';
-    const off = 'filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition whitespace-nowrap flex items-center gap-1.5';
+    const on = 'dc-pill-tab is-active';
+    const off = 'dc-pill-tab';
     const items = [['all', 'Semua Jenjang', '']].concat(Object.entries(JENJANG).map(([k, v]) => [k, v.label, v.dot]));
     $('#jalurFilter').innerHTML = items.map(([k, label, dot]) =>
       `<button data-filter="${k}" class="${k === filter ? on : off}">${dot ? `<span class="w-2 h-2 rounded-full" style="background:${k === filter ? '#fff' : dot}"></span>` : ''}${esc(label)}</button>`).join('');
@@ -335,11 +335,11 @@
           <i class="fa-solid fa-eye text-xs"></i><span>Silabus &amp; Lab</span>
         </button>
         <div class="flex items-center gap-1.5">
-          <button data-edit="${esc(j.id)}" class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
-            <i class="fa-solid fa-pen text-[11px] text-slate-400"></i><span>Edit</span>
+          <button data-edit="${esc(j.id)}" class="dc-btn dc-btn-sec dc-btn-sm">
+            <i class="fa-solid fa-pen text-[11px]"></i><span>Edit</span>
           </button>
-          <button data-del="${esc(j.id)}" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="Hapus modul" aria-label="Hapus ${esc(j.nama)}">
-            <i class="fa-regular fa-trash-can text-xs"></i>
+          <button data-del="${esc(j.id)}" class="dc-ib dc-ib-danger" title="Hapus modul" aria-label="Hapus ${esc(j.nama)}">
+            <i class="fa-solid fa-trash-can"></i>
           </button>
         </div>
       </div>
@@ -407,13 +407,13 @@
             <span class="text-[11px] text-slate-400 font-mono">${esc([m.tipe, m.durasi].filter(Boolean).join(' • '))}</span>
           </div>
         </div>
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
           ${m.tes ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40">Mini Test</span>' : ''}
           <span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${isTerbit(m) ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' : 'text-slate-500 bg-slate-200/70 dark:text-slate-300 dark:bg-slate-700/60'}">${isTerbit(m) ? 'Tersedia' : 'Draft'}</span>
-          <button data-vmat="${esc(j.id)}|${esc(m.id)}" class="text-indigo-600 px-1" aria-label="Lihat materi ${esc(m.judul)} sebagai siswa" title="Pratinjau tampilan siswa"><i class="fa-solid fa-eye"></i></button>
-          <button data-pubmat="${esc(j.id)}|${esc(m.id)}" class="${isTerbit(m) ? 'text-slate-500 hover:text-amber-600' : 'px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold'} px-1" aria-label="${isTerbit(m) ? 'Tarik ke draft' : 'Unggah'} ${esc(m.judul)}" title="${isTerbit(m) ? 'Tarik ke draft (sembunyikan dari siswa)' : 'Unggah agar tersedia untuk siswa'}">${isTerbit(m) ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Unggah'}</button>
-          <button data-emat="${esc(j.id)}|${esc(m.id)}" class="text-sky-600 px-1 opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Edit materi ${esc(m.judul)}" title="Edit materi"><i class="fa-solid fa-pen"></i></button>
-          <button data-delmat="${esc(j.id)}|${esc(m.id)}" class="text-rose-500 px-1 opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Hapus materi ${esc(m.judul)}"><i class="fa-solid fa-xmark"></i></button>
+          <button data-vmat="${esc(j.id)}|${esc(m.id)}" class="dc-ib dc-ib-view" aria-label="Lihat materi ${esc(m.judul)} sebagai siswa" title="Pratinjau tampilan siswa"><i class="fa-solid fa-eye"></i></button>
+          <button data-pubmat="${esc(j.id)}|${esc(m.id)}" class="${isTerbit(m) ? 'dc-ib dc-ib-mute' : 'dc-btn dc-btn-ok dc-btn-sm'}" aria-label="${isTerbit(m) ? 'Tarik ke draft' : 'Unggah'} ${esc(m.judul)}" title="${isTerbit(m) ? 'Tarik ke draft (sembunyikan dari siswa)' : 'Unggah agar tersedia untuk siswa'}">${isTerbit(m) ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Unggah'}</button>
+          <button data-emat="${esc(j.id)}|${esc(m.id)}" class="dc-ib dc-ib-edit" aria-label="Edit materi ${esc(m.judul)}" title="Edit materi"><i class="fa-solid fa-pen"></i></button>
+          <button data-delmat="${esc(j.id)}|${esc(m.id)}" class="dc-ib dc-ib-danger" title="Hapus materi" aria-label="Hapus materi ${esc(m.judul)}"><i class="fa-solid fa-trash-can"></i></button>
         </div>
       </div>`).join('')
       : '<div class="text-center text-slate-400 py-8">Belum ada materi di modul ini.<br>Klik “Tambah Materi” untuk menambahkan.</div>';
@@ -634,8 +634,8 @@
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <button data-tedit="${esc(tahapKey(t))}" title="Edit" class="p-2 rounded-lg text-slate-500 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-solid fa-pen"></i></button>
-            <button data-tdel="${esc(tahapKey(t))}" title="Hapus" class="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-solid fa-trash"></i></button>
+            <button data-tedit="${esc(tahapKey(t))}" title="Edit" class="dc-ib dc-ib-edit"><i class="fa-solid fa-pen"></i></button>
+            <button data-tdel="${esc(tahapKey(t))}" title="Hapus" class="dc-ib dc-ib-danger"><i class="fa-solid fa-trash-can"></i></button>
           </div>
         </div>`;
       }).join('');

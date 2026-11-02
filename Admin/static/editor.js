@@ -18,7 +18,7 @@
   const size = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
 
   // ---------- DOM modal ----------
-  const B = 'px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition';
+  const B = 'dc-btn dc-btn-sec dc-btn-sm';
   const IN = 'bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-sky-500';
   const tb = (cmd, html, title) => `<button type="button" data-cmd="${cmd}" title="${title}" aria-label="${title}" class="${B}">${html}</button>`;
   document.body.insertAdjacentHTML('beforeend', `
@@ -32,7 +32,7 @@
       <button type="button" id="dcePreview" class="${B}" title="Lihat materi persis seperti yang dilihat siswa"><i class="fa-solid fa-eye mr-1"></i>Pratinjau Siswa</button>
       <button type="button" id="dceCancel" class="${B}">Batal</button>
       <button type="button" id="dceDraft" class="${B}"></button>
-      <button type="button" id="dceSave" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"></button>
+      <button type="button" id="dceSave" class="dc-btn dc-btn-pri dc-btn-sm"></button>
     </div>
     <div class="flex flex-wrap items-center gap-1.5 px-4 py-2 bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
       ${tb('bold', '<b>B</b>', 'Tebal')}${tb('italic', '<i>I</i>', 'Miring')}
@@ -68,7 +68,7 @@
         <button type="button" data-dcp-w="768px" class="${B}"><i class="fa-solid fa-tablet-screen-button mr-1"></i>Tablet</button>
         <button type="button" data-dcp-w="390px" class="${B}"><i class="fa-solid fa-mobile-screen-button mr-1"></i>HP</button>
       </div>
-      <button type="button" id="dcpClose" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white">Tutup Pratinjau</button>
+      <button type="button" id="dcpClose" class="dc-btn dc-btn-pri dc-btn-sm">Tutup Pratinjau</button>
     </div>
     <div class="flex-1 overflow-auto flex justify-center p-3">
       <iframe id="dcpFrame" title="Tampilan materi untuk siswa" sandbox="allow-same-origin allow-popups" class="h-full border-0 bg-white rounded-xl shadow-xl transition-all" style="width:100%"></iframe>

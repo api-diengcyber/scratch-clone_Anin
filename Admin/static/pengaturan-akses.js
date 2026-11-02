@@ -15,7 +15,7 @@
   const missing = (e) => e && [0, 404, 405, 501].includes(e.status);
   const req = (p, o) => window.DCAdminApi.request(p, o);
   const GRADES = { SD: 'SD', SMP: 'SMP', SMK: 'SMA/SMK' };
-  const GHOST_BTN = 'px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed';
+  const GHOST_BTN = 'dc-btn dc-btn-ghost';
   const BTN_OFF = ' disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100';
 
   // ---------- penyimpanan objek (pengaturan & peran) ----------
@@ -160,9 +160,9 @@
         ${crumb('Pengaturan Instansi')}<h1 class="${H1}">Pengaturan Instansi<span id="stDirty" class="hidden text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300/60 dark:border-amber-500/30">Belum disimpan</span></h1>
         <p class="${SUB}">Kelola profil lembaga, tahun ajaran, aturan penilaian, keamanan akun, dan notifikasi.</p></div>
         <div class="flex items-center gap-3 self-start md:self-auto">
-          <button type="button" id="stReset" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed" disabled>Reset</button>
-          <button type="button" id="stSave" class="${BTN} !px-5 !py-2 !text-sm${BTN_OFF}" disabled><i class="fa-solid fa-floppy-disk"></i>Simpan Perubahan</button></div></div>
-      <nav id="stTabs" class="sticky top-16 z-20 -mx-1 px-1 flex items-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap bg-[#e9edf4]/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+          <button type="button" id="stReset" class="dc-btn dc-btn-ghost" disabled>Reset</button>
+          <button type="button" id="stSave" class="${BTN}${BTN_OFF}" disabled><i class="fa-solid fa-floppy-disk"></i>Simpan Perubahan</button></div></div>
+      <nav id="stTabs" class="sticky top-16 z-20 -mx-1 px-1 flex items-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap bg-[#eef4f0]/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         ${TABS.map(([id, ic, t]) => `<button type="button" data-tabbtn="${id}" class="flex items-center gap-2 px-3 sm:px-4 py-3 text-xs sm:text-[13px] font-semibold border-b-2 -mb-px transition hover:text-slate-800 dark:hover:text-slate-200 ${id === 'profil' ? TAB_ON.join(' ') : TAB_OFF.join(' ')}"><i class="fa-solid ${ic}"></i>${t}</button>`).join('')}</nav>
       ${demoNote(settings, '/api/admin/settings')}
       <p id="stErr" class="hidden text-xs font-medium rounded-xl px-4 py-3 bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30" role="alert"></p>
@@ -174,8 +174,8 @@
             <div class="min-w-0"><p class="text-sm font-bold text-slate-800 dark:text-slate-100">Logo Portal Instansi</p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Format yang direkomendasikan: SVG, PNG transparan atau JPG minimal 512×512px (Maks. 2MB).</p>
               <div class="flex items-center gap-3 mt-2.5">
-                <button type="button" id="stLogoUp" class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-sm">Unggah Logo Baru</button>
-                <button type="button" id="stLogoDel" class="${v.logo ? '' : 'hidden '}text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400">Hapus</button>
+                <button type="button" id="stLogoUp" class="dc-btn dc-btn-sec dc-btn-sm">Unggah Logo Baru</button>
+                <button type="button" id="stLogoDel" class="${v.logo ? '' : 'hidden '}dc-btn dc-btn-danger dc-btn-sm">Hapus</button>
                 <input type="file" id="stLogoFile" accept="image/png,image/jpeg,image/svg+xml" class="hidden"></div></div></div>` +
           `<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">${inp('name', 'Nama instansi', v.name, 'maxlength="60"', { req: 1 })}${inp('tagline', 'Tagline / Slogan', v.tagline, 'maxlength="100"')}</div>` +
           `<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">${inp('email', 'Email kontak lembaga', v.email, 'type="email" placeholder="info@instansi.id"', { req: 1, icon: 'fa-envelope' })}${inp('phone', 'No. Telepon / WhatsApp', v.phone, 'placeholder="+62 812-0000-0000"', { icon: 'fa-phone' })}</div>` +
@@ -296,9 +296,9 @@
         <td class="py-3.5 px-4"><div class="flex flex-wrap gap-1">${(p.grades || []).length ? p.grades.map((g) => `<span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${esc(GRADES[g] || g)}</span>`).join('') : '<span class="text-xs text-slate-300 dark:text-slate-600">—</span>'}</div></td>
         <td class="py-3.5 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${p.active ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'}"><span class="w-1.5 h-1.5 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-400'}"></span>${p.active ? 'Aktif' : 'Nonaktif'}</span></td>
         <td class="py-3.5 px-6 text-right"><div class="inline-flex items-center gap-1">
-          <button type="button" data-a="edit" data-id="${p.id}" class="${BTN_GHOST}" title="Ubah"><i class="fa-solid fa-pencil text-sm"></i></button>
-          <button type="button" data-a="toggle" data-id="${p.id}" ${self ? 'disabled' : ''} class="${BTN_GHOST} disabled:opacity-30 disabled:cursor-not-allowed" title="${self ? 'Akun Anda sendiri tidak bisa dinonaktifkan' : p.active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="fa-solid ${p.active ? 'fa-user-slash' : 'fa-user-check'} text-sm"></i></button>
-          <button type="button" data-a="del" data-id="${p.id}" ${self ? 'disabled' : ''} class="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition disabled:opacity-30 disabled:cursor-not-allowed" title="${self ? 'Akun Anda sendiri tidak bisa dihapus' : 'Hapus'}"><i class="fa-regular fa-trash-can text-sm"></i></button></div></td></tr>`;
+          <button type="button" data-a="edit" data-id="${p.id}" class="dc-ib dc-ib-edit" title="Ubah"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" data-a="toggle" data-id="${p.id}" ${self ? 'disabled' : ''} class="dc-ib dc-ib-warn" title="${self ? 'Akun Anda sendiri tidak bisa dinonaktifkan' : p.active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="fa-solid ${p.active ? 'fa-user-slash' : 'fa-user-check'}"></i></button>
+          <button type="button" data-a="del" data-id="${p.id}" ${self ? 'disabled' : ''} class="dc-ib dc-ib-danger" title="${self ? 'Akun Anda sendiri tidak bisa dihapus' : 'Hapus'}"><i class="fa-regular fa-trash-can text-sm"></i></button></div></td></tr>`;
     }).join('') : '<tr><td colspan="5" class="py-10 px-6 text-center text-sm text-slate-500 dark:text-slate-400">Belum ada pengguna. Klik Tambah Pengguna.</td></tr>';
   }
   async function renderAkses() {

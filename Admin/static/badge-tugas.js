@@ -15,8 +15,8 @@
 
   const INPUT = 'w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40';
   const LABEL = 'block font-mono font-semibold text-slate-600 dark:text-slate-300 mb-1 uppercase tracking-wider text-[11px]';
-  const BTN = 'flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-sky-600/20 active:scale-95 transition';
-  const BTN_GHOST = 'p-2 rounded-lg text-slate-500 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition';
+  const BTN = 'dc-btn dc-btn-pri';
+  const BTN_GHOST = 'dc-ib dc-ib-edit';
   const CARD = 'bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-card';
 
   const COLORS = { sky: 'var(--sc-sky)', indigo: 'var(--sc-indigo)', emerald: 'var(--sc-emerald)', amber: 'var(--sc-amber)', rose: 'var(--sc-rose)' };
@@ -80,11 +80,11 @@
     el.className = 'fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/50';
     el.innerHTML = `<form class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4" novalidate>
       <div class="flex items-center justify-between"><h3 class="text-lg font-extrabold text-slate-900 dark:text-white">${esc(title)}</h3>
-        <button type="button" data-x class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+        <button type="button" data-x class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
       ${bodyHtml}
       <p data-err class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p>
       <div class="flex justify-end gap-2 pt-1">
-        <button type="button" data-x class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Batal</button>
+        <button type="button" data-x class="dc-btn dc-btn-ghost">Batal</button>
         <button type="submit" class="${BTN}"><i class="fa-solid fa-floppy-disk"></i>Simpan</button></div></form>`;
     const close = () => { el.remove(); document.removeEventListener('keydown', onKey); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
@@ -136,8 +136,8 @@
           <span class="px-2 py-0.5 rounded-full border ${b.active ? STATUS.terbit[1] : STATUS.draft[1]}">${b.active ? 'Aktif' : 'Nonaktif'}</span>
         </div>
         <div class="flex justify-end gap-1 mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
-          <button type="button" data-b="edit" data-id="${b.id}" class="${BTN_GHOST}" title="Ubah"><i class="fa-solid fa-pen text-xs"></i></button>
-          <button type="button" data-b="del" data-id="${b.id}" class="${BTN_GHOST} hover:!text-rose-600" title="Hapus"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button type="button" data-b="edit" data-id="${b.id}" class="${BTN_GHOST}" title="Ubah"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" data-b="del" data-id="${b.id}" class="dc-ib dc-ib-danger" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
         </div>
       </div>`).join('');
     vBadge.innerHTML = hero('Sertifikat &amp; Badges', 'Sertifikat &amp; Badges', 'bdCount', 'Penghargaan yang bisa diraih siswa: otomatis dari tugas atau poin, atau diberikan manual.', 'data-b="new"', 'Badge Baru') +
@@ -191,7 +191,7 @@
       draft: ['Draft', 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700', 'bg-slate-400'],
       ditutup: ['Ditutup', 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30', 'bg-rose-500']
     };
-    const ACT = 'p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors';
+    const ACT = 'dc-ib dc-ib-edit';
     const longDate = (d) => { try { return new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (_) { return d || '-'; } };
     $('#tgBody').innerHTML = rows.length ? rows.map((t) => {
       const bd = badgeList.find((x) => x.id === t.badgeId), st = STATUS_UI[t.status] || STATUS_UI.draft;
@@ -216,9 +216,9 @@
         <td class="py-4 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${st[1]}"><span class="w-1.5 h-1.5 rounded-full ${st[2]}"></span>${st[0]}</span></td>
         <td class="py-4 px-6 text-right">
           <div class="inline-flex items-center gap-1">
-            <button type="button" data-t="dup" data-id="${t.id}" class="${ACT}" title="Salin sebagai draft"><i class="fa-regular fa-copy text-sm"></i></button>
-            <button type="button" data-t="edit" data-id="${t.id}" class="${ACT}" title="Ubah"><i class="fa-solid fa-pencil text-sm"></i></button>
-            <button type="button" data-t="del" data-id="${t.id}" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors" title="Hapus"><i class="fa-regular fa-trash-can text-sm"></i></button>
+            <button type="button" data-t="dup" data-id="${t.id}" class="dc-ib dc-ib-mute" title="Salin sebagai draft"><i class="fa-regular fa-copy"></i></button>
+            <button type="button" data-t="edit" data-id="${t.id}" class="dc-ib dc-ib-edit" title="Ubah"><i class="fa-solid fa-pen"></i></button>
+            <button type="button" data-t="del" data-id="${t.id}" class="dc-ib dc-ib-danger" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
           </div>
         </td></tr>`;
     }).join('') : `<tr><td colspan="8" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">${taskList.length ? 'Tidak ada tugas yang cocok dengan filter.' : 'Belum ada tugas. Klik Tugas Baru untuk membuat.'}</td></tr>`;
@@ -367,7 +367,7 @@
 
   function subCell(t) {
     const c = subCount[t.id] || { submitted: 0, pending: 0 };
-    return `<td class="py-4 px-4"><button type="button" data-t="review" data-id="${t.id}" class="group/s flex items-center gap-2 whitespace-nowrap rounded-lg -mx-1.5 px-1.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Pantau &amp; nilai pengumpulan">
+    return `<td class="py-4 px-4"><button type="button" data-t="review" data-id="${t.id}" class="dc-btn dc-btn-ghost" title="Pantau &amp; nilai pengumpulan">
       ${c.submitted ? `<span class="text-xs font-semibold text-slate-700 dark:text-slate-200">${c.submitted} terkumpul</span>` : '<span class="text-xs text-slate-400">0 terkumpul</span>'}
       ${c.pending ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-200/60 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30">${c.pending} perlu dinilai</span>` : ''}
       <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 group-hover/s:text-sky-500 transition-colors"></i></button></td>`;
@@ -387,7 +387,7 @@
     const head = (extra) => `<div class="flex items-start justify-between gap-3 p-5 border-b border-slate-200 dark:border-slate-800">
       <div class="min-w-0">${extra || ''}<h3 class="text-lg font-extrabold text-slate-900 dark:text-white truncate">${esc(task.title)}</h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${esc(GRADES[task.grade] || task.grade)} · ${esc(TYPES[task.type] || task.type)} · ${Number(task.points) || 0} poin · tenggat ${task.due ? fmtDate(task.due) : '-'}</p></div>
-      <button type="button" data-r="close" class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>`;
+      <button type="button" data-r="close" class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>`;
 
     function drawList() {
       const n = (s) => rows.filter((r) => r.status === s).length;
@@ -402,7 +402,7 @@
           ${chip('Belum', n('belum'), SUB_STATUS.belum[1])}
           ${chip('Dinilai', n('dinilai'), SUB_STATUS.dinilai[1])}
           ${chip('Rata-rata nilai', avg == null ? '-' : avg, SUB_STATUS.revisi[1])}</div>
-        <div class="flex gap-1.5 overflow-x-auto">${tabs.map(([k, l, c]) => `<button type="button" data-r="tab" data-v="${k}" class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap ${k === tab ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}">${l} <span class="opacity-70 font-mono">${c}</span></button>`).join('')}</div>
+        <div class="flex gap-1.5 overflow-x-auto">${tabs.map(([k, l, c]) => `<button type="button" data-r="tab" data-v="${k}" class="dc-pill-tab ${k === tab ? 'is-active' : ''}">${l} <span class="opacity-70 font-mono">${c}</span></button>`).join('')}</div>
         <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm text-left">
           <thead class="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50"><tr><th class="px-4 py-2.5">Siswa</th><th class="px-4 py-2.5">Status</th><th class="px-4 py-2.5">Dikumpulkan</th><th class="px-4 py-2.5">Nilai</th><th class="px-4 py-2.5"></th></tr></thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">${shown.length ? shown.map((r) => { const st = SUB_STATUS[r.status] || SUB_STATUS.dikumpulkan; return `<tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
@@ -429,7 +429,7 @@
           <div><label class="${LABEL}" for="rvFb">Komentar untuk siswa</label><textarea id="rvFb" rows="3" maxlength="600" class="${INPUT}" placeholder="Tulis masukan, apa yang sudah bagus dan apa yang perlu diperbaiki...">${esc(r.feedback)}</textarea></div></div>
         <p id="rvErr" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p>
         <div class="flex flex-wrap justify-end gap-2">
-          <button type="button" data-r="save" data-s="revisi" class="px-4 py-2 rounded-xl text-xs font-semibold border border-amber-300 text-amber-700 dark:border-amber-500/40 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10"><i class="fa-solid fa-rotate-left mr-1.5"></i>Minta revisi</button>
+          <button type="button" data-r="save" data-s="revisi" class="dc-btn dc-btn-warn"><i class="fa-solid fa-rotate-left mr-1.5"></i>Minta revisi</button>
           <button type="button" data-r="save" data-s="dinilai" class="${BTN}"><i class="fa-solid fa-check"></i>Simpan nilai</button></div></div>`;
     }
     async function load() {
