@@ -36,7 +36,7 @@ Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habi
 
 - Identitas kanonis adalah `users.id`. Tabel `sessions`, `progress`, `points`, `attempts`, dan `user_items` memakai `user_id` dengan FK ke `users(id)`.
 - `username` adalah nama login/display yang **boleh diubah admin**. Rename tidak memindahkan progress, poin, attempt, item, atau sesi karena semuanya memakai `user_id`.
-- Role DB saat ini: `student`, `admin`, `instruktur`, dan `ortu`. Akun admin dibuat lewat CLI, bukan lewat UI admin:
+- Role DB saat ini: `student`, `admin`, dan `instruktur`. Orang tua/wali **bukan** akun login; laporan mereka diakses lewat tautan bertoken. Akun admin dibuat lewat CLI, bukan lewat UI admin:
   `cd backend && npm run create-admin`.
 - Akun yang **sudah ada** bisa dipromosikan tanpa membuat akun baru dan tanpa mengubah password:
   `cd backend && npm run promote-admin -- admin@diengcyber.local`. Idempoten; menulis audit `admin.promoted.cli`.
@@ -51,7 +51,7 @@ Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habi
 |---|---|---|---|
 | GET  | `/api/progress/:username` | - | `{ progress: [{ task_id, completed, completed_at, bonus_awarded }] }` |
 | GET  | `/api/progress/:username?grade=SMP&module=py1` | - | sama, difilter via JOIN tasks |
-| POST | `/api/progress/:username` | `{ taskId, completed }` | `{ username, taskId, completed, points, earned }` |
+| POST | `/api/progress/:username` | `{ taskId, completed }` | `{ username, taskId, completed, points, earned, reconciledDifference }` |
 | GET  | `/api/points/:username` | - | `{ username, total, earned, spent, balance }` |
 | POST | `/api/points/:username` | - | `410 GONE` — total dihitung server dari task selesai |
 | POST | `/api/attempts/:username` | `{ taskId, timeSpent? }` | `{ username, taskId, fails, timeSpent }` |
@@ -62,7 +62,27 @@ Menyelesaikan task (`POST /api/progress` → `completed: true`) otomatis mengkre
 
 Bonus percobaan pertama (semua task): selesai tanpa gagal tercatat (`POST /api/attempts/:username` `{ taskId }` per cek misi yang gagal) + belum pernah dapat bonus → tambah `FIRST_TRY_BONUS` (default 5, via env). Bonus hanya sekali seumur (user, task); un-check mendebit basis + bonus.
 
-`timeSpent` (detik) dijumlahkan ke total waktu aktif per task.
+Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang masih selesai dan bonus yang memang pernah diperoleh. Dengan demikian, selisih lama di tabel points tidak terus terbawa ke request berikutnya. Gunakan `npm run backfill:points` untuk audit/perbaikan data lama secara manual setelah backup.
+
+`taskId` harus berupa string maksimal 128 karakter. `timeSpent` (detik) opsional, bilangan bulat 0–86400 per request, lalu dijumlahkan ke total waktu aktif per task.
+
+### Learning analytics, achievement, dan pesan mentor
+
+| Method | Alamat | Hasil |
+|---|---|---|
+| GET | `/api/learning/analytics` | `{ analytics }` untuk siswa yang sedang login |
+| GET | `/api/achievements` | `{ achievements, total, earned }` untuk siswa yang sedang login |
+| GET | `/api/mentor-note` | `{ item }` pesan mentor milik siswa yang sedang login |
+| GET | `/api/admin/users/:id/learning/analytics` | `{ analytics }`; admin/instruktur dengan permission `siswa.kelola` |
+| GET | `/api/admin/users/:id/achievements` | `{ achievements, total, earned }`; admin/instruktur dengan permission `siswa.kelola` |
+| GET | `/api/admin/users/:id/mentor-note` | `{ item }`; admin/instruktur dengan permission `siswa.kelola` |
+| PUT | `/api/admin/users/:id/mentor-note` | `{ note }`; admin/instruktur dengan permission `siswa.kelola` |
+
+`analytics.summary` menyimpan total task, task selesai, completion rate, modul selesai, jumlah achievement, total kegagalan yang tercatat, waktu yang tercatat saat endpoint attempt dipanggil, serta poin earned/spent/balance. Nilai `timeSpentSeconds` **bukan** total waktu aktif belajar; hanya durasi yang dikirim bersama pencatatan attempt. `analytics.modules` menyimpan ringkasan per grade dan module, termasuk rincian task, status capstone, dan achievement. `estimatedAttempts` hanya estimasi (`failedAttempts + 1` untuk task yang selesai), bukan jumlah run yang dicatat oleh editor. Metadata `analytics.tracking` menjelaskan sumber hitungan tersebut.
+
+Achievement kurikulum dihitung dari database: semua task pada modul harus selesai dan minimal satu task pada modul itu harus ditandai `is_project` atau `requires_submission`, serta seluruh task capstone harus selesai. API bersifat derived/read-only; tidak ada status achievement yang bisa diubah langsung oleh klien.
+
+Pesan mentor maksimal 400 karakter. Hanya admin/instruktur yang lolos permission `siswa.kelola` yang dapat menulis atau menghapus pesan (`PUT` dengan `note: ""` menghapus). Siswa hanya dapat membaca pesannya sendiri. Pesan ikut dimasukkan ke response laporan wali. Belum ada relasi penugasan mentor-ke-siswa di skema saat ini; akses instruktur mengikuti permission `siswa.kelola` yang berlaku.
 
 ## Profil & preferensi
 
@@ -111,8 +131,8 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | GET | `/api/admin/me` | - | `{ id, username, fullName, email, phone, role, status, mustChangePassword, createdAt, permissions }` |
 | PATCH | `/api/admin/me` | `{ fullName?, email?, phone? }` | `{ ...identitas }`; email unik (409 `EMAIL_EXISTS`), telepon 8–20 digit/`+`/spasi/strip |
 | POST | `/api/admin/me/password` | `{ currentPassword, newPassword }` | `{ id }`; password minimal mengikuti pengaturan instansi, sesi lain dicabut |
-| GET | `/api/admin/roles` | - | `{ roles: { admin, instruktur, siswa, ortu } }`; permission array tiap peran |
-| PUT | `/api/admin/roles` | `{ roles: { admin?, instruktur?, siswa?, ortu? } }` | `{ roles }`; permission wajib dikenal; admin selalu semua; hanya admin yang boleh menulis |
+| GET | `/api/admin/roles` | - | `{ roles: { admin, instruktur, siswa } }`; permission array tiap peran |
+| PUT | `/api/admin/roles` | `{ roles: { admin?, instruktur?, siswa? } }` | `{ roles }`; permission wajib dikenal; admin selalu semua; hanya admin yang boleh menulis |
 | GET | `/api/admin/audit?action=&actor=&targetType=&targetId=&page=&limit=` | - | `{ entries, page, limit, total, pages }`; `details` sudah di-parse |
 | GET | `/api/admin/stats` | - | `{ students, content, plugins, codelab, activity, grades, curriculum }` |
 | GET | `/api/admin/activity?limit=5` | - | `{ entries: [{ completed_at, task_id, user_id, username, full_name, title, points }] }`; submisi selesai terbaru (limit maks. 100) |
@@ -148,18 +168,21 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/users/:id/suspend` | `{}` atau `{ status: "active" }` | `{ id, status }` |
 | POST | `/api/admin/users/:id/revoke-sessions` | - | `{ revoked }` |
 | DELETE | `/api/admin/users/:id` | - | soft delete `{ id, status: "deleted" }` |
-| GET | `/api/admin/instructors?limit=500` | - | `{ items, total }`; `{ id, username, name, email, role, grades, active }`; `role` = `admin`, `instruktur`, `siswa`, atau `ortu`; hanya akun non-deleted |
+| GET | `/api/admin/instructors?limit=500` | - | `{ items, total }`; `{ id, username, name, email, role, grades, active }`; `role` = `admin`, `instruktur`, atau `siswa`; hanya akun non-deleted |
 | POST | `/api/admin/instructors` | `{ name, email, role, grades, password?, active }` | `{ item, temporaryPassword? }` | 201; `must_change_password = 1`; `password` default dibuat otomatis |
 | PATCH | `/api/admin/instructors/:id` | `{ name?, email?, role?, grades?, active? }` | `{ item }` | boleh diubah kecuali akun sendiri; admin tidak bisa diubah oleh instruktur |
 | DELETE | `/api/admin/instructors/:id` | - | soft delete `{ id, status: "deleted" }`; sesi dicabut |
-| GET | `/api/admin/instructors/:id/children` | - | `{ items, total }`; daftar siswa yang ditautkan ke akun `ortu`; 400 `NOT_PARENT` bila akun bukan orang tua |
-| PUT | `/api/admin/instructors/:id/children` | `{ studentIds: number[] }` | `{ items, total }`; **replace** seluruh tautan, maks. 20 siswa, 400 `STUDENT_NOT_FOUND` (`details.missing`) bila ada ID bukan siswa aktif |
+| GET | `/api/admin/users/:id/guardians` | - | `{ items, total }`; daftar wali `{ id, name, email, relation, createdAt, updatedAt }` |
+| PUT | `/api/admin/users/:id/guardians` | `{ guardians: [{ name, email, relation? }] }` | `{ items, total }`; **replace** seluruh wali (dicocokkan lewat email: wali yang dipertahankan tetap memakai `id` dan tautannya, wali yang dihilangkan dihapus dan tautannya otomatis dicabut), maks. 5; `relation` = `ayah`/`ibu`/`wali`/`lainnya` (default `wali`); email unik per siswa |
+| GET | `/api/admin/users/:id/report-links` | - | `{ items, total }`; daftar tautan `{ id, guardianId, guardianName, guardianEmail, status, expiresAt, revokedAt, lastAccessedAt, accessCount, createdAt }`; `status` = `active`/`expired`/`revoked` |
+| POST | `/api/admin/users/:id/report-links` | `{ guardianId?, expiresInDays? }` | `{ item: { id, studentId, guardianId, url, expiresAt, createdAt } }`; token asli hanya muncul sekali di `url` |
+| DELETE | `/api/admin/users/:id/report-links/:linkId` | - | `{ id, revoked: true }`; tautan langsung tidak bisa diakses lagi |
 
 Perilaku penting:
 
-- Semua endpoint admin (termasuk `/api/admin/roles` dan `/api/admin/instructors`) diblokir instruktur kecuali memilikikan permission dari matriks `admin_role_permissions`; `admin` selalu punya semua. Penolakan memakai kode `PERMISSION_DENIED`. Mutasi berat (`PUT /roles`) hanya boleh admin.
-- Peran yang didukung: `student`, `admin`, `instruktur`, `ortu` (sudah ada di CHECK `users.role` setelah migrasi).
-- Akun dengan role `instruktur`/`ortu` login memakai `/api/auth/*` normal, tetapi akses ke panel Admin masih dibatasi UI (hanya akun admin yang masuk ke `/admin/`). Permission server tetap ditegakkan per endpoint.
+- Semua endpoint admin (termasuk `/api/admin/roles` dan `/api/admin/instructors`) diblokir instruktur kecuali memiliki permission dari matriks `admin_role_permissions`; `admin` selalu punya semua. Penolakan memakai kode `PERMISSION_DENIED`. Mutasi berat (`PUT /roles`) hanya boleh admin.
+- Peran yang didukung: `student`, `admin`, dan `instruktur`. Role lama `ortu` tidak lagi dibuat dan ditolak saat login (`ROLE_NOT_SUPPORTED`); sisa baris `ortu` di database perlu dimigrasikan manual.
+- Akun dengan role `instruktur` login memakai `/api/auth/*` normal, tetapi akses ke panel Admin masih dibatasi UI (hanya akun admin yang masuk ke `/admin/`). Permission server tetap ditegakkan per endpoint.
 
 - Admin tidak bisa membuat/mengubah akun admin lewat API; akun admin hanya lewat CLI.
 - Admin hanya melihat dan mengelola user role `student`.
@@ -185,24 +208,54 @@ Perilaku penting:
 - Pengumpulan: `status` = `dikumpulkan`/`revisi`/`dinilai`. `dinilai` wajib `score` 0-100; `revisi` wajib `feedback`. Aksi penilaian tercatat sebagai `admin_task.grade`.
 - `GET /api/admin/settings` mengembalikan `{}` bila belum pernah disimpan. `logo` disimpan sebagai data URL gambar (maks. ±900.000 karakter) atau URL http(s).
 - Endpoint `/api/admin/roles` dan `/api/admin/instructors` tersedia. Hak akses disimpan di tabel `admin_role_permissions` (peran → daftar permission); `PUT /api/admin/roles` hanya boleh admin dan melakukan validasi permission yang dikenal.
-- Tautan orang tua ↔ siswa disimpan di tabel `parent_students` (`parent_user_id`, `student_user_id`, `created_by`). Satu siswa boleh ditautkan ke beberapa orang tua (mis. ayah dan ibu). Tautan bersifat replace lewat `PUT`, dan siswa berstatus `deleted` otomatis tidak ditampilkan.
-- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`; perubahan tautan anak memakai `parent.children.update`.
+- Wali siswa disimpan di tabel `student_guardians` (`student_user_id`, `name`, `email`, `relation`, `created_by`). Wali **bukan akun login** dan tidak punya password/sesi. Satu siswa maksimal 5 wali; email unik per siswa.
+- Tautan laporan disimpan di tabel `report_links` (`token_hash`, `student_user_id`, `guardian_id`, `expires_at`, `revoked_at`, `access_count`). Token asli (32 byte acak, base64url) hanya dikembalikan sekali saat pembuatan; database hanya menyimpan SHA-256. Default berlaku 30 hari, maksimal 365 hari, dan bisa dicabut kapan saja.
+- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`; perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`.
 - Rate limit admin: 60 request/menit per admin per path.
 
-## Parent API (Orang Tua)
+## Laporan Wali (publik)
 
-Wajib login dengan role `ortu` dan permission `anak.lihat` (default untuk role `ortu`). Hanya siswa yang ditautkan ke akun yang sedang login yang bisa dibaca; akun orang tua lain tidak bisa melihat tautan tersebut.
+Wali tidak punya akun. Admin membuat tautan laporan per siswa lalu mengirim URL-nya ke email wali (pengiriman email belum diimplementasikan; integrasi SMTP/Resend menyusul). Siapa pun yang memegang tautan dapat membaca laporan sampai tautan kedaluwarsa atau dicabut.
 
 | Method | Alamat | Hasil |
 |---|---|---|
-| GET | `/api/ortu/children` | `{ items, total }`; ringkasan `{ id, username, name, grades, status, points, completedTasks, totalProgress, lastCompletedAt }` |
-| GET | `/api/ortu/children/:id` | `{ child, progress, submissions }`; `progress` maks. 50 baris terakhir, `submissions` maks. 20 pengumpulan tugas admin terakhir |
+| GET | `/api/reports/:token` | `{ report, link }`; tanpa login |
+
+Bentuk `report`:
+
+```json
+{
+  "generatedAt": "2026-11-03T08:00:00.000Z",
+  "institution": { "name": "Dieng Cyber Coding", "year": null, "semester": null, "kkm": null },
+  "student": { "name": "Nama Siswa", "grades": ["SMP"] },
+  "summary": {
+    "points": 120,
+    "totalTasks": 40,
+    "completedTasks": 25,
+    "completionRate": 62.5,
+    "gradedSubmissions": 3,
+    "averageScore": 85.3,
+    "completedModules": 4,
+    "achievementsEarned": 4,
+    "failedAttempts": 8,
+    "timeSpentSeconds": 7200
+  },
+  "grades": [{ "grade": "SMP", "totalTasks": 40, "completedTasks": 25, "completionRate": 62.5 }],
+  "completedTasks": [{ "taskId": "py1:0", "title": "Judul", "grade": "SMP", "points": 10, "completedAt": "..." }],
+  "submissions": [{ "id": 1, "taskId": 2, "title": "Tugas", "grade": "SMP", "status": "dinilai", "score": 90, "feedback": "...", "submittedAt": "...", "gradedAt": "..." }],
+  "analytics": { "summary": { "totalTasks": 40, "completedTasks": 25, "completionRate": 62.5, "totalModules": 8, "completedModules": 4, "achievementsEarned": 4, "failedAttempts": 8, "timeSpentSeconds": 7200, "points": { "earned": 120, "spent": 20, "balance": 100 } }, "grades": [], "modules": [], "taskDetails": [], "completedTaskHistory": [], "achievements": [], "recommendations": [] },
+  "achievements": [{ "key": "course:SMP:py1", "title": "Lencana PY1", "grade": "SMP", "moduleId": "py1", "earned": true, "earnedAt": "..." }],
+  "mentorNote": { "text": "Pertahankan semangat belajarmu!", "authorId": 2, "authorName": "Kak Mentor", "createdAt": "...", "updatedAt": "..." }
+}
+```
 
 Perilaku penting:
 
-- 403 `PARENT_REQUIRED` bila token bukan role `ortu`.
-- 403 `PERMISSION_DENIED` bila role `ortu` tidak lagi memiliki `anak.lihat`.
-- 404 `NOT_FOUND` bila siswa tidak ada, sudah dihapus, atau tidak ditautkan ke akun tersebut.
+- Token salah, kedaluwarsa, atau dicabut → `404 REPORT_NOT_FOUND` (tidak membedakan ketiganya).
+- Response memakai `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, dan `X-Robots-Tag: noindex, nofollow`; endpoint dibatasi 60 request/menit per IP. Semua token dihitung dalam satu bucket per IP, jadi mengganti token di tiap request tidak menghindari batas. Melewati batas → `429 RATE_LIMITED` dengan header `Retry-After`.
+- Setiap akses menambah `access_count` dan `last_accessed_at` pada tautan.
+- Menghapus wali (menghilangkannya dari `PUT .../guardians`) otomatis mencabut tautan milik wali tersebut. Mengedit wali lain tidak memengaruhi tautan wali yang dipertahankan. Daftar wali diurutkan menurut `id` (wali lama dulu, lalu yang baru).
+- Tautan hanya bisa dibuat/dicabut admin/instruktur dengan permission `siswa.kelola`.
 
 ## Code Lab API untuk Murid
 

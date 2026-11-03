@@ -348,7 +348,7 @@ db.exec(`
 // tiap peran. Disimpan agar perubahan dari Admin UI bersifat server-side.
 db.exec(`
     CREATE TABLE IF NOT EXISTS admin_role_permissions (
-        role TEXT PRIMARY KEY CHECK (role IN ('admin', 'instruktur', 'siswa', 'ortu')),
+        role TEXT PRIMARY KEY CHECK (role IN ('admin', 'instruktur', 'siswa')),
         permissions TEXT NOT NULL DEFAULT '[]',
         updated_by INTEGER,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -356,22 +356,116 @@ db.exec(`
     );
 `);
 
-// Relasi orang tua -> siswa. Satu orang tua boleh punya beberapa anak, dan
-// satu siswa boleh dipantau lebih dari satu orang tua (mis. ayah dan ibu).
+// Database lama masih mengizinkan role 'ortu'. Role itu tidak dipakai lagi,
+// jadi tabel matriks dibangun ulang tanpa 'ortu' agar schema ikut bersih.
+(function migrateRolePermissionsWithoutParent() {
+    const table = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'admin_role_permissions'").get();
+    if (!table || !table.sql || !table.sql.includes("'ortu'")) return;
+
+    db.pragma("foreign_keys = OFF");
+    try {
+        db.transaction(() => {
+            db.exec(`
+                CREATE TABLE admin_role_permissions_new (
+                    role TEXT PRIMARY KEY CHECK (role IN ('admin', 'instruktur', 'siswa')),
+                    permissions TEXT NOT NULL DEFAULT '[]',
+                    updated_by INTEGER,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(updated_by) REFERENCES users(id)
+                );
+            `);
+            db.exec(`
+                INSERT INTO admin_role_permissions_new (role, permissions, updated_by, updated_at)
+                SELECT role, permissions, updated_by, updated_at
+                FROM admin_role_permissions
+                WHERE role <> 'ortu'
+            `);
+            db.exec("DROP TABLE admin_role_permissions");
+            db.exec("ALTER TABLE admin_role_permissions_new RENAME TO admin_role_permissions");
+        })();
+    } finally {
+        db.pragma("foreign_keys = ON");
+    }
+    console.log("[MIGRASI] Role 'ortu' dihapus dari matriks hak akses.");
+})();
+
+// Wali siswa dipakai untuk pengiriman laporan. Wali BUKAN akun login:
+// mereka hanya menerima tautan laporan lewat email.
 db.exec(`
-    CREATE TABLE IF NOT EXISTS parent_students (
-        parent_user_id INTEGER NOT NULL,
+    CREATE TABLE IF NOT EXISTS student_guardians (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        relation TEXT NOT NULL DEFAULT 'wali'
+            CHECK (relation IN ('ayah', 'ibu', 'wali', 'lainnya')),
         created_by INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (parent_user_id, student_user_id),
-        FOREIGN KEY(parent_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(student_user_id, email),
         FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(created_by) REFERENCES users(id)
     );
-    CREATE INDEX IF NOT EXISTS idx_parent_students_student
-        ON parent_students(student_user_id);
+    CREATE INDEX IF NOT EXISTS idx_student_guardians_student
+        ON student_guardians(student_user_id);
+    CREATE INDEX IF NOT EXISTS idx_student_guardians_email
+        ON student_guardians(email COLLATE NOCASE);
 `);
+
+// Tautan laporan disimpan sebagai hash token. Token asli hanya dikembalikan
+// sekali saat admin membuat tautan, sehingga bocornya database tidak langsung
+// membocorkan akses laporan siswa.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS report_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token_hash TEXT NOT NULL UNIQUE,
+        student_user_id INTEGER NOT NULL,
+        guardian_id INTEGER,
+        created_by INTEGER,
+        expires_at DATETIME NOT NULL,
+        revoked_at DATETIME,
+        last_accessed_at DATETIME,
+        access_count INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(guardian_id) REFERENCES student_guardians(id) ON DELETE SET NULL,
+        FOREIGN KEY(created_by) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_report_links_student
+        ON report_links(student_user_id, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_report_links_expires
+        ON report_links(expires_at);
+`);
+
+// Catatan mentor disimpan di backend agar dapat dibaca siswa dan wali melalui
+// laporan. Satu catatan aktif per siswa; perubahan terakhir menimpa isi lama.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS student_mentor_notes (
+        student_user_id INTEGER PRIMARY KEY,
+        note TEXT NOT NULL CHECK (length(trim(note)) BETWEEN 1 AND 400),
+        author_user_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(author_user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_student_mentor_notes_author
+        ON student_mentor_notes(author_user_id);
+`);
+
+// Bersihkan tabel parent_students lama. Jika masih berisi data, tabel sengaja
+// dibiarkan agar tidak ada data yang hilang; kode baru tidak memakainya lagi.
+(function cleanupLegacyParentStudents() {
+    const table = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'parent_students'").get();
+    if (!table) return;
+    const total = Number(db.prepare("SELECT COUNT(*) AS total FROM parent_students").get().total || 0);
+    if (total === 0) {
+        db.exec("DROP TABLE parent_students");
+        console.log("[MIGRASI] Tabel parent_students dihapus (tidak dipakai lagi).");
+    } else {
+        console.warn(`[MIGRASI] parent_students masih berisi ${total} baris; tabel dibiarkan tetapi tidak dipakai lagi.`);
+    }
+})();
 
 // ============================================================
 // PLUGIN REGISTRY (M4) — tidak menyajikan file karantina ke publik

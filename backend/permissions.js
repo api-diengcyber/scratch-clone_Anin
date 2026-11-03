@@ -3,7 +3,9 @@
 // ------------------------------------------------------------
 // MATRIKS HAK AKSES (permission)
 //
-// Peran yang tersedia: admin, instruktur, siswa, ortu.
+// Peran yang tersedia: admin, instruktur, siswa.
+// Orang tua/wali BUKAN akun login; laporan mereka diakses lewat tautan
+// bertanda tangan di endpoint /api/reports/:token.
 // Permission yang dipakai UI Admin (Akses & Hak Pengguna):
 //   siswa.kelola            Kelola siswa
 //   kurikulum.kelola        Kelola kurikulum & tahap
@@ -16,7 +18,6 @@
 //   akses.kelola            Kelola pengguna & hak akses
 //   materi.akses            Akses materi & studio coding
 //   tugas.kumpul            Mengerjakan & mengumpulkan tugas
-//   anak.lihat              Pantau perkembangan siswa
 // ------------------------------------------------------------
 
 const PERMISSIONS = [
@@ -30,17 +31,15 @@ const PERMISSIONS = [
   "pengaturan.ubah",
   "akses.kelola",
   "materi.akses",
-  "tugas.kumpul",
-  "anak.lihat"
+  "tugas.kumpul"
 ];
 
-const ROLE_KEYS = ["admin", "instruktur", "siswa", "ortu"];
+const ROLE_KEYS = ["admin", "instruktur", "siswa"];
 
 const DEFAULT_ROLE_PERMISSIONS = {
   admin: [...PERMISSIONS],
   instruktur: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
-  siswa: ["materi.akses", "tugas.kumpul"],
-  ortu: ["anak.lihat"]
+  siswa: ["materi.akses", "tugas.kumpul"]
 };
 
 function permissionsForRole(db, role) {
@@ -48,7 +47,7 @@ function permissionsForRole(db, role) {
   for (const key of ROLE_KEYS) all[key] = [...(DEFAULT_ROLE_PERMISSIONS[key] || [])];
   all.admin = [...PERMISSIONS]; // admin selalu punya semua hak
 
-  if (role === "admin" || role === "instruktur" || role === "siswa" || role === "ortu") {
+  if (role === "admin" || role === "instruktur" || role === "siswa") {
     try {
       const row = db.prepare("SELECT permissions FROM admin_role_permissions WHERE role = ?").get(role);
       if (row) {
@@ -83,7 +82,7 @@ function normalizeRolePermissions(input) {
     throw err;
   }
   const out = {};
-  for (const role of ["admin", "instruktur", "siswa", "ortu"]) {
+  for (const role of ROLE_KEYS) {
     const rawList = Array.isArray(input[role]) ? input[role] : (role === "admin" ? [...PERMISSIONS] : []);
     const clean = [];
     for (const p of rawList) {
@@ -97,16 +96,15 @@ function normalizeRolePermissions(input) {
     }
     out[role] = role === "admin" ? [...PERMISSIONS] : clean;
   }
-  // Instruktur/siswa/ortu tidak boleh hak aksesnya dikosongkan total.
+  // Instruktur/siswa tidak boleh hak aksesnya dikosongkan total.
   if (out.instruktur.length === 0) out.instruktur = [...DEFAULT_ROLE_PERMISSIONS.instruktur];
   if (out.siswa.length === 0) out.siswa = [...DEFAULT_ROLE_PERMISSIONS.siswa];
-  if (out.ortu.length === 0) out.ortu = [...DEFAULT_ROLE_PERMISSIONS.ortu];
   return out;
 }
 
 function roleCan(role, permissions, permission) {
   if (role === "admin") return true;
-  if (role !== "instruktur" && role !== "siswa" && role !== "ortu") return false;
+  if (role !== "instruktur" && role !== "siswa") return false;
   return Array.isArray(permissions) && permissions.includes(permission);
 }
 

@@ -1486,7 +1486,7 @@ async function cleanup() {
   });
 
   // ------------------------------------------------------------
-  // AKSES & HAK AKSES: matriks permission dan akun instruktur/orang tua.
+  // AKSES & HAK AKSES: matriks permission dan akun instruktur.
   // Catatan: sesi instruktur dipakai langsung via auth.createSession agar
   // tidak menambah pemakaian rate limit login yang sudah dipakai suite.
   // ------------------------------------------------------------
@@ -1494,10 +1494,10 @@ async function cleanup() {
     const res = await api("GET", "/api/admin/roles", { token: adminToken });
     eq(res.r.status, 200, "status");
     ok(res.d.roles && res.d.roles.admin, "ada roles");
-    eq(res.d.roles.admin.length, 12, "admin punya semua hak");
+    eq(res.d.roles.admin.length, 11, "admin punya semua hak");
     eq(res.d.roles.instruktur.length, 6, "instruktur default");
     eq(res.d.roles.siswa.length, 2, "siswa default");
-    eq(res.d.roles.ortu.length, 1, "ortu default");
+    eq(res.d.roles.ortu, undefined, "role ortu sudah dihapus");
     eq(res.d.roles.instruktur.includes("codelab.kelola"), true, "instruktur punya codelab");
 
     const me = await api("GET", "/api/admin/me", { token: adminToken });
@@ -1506,24 +1506,23 @@ async function cleanup() {
 
   await t("Akses: PUT /api/admin/roles validasi dan simpan", async () => {
     const putRoles = async (roles) => api("PUT", "/api/admin/roles", { token: adminToken, body: { roles } });
-    let res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["codelab.kelola"], siswa: ["materi.akses"], ortu: [] });
+    let res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["codelab.kelola"], siswa: ["materi.akses"] });
     eq(res.r.status, 200, "put valid");
 
-    res = await putRoles({ admin: ["siswa.zzz"], instruktur: ["siswa.zzz"], siswa: ["materi.akses"], ortu: ["anak.lihat"] });
+    res = await putRoles({ admin: ["siswa.zzz"], instruktur: ["siswa.zzz"], siswa: ["materi.akses"] });
     eq(res.r.status, 400, "permission tidak dikenal");
     eq(res.d.code, "ADMIN_DATA_INVALID", "code permission");
 
-    res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["akses.kelola"], siswa: ["materi.akses"], ortu: ["anak.lihat"] });
+    res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["akses.kelola"], siswa: ["materi.akses"] });
     eq(res.r.status, 200, "put valid 2");
     res = await api("GET", "/api/admin/roles", { token: adminToken });
     eq(res.d.roles.instruktur.includes("akses.kelola"), true, "instruktur punya akses.kelola");
-    eq(res.d.roles.admin.length, 12, "admin tetap semua");
+    eq(res.d.roles.admin.length, 11, "admin tetap semua");
 
     res = await putRoles({
-      admin: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola", "plugin.kelola", "pengaturan.ubah", "akses.kelola", "materi.akses", "tugas.kumpul", "anak.lihat"],
+      admin: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola", "plugin.kelola", "pengaturan.ubah", "akses.kelola", "materi.akses", "tugas.kumpul"],
       instruktur: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
-      siswa: ["materi.akses", "tugas.kumpul"],
-      ortu: ["anak.lihat"]
+      siswa: ["materi.akses", "tugas.kumpul"]
     });
     eq(res.r.status, 200, "put default");
   });
@@ -1577,155 +1576,210 @@ async function cleanup() {
   });
 
   // ------------------------------------------------------------
-  // TAUTAN ORANG TUA <-> SISWA
+  // WALI SISWA & TAUTAN LAPORAN
+  // Wali bukan akun login: hanya kontak yang menerima tautan laporan.
   // ------------------------------------------------------------
-  let linkParentId = null;
-  let linkStudentId = null;
+  let guardianId = null;
 
-  await t("Tautan ortu: admin menautkan anak, ortu hanya melihat anak sendiri", async () => {
-    const parentRes = await api("POST", "/api/admin/instructors", {
-      token: adminToken,
-      body: { name: "Orang Tua Uji", email: "ortu1@diengcyber.local", role: "ortu", active: true }
+  await t("Wali: admin mengelola kontak wali siswa", async () => {
+    const put = (body, id = studentId) =>
+      api("PUT", `/api/admin/users/${id}/guardians`, { token: adminToken, body });
+
+    let res = await put({
+      guardians: [
+        { name: "Ayah Siswa", email: "Ayah.Siswa@Example.com", relation: "ayah" },
+        { name: "Ibu Siswa", email: "ibu.siswa@example.com", relation: "ibu" }
+      ]
     });
-    eq(parentRes.r.status, 201, "create ortu");
-    const parentId = parentRes.d.item.id;
-    // Akun baru wajib ganti password; matikan agar endpoint baca bisa diuji.
-    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(parentId);
+    eq(res.r.status, 200, "put wali");
+    eq(res.d.total, 2, "dua wali");
+    eq(res.d.items[0].email, "ayah.siswa@example.com", "email dinormalisasi");
+    eq(res.d.items[1].relation, "ibu", "hubungan wali");
+    ok(Number.isSafeInteger(res.d.items[0].id), "id wali");
+    guardianId = res.d.items[0].id;
 
-    const linkedStudent = addUser("linksiswa1", "linksiswa1@diengcyber.local", "LinkPass123!", "student");
+    res = await api("GET", `/api/admin/users/${studentId}/guardians`, { token: adminToken });
+    eq(res.r.status, 200, "get wali");
+    eq(res.d.total, 2, "get wali total");
 
-    let res = await api("PUT", `/api/admin/instructors/${parentId}/children`, {
-      token: adminToken,
-      body: { studentIds: [studentId, linkedStudent] }
+    // Default relation = wali.
+    res = await put({ guardians: [{ name: "Wali Siswa", email: "wali.siswa@example.com" }] });
+    eq(res.r.status, 200, "put wali default");
+    eq(res.d.items[0].relation, "wali", "default hubungan");
+
+    res = await put({ guardians: "bukan-array" });
+    eq(res.r.status, 400, "guardians harus array");
+    eq(res.d.code, "ADMIN_DATA_INVALID", "code array wali");
+    eq(res.d.details.field, "guardians", "field array wali");
+
+    res = await put({ guardians: [{ name: "Tanpa Email", email: "bukan-email" }] });
+    eq(res.r.status, 400, "email wali tidak valid");
+    eq(res.d.details.field, "guardians[0].email", "field email wali");
+
+    res = await put({
+      guardians: [
+        { name: "Sama", email: "sama@example.com" },
+        { name: "Sama 2", email: "SAMA@example.com" }
+      ]
     });
-    eq(res.r.status, 200, "put children");
-    eq(res.d.total, 2, "dua anak tertaut");
-    eqJson(
-      res.d.items.map((x) => x.id).sort((a, b) => a - b),
-      [studentId, linkedStudent].sort((a, b) => a - b),
-      "id anak tertaut"
-    );
+    eq(res.r.status, 400, "email wali duplikat");
+    eq(res.d.details.field, "guardians[1].email", "field duplikat");
 
-    res = await api("GET", `/api/admin/instructors/${parentId}/children`, { token: adminToken });
-    eq(res.r.status, 200, "get children admin");
-    eq(res.d.total, 2, "get children total");
+    res = await put({ guardians: [{ name: "Hubungan", email: "hub@example.com", relation: "tetangga" }] });
+    eq(res.r.status, 400, "hubungan tidak valid");
+    eq(res.d.details.field, "guardians[0].relation", "field hubungan");
 
-    const parentToken = auth.createSession(parentId);
-    res = await api("GET", "/api/ortu/children", { token: parentToken });
-    eq(res.r.status, 200, "ortu list");
-    eq(res.d.total, 2, "ortu list total");
-    ok(res.d.items.every((x) => x.status === "active"), "hanya anak aktif");
-    ok(res.d.items.every((x) => typeof x.points === "number"), "ringkasan poin tersedia");
+    res = await put({
+      guardians: Array.from({ length: 6 }, (_, i) => ({
+        name: "Wali " + (i + 1),
+        email: `wali${i + 1}@example.com`
+      }))
+    });
+    eq(res.r.status, 400, "maksimal lima wali");
+    ok(/Maksimal 5/.test(res.d.message), "pesan batas wali");
 
-    res = await api("GET", `/api/ortu/children/${studentId}`, { token: parentToken });
-    eq(res.r.status, 200, "detail anak");
-    eq(res.d.child.id, studentId, "detail id anak");
-    ok(Array.isArray(res.d.progress), "progress berupa array");
-    ok(Array.isArray(res.d.submissions), "submissions berupa array");
+    res = await put({ guardians: [] }, 999999);
+    eq(res.r.status, 404, "siswa tidak ditemukan");
+    eq(res.d.code, "NOT_FOUND", "code siswa hilang");
 
-    res = await api("GET", `/api/ortu/children/${nonDevAdminId}`, { token: parentToken });
-    eq(res.r.status, 404, "siswa tak tertaut 404");
-    eq(res.d.code, "NOT_FOUND", "code tak tertaut");
-
-    res = await api("GET", "/api/ortu/children", { token: auth.createSession(studentId) });
-    eq(res.r.status, 403, "siswa bukan ortu");
-    eq(res.d.code, "PARENT_REQUIRED", "code parent required");
-
-    res = await api("GET", "/api/ortu/children");
-    eq(res.r.status, 401, "tanpa token ditolak");
-
-    linkParentId = parentId;
-    linkStudentId = linkedStudent;
+    // Kembalikan dua wali untuk tes tautan laporan.
+    res = await put({
+      guardians: [
+        { name: "Ayah Siswa", email: "ayah.siswa@example.com", relation: "ayah" },
+        { name: "Ibu Siswa", email: "ibu.siswa@example.com", relation: "ibu" }
+      ]
+    });
+    eq(res.r.status, 200, "put ulang wali");
+    guardianId = res.d.items[0].id;
   });
 
-  await t("Tautan ortu: validasi, replace, isolasi, dan batas maksimal", async () => {
-    const parentId = linkParentId;
-    const put = (body, id = parentId) =>
-      api("PUT", `/api/admin/instructors/${id}/children`, { token: adminToken, body });
-
-    let res = await put({ studentIds: "bukan-array" });
-    eq(res.r.status, 400, "studentIds harus array");
-    eq(res.d.code, "ADMIN_DATA_INVALID", "code array");
-    eq(res.d.details.field, "studentIds", "field array");
-
-    res = await put({ studentIds: [0] });
-    eq(res.r.status, 400, "id 0 tidak valid");
-    eq(res.d.details.field, "studentIds", "field id 0");
-
-    res = await put({ studentIds: [999999] });
-    eq(res.r.status, 400, "siswa tidak ditemukan");
-    eq(res.d.code, "STUDENT_NOT_FOUND", "code siswa hilang");
-    ok(Array.isArray(res.d.details.missing) && res.d.details.missing.includes(999999), "details missing");
-
-    res = await put({ studentIds: [nonDevAdminId] });
-    eq(res.r.status, 400, "admin bukan siswa");
-    eq(res.d.code, "STUDENT_NOT_FOUND", "code admin bukan siswa");
-
-    res = await put({ studentIds: [parentId] });
-    eq(res.r.status, 400, "tidak boleh menautkan diri sendiri");
-    eq(res.d.details.field, "studentIds", "field self link");
-
-    // Panjang dicek sebelum keberadaan siswa, jadi ID fiktif cukup untuk batas.
-    res = await put({ studentIds: Array.from({ length: 21 }, (_, i) => i + 1) });
-    eq(res.r.status, 400, "maksimal 20 anak");
-    ok(/Maksimal 20/.test(res.d.message), "pesan batas maksimal");
-
-    // Replace: daftar baru mengganti tautan lama, bukan menambah.
-    res = await put({ studentIds: [linkStudentId] });
-    eq(res.r.status, 200, "replace tautan");
-    eq(res.d.total, 1, "total setelah replace");
-    eq(res.d.items[0].id, linkStudentId, "id setelah replace");
-
-    const other = await api("POST", "/api/admin/instructors", {
+  await t("Tautan laporan: dibuat admin, bisa dibaca publik, dan dipantau aksesnya", async () => {
+    const created = await api("POST", `/api/admin/users/${studentId}/report-links`, {
       token: adminToken,
-      body: { name: "Orang Tua Lain", email: "ortu2@diengcyber.local", role: "ortu", active: true }
+      body: { guardianId, expiresInDays: 7 }
     });
-    eq(other.r.status, 201, "create ortu 2");
-    const otherId = other.d.item.id;
-    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(otherId);
-    const otherToken = auth.createSession(otherId);
+    eq(created.r.status, 201, "buat tautan");
+    ok(Number.isSafeInteger(created.d.item.id), "id tautan");
+    eq(created.d.item.guardianId, guardianId, "guardian tautan");
+    ok(/\/api\/reports\/[A-Za-z0-9_-]{43}$/.test(created.d.item.url), "url tautan");
+    ok(created.d.item.expiresAt, "expiresAt tautan");
 
-    res = await api("GET", "/api/ortu/children", { token: otherToken });
-    eq(res.r.status, 200, "ortu 2 list");
-    eq(res.d.total, 0, "ortu 2 tidak melihat anak ortu 1");
-    res = await api("GET", `/api/ortu/children/${linkStudentId}`, { token: otherToken });
-    eq(res.r.status, 404, "ortu 2 tidak bisa detail anak ortu 1");
+    const token = created.d.item.url.split("/").pop();
+    const linkId = created.d.item.id;
 
-    res = await put({ studentIds: [] });
-    eq(res.r.status, 200, "kosongkan tautan");
-    eq(res.d.total, 0, "total kosong");
+    let res = await api("GET", `/api/admin/users/${studentId}/report-links`, { token: adminToken });
+    eq(res.r.status, 200, "list tautan");
+    eq(res.d.items[0].id, linkId, "tautan terbaru");
+    eq(res.d.items[0].status, "active", "status aktif");
+    eq(res.d.items[0].guardianName, "Ayah Siswa", "nama wali tautan");
 
-    // Hanya akun role ortu yang boleh punya tautan anak.
-    res = await api("GET", `/api/admin/instructors/${studentId}/children`, { token: adminToken });
-    eq(res.r.status, 400, "siswa bukan parent");
-    eq(res.d.code, "NOT_PARENT", "code bukan parent");
-    res = await api("PUT", `/api/admin/instructors/${studentId}/children`, {
-      token: adminToken,
-      body: { studentIds: [] }
-    });
-    eq(res.r.status, 400, "put siswa bukan parent");
-    eq(res.d.code, "NOT_PARENT", "code put bukan parent");
+    // Akses publik tanpa sesi.
+    res = await api("GET", `/api/reports/${token}`);
+    eq(res.r.status, 200, "akses publik");
+    eq(res.d.ok, true, "ok publik");
+    // Siswa ini di-rename lebih awal (fullName "Renamed Student"); laporan memakai full_name.
+    eq(res.d.report.student.name, "Renamed Student", "nama siswa laporan");
+    eq(res.d.link.guardianName, "Ayah Siswa", "wali pada laporan");
+    ok(Array.isArray(res.d.report.grades), "grades laporan");
+    ok(Array.isArray(res.d.report.completedTasks), "completedTasks laporan");
+    ok(Array.isArray(res.d.report.submissions), "submissions laporan");
+    eq(res.r.headers.get("cache-control"), "no-store, max-age=0", "cache-control");
+    eq(res.r.headers.get("referrer-policy"), "no-referrer", "referrer-policy");
+    ok(/noindex/.test(res.r.headers.get("x-robots-tag") || ""), "x-robots-tag");
 
-    res = await api("GET", "/api/admin/instructors/999999/children", { token: adminToken });
-    eq(res.r.status, 404, "parent tidak ditemukan");
-    eq(res.d.code, "NOT_FOUND", "code parent hilang");
+    res = await api("GET", `/api/admin/users/${studentId}/report-links`, { token: adminToken });
+    eq(res.d.items[0].accessCount, 1, "akses tercatat");
+    ok(res.d.items[0].lastAccessedAt, "waktu akses tercatat");
+
+    res = await api("GET", "/api/reports/" + "x".repeat(43));
+    eq(res.r.status, 404, "token tidak dikenal");
+    eq(res.d.code, "REPORT_NOT_FOUND", "code token");
   });
 
-  await t("Akses: subroute instruktur butuh akses.kelola, cegah eskalasi peran", async () => {
-    const instrId = addUser("instr-link", "instr-link@diengcyber.local", "InstrPass123!", "instruktur");
-    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(instrId);
-    const instrToken = auth.createSession(instrId);
-
-    let res = await api("GET", `/api/admin/instructors/${linkParentId}/children`, { token: instrToken });
-    eq(res.r.status, 403, "GET children instruktur");
-    eq(res.d.code, "PERMISSION_DENIED", "code GET children");
-
-    res = await api("PUT", `/api/admin/instructors/${linkParentId}/children`, {
-      token: instrToken,
-      body: { studentIds: [] }
+  await t("Tautan laporan: isolasi siswa, pencabutan, dan kedaluwarsa", async () => {
+    // Username/email baru: "student2" sudah dipakai tes sebelumnya (soft-deleted, tapi barisnya tetap ada).
+    const otherStudent = addUser("siswa-laporan", "siswa-laporan@example.com", STUDENT_PASS, "student");
+    let res = await api("PUT", `/api/admin/users/${otherStudent}/guardians`, {
+      token: adminToken,
+      body: { guardians: [{ name: "Wali Dua", email: "wali.dua@example.com", relation: "wali" }] }
     });
-    eq(res.r.status, 403, "PUT children instruktur");
-    eq(res.d.code, "PERMISSION_DENIED", "code PUT children");
+    eq(res.r.status, 200, "wali siswa 2");
+
+    const first = await api("POST", `/api/admin/users/${studentId}/report-links`, {
+      token: adminToken,
+      body: { expiresInDays: 30 }
+    });
+    const second = await api("POST", `/api/admin/users/${otherStudent}/report-links`, {
+      token: adminToken,
+      body: { guardianId: res.d.items[0].id, expiresInDays: 30 }
+    });
+    eq(first.r.status, 201, "tautan siswa 1");
+    eq(second.r.status, 201, "tautan siswa 2");
+
+    const firstToken = first.d.item.url.split("/").pop();
+    const secondToken = second.d.item.url.split("/").pop();
+    ok(firstToken !== secondToken, "token berbeda");
+
+    res = await api("GET", `/api/reports/${secondToken}`);
+    eq(res.r.status, 200, "akses siswa 2");
+    eq(res.d.report.student.name, "siswa-laporan", "laporan hanya siswa 2");
+    eq(res.d.link.guardianName, "Wali Dua", "wali siswa 2");
+
+    // Cabut tautan pertama.
+    res = await api("DELETE", `/api/admin/users/${studentId}/report-links/${first.d.item.id}`, {
+      token: adminToken
+    });
+    eq(res.r.status, 200, "cabut tautan");
+    eq(res.d.revoked, true, "revoked");
+    res = await api("GET", `/api/reports/${firstToken}`);
+    eq(res.r.status, 404, "tautan dicabut 404");
+    eq(res.d.code, "REPORT_NOT_FOUND", "code dicabut");
+
+    res = await api("GET", `/api/admin/users/${studentId}/report-links`, { token: adminToken });
+    ok(res.d.items.some((x) => x.id === first.d.item.id && x.status === "revoked"), "status revoked");
+
+    // Kedaluwarsa: tautan aktif yang lewat masa berlaku harus ditolak.
+    const expiring = await api("POST", `/api/admin/users/${studentId}/report-links`, {
+      token: adminToken,
+      body: { expiresInDays: 1 }
+    });
+    eq(expiring.r.status, 201, "tautan kedaluwarsa dibuat");
+    const expiringToken = expiring.d.item.url.split("/").pop();
+    db.prepare("UPDATE report_links SET expires_at = datetime('now', '-1 day') WHERE id = ?")
+      .run(expiring.d.item.id);
+    res = await api("GET", `/api/reports/${expiringToken}`);
+    eq(res.r.status, 404, "tautan kedaluwarsa 404");
+    res = await api("GET", `/api/admin/users/${studentId}/report-links`, { token: adminToken });
+    ok(res.d.items.some((x) => x.id === expiring.d.item.id && x.status === "expired"), "status expired");
+
+    // Batas expiresInDays dan isolasi admin lain.
+    res = await api("POST", `/api/admin/users/${studentId}/report-links`, {
+      token: adminToken,
+      body: { expiresInDays: 0 }
+    });
+    eq(res.r.status, 400, "expiresInDays 0 ditolak");
+    eq(res.d.details.field, "expiresInDays", "field expiresInDays");
+
+    res = await api("POST", `/api/admin/users/${studentId}/report-links`, {
+      token: adminToken,
+      body: { guardianId: 999999 }
+    });
+    eq(res.r.status, 400, "wali bukan milik siswa");
+    eq(res.d.code, "GUARDIAN_NOT_FOUND", "code wali salah");
+
+    res = await api("GET", `/api/admin/users/${otherStudent}/report-links`, { token: nonDevToken });
+    eq(res.r.status, 200, "admin lain boleh mengelola");
+    ok(res.d.items.every((x) => x.guardianName !== "Ayah Siswa"), "tautan tidak tercampur");
+  });
+
+  await t("Akses: instruktur dilarang endpoint khusus admin (akses.kelola)", async () => {
+    const instrUserId = addUser("instr-link", "instr-link@diengcyber.local", "InstrPass123!", "instruktur");
+    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(instrUserId);
+    const instrToken = auth.createSession(instrUserId);
+
+    let res = await api("GET", "/api/admin/instructors", { token: instrToken });
+    eq(res.r.status, 403, "GET instructors instruktur");
+    eq(res.d.code, "PERMISSION_DENIED", "code GET instructors");
 
     // Sebelum regex diperbaiki, PATCH/DELETE /instructors/:id lolos gate permission.
     res = await api("PATCH", `/api/admin/instructors/${adminId}`, {
@@ -1738,6 +1792,76 @@ async function cleanup() {
     res = await api("DELETE", `/api/admin/instructors/${adminId}`, { token: instrToken });
     eq(res.r.status, 403, "DELETE instruktur kena gate");
     eq(res.d.code, "PERMISSION_DENIED", "code DELETE");
+
+    // Wali/report-link memakai izin siswa.kelola, jadi instruktur boleh.
+    res = await api("GET", `/api/admin/users/${studentId}/guardians`, { token: instrToken });
+    eq(res.r.status, 200, "instruktur boleh kelola wali (siswa.kelola)");
+  });
+
+  await t("Wali: edit daftar tidak memutus tautan wali yang dipertahankan, wali yang dihapus ikut dicabut", async () => {
+    const sid = addUser("siswa-wali", "siswa-wali@example.com", STUDENT_PASS, "student");
+    const put = (guardians) => api("PUT", `/api/admin/users/${sid}/guardians`, { token: adminToken, body: { guardians } });
+    const AYAH = { name: "Ayah Wali", email: "ayah.wali@example.com", relation: "ayah" };
+    const IBU = { name: "Ibu Wali", email: "ibu.wali@example.com", relation: "ibu" };
+
+    let res = await put([AYAH, IBU]);
+    eq(res.r.status, 200, "put dua wali");
+    const ayah = res.d.items[0];
+    const ibu = res.d.items[1];
+
+    const make = (guardian) => api("POST", `/api/admin/users/${sid}/report-links`, {
+      token: adminToken,
+      body: { guardianId: guardian.id, expiresInDays: 30 }
+    });
+    const linkAyah = await make(ayah);
+    const linkIbu = await make(ibu);
+    eq(linkAyah.r.status, 201, "tautan ayah");
+    eq(linkIbu.r.status, 201, "tautan ibu");
+    const tokenAyah = linkAyah.d.item.url.split("/").pop();
+    const tokenIbu = linkIbu.d.item.url.split("/").pop();
+
+    // Edit daftar: Ayah tidak berubah, hanya nama Ibu yang diganti.
+    res = await put([AYAH, { ...IBU, name: "Ibu Wali Baru" }]);
+    eq(res.r.status, 200, "put edit wali");
+    eq(res.d.items[0].id, ayah.id, "id ayah dipertahankan");
+    eq(res.d.items[1].id, ibu.id, "id ibu dipertahankan");
+    eq(res.d.items[1].name, "Ibu Wali Baru", "nama ibu berubah");
+
+    res = await api("GET", `/api/reports/${tokenAyah}`);
+    eq(res.r.status, 200, "tautan ayah tetap hidup setelah edit");
+    eq(res.d.link.guardianName, "Ayah Wali", "tautan ayah tetap terhubung ke wali");
+    res = await api("GET", `/api/reports/${tokenIbu}`);
+    eq(res.r.status, 200, "tautan ibu tetap hidup setelah edit");
+    eq(res.d.link.guardianName, "Ibu Wali Baru", "tautan ibu memakai nama terbaru");
+
+    // Hapus Ayah dari daftar: tautannya harus langsung mati, tautan Ibu tidak terpengaruh.
+    res = await put([{ ...IBU, name: "Ibu Wali Baru" }]);
+    eq(res.r.status, 200, "put hapus ayah");
+    eq(res.d.total, 1, "tinggal satu wali");
+
+    res = await api("GET", `/api/reports/${tokenAyah}`);
+    eq(res.r.status, 404, "tautan wali yang dihapus ikut dicabut");
+    res = await api("GET", `/api/reports/${tokenIbu}`);
+    eq(res.r.status, 200, "tautan wali lain tidak terpengaruh");
+
+    res = await api("GET", `/api/admin/users/${sid}/report-links`, { token: adminToken });
+    ok(res.d.items.some((x) => x.id === linkAyah.d.item.id && x.status === "revoked"), "status revoked tercatat");
+  });
+
+  // Harus paling akhir: setelah ini IP tes terkunci sementara oleh rate limit laporan.
+  await t("Tautan laporan: rate limit publik per IP, mengganti token tidak menghindarinya", async () => {
+    const statuses = [];
+    let limited = null;
+    for (let i = 0; i < 80; i++) {
+      const res = await api("GET", `/api/reports/${crypto.randomBytes(32).toString("base64url")}`);
+      statuses.push(res.r.status);
+      if (res.r.status === 429 && !limited) limited = res;
+    }
+    ok(statuses.includes(429), "token berbeda tetap kena rate limit");
+    ok(statuses.includes(404), "sebelum limit, token salah dijawab 404");
+    eq(limited.d.code, "RATE_LIMITED", "code RATE_LIMITED");
+    ok(Number(limited.r.headers.get("retry-after")) >= 1, "header Retry-After");
+    eq(limited.r.headers.get("cache-control"), "no-store, max-age=0", "429 tetap no-store");
   });
 
   const fails = results.filter((r) => r[0] === "FAIL");

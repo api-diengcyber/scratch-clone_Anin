@@ -4,6 +4,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { extractZipSafely, sha256, MAX_ZIP_BYTES } = require("./plugin-zip");
 const { notifyAdmins } = require("./notifications");
+const learningService = require("./learning-service");
 
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
@@ -36,7 +37,7 @@ function registerAdminApi(app, deps) {
     });
   }
   const permissionsModule = require("./permissions");
-  const parentLinks = require("./parent-links");
+  const reports = require("./reports");
   const ADMIN_PATH_RULES = [
     { re: /^\/me(?:\/|$)/, perm: null },
     { re: /^\/notifications/, perm: null },
@@ -802,7 +803,7 @@ function registerAdminApi(app, deps) {
       notifyAdmins(db, {
         kind: "code_lab.published",
         title: `Code Lab diterbitkan: ${item.title}`,
-        body: `${item.grade} · ${item.language}`,
+        body: `${item.grade} Â· ${item.language}`,
         view: "codelab",
         icon: "fa-solid fa-laptop-code",
         tone: "emerald",
@@ -847,7 +848,7 @@ function registerAdminApi(app, deps) {
       notifyAdmins(db, {
         kind: "code_lab.published",
         title: `Code Lab diterbitkan: ${item.title}`,
-        body: `${item.grade} · ${item.language}`,
+        body: `${item.grade} Â· ${item.language}`,
         view: "codelab",
         icon: "fa-solid fa-laptop-code",
         tone: "emerald",
@@ -1289,8 +1290,8 @@ function registerAdminApi(app, deps) {
 
   // Akun instruktur/orang tua/admin yang dikelola lewat halaman Akses.
   // Catatan: endpoint ini dipakai UI Admin dan menyimpan akun di tabel users.
-  const UI_TO_DB = { admin: "admin", instruktur: "instruktur", siswa: "student", ortu: "ortu" };
-  const DB_TO_UI = { admin: "admin", instruktur: "instruktur", student: "siswa", ortu: "ortu" };
+  const UI_TO_DB = { admin: "admin", instruktur: "instruktur", siswa: "student" };
+  const DB_TO_UI = { admin: "admin", instruktur: "instruktur", student: "siswa" };
   const STAFF_GRADE_VALUES = ["SD", "SMP", "SMK"];
   function staffItem(u) {
     return {
@@ -1317,7 +1318,7 @@ function registerAdminApi(app, deps) {
       SELECT id, username, email, full_name, role, status, allowed_grades, must_change_password, last_login_at, created_at
       FROM users
       WHERE status <> 'deleted'
-      ORDER BY CASE role WHEN 'admin' THEN 0 WHEN 'instruktur' THEN 1 WHEN 'ortu' THEN 2 ELSE 3 END, id ASC
+      ORDER BY CASE role WHEN 'admin' THEN 0 WHEN 'instruktur' THEN 1 ELSE 2 END, id ASC
       LIMIT 500
     `).all();
     const items = rows.map(staffItem);
@@ -1430,63 +1431,6 @@ function registerAdminApi(app, deps) {
     return sendApiSuccess(res, { id: num, status: "deleted" });
   });
 
-  // ------------------------------------------------------------
-  // Tautan orang tua <-> siswa.
-  // Hanya akun role `ortu` yang bisa menjadi induk tautan. Daftar siswa
-  // yang dikirim bersifat replace (bukan append) agar UI mudah mengelola.
-  // ------------------------------------------------------------
-  function parentTarget(id) {
-    const num = Number(id);
-    if (!Number.isSafeInteger(num) || num < 1) return null;
-    return db.prepare("SELECT id, role, status FROM users WHERE id = ?").get(num) || null;
-  }
-
-  app.get("/api/admin/instructors/:id/children", (req, res) => {
-    const parent = parentTarget(req.params.id);
-    if (!parent || parent.status === "deleted") return sendApiError(res, 404, "Akun orang tua tidak ditemukan.", "NOT_FOUND");
-    if (parent.role !== "ortu") return sendApiError(res, 400, "Tautan anak hanya berlaku untuk akun orang tua.", "NOT_PARENT");
-    const items = parentLinks.listChildren(db, parent.id);
-    return sendApiSuccess(res, { items, total: items.length });
-  });
-
-  app.put("/api/admin/instructors/:id/children", (req, res) => adminDataResponse(res, () => {
-    const parent = parentTarget(req.params.id);
-    if (!parent || parent.status === "deleted") return sendApiError(res, 404, "Akun orang tua tidak ditemukan.", "NOT_FOUND");
-    if (parent.role !== "ortu") return sendApiError(res, 400, "Tautan anak hanya berlaku untuk akun orang tua.", "NOT_PARENT");
-
-    const raw = (req.body || {}).studentIds;
-    if (!Array.isArray(raw)) adminDataError("studentIds harus berupa array ID siswa.", "studentIds");
-    if (raw.length > parentLinks.MAX_CHILDREN) {
-      adminDataError(`Maksimal ${parentLinks.MAX_CHILDREN} siswa per akun orang tua.`, "studentIds");
-    }
-    const ids = [...new Set(raw.map((value) => Number(value)))];
-    if (ids.some((id) => !Number.isSafeInteger(id) || id < 1)) {
-      adminDataError("Setiap studentIds harus ID siswa yang valid.", "studentIds");
-    }
-    if (ids.includes(Number(parent.id))) adminDataError("Akun orang tua tidak bisa ditautkan ke dirinya sendiri.", "studentIds");
-
-    if (ids.length) {
-      const placeholders = ids.map(() => "?").join(",");
-      const found = db.prepare(`
-        SELECT id FROM users
-        WHERE role = 'student' AND status <> 'deleted' AND id IN (${placeholders})
-      `).all(...ids).map((row) => Number(row.id));
-      const missing = ids.filter((id) => !found.includes(id));
-      if (missing.length) {
-        return sendApiError(res, 400, "Ada siswa yang tidak ditemukan atau bukan role student.", "STUDENT_NOT_FOUND", { missing });
-      }
-    }
-
-    const before = parentLinks.childIds(db, parent.id);
-    parentLinks.replaceChildren(db, parent.id, ids, req.userId);
-    const added = ids.filter((id) => !before.includes(id));
-    const removed = before.filter((id) => !ids.includes(id));
-    audit(req, "parent.children.update", "user", parent.id, { added, removed });
-
-    const items = parentLinks.listChildren(db, parent.id);
-    return sendApiSuccess(res, { items, total: items.length }, "Tautan anak diperbarui.");
-  }));
-
   // Endpoint murid: hanya tantangan published. Kasus uji tidak dikirim.
   app.get("/api/code-lab", auth.requireAuth, (req, res) => {
     const grade = ["SD", "SMP", "SMK"].includes(String(req.query.grade || "").toUpperCase())
@@ -1588,7 +1532,7 @@ function registerAdminApi(app, deps) {
       notifyAdmins(db, {
         kind: "student.create",
         title: `Siswa baru: ${fullName || username}`,
-        body: `${username}${email ? " · " + email : ""}${allowedGrades.length ? " · " + allowedGrades.join("/") : ""}`,
+        body: `${username}${email ? " Â· " + email : ""}${allowedGrades.length ? " Â· " + allowedGrades.join("/") : ""}`,
         view: "dashboard",
         icon: "fa-solid fa-user-plus",
         tone: "sky",
@@ -1681,6 +1625,208 @@ function registerAdminApi(app, deps) {
     return sendApiSuccess(res, { id: u.id, status: "deleted" }, "Murid dihapus secara soft delete.");
   });
 
+  // ------------------------------------------------------------
+  // WALI SISWA & TAUTAN LAPORAN
+  // Wali bukan akun login. Admin hanya menyimpan kontak dan membuat tautan
+  // yang bisa dikirim lewat email. Tautan disimpan sebagai hash dan bisa
+  // kedaluwarsa/dicabut.
+  // ------------------------------------------------------------
+  function reportStudent(id) {
+    const u = studentTarget(id);
+    return u && u.status !== "deleted" ? u : null;
+  }
+
+  function guardianPayload(body) {
+    const raw = body && body.guardians;
+    if (!Array.isArray(raw)) adminDataError("guardians harus berupa array.", "guardians");
+    if (raw.length > reports.MAX_GUARDIANS) {
+      adminDataError(`Maksimal ${reports.MAX_GUARDIANS} wali per siswa.`, "guardians");
+    }
+    const seen = new Set();
+    return raw.map((item, index) => {
+      const field = `guardians[${index}]`;
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        adminDataError(`${field} harus berupa objek.`, field);
+      }
+      const name = adminText(item.name, `${field}.name`, 60, true);
+      const email = normalizeEmail(item.email || "");
+      if (!email || !isValidEmail(email)) adminDataError(`Email wali ke-${index + 1} tidak valid.`, `${field}.email`);
+      if (seen.has(email)) adminDataError("Email wali tidak boleh duplikat.", `${field}.email`);
+      seen.add(email);
+      const relation = item.relation === undefined ? "wali" : String(item.relation).toLowerCase();
+      if (!reports.RELATIONS.includes(relation)) {
+        adminDataError("Hubungan wali harus ayah, ibu, wali, atau lainnya.", `${field}.relation`);
+      }
+      return { name, email, relation };
+    });
+  }
+
+  function reportBaseUrl(req) {
+    const configured = process.env.APP_PUBLIC_ORIGIN || process.env.PUBLIC_BASE_URL;
+    if (configured) return String(configured).replace(/\/+$/, "");
+    return `${req.protocol}://${req.get("host")}`;
+  }
+
+  app.get("/api/admin/users/:id/guardians", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const items = reports.listGuardians(db, u.id);
+    return sendApiSuccess(res, { items, total: items.length });
+  });
+
+  app.put("/api/admin/users/:id/guardians", (req, res) => adminDataResponse(res, () => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const guardians = guardianPayload(req.body || {});
+    const items = reports.replaceGuardians(db, u.id, guardians, req.userId);
+    audit(req, "guardian.update", "user", u.id, { total: items.length });
+    return sendApiSuccess(res, { items, total: items.length }, "Data wali diperbarui.");
+  }));
+
+  app.get("/api/admin/users/:id/report-links", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const items = reports.listReportLinks(db, u.id);
+    return sendApiSuccess(res, { items, total: items.length });
+  });
+
+  app.post("/api/admin/users/:id/report-links", (req, res) => adminDataResponse(res, () => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+
+    const body = req.body || {};
+    const days = body.expiresInDays === undefined ? reports.DEFAULT_EXPIRY_DAYS : Number(body.expiresInDays);
+    if (!Number.isInteger(days) || days < 1 || days > reports.MAX_EXPIRY_DAYS) {
+      adminDataError(`expiresInDays harus bilangan bulat 1-${reports.MAX_EXPIRY_DAYS}.`, "expiresInDays");
+    }
+
+    let guardianId = null;
+    if (body.guardianId !== undefined && body.guardianId !== null) {
+      guardianId = Number(body.guardianId);
+      if (!Number.isSafeInteger(guardianId) || guardianId < 1) {
+        adminDataError("guardianId tidak valid.", "guardianId");
+      }
+      if (!reports.getGuardian(db, guardianId, u.id)) {
+        return sendApiError(res, 400, "Wali tidak ditemukan pada siswa ini.", "GUARDIAN_NOT_FOUND");
+      }
+    }
+
+    const link = reports.createReportLink(db, u.id, {
+      guardianId,
+      expiresInDays: days,
+      createdBy: req.userId
+    });
+    audit(req, "report_link.create", "user", u.id, {
+      linkId: link.id,
+      guardianId,
+      expiresInDays: days
+    });
+
+    return sendApiSuccess(res, {
+      item: {
+        id: link.id,
+        studentId: link.studentId,
+        guardianId: link.guardianId,
+        url: `${reportBaseUrl(req)}/api/reports/${link.token}`,
+        expiresAt: link.expiresAt,
+        createdAt: link.createdAt
+      }
+    }, "Tautan laporan dibuat.", 201);
+  }));
+
+  app.delete("/api/admin/users/:id/report-links/:linkId", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const linkId = Number(req.params.linkId);
+    if (!Number.isSafeInteger(linkId) || linkId < 1) {
+      return sendApiError(res, 400, "ID tautan tidak valid.", "VALIDATION_ERROR");
+    }
+    const result = reports.revokeReportLink(db, u.id, linkId);
+    if (!result) return sendApiError(res, 404, "Tautan laporan tidak ditemukan.", "NOT_FOUND");
+    audit(req, "report_link.revoke", "user", u.id, { linkId });
+    return sendApiSuccess(res, result, "Tautan laporan dicabut.");
+  });
+
+  // Learning analytics dan achievements untuk dashboard staff.
+  // Akses melewati permission siswa.kelola dari adminPermissionGate.
+  app.get("/api/admin/users/:id/learning/analytics", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    try {
+      const analytics = learningService.buildLearningAnalytics(db, u.id);
+      return sendApiSuccess(res, { analytics });
+    } catch (error) {
+      console.error("Gagal mengambil learning analytics siswa:", error);
+      return sendApiError(res, 500, "Gagal mengambil analisis belajar siswa.", "INTERNAL_ERROR");
+    }
+  });
+
+  app.get("/api/admin/users/:id/achievements", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    try {
+      const analytics = learningService.buildLearningAnalytics(db, u.id);
+      const achievements = analytics ? analytics.achievements : [];
+      return sendApiSuccess(res, {
+        achievements,
+        total: achievements.length,
+        earned: achievements.filter((item) => item.earned).length
+      });
+    } catch (error) {
+      console.error("Gagal mengambil achievement siswa:", error);
+      return sendApiError(res, 500, "Gagal mengambil achievement siswa.", "INTERNAL_ERROR");
+    }
+  });
+
+  // Pesan mentor: hanya admin/instruktur dengan permission siswa.kelola yang dapat mengubah.
+  app.get("/api/admin/users/:id/mentor-note", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    try {
+      return sendApiSuccess(res, { item: learningService.getMentorNote(db, u.id) });
+    } catch (error) {
+      console.error("Gagal mengambil pesan mentor:", error);
+      return sendApiError(res, 500, "Gagal mengambil pesan mentor.", "INTERNAL_ERROR");
+    }
+  });
+
+  app.put("/api/admin/users/:id/mentor-note", (req, res) => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const raw = req.body && req.body.note;
+    if (typeof raw !== "string") {
+      return sendApiError(res, 400, "note wajib berupa teks.", "VALIDATION_ERROR");
+    }
+    const note = raw.replace(/\r\n?/g, "\n").trim();
+    const length = Array.from(note).length;
+    if (length > 400) {
+      return sendApiError(res, 400, "Pesan mentor maksimal 400 karakter.", "VALIDATION_ERROR", { maxLength: 400 });
+    }
+
+    try {
+      if (!note) {
+        db.prepare("DELETE FROM student_mentor_notes WHERE student_user_id = ?").run(u.id);
+        audit(req, "mentor_note.clear", "user", u.id, {});
+        return sendApiSuccess(res, { item: null }, "Pesan mentor dihapus.");
+      }
+
+      db.prepare(`
+        INSERT INTO student_mentor_notes (student_user_id, note, author_user_id)
+        VALUES (?, ?, ?)
+        ON CONFLICT(student_user_id) DO UPDATE SET
+          note = excluded.note,
+          author_user_id = excluded.author_user_id,
+          updated_at = CURRENT_TIMESTAMP
+      `).run(u.id, note, req.userId);
+
+      audit(req, "mentor_note.update", "user", u.id, { length });
+      return sendApiSuccess(res, { item: learningService.getMentorNote(db, u.id) }, "Pesan mentor tersimpan.");
+    } catch (error) {
+      console.error("Gagal menyimpan pesan mentor:", error);
+      return sendApiError(res, 500, "Gagal menyimpan pesan mentor.", "INTERNAL_ERROR");
+    }
+  });
+
   // M4: upload ZIP mentah ke quarantine. Upload dan publish hanya allowlist developer admin.
   app.post("/api/admin/plugins/upload", pluginDeveloper, express.raw({ type: ["application/zip", "application/x-zip-compressed", "application/octet-stream"], limit: "20mb" }), (req, res) => {
     if (!Buffer.isBuffer(req.body)) return sendApiError(res, 415, "Kirim file ZIP sebagai request body dengan Content-Type application/zip.", "ZIP_REQUIRED");
@@ -1718,7 +1864,7 @@ function registerAdminApi(app, deps) {
     notifyAdmins(db, {
       kind: "plugin.upload",
       title: `Plugin menunggu review: ${m.name}`,
-      body: `${m.id} v${m.version} · ${report.fileCount} file`,
+      body: `${m.id} v${m.version} Â· ${report.fileCount} file`,
       view: "dashboard",
       icon: "fa-solid fa-plug",
       tone: "amber",
@@ -1776,7 +1922,7 @@ function registerAdminApi(app, deps) {
     notifyAdmins(db, {
       kind: "plugin.publish",
       title: `Plugin dipublikasikan: ${manifest.name || v.plugin_id}`,
-      body: `${v.plugin_id} v${v.version} · ${manifest.category?.name || "Tanpa kategori"}`,
+      body: `${v.plugin_id} v${v.version} Â· ${manifest.category?.name || "Tanpa kategori"}`,
       view: "dashboard",
       icon: "fa-solid fa-rocket",
       tone: "emerald",

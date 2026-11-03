@@ -31,6 +31,7 @@ const db = require("./database");
 const auth = require("./auth");
 const shop = require("./shop-catalog");
 const { notifyAdmins } = require("./notifications");
+const learningService = require("./learning-service");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -82,6 +83,12 @@ function validateRequired(body, fields) {
 function sanitizeString(str, maxLen = 1000) {
     if (typeof str !== "string") return "";
     return str.slice(0, maxLen).trim();
+}
+
+function normalizeTaskId(value) {
+    if (typeof value !== "string") return null;
+    const taskId = value.trim();
+    return taskId && taskId.length <= 128 ? taskId : null;
 }
 
 // Email disimpan lowercase supaya "Budi@Mail.com" dan "budi@mail.com" dianggap sama.
@@ -1148,14 +1155,16 @@ app.get("/api/dev/progress", requireDevelopmentMode, (req, res) => {
 
 app.post("/api/dev/progress", requireDevelopmentMode, (req, res) => {
     try {
-        const { taskId, completed } = req.body || {};
-        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
+        const body = req.body || {};
+        const taskId = normalizeTaskId(body.taskId);
+        const { completed } = body;
+        if (!taskId) return sendApiError(res, 400, "taskId wajib berupa teks (maksimal 128 karakter)", "VALIDATION_ERROR");
         if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
 
         const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
 
-        const devResult = applyProgress(getDevUserId(), String(taskId), completed);
+        const devResult = applyProgress(getDevUserId(), taskId, completed);
         if (devResult.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         sendApiSuccess(res, { username: DEV_USERNAME, taskId, completed, points: devResult.points, earned: devResult.earned }, "Progress disimpan");
     } catch (error) {
@@ -1226,44 +1235,10 @@ app.get("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req,
 });
 
 // ============================================================
-const _FB = Number(process.env.FIRST_TRY_BONUS);
-const FIRST_TRY_BONUS = Number.isSafeInteger(_FB) && _FB >= 0 ? _FB : 5;
-// Bonus percobaan pertama: berhasil tanpa gagal tercatat + belum pernah dapat bonus.
-// Berlaku semua task (termasuk project). Bonus hanya sekali seumur (user, task).
-// Koin dihitung SERVER dari task selesai (fase 2). Idempoten:
-// hanya selisih status false<->true yang mengkredit/mendebit.
+// Progress dan points dikelola satu service agar transaksi user biasa dan user dev
+// memakai aturan yang sama. Points dihitung ulang dari progress aktif + bonus.
 function applyProgress(userId, taskId, completed) {
-    const task = db.prepare("SELECT points FROM tasks WHERE task_id = ?").get(taskId);
-    if (!task) return { error: "NOT_FOUND" };
-    const pts = Number.isSafeInteger(task.points) ? task.points : 10;
-    return db.transaction(() => {
-        const prev = db.prepare("SELECT completed, bonus_awarded FROM progress WHERE user_id = ? AND task_id = ?").get(userId, taskId);
-        const wasDone = !!prev && prev.completed === 1;
-        const hadBonus = !!prev && prev.bonus_awarded === 1;
-        let earnedBase = 0, earnedBonus = 0, giveBonus = false;
-        if (!wasDone && completed) {
-            const fr = db.prepare("SELECT fails FROM attempts WHERE user_id = ? AND task_id = ?").get(userId, taskId);
-            giveBonus = !hadBonus && (!fr || fr.fails === 0);
-            earnedBase = pts;
-            earnedBonus = giveBonus ? FIRST_TRY_BONUS : 0;
-        } else if (wasDone && !completed) {
-            earnedBase = -pts;
-            earnedBonus = hadBonus ? -FIRST_TRY_BONUS : 0;
-        }
-        const stamp = completed ? new Date().toISOString() : null;
-        db.prepare(`
-            INSERT INTO progress (user_id, task_id, completed, completed_at, bonus_awarded)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(user_id, task_id) DO UPDATE SET
-                completed = excluded.completed, completed_at = excluded.completed_at,
-                bonus_awarded = excluded.bonus_awarded
-        `).run(userId, taskId, completed ? 1 : 0, stamp, (hadBonus || giveBonus) ? 1 : 0);
-        db.prepare(`INSERT INTO points (user_id, total, updated_at) VALUES (?, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id) DO NOTHING`).run(userId);
-        const row = db.prepare("SELECT total FROM points WHERE user_id = ?").get(userId);
-        const next = Math.max(0, (row ? row.total : 0) + earnedBase + earnedBonus);
-        db.prepare(`UPDATE points SET total = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`).run(next, userId);
-        return { completed, points: next, earned: { base: earnedBase, bonus: earnedBonus } };
-    })();
+    return learningService.applyProgress(db, userId, taskId, completed);
 }
 
 // SAVE PROGRESS (Per User - Auth Required)
@@ -1272,15 +1247,17 @@ function applyProgress(userId, taskId, completed) {
 app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
     try {
         const username = String(req.params.username || "").trim();
-        const { taskId, completed } = req.body || {};
+        const body = req.body || {};
+        const taskId = normalizeTaskId(body.taskId);
+        const { completed } = body;
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
+        if (!taskId) return sendApiError(res, 400, "taskId wajib berupa teks (maksimal 128 karakter)", "VALIDATION_ERROR");
         if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
-        const result = applyProgress(req.userId, String(taskId), completed);
+        const result = applyProgress(req.userId, taskId, completed);
         if (result.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         if (completed && result.earned && result.earned.base > 0) {
             const student = db.prepare("SELECT username, full_name FROM users WHERE id = ?").get(req.userId);
-            const task = db.prepare("SELECT title FROM tasks WHERE task_id = ?").get(String(taskId));
+            const task = db.prepare("SELECT title FROM tasks WHERE task_id = ?").get(taskId);
             if (student && task) {
                 const points = result.earned.base + result.earned.bonus;
                 notifyAdmins(db, {
@@ -1294,7 +1271,7 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
                 });
             }
         }
-        sendApiSuccess(res, { username, taskId: String(taskId), completed, points: result.points, earned: result.earned }, "Progress berhasil disimpan");
+        sendApiSuccess(res, { username, taskId, completed, points: result.points, earned: result.earned, reconciledDifference: result.reconciledDifference }, "Progress berhasil disimpan");
     } catch (error) {
         console.error("Gagal menyimpan progress:", error);
         sendApiError(res, 500, "Gagal menyimpan progress", "INTERNAL_ERROR");
@@ -1309,18 +1286,23 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
 app.post("/api/attempts/:username", auth.requireAuth, auth.requireSameUser, (req, res) => {
     try {
         const username = String(req.params.username || "").trim();
-        const { taskId, timeSpent } = req.body || {};
+        const body = req.body || {};
+        const taskId = normalizeTaskId(body.taskId);
+        const timeSpent = body.timeSpent;
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
-        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
-        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
+        if (!taskId) return sendApiError(res, 400, "taskId wajib berupa teks (maksimal 128 karakter)", "VALIDATION_ERROR");
+        if (timeSpent !== undefined && (!Number.isSafeInteger(timeSpent) || timeSpent < 0 || timeSpent > 86400)) {
+            return sendApiError(res, 400, "timeSpent harus bilangan bulat 0-86400 detik", "VALIDATION_ERROR");
+        }
+        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
-        const ts = Number.isSafeInteger(timeSpent) && timeSpent >= 0 ? timeSpent : 0;
+        const ts = timeSpent === undefined ? 0 : timeSpent;
         const rec = db.transaction(() => {
-            db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(req.userId, String(taskId));
-            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND task_id = ?`).run(ts, req.userId, String(taskId));
-            return db.prepare("SELECT fails, time_spent FROM attempts WHERE user_id = ? AND task_id = ?").get(req.userId, String(taskId));
+            db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(req.userId, taskId);
+            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND task_id = ?`).run(ts, req.userId, taskId);
+            return db.prepare("SELECT fails, time_spent FROM attempts WHERE user_id = ? AND task_id = ?").get(req.userId, taskId);
         })();
-        sendApiSuccess(res, { username, taskId: String(taskId), fails: rec.fails, timeSpent: rec.time_spent }, "Percobaan dicatat");
+        sendApiSuccess(res, { username, taskId: taskId, fails: rec.fails, timeSpent: rec.time_spent }, "Percobaan dicatat");
     } catch (error) {
         console.error("Gagal mencatat attempt:", error);
         sendApiError(res, 500, "Gagal mencatat attempt", "INTERNAL_ERROR");
@@ -1346,17 +1328,22 @@ app.get("/api/attempts/:username", auth.requireAuth, auth.requireSameUser, (req,
 
 app.post("/api/dev/attempts", requireDevelopmentMode, (req, res) => {
     try {
-        const { taskId, timeSpent } = req.body || {};
-        if (!taskId) return sendApiError(res, 400, "taskId wajib diisi", "VALIDATION_ERROR");
-        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(String(taskId));
+        const body = req.body || {};
+        const taskId = normalizeTaskId(body.taskId);
+        const timeSpent = body.timeSpent;
+        if (!taskId) return sendApiError(res, 400, "taskId wajib berupa teks (maksimal 128 karakter)", "VALIDATION_ERROR");
+        if (timeSpent !== undefined && (!Number.isSafeInteger(timeSpent) || timeSpent < 0 || timeSpent > 86400)) {
+            return sendApiError(res, 400, "timeSpent harus bilangan bulat 0-86400 detik", "VALIDATION_ERROR");
+        }
+        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
-        const ts = Number.isSafeInteger(timeSpent) && timeSpent >= 0 ? timeSpent : 0;
+        const ts = timeSpent === undefined ? 0 : timeSpent;
         const rec = db.transaction(() => {
-            db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(getDevUserId(), String(taskId));
-            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND task_id = ?`).run(ts, getDevUserId(), String(taskId));
-            return db.prepare("SELECT fails, time_spent FROM attempts WHERE user_id = ? AND task_id = ?").get(getDevUserId(), String(taskId));
+            db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(getDevUserId(), taskId);
+            db.prepare(`UPDATE attempts SET fails = fails + 1, time_spent = time_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND task_id = ?`).run(ts, getDevUserId(), taskId);
+            return db.prepare("SELECT fails, time_spent FROM attempts WHERE user_id = ? AND task_id = ?").get(getDevUserId(), taskId);
         })();
-        sendApiSuccess(res, { username: DEV_USERNAME, taskId: String(taskId), fails: rec.fails, timeSpent: rec.time_spent }, "Percobaan dicatat");
+        sendApiSuccess(res, { username: DEV_USERNAME, taskId: taskId, fails: rec.fails, timeSpent: rec.time_spent }, "Percobaan dicatat");
     } catch (error) {
         console.error("Gagal mencatat attempt dev:", error);
         sendApiError(res, 500, "Gagal mencatat attempt", "INTERNAL_ERROR");
@@ -1472,8 +1459,11 @@ require("./admin-api").registerAdminApi(app, {
     db, auth, express, sendApiError, sendApiSuccess,
     rateLimitMiddleware, sanitizeString, normalizeEmail, isValidEmail
 });
-require("./parent-api").registerParentApi(app, {
-    db, auth, rateLimitMiddleware, sendApiError, sendApiSuccess
+require("./report-api").registerReportApi(app, {
+    db, rateLimitMiddleware, sendApiError, sendApiSuccess
+});
+require("./learning-api").registerLearningApi(app, {
+    db, auth, sendApiError, sendApiSuccess
 });
 
 // ============================================================

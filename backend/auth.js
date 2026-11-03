@@ -160,8 +160,8 @@ function requireAuth(req, res, next) {
     }
 
     const role = session.role || "student";
-    if (!["student", "admin", "instruktur", "ortu"].includes(role)) {
-        return authError(res, 403, "Role akun belum didukung. Gunakan student, admin, instruktur, atau ortu.", "ROLE_NOT_SUPPORTED");
+    if (!["student", "admin", "instruktur"].includes(role)) {
+        return authError(res, 403, "Role akun tidak didukung. Gunakan student, admin, atau instruktur.", "ROLE_NOT_SUPPORTED");
     }
     req.userId = session.user_id;
     req.user = session.username;
