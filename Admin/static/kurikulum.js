@@ -803,7 +803,7 @@
   const ON = ['text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold', 'is-active'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   // URL bersih: /admin/dashboard, /admin/siswa, dst. (server harus mengarahkan path ini ke index.html)
-  const VIEWS = ['dashboard', 'kurikulum', 'tahap', 'codelab', 'plugin', 'siswa', 'badge', 'tugas', 'pengaturan', 'akses', 'profil'];
+  const VIEWS = ['dashboard', 'kurikulum', 'tahap', 'plugin', 'siswa', 'badge', 'tugas', 'pengaturan', 'akses', 'profil'];
   const BASE = ((location.pathname.match(/^(.*?\/admin)(?:\/|$)/) || [])[1] || '/admin') + '/';
   function viewFromUrl() {
     const seg = location.pathname.slice(BASE.length).split('/')[0];
@@ -815,7 +815,6 @@
     $('#view-dashboard').classList.toggle('hidden', name !== 'dashboard');
     $('#view-kurikulum').classList.toggle('hidden', name !== 'kurikulum');
     $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
-    $('#view-codelab').classList.toggle('hidden', name !== 'codelab');
     const vPlugin = $('#view-plugin'); if (vPlugin) vPlugin.classList.toggle('hidden', name !== 'plugin');
     const vSiswa = $('#view-siswa'); if (vSiswa) vSiswa.classList.toggle('hidden', name !== 'siswa');
     ['badge', 'tugas', 'pengaturan', 'akses', 'profil'].forEach((n) => { const el = $('#view-' + n); if (el) el.classList.toggle('hidden', name !== n); });

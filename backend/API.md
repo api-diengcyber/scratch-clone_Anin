@@ -134,15 +134,10 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | GET | `/api/admin/roles` | - | `{ roles: { admin, instruktur, siswa } }`; permission array tiap peran |
 | PUT | `/api/admin/roles` | `{ roles: { admin?, instruktur?, siswa? } }` | `{ roles }`; permission wajib dikenal; admin selalu semua; hanya admin yang boleh menulis |
 | GET | `/api/admin/audit?action=&actor=&targetType=&targetId=&page=&limit=` | - | `{ entries, page, limit, total, pages }`; `details` sudah di-parse |
-| GET | `/api/admin/stats` | - | `{ students, content, plugins, codelab, activity, grades, curriculum }` |
+| GET | `/api/admin/stats` | - | `{ students, content, plugins, activity, grades, curriculum }` |
 | GET | `/api/admin/activity?limit=5` | - | `{ entries: [{ completed_at, task_id, user_id, username, full_name, title, points }] }`; submisi selesai terbaru (limit maks. 100) |
 | GET | `/api/admin/curriculum` | - | `{ exists, curriculum: { tahap, jalur }, version, updatedAt }` |
 | PUT | `/api/admin/curriculum` | `{ version, tahap, jalur }` | `{ exists, curriculum, version, updatedAt }`; `version` untuk optimistic concurrency |
-| GET | `/api/admin/code-lab?search=&grade=&status=&type=` | - | `{ challenges, total }` |
-| GET | `/api/admin/code-lab/:id` | - | `{ challenge }` |
-| POST | `/api/admin/code-lab` | `{ title, type, grade, language, instructions, goal?, blocks?, blockLimit?, starterCode?, tests?, criteria?, status? }` | `{ challenge }` |
-| PATCH | `/api/admin/code-lab/:id` | field yang diubah | `{ challenge }` |
-| DELETE | `/api/admin/code-lab/:id` | - | `{ id }` |
 | GET | `/api/admin/notifications?limit=20` | - | `{ notifications, unreadCount }`; notifikasi milik admin yang login |
 | POST | `/api/admin/notifications/:id/read` | - | `{ id, read, unreadCount }` |
 | POST | `/api/admin/notifications/read-all` | - | `{ updated, unreadCount: 0 }` |
@@ -152,6 +147,9 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/badges` | `{ name, description?, icon?, color?, rule?, threshold?, active? }` | `{ item }`; nama unik (409 `BADGE_NAME_EXISTS`) |
 | PATCH | `/api/admin/badges/:id` | field yang diubah | `{ item }` |
 | DELETE | `/api/admin/badges/:id` | - | `{ id }`; badge otomatis dilepas dari tugas |
+| GET | `/api/admin/lencana` | - | `{ items, total }`; lencana jalur belajar sama dengan yang dilihat siswa (dibaca dari `users/kurikulum/data`), tiap item punya `key`, `grade`, `jalur`, `emoji`, `label`, `totalTasks`, `awarded`. Izin `badge.kelola` |
+| GET | `/api/admin/lencana/:key/students` | - | `{ item, students, total }`; siswa yang menyelesaikan SEMUA task jalur itu (dasar sertifikat), tiap siswa punya `userId`, `username`, `fullName`, `completedAt`, `certificateNo`. `404` bila `key` tidak dikenal |
+| GET | `/api/admin/curriculum-tasks?grade=SD\|SMP\|SMK` | - | `{ items, total }`; tugas kurikulum yang dilihat siswa (tabel `tasks`), hanya baca, dengan `completed` = jumlah siswa yang menyelesaikan. Izin `tugas.kelola` |
 | GET | `/api/admin/tasks?search=&grade=&status=` | - | `{ items, total }`; tiap item memuat `submitted` dan `pending` |
 | POST | `/api/admin/tasks` | `{ title, description?, grade, type, points?, due, status?, badgeId? }` | `{ item }` |
 | PATCH | `/api/admin/tasks/:id` | field yang diubah | `{ item }` |
@@ -196,21 +194,21 @@ Perilaku penting:
 - `PUT /api/admin/curriculum` menyimpan seluruh dokumen `tahap` + `jalur` + `materi` secara atomik. Kirim `version` yang didapat dari GET; jika sudah berubah, server membalas `409 CURRICULUM_VERSION_CONFLICT` dengan `details.currentVersion`.
 - HTML materi ditolak bila mengandung `<script>`, `<iframe>`, `<object>`, `<embed>`, event handler inline, `javascript:`, `vbscript:`, `srcdoc`, atau `data:text/html`.
 - Endpoint kurikulum masih khusus Admin. Halaman murid saat ini tetap memakai data statis di `users/kurikulum/data/`; endpoint publik untuk murid belum dibuat.
-- **Code Lab & Blockly** disimpan di tabel `code_lab_challenges`, bukan localStorage. `type` = `blockly` atau `kode`.
 - Blockly wajib `grade: "SD"`, `language: "Blockly"`, `goal`, `blocks` (1-20), dan `blockLimit` (1-50). Blok yang dikenal: `Maju`, `Belok kiri`, `Belok kanan`, `Ulangi`, `Jika`.
 - Soal kode wajib `grade: "SMP"` atau `"SMK"` dan `language`: `HTML/CSS`, `Python`, atau `JavaScript`. `Python`/`JavaScript` wajib punya 1-100 `tests` berisi `{ i, o }`; `HTML/CSS` wajib punya `criteria`.
-- `status` Code Lab = `draft` atau `published`. Hanya `published` yang muncul di endpoint murid.
-- Endpoint murid `GET /api/code-lab` dan `GET /api/code-lab/:id` wajib login. `tests` tidak dikirim ke murid agar jawaban tidak bocor. `GET /api/code-lab/:id` membalas `403 GRADE_FORBIDDEN` bila jenjang tantangan tidak ada di `allowed_grades` murid.
-- Notifikasi admin disimpan di tabel `admin_notifications` per akun admin, sehingga status baca/hapus admin1 tidak memengaruhi admin2. Notifikasi dibuat untuk `student.create`, `progress.complete`, `curriculum.update`, `code_lab.published`, `plugin.upload`, dan `plugin.publish`; `dedupe_key` mencegah duplikasi.
+- Notifikasi admin disimpan di tabel `admin_notifications` per akun admin, sehingga status baca/hapus admin1 tidak memengaruhi admin2. Notifikasi dibuat untuk `student.create`, `progress.complete`, `curriculum.update`, `plugin.upload`, dan `plugin.publish`; `dedupe_key` mencegah duplikasi.
 - **Badge & Tugas Admin** disimpan di tabel `admin_badges`, `admin_tasks`, dan `admin_task_submissions` (bukan localStorage). Tabel `admin_tasks` terpisah dari `tasks` kurikulum.
+- Lencana jalur belajar tidak disimpan di database: katalognya dibaca dari file data jalur siswa (`jalur-data*.js`) lewat `lencana-catalog.js`, dan siswa berhak bila semua task jalurnya (termasuk Project Akhir / Capstone) tercatat selesai di tabel `progress`. Nomor sertifikat dibuat deterministik (`DCC/<tahun>/<jenjang>/<jalur>/<id siswa>`), jadi tidak ada tabel sertifikat.
+- Tugas Kurikulum (`tasks`) dan Tugas Admin (`admin_tasks`) adalah dua daftar terpisah. Impor tugas lewat file (CSV/JSON) dilakukan di halaman admin dan memakai `POST /api/admin/tasks` per tugas (maks. 50 tugas per file).
 - Badge: `name` wajib (maks. 40, unik tanpa beda kapital), `rule` = `manual`/`tasks`/`points`, `threshold` ≥ 1 untuk rule non-manual, `color` = `sky`/`indigo`/`emerald`/`amber`/`rose`.
 - Tugas admin: `grade` = `SD`/`SMP`/`SMK`, `type` = `kode`/`proyek`/`kuis`, `status` = `draft`/`terbit`/`ditutup`, `points` 0-1000, `due` wajib format `YYYY-MM-DD`, `badgeId` harus ada bila diisi.
 - Pengumpulan: `status` = `dikumpulkan`/`revisi`/`dinilai`. `dinilai` wajib `score` 0-100; `revisi` wajib `feedback`. Aksi penilaian tercatat sebagai `admin_task.grade`.
 - `GET /api/admin/settings` mengembalikan `{}` bila belum pernah disimpan. `logo` disimpan sebagai data URL gambar (maks. ±900.000 karakter) atau URL http(s).
 - Endpoint `/api/admin/roles` dan `/api/admin/instructors` tersedia. Hak akses disimpan di tabel `admin_role_permissions` (peran → daftar permission); `PUT /api/admin/roles` hanya boleh admin dan melakukan validasi permission yang dikenal.
-- Wali siswa disimpan di tabel `student_guardians` (`student_user_id`, `name`, `email`, `relation`, `created_by`). Wali **bukan akun login** dan tidak punya password/sesi. Satu siswa maksimal 5 wali; email unik per siswa.
-- Tautan laporan disimpan di tabel `report_links` (`token_hash`, `student_user_id`, `guardian_id`, `expires_at`, `revoked_at`, `access_count`). Token asli (32 byte acak, base64url) hanya dikembalikan sekali saat pembuatan; database hanya menyimpan SHA-256. Default berlaku 30 hari, maksimal 365 hari, dan bisa dicabut kapan saja.
-- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`; perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`.
+- Wali siswa untuk laporan publik disimpan di tabel `student_guardians` (`student_user_id`, `name`, `email`, `relation`, `created_by`). Wali bukan akun login dan tidak punya password/sesi. Satu siswa maksimal 5 wali; email unik per siswa.
+- Tautan laporan publik disimpan di tabel `report_links` (`token_hash`, `student_user_id`, `guardian_id`, `expires_at`, `revoked_at`, `access_count`). Token asli hanya dikembalikan sekali saat pembuatan; database menyimpan SHA-256. Default berlaku 30 hari, maksimal 365 hari, dan bisa dicabut kapan saja.
+- Orang tua yang memiliki akun login dapat ditautkan ke siswa melalui tabel `parent_students` (`parent_user_id`, `student_user_id`, `created_by`). Satu siswa boleh ditautkan ke beberapa orang tua. Tautan bersifat replace lewat `PUT`, dan siswa berstatus `deleted` otomatis tidak ditampilkan.
+- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`; perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`, dan perubahan tautan anak memakai `parent.children.update`.
 - Rate limit admin: 60 request/menit per admin per path.
 
 ## Laporan Wali (publik)
@@ -256,15 +254,6 @@ Perilaku penting:
 - Setiap akses menambah `access_count` dan `last_accessed_at` pada tautan.
 - Menghapus wali (menghilangkannya dari `PUT .../guardians`) otomatis mencabut tautan milik wali tersebut. Mengedit wali lain tidak memengaruhi tautan wali yang dipertahankan. Daftar wali diurutkan menurut `id` (wali lama dulu, lalu yang baru).
 - Tautan hanya bisa dibuat/dicabut admin/instruktur dengan permission `siswa.kelola`.
-
-## Code Lab API untuk Murid
-
-Wajib login. Hanya tantangan `published` yang dikembalikan, dan `tests` tidak disertakan.
-
-| Method | Alamat | Hasil |
-|---|---|---|
-| GET | `/api/code-lab?grade=SD\|SMP\|SMK` | `{ challenges, total }` |
-| GET | `/api/code-lab/:id` | `{ challenge }`; `403 GRADE_FORBIDDEN` bila di luar `allowed_grades` |
 
 ## Plugin API (M4–M5)
 

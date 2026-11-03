@@ -643,7 +643,7 @@ html.dark #view-siswa.sw-act-solid .sw-ib-rose    { background: #e11d48; color: 
 
 
 /* ==========================================================================
-   SELARAS SEMUA HALAMAN  (Code Lab, Tahap, Plugin, Tugas, Badge, Pengaturan,
+   SELARAS SEMUA HALAMAN  (Tahap, Plugin, Tugas, Badge, Pengaturan,
    Akses, Profil) — kartu, tombol, dan FONT. Hanya 2 font dipakai:
      • Plus Jakarta Sans  → seluruh antarmuka (label, badge, angka, judul)
      • JetBrains Mono     → khusus kode (textarea/pre/code/input kode)
@@ -676,7 +676,7 @@ main [id^="view-"] table thead th { text-transform: none; letter-spacing: .03em;
 html.dark main [id^="view-"] table thead { background: rgba(255, 255, 255, .04); }
 main [id^="view-"] table tbody tr { transition: background-color .15s; }
 
-/* Semua modal/dialog (Code Lab, Badge, Tugas, Plugin, konfirmasi): overlay hijau tua + panel bulat */
+/* Semua modal/dialog (Badge, Tugas, Plugin, konfirmasi): overlay hijau tua + panel bulat */
 body [class~="fixed"][class~="inset-0"][class*="bg-slate-900/"] { background: rgba(5, 42, 30, .55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 body [class~="fixed"][class~="inset-0"][class*="bg-slate-900/"] > div:first-child { border-radius: 1.75rem; }
 html.dark body [class~="fixed"][class~="inset-0"][class*="bg-slate-900/"] > div:first-child { border-color: rgba(255, 255, 255, .08); }

@@ -81,11 +81,6 @@
         <span class="nav-chip">3 Level</span>
       </a>
 
-      <a href="#" data-view="codelab" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
-        <i class="fa-solid fa-laptop-code w-4 text-center text-sm"></i>
-        <span>Code Lab &amp; Blockly</span>
-      </a>
-
       <a href="#" data-view="siswa" class="nav-link group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-user-graduate w-4 text-center text-sm"></i>
@@ -452,41 +447,6 @@
       <div id="jalurGrid" class="space-y-8"></div>
     </div>
 
-    <!-- View: Code Lab & Blockly -->
-    <div id="view-codelab" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6">
-
-      <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1">
-            <span>Portal Admin</span><span>/</span>
-            <span class="text-sky-600 dark:text-sky-400 font-medium">Code Lab &amp; Blockly</span>
-          </div>
-          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2.5">
-            Code Lab &amp; Blockly
-            <span id="clCount" class="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">0 Tantangan</span>
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola tantangan koding: soal Blockly untuk SD, soal kode untuk SMP dan SMA/SMK.</p>
-        </div>
-        <button type="button" data-cl="new" class="dc-btn dc-btn-pri self-start md:self-auto">
-          <i class="fa-solid fa-plus text-xs"></i><span>Tantangan Baru</span>
-        </button>
-      </div>
-
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-card">
-        <div id="clFilter" class="flex items-center gap-1.5 overflow-x-auto p-0.5"></div>
-        <div class="relative lg:w-64 px-1">
-          <span class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
-          <input id="clSearch" type="text" placeholder="Cari judul tantangan..." class="w-full bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs rounded-xl pl-8 pr-3 py-2 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500">
-        </div>
-      </div>
-
-      <div id="clList" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-card overflow-hidden divide-y divide-slate-100 dark:divide-slate-800"></div>
-
-      <p class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-        Data tersimpan di server. <button type="button" data-cl="reset" class="underline hover:text-sky-600 dark:hover:text-sky-400">Muat ulang dari server</button>
-      </p>
-    </div>
-
     <!-- View: Kelola Tahap -->
     <div id="view-tahap" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6">
       <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -526,7 +486,7 @@
         <div>
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-code text-sky-600 dark:text-sky-400"></i>
-            Tambah Modul / Code Lab Baru
+            Tambah Modul Baru
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Materi akan langsung diterbitkan ke portal siswa</p>
         </div>
@@ -771,17 +731,18 @@
     <span id="toastMessage" class="leading-snug">Operasi berhasil dijalankan!</span>
   </div>
 <!-- Javascript Logic -->
-<script src="static/admin-api.js?v=5"></script>
+<script src="static/admin-api.js?v=6"></script>
 <script src="static/dashboard.js?v=1"></script>
-<script src="static/admin.js?v=16"></script>
+<script src="static/admin.js?v=17"></script>
 <script src="static/common.js?v=2"></script>
 <script src="static/dialog.js?v=2"></script>
 <script src="static/editor.js?v=12"></script>
-<script src="static/kurikulum.js?v=23"></script>
+<script src="static/kurikulum.js?v=24"></script>
 <script src="static/plugins.js?v=2"></script>
-   <script src="static/codelab.js?v=3"></script>
    <script src="static/siswa.js?v=8"></script>
    <script src="static/badge-tugas.js?v=6"></script>
+   <script src="static/pengaturan-akses.js?v=10"></script>
+   <script src="static/badge-tugas.js?v=7"></script>
    <script src="static/pengaturan-akses.js?v=10"></script>
    <script src="static/profil.js?v=10"></script>
 </body>

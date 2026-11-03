@@ -75,7 +75,7 @@
   ]);
 
   // ---------- MODAL ----------
-  function modal(title, bodyHtml, onSubmit) {
+  function modal(title, bodyHtml, onSubmit, submitLabel) {
     const el = document.createElement('div');
     el.className = 'fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/50';
     el.innerHTML = `<form class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4" novalidate>
@@ -85,7 +85,7 @@
       <p data-err class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p>
       <div class="flex justify-end gap-2 pt-1">
         <button type="button" data-x class="dc-btn dc-btn-ghost">Batal</button>
-        <button type="submit" class="${BTN}"><i class="fa-solid fa-floppy-disk"></i>Simpan</button></div></form>`;
+        <button type="submit" class="${BTN}"><i class="fa-solid fa-floppy-disk"></i>${esc(submitLabel || 'Simpan')}</button></div></form>`;
     const close = () => { el.remove(); document.removeEventListener('keydown', onKey); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
@@ -101,9 +101,10 @@
     });
     document.body.appendChild(el);
     const first = form.querySelector('input:not([type=radio]),textarea,select'); if (first) first.focus();
+    return el;
   }
   const field = (label, html) => `<div><label class="${LABEL}">${label}</label>${html}</div>`;
-  const hero = (crumb, title, countId, sub, btnAttr, btnLabel) => `
+  const hero = (crumb, title, countId, sub, btnAttr, btnLabel, extraBtns) => `
     <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500 mb-1"><span>Portal Admin</span><span>/</span><span class="text-sky-600 dark:text-sky-400 font-medium">${crumb}</span></div>
@@ -111,17 +112,70 @@
           <span id="${countId}" class="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">0</span></h1>
         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">${sub}</p>
       </div>
-      <button type="button" ${btnAttr} class="${BTN} self-start md:self-auto"><i class="fa-solid fa-plus text-xs"></i><span>${btnLabel}</span></button>
+      <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">${extraBtns || ''}${btnAttr ? `<button type="button" ${btnAttr} class="${BTN}"><i class="fa-solid fa-plus text-xs"></i><span>${btnLabel}</span></button>` : ''}</div>
     </div>`;
   const demoNote = (store, path) => store.isLocal() ? `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh.</b> Server belum punya <code class="font-mono">${path}</code>, jadi data hanya tersimpan di browser ini.</span></div>` : '';
   const radioGroup = (name, items, cur, render) => items.map((k) => `<label class="cursor-pointer"><input type="radio" name="${name}" value="${k}" class="peer sr-only" ${k === cur ? 'checked' : ''}>${render(k)}</label>`).join('');
   const ruleText = (b) => b.rule === 'tasks' ? `Selesai ${b.threshold} tugas` : b.rule === 'points' ? `${b.threshold} poin` : 'Diberikan manual';
   const fmtDate = (d) => { try { return new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (_) { return d || '-'; } };
 
-  // ---------- HALAMAN BADGE ----------
+  // ---------- HALAMAN SERTIFIKAT & BADGES ----------
+  // Tiga tab: Lencana Jalur (sama dengan yang dilihat siswa, dibaca dari server),
+  // Sertifikat (cetak untuk siswa yang sudah menyelesaikan satu jalur), dan Badge Kustom (buatan admin).
   let badgeList = [];
-  async function renderBadge() {
-    try { badgeList = await badges.list(); } catch (e) { return toast(e.message || 'Gagal memuat badge.', 'error'); }
+  let bdTab = 'lencana';                       // lencana | sertifikat | badge
+  let lencanaList = [], lencanaErr = '';
+  let certKey = '', certStudents = [], certErr = '', certLoading = false, orgSettings = null;
+  const apiGet = (p) => window.DCAdminApi.request(p);
+  const SIGN_KEY = 'dc-cert-signer';
+  const getSigner = () => {
+    const base = { name: '', title: 'Kepala Program' };
+    try { return Object.assign(base, JSON.parse(localStorage.getItem(SIGN_KEY)) || {}); } catch (_) { return base; }
+  };
+  const setSigner = (s) => { try { localStorage.setItem(SIGN_KEY, JSON.stringify(s)); } catch (_) {} };
+  const BD_TABS = [['lencana', 'Lencana Jalur', 'fa-medal'], ['sertifikat', 'Sertifikat', 'fa-certificate'], ['badge', 'Badge Kustom', 'fa-award']];
+  const GRADE_KEYS = ['SD', 'SMP', 'SMK'];
+  const CHIP = 'px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
+  const longDateTime = (v) => {
+    if (!v) return '-';
+    const d = new Date(String(v).includes('T') ? v : String(v).replace(' ', 'T') + 'Z');
+    return isNaN(d) ? '-' : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+  const emptyCard = (msg, cls) => `<div class="${CARD} text-center py-12 px-6 text-sm ${cls || 'text-slate-500 dark:text-slate-400'}">${msg}</div>`;
+
+  const tabBar = () => `<div class="${CARD} p-2 flex flex-wrap gap-1.5">${BD_TABS.map(([k, label, ic]) =>
+    `<button type="button" data-b="tab" data-tab="${k}" class="dc-pill-tab ${bdTab === k ? 'is-active' : ''} px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2"><i class="fa-solid ${ic}"></i>${label}</button>`).join('')}</div>`;
+
+  function lencanaPanel() {
+    if (lencanaErr) return emptyCard(esc(lencanaErr), 'text-rose-600 dark:text-rose-400');
+    if (!lencanaList.length) return emptyCard('Belum ada lencana jalur belajar.');
+    const info = `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-sky-50 text-sky-800 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/30"><i class="fa-solid fa-circle-info mt-0.5"></i><span>Daftar ini sama persis dengan lencana yang dilihat siswa. Lencana terbuka kalau <b>semua task</b> di satu jalur selesai <b>dan</b> Project Akhir / Capstone selesai. Nama lencana diatur di data jalur belajar siswa.</span></div>`;
+    const groups = GRADE_KEYS.map((g) => {
+      const rows = lencanaList.filter((x) => x.grade === g);
+      if (!rows.length) return '';
+      const cards = rows.map((x) => `
+        <div class="${CARD} p-5 flex flex-col gap-3">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center text-2xl shadow-md" style="background:${esc(x.warna)}">${esc(x.emoji)}</div>
+            <div class="min-w-0 flex-1">
+              <p class="font-bold text-slate-900 dark:text-white">${esc(x.label)}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Jalur: ${esc(x.jalur)}${x.tahap ? ' · ' + esc(x.tahap) : ''}</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+            <span class="${CHIP}">${esc(x.syarat)} (${x.totalTasks} langkah)</span>
+            <span class="px-2 py-0.5 rounded-full border ${x.awarded ? STATUS.terbit[1] : STATUS.draft[1]}">${x.awarded} siswa meraih</span>
+          </div>
+          <div class="flex justify-end pt-2 mt-auto border-t border-slate-100 dark:border-slate-800">
+            <button type="button" data-b="cert" data-key="${esc(x.key)}" class="dc-btn dc-btn-sec dc-btn-sm"><i class="fa-solid fa-certificate text-xs"></i><span>Sertifikat</span></button>
+          </div>
+        </div>`).join('');
+      return `<div class="space-y-3"><h2 class="text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">${esc(GRADES[g])}<span class="text-[11px] font-mono font-semibold text-slate-400">${rows.length} lencana</span></h2><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${cards}</div></div>`;
+    }).join('');
+    return info + groups;
+  }
+
+  function badgePanel() {
     const cards = badgeList.map((b) => `
       <div class="${CARD} p-5 flex flex-col gap-3 ${b.active ? '' : 'opacity-60'}">
         <div class="flex items-start gap-4">
@@ -132,7 +186,7 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono">
-          <span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">${esc(ruleText(b))}</span>
+          <span class="${CHIP}">${esc(ruleText(b))}</span>
           <span class="px-2 py-0.5 rounded-full border ${b.active ? STATUS.terbit[1] : STATUS.draft[1]}">${b.active ? 'Aktif' : 'Nonaktif'}</span>
         </div>
         <div class="flex justify-end gap-1 mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
@@ -140,12 +194,138 @@
           <button type="button" data-b="del" data-id="${b.id}" class="dc-ib dc-ib-danger" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
         </div>
       </div>`).join('');
-    vBadge.innerHTML = hero('Sertifikat &amp; Badges', 'Sertifikat &amp; Badges', 'bdCount', 'Penghargaan yang bisa diraih siswa: otomatis dari tugas atau poin, atau diberikan manual.', 'data-b="new"', 'Badge Baru') +
+    return `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-slate-50 text-slate-600 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700"><i class="fa-solid fa-circle-info mt-0.5"></i><span>Badge kustom adalah penghargaan tambahan buatanmu, misalnya untuk tugas tertentu. Lencana jalur belajar ada di tab <b>Lencana Jalur</b>.</span></div>` +
       demoNote(badges, '/api/admin/badges') +
       (badgeList.length ? `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${cards}</div>` :
-        `<div class="${CARD} text-center py-12 text-sm text-slate-500 dark:text-slate-400">Belum ada badge. Klik <b>Badge Baru</b> untuk membuat yang pertama.</div>`);
-    $('#bdCount').textContent = badgeList.length + ' Badge';
+        emptyCard('Belum ada badge kustom. Klik <b>Badge Baru</b> untuk membuat yang pertama.'));
   }
+
+  function certPanel() {
+    if (lencanaErr) return emptyCard(esc(lencanaErr), 'text-rose-600 dark:text-rose-400');
+    if (!lencanaList.length) return emptyCard('Belum ada jalur belajar, jadi belum ada sertifikat.');
+    const signer = getSigner();
+    const options = GRADE_KEYS.map((g) => {
+      const rows = lencanaList.filter((x) => x.grade === g);
+      return rows.length ? `<optgroup label="${esc(GRADES[g])}">${rows.map((x) => `<option value="${esc(x.key)}" ${x.key === certKey ? 'selected' : ''}>${esc(x.jalur)} (${x.awarded} berhak)</option>`).join('')}</optgroup>` : '';
+    }).join('');
+    const rows = certStudents.map((s, i) => `
+      <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+        <td class="py-3 px-5 text-xs text-slate-400 font-mono">${i + 1}</td>
+        <td class="py-3 px-4"><div class="font-semibold text-slate-900 dark:text-white">${esc(s.fullName || s.username)}</div><div class="text-xs text-slate-500 dark:text-slate-400">@${esc(s.username)}</div></td>
+        <td class="py-3 px-4 text-xs text-slate-700 dark:text-slate-200 whitespace-nowrap">${esc(longDateTime(s.completedAt))}</td>
+        <td class="py-3 px-4 text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">${esc(s.certificateNo)}</td>
+        <td class="py-3 px-5 text-right"><button type="button" data-b="print" data-i="${i}" class="dc-btn dc-btn-sec dc-btn-sm"><i class="fa-solid fa-print text-xs"></i><span>Cetak</span></button></td>
+      </tr>`).join('');
+    const body = certLoading ? emptyCard('Memuat siswa...') : certErr ? emptyCard(esc(certErr), 'text-rose-600 dark:text-rose-400') :
+      !certStudents.length ? emptyCard('Belum ada siswa yang menyelesaikan jalur ini. Pratinjau contoh tetap bisa dicetak untuk melihat tampilannya.') :
+      `<div class="${CARD} overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse">
+        <thead><tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><th class="py-3 px-5 w-12">#</th><th class="py-3 px-4">Siswa</th><th class="py-3 px-4">Selesai</th><th class="py-3 px-4">No. Sertifikat</th><th class="py-3 px-5 text-right">Aksi</th></tr></thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">${rows}</tbody></table></div></div>`;
+    return `
+      <div class="${CARD} p-5 space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          ${field('Jalur belajar', `<select id="certKey" class="${INPUT}">${options}</select>`)}
+          ${field('Nama penandatangan', `<input id="certSignName" maxlength="60" value="${esc(signer.name)}" class="${INPUT}" placeholder="Contoh: Budi Santoso, S.Kom">`)}
+          ${field('Jabatan', `<input id="certSignTitle" maxlength="60" value="${esc(signer.title)}" class="${INPUT}" placeholder="Contoh: Kepala Program">`)}
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" data-b="sample" class="dc-btn dc-btn-sec"><i class="fa-solid fa-eye text-xs"></i><span>Pratinjau contoh</span></button>
+          <button type="button" data-b="printall" class="${BTN}" ${certStudents.length ? '' : 'disabled'}><i class="fa-solid fa-print text-xs"></i><span>Cetak semua (${certStudents.length})</span></button>
+          <span class="text-[11px] text-slate-500 dark:text-slate-400">Nama instansi dan logo diambil dari menu Pengaturan. Di jendela cetak, pilih <i>Simpan sebagai PDF</i> kalau ingin berkas digital.</span>
+        </div>
+      </div>` + body;
+  }
+
+  const certTotal = () => lencanaList.reduce((n, x) => n + (x.awarded || 0), 0);
+  function drawBadge() {
+    const sub = 'Lencana jalur belajar sama dengan yang dilihat siswa, sertifikat bisa dicetak untuk siswa yang berhak, dan badge kustom bisa kamu buat sendiri.';
+    const panel = bdTab === 'lencana' ? lencanaPanel() : bdTab === 'sertifikat' ? certPanel() : badgePanel();
+    vBadge.innerHTML = hero('Sertifikat &amp; Badges', 'Sertifikat &amp; Badges', 'bdCount', sub, bdTab === 'badge' ? 'data-b="new"' : '', 'Badge Baru') + tabBar() + panel;
+    $('#bdCount').textContent = bdTab === 'badge' ? badgeList.length + ' Badge' : bdTab === 'sertifikat' ? certTotal() + ' Berhak' : lencanaList.length + ' Lencana';
+  }
+  async function loadCertStudents() {
+    if (!certKey) return;
+    const key = certKey;
+    certLoading = true; certErr = ''; certStudents = [];
+    if (bdTab === 'sertifikat') drawBadge();
+    try { const r = await apiGet('/api/admin/lencana/' + encodeURIComponent(key) + '/students'); if (key !== certKey) return; certStudents = r.students || []; }
+    catch (e) { if (key !== certKey) return; certErr = (e && e.message) || 'Gagal memuat siswa.'; }
+    certLoading = false;
+    if (bdTab === 'sertifikat') drawBadge();
+  }
+  async function renderBadge() {
+    try { badgeList = await badges.list(); } catch (e) { return toast(e.message || 'Gagal memuat badge.', 'error'); }
+    try { const r = await apiGet('/api/admin/lencana'); lencanaList = r.items || []; lencanaErr = ''; }
+    catch (e) {
+      lencanaList = [];
+      lencanaErr = (e && e.status === 404) ? 'Server belum punya endpoint /api/admin/lencana. Perbarui backend lalu muat ulang halaman.' : ((e && e.message) || 'Gagal memuat lencana jalur.');
+    }
+    if (!certKey || !lencanaList.some((x) => x.key === certKey)) {
+      const first = lencanaList.find((x) => x.awarded > 0) || lencanaList[0];
+      certKey = first ? first.key : ''; certStudents = [];
+    }
+    drawBadge();
+    if (bdTab === 'sertifikat') loadCertStudents();
+  }
+
+  // ---------- CETAK SERTIFIKAT ----------
+  async function getOrg() {
+    if (orgSettings) return orgSettings;
+    try { const r = await apiGet('/api/admin/settings'); orgSettings = r.settings || {}; } catch (_) { orgSettings = {}; }
+    return orgSettings;
+  }
+  function certPages(item, list, org, signer) {
+    const accent = /^#[0-9a-f]{3,8}$/i.test(item.warna || '') ? item.warna : '#0ea5e9';
+    const orgName = org.name || 'Dieng Cyber Coding';
+    const logo = org.logo && /^(data:image\/|\/)/i.test(org.logo) ? `<img class="logo" src="${esc(org.logo)}" alt="">` : '';
+    const akhir = item.grade === 'SD' ? 'Project Akhir' : 'Capstone';
+    return list.map((s) => `
+      <section class="page" style="--a:${accent}">
+        <div class="f1"></div><div class="f2"></div>
+        <div class="in">
+          <div class="org">${logo}<div><b>${esc(orgName)}</b>${org.tagline ? `<small>${esc(org.tagline)}</small>` : ''}</div></div>
+          <h1>SERTIFIKAT</h1>
+          <p class="sub">Penyelesaian Jalur Belajar</p>
+          <p class="lead">Diberikan kepada</p>
+          <h2>${esc(s.fullName || s.username)}</h2>
+          <p class="txt">atas keberhasilannya menyelesaikan seluruh task dan ${akhir} pada jalur belajar<br><b>${esc(item.jalur)}</b> (${esc(GRADES[item.grade] || item.grade)}),<br>serta berhak menyandang <span class="len">${esc(item.emoji)} ${esc(item.label)}</span></p>
+          <div class="foot">
+            <div class="l"><div>${esc(longDateTime(s.completedAt))}</div><small>No. ${esc(s.certificateNo)}</small></div>
+            <div class="r"><div class="line"></div><b>${esc(signer.name || '________________')}</b><small>${esc(signer.title || '')}</small></div>
+          </div>
+        </div>
+      </section>`).join('');
+  }
+  function certDocument(item, list, org, signer, autoPrint) {
+    return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Sertifikat ${esc(item.label)}</title><style>
+      @page{size:A4 landscape;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      html,body{margin:0;background:#e5e7eb}
+      .page{width:297mm;height:210mm;margin:0 auto 8mm;background:#fff;position:relative;overflow:hidden;page-break-after:always;font-family:Georgia,'Times New Roman',serif;color:#1e293b}
+      .f1{position:absolute;inset:8mm;border:2.4mm solid var(--a)}.f2{position:absolute;inset:14mm;border:.4mm solid var(--a)}
+      .in{position:absolute;inset:20mm 24mm;display:flex;flex-direction:column;align-items:center;text-align:center}
+      .org{display:flex;align-items:center;gap:4mm;text-align:left;font-family:Arial,sans-serif}.org b{display:block;font-size:13pt}.org small{display:block;font-size:9pt;color:#64748b}
+      .logo{height:16mm;width:auto;max-width:40mm;object-fit:contain}
+      h1{margin:7mm 0 0;font-size:40pt;letter-spacing:.35em;color:var(--a);font-weight:700;padding-left:.35em}
+      .sub{margin:1mm 0 0;font-size:13pt;letter-spacing:.12em;text-transform:uppercase;color:#64748b;font-family:Arial,sans-serif}
+      .lead{margin:9mm 0 0;font-size:12pt;font-style:italic;color:#64748b}
+      h2{margin:3mm 0 0;font-size:32pt;font-weight:700;padding:0 12mm 2mm;border-bottom:.5mm solid var(--a);max-width:100%}
+      .txt{margin:6mm 0 0;font-size:13pt;line-height:1.6;max-width:210mm}.len{display:inline-block;margin-top:1mm;font-weight:700;color:var(--a)}
+      .foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;text-align:left;font-family:Arial,sans-serif;font-size:10pt}
+      .foot small{display:block;color:#64748b;font-size:8.5pt;margin-top:1mm}.foot .r{text-align:center;min-width:62mm}.foot .line{border-top:.35mm solid #334155;margin-bottom:1.5mm}
+      @media print{html,body{background:#fff}.page{margin:0}}
+    </style></head><body>${certPages(item, list, org, signer)}${autoPrint ? '<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},400)})<\/script>' : ''}</body></html>`;
+  }
+  async function printCerts(list, autoPrint) {
+    const item = lencanaList.find((x) => x.key === certKey);
+    if (!item || !list.length) return;
+    const w = window.open('', '_blank');
+    if (!w) return toast('Jendela cetak diblokir browser. Izinkan pop-up untuk halaman ini.', 'error');
+    w.document.write('<p style="font-family:sans-serif;padding:24px">Menyiapkan sertifikat...</p>');
+    const org = await getOrg();
+    w.document.open(); w.document.write(certDocument(item, list, org, getSigner(), autoPrint)); w.document.close();
+  }
+  const sampleStudent = () => ({ fullName: 'Nama Siswa', username: 'contoh', completedAt: new Date().toISOString(), certificateNo: 'DCC/' + new Date().getFullYear() + '/CONTOH/0001' });
+
   function badgeForm(b) {
     b = b || { name: '', description: '', icon: 'fa-star', color: 'sky', rule: 'manual', threshold: 1, active: true };
     modal(b.id ? 'Ubah Badge' : 'Badge Baru', `
@@ -168,6 +348,11 @@
   }
   vBadge.addEventListener('click', async (e) => {
     const a = e.target.closest('[data-b]'); if (!a) return;
+    if (a.dataset.b === 'tab') { bdTab = a.dataset.tab; drawBadge(); if (bdTab === 'sertifikat') loadCertStudents(); return; }
+    if (a.dataset.b === 'cert') { bdTab = 'sertifikat'; if (certKey !== a.dataset.key) { certKey = a.dataset.key; certStudents = []; } drawBadge(); loadCertStudents(); return; }
+    if (a.dataset.b === 'sample') return printCerts([sampleStudent()], false);
+    if (a.dataset.b === 'print') { const st = certStudents[+a.dataset.i]; return st && printCerts([st], true); }
+    if (a.dataset.b === 'printall') return printCerts(certStudents, true);
     const b = badgeList.find((x) => String(x.id) === a.dataset.id);
     if (a.dataset.b === 'new') return badgeForm();
     if (a.dataset.b === 'edit' && b) return badgeForm(b);
@@ -175,6 +360,13 @@
       if (!(await window.dcConfirm({ title: 'Hapus badge?', message: 'Badge ini akan hilang dari daftar dan dari siswa yang sudah meraihnya.', detail: b.name, confirmText: 'Hapus', tone: 'danger' }))) return;
       try { await badges.remove(b.id); toast('Badge dihapus.'); renderBadge(); } catch (ex) { toast(ex.message || 'Gagal menghapus badge.', 'error'); }
     }
+  });
+
+  vBadge.addEventListener('change', (e) => {
+    if (e.target.id === 'certKey') { certKey = e.target.value; certStudents = []; drawBadge(); loadCertStudents(); }
+  });
+  vBadge.addEventListener('input', (e) => {
+    if (e.target.id === 'certSignName' || e.target.id === 'certSignTitle') setSigner({ name: ($('#certSignName') || {}).value || '', title: ($('#certSignTitle') || {}).value || '' });
   });
 
   // ---------- HALAMAN TUGAS ----------
@@ -223,12 +415,18 @@
         </td></tr>`;
     }).join('') : `<tr><td colspan="8" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">${taskList.length ? 'Tidak ada tugas yang cocok dengan filter.' : 'Belum ada tugas. Klik Tugas Baru untuk membuat.'}</td></tr>`;
   }
-  async function renderTugas() {
-    try { [taskList, badgeList] = await Promise.all([tasks.list(), badges.list()]); } catch (e) { return toast(e.message || 'Gagal memuat tugas.', 'error'); }
-    subCount = await subs.counts(taskList).catch(() => ({}));
+  // Dua tab: "Tugas Admin" (tugas tambahan buatan admin, tabel admin_tasks) dan
+  // "Tugas Kurikulum" (tugas yang dilihat siswa di jalur belajar, hanya untuk dilihat).
+  let tgTab = 'admin';
+  let curList = [], curErr = '';
+  const curFilt = { q: '', grade: '', jalur: '' };
+  const TG_TABS = [['admin', 'Tugas Admin', 'fa-list-check'], ['kurikulum', 'Tugas Kurikulum', 'fa-book-open']];
+  const tugasTabs = () => `<div class="${CARD} p-2 flex flex-wrap gap-1.5">${TG_TABS.map(([k, label, ic]) =>
+    `<button type="button" data-t="tab" data-tab="${k}" class="dc-pill-tab ${tgTab === k ? 'is-active' : ''} px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2"><i class="fa-solid ${ic}"></i>${label}</button>`).join('')}</div>`;
+
+  function adminTugasPanel() {
     const opt = (o, cur, all) => (all ? `<option value="">${all}</option>` : '') + Object.entries(o).map(([k, v]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${esc(Array.isArray(v) ? v[0] : v)}</option>`).join('');
-    vTugas.innerHTML = hero('Tugas &amp; Review Kode', 'Tugas &amp; Review Kode', 'tgCount', 'Buat tugas per jenjang, pantau siapa yang sudah mengumpulkan, lihat jawaban siswa, dan beri nilai.', 'data-t="new"', 'Tugas Baru') +
-      demoNote(tasks, '/api/admin/tasks') + `
+    return demoNote(tasks, '/api/admin/tasks') + `
       <div class="${CARD} p-2.5 flex flex-col lg:flex-row gap-2.5">
         <div class="relative flex-1"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs pointer-events-none"><i class="fa-solid fa-magnifying-glass"></i></span>
           <input id="tgQ" value="${esc(filt.q)}" class="${INPUT} pl-9" placeholder="Cari judul atau deskripsi tugas..."></div>
@@ -239,8 +437,188 @@
           <th class="py-4 px-6 min-w-[280px]">Tugas &amp; Deskripsi</th><th class="py-4 px-4 min-w-[140px]">Jenjang</th><th class="py-4 px-4 min-w-[130px]">Tenggat</th><th class="py-4 px-4 min-w-[90px]">Poin</th>
           <th class="py-4 px-4 min-w-[180px]">Pengumpulan</th><th class="py-4 px-4 min-w-[170px]">Badge</th><th class="py-4 px-4 min-w-[110px]">Status</th><th class="py-4 px-6 text-right min-w-[120px]">Aksi</th></tr></thead>
         <tbody id="tgBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody></table></div></div>`;
-    renderTugasRows();
   }
+
+  function curPanel() {
+    if (curErr) return emptyCard(esc(curErr), 'text-rose-600 dark:text-rose-400');
+    const total = curList.length, projects = curList.filter((t) => t.isProject).length, done = curList.reduce((n, t) => n + t.completed, 0);
+    const stat = (label, val) => `<div class="${CARD} px-5 py-4"><p class="text-[10px] font-mono uppercase tracking-wider text-slate-400">${label}</p><p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">${val}</p></div>`;
+    const jalurOpts = [...new Set(curList.filter((t) => !curFilt.grade || t.grade === curFilt.grade).map((t) => t.jalur))];
+    return `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-sky-50 text-sky-800 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/30"><i class="fa-solid fa-circle-info mt-0.5"></i><span>Ini semua tugas yang dilihat siswa di jalur belajar. Daftar ini <b>hanya untuk dilihat</b>; isinya diatur di data kurikulum. Untuk tugas tambahan yang bisa kamu ubah dan nilai, pakai tab <b>Tugas Admin</b>.</span></div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">${stat('Total tugas', total)}${stat('Project / Capstone', projects)}${stat('Penyelesaian siswa', done)}</div>
+      <div class="${CARD} p-2.5 flex flex-col lg:flex-row gap-2.5">
+        <div class="relative flex-1"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs pointer-events-none"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <input id="curQ" value="${esc(curFilt.q)}" class="${INPUT} pl-9" placeholder="Cari judul tugas..."></div>
+        <select id="curGrade" class="${INPUT} lg:w-44"><option value="">Semua jenjang</option>${Object.entries(GRADES).map(([k, v]) => `<option value="${k}" ${k === curFilt.grade ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>
+        <select id="curJalur" class="${INPUT} lg:w-64"><option value="">Semua jalur</option>${jalurOpts.map((j) => `<option value="${esc(j)}" ${j === curFilt.jalur ? 'selected' : ''}>${esc(j)}</option>`).join('')}</select></div>
+      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse">
+        <thead><tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <th class="py-4 px-6 min-w-[280px]">Tugas</th><th class="py-4 px-4 min-w-[110px]">Jenjang</th><th class="py-4 px-4 min-w-[220px]">Jalur</th><th class="py-4 px-4 min-w-[80px]">Poin</th><th class="py-4 px-6 min-w-[130px]">Selesai</th></tr></thead>
+        <tbody id="curBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody></table></div></div>
+      <p id="curInfo" class="text-[11px] text-slate-400 dark:text-slate-500 font-mono"></p>`;
+  }
+  function renderCurRows() {
+    const q = curFilt.q.trim().toLowerCase();
+    const rows = curList.filter((t) => (!curFilt.grade || t.grade === curFilt.grade) && (!curFilt.jalur || t.jalur === curFilt.jalur) && (!q || t.title.toLowerCase().includes(q)));
+    const body = $('#curBody'); if (!body) return;
+    const GRADE_DOT = { SD: 'bg-emerald-500', SMP: 'bg-sky-500', SMK: 'bg-indigo-500' };
+    body.innerHTML = rows.length ? rows.slice(0, 400).map((t) => `<tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+        <td class="py-3 px-6"><div class="font-semibold text-slate-900 dark:text-white">${esc(t.title)}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${t.isProject ? '<span class="font-semibold text-amber-600 dark:text-amber-400">Project Akhir / Capstone</span>' : 'Task ' + t.no}</div></td>
+        <td class="py-3 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full ${GRADE_DOT[t.grade] || 'bg-slate-400'}"></span>${esc(GRADES[t.grade] || t.grade)}</span></td>
+        <td class="py-3 px-4 text-xs text-slate-700 dark:text-slate-200">${esc(t.jalur)}</td>
+        <td class="py-3 px-4 text-xs font-bold text-slate-800 dark:text-slate-100">${t.points}</td>
+        <td class="py-3 px-6 text-xs text-slate-700 dark:text-slate-200 whitespace-nowrap">${t.completed} siswa</td></tr>`).join('')
+      : `<tr><td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">${curList.length ? 'Tidak ada tugas yang cocok dengan filter.' : 'Belum ada tugas kurikulum di database. Jalankan <code>npm run seed</code> di folder backend.'}</td></tr>`;
+    const info = $('#curInfo'); if (info) info.textContent = rows.length > 400 ? `Menampilkan 400 dari ${rows.length} tugas. Persempit dengan filter.` : `Menampilkan ${rows.length} dari ${curList.length} tugas.`;
+  }
+  async function loadCur() {
+    try { const r = await apiGet('/api/admin/curriculum-tasks'); curList = r.items || []; curErr = ''; }
+    catch (e) {
+      curList = [];
+      curErr = (e && e.status === 404) ? 'Server belum punya endpoint /api/admin/curriculum-tasks. Perbarui backend lalu muat ulang halaman.' : ((e && e.message) || 'Gagal memuat tugas kurikulum.');
+    }
+  }
+  function drawTugas() {
+    const adminTab = tgTab === 'admin';
+    const importBtn = adminTab ? `<button type="button" data-t="import" class="dc-btn dc-btn-sec"><i class="fa-solid fa-file-import text-xs"></i><span>Impor dari File</span></button>` : '';
+    vTugas.innerHTML = hero('Tugas &amp; Review Kode', 'Tugas &amp; Review Kode', 'tgCount',
+      'Buat tugas per jenjang, pantau siapa yang sudah mengumpulkan, lihat jawaban siswa, dan beri nilai. Tab Tugas Kurikulum menampilkan tugas yang dilihat siswa.',
+      adminTab ? 'data-t="new"' : '', 'Tugas Baru', importBtn) + tugasTabs() + (adminTab ? adminTugasPanel() : curPanel());
+    if (adminTab) renderTugasRows(); else { $('#tgCount').textContent = curList.length + ' Tugas'; renderCurRows(); }
+  }
+  async function renderTugas() {
+    try { [taskList, badgeList] = await Promise.all([tasks.list(), badges.list()]); } catch (e) { return toast(e.message || 'Gagal memuat tugas.', 'error'); }
+    subCount = await subs.counts(taskList).catch(() => ({}));
+    if (tgTab === 'kurikulum') await loadCur();
+    drawTugas();
+  }
+
+  // ---------- IMPOR TUGAS DARI FILE (CSV / JSON) ----------
+  const MAX_IMPORT = 50;
+  const TEMPLATE_HEADERS = ['title', 'description', 'grade', 'type', 'points', 'due', 'status', 'badge'];
+  const HEAD_ALIAS = { judul: 'title', nama: 'title', deskripsi: 'description', instruksi: 'description', jenjang: 'grade', jenis: 'type', tipe: 'type', poin: 'points', tenggat: 'due', deadline: 'due', lencana: 'badge', badgeid: 'badgeId' };
+  const normKey = (k) => { const s = String(k || '').trim().toLowerCase().replace(/[\s_-]+/g, ''); return HEAD_ALIAS[s] || s; };
+
+  function parseCsv(text) {
+    text = String(text).replace(/^\uFEFF/, '');
+    const first = text.split(/\r?\n/, 1)[0] || '';
+    const delim = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+    const rows = []; let row = [], cur = '', q = false;
+    const endRow = () => { row.push(cur); cur = ''; if (row.some((x) => x.trim() !== '')) rows.push(row); row = []; };
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === delim) { row.push(cur); cur = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; endRow(); }
+      else cur += c;
+    }
+    if (cur !== '' || row.length) endRow();
+    return rows;
+  }
+  // Hasil: { records, csv } — csv=true bila nomor baris di pesan galat perlu ditambah baris judul.
+  function parseImport(name, text) {
+    if (/\.json$/i.test(name) || /^\s*[\[{]/.test(text)) {
+      let data; try { data = JSON.parse(text); } catch (_) { throw new Error('File JSON tidak valid.'); }
+      const list = Array.isArray(data) ? data : data && (data.tasks || data.items || data.tugas);
+      if (!Array.isArray(list)) throw new Error('JSON harus berupa daftar tugas, atau objek dengan kunci "tasks".');
+      return { csv: false, records: list.map((o) => { const r = {}; Object.keys(o && typeof o === 'object' ? o : {}).forEach((k) => { r[normKey(k)] = o[k]; }); return r; }) };
+    }
+    const rows = parseCsv(text);
+    if (rows.length < 2) throw new Error('CSV harus punya baris judul kolom dan minimal satu tugas.');
+    const heads = rows[0].map(normKey);
+    if (!heads.includes('title')) throw new Error('Kolom "title" (atau "judul") tidak ditemukan di baris pertama.');
+    return { csv: true, records: rows.slice(1).map((cells) => { const r = {}; heads.forEach((h, i) => { r[h] = cells[i]; }); return r; }) };
+  }
+  function importRow(raw) {
+    const g = (k) => String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim();
+    const err = (error) => ({ error });
+    const title = g('title');
+    if (!title) return err('judul kosong');
+    if (title.length > 80) return err('judul lebih dari 80 karakter');
+    const description = g('description');
+    if (description.length > 500) return err('deskripsi lebih dari 500 karakter');
+    let grade = g('grade').toUpperCase().replace(/\s+/g, '');
+    if (['SMA/SMK', 'SMA', 'SMAK'].includes(grade)) grade = 'SMK';
+    if (!GRADES[grade]) return err('jenjang harus SD, SMP, atau SMK');
+    const type = g('type').toLowerCase();
+    if (!TYPES[type]) return err('jenis harus kode, proyek, atau kuis');
+    const pr = g('points'), points = pr === '' ? 0 : Number(pr);
+    if (!Number.isInteger(points) || points < 0 || points > 1000) return err('poin harus bilangan bulat 0-1000');
+    let due = g('due');
+    if (!due) due = inDays(7);
+    else {
+      const m = due.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+      if (m) due = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+      const p = due.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const ok = p && (() => { const d = new Date(Date.UTC(+p[1], +p[2] - 1, +p[3])); return d.getUTCFullYear() === +p[1] && d.getUTCMonth() === +p[2] - 1 && d.getUTCDate() === +p[3]; })();
+      if (!ok) return err('tenggat harus berformat YYYY-MM-DD');
+    }
+    const status = g('status').toLowerCase() || 'draft';
+    if (!STATUS[status]) return err('status harus draft, terbit, atau ditutup');
+    let badgeId = null;
+    const bn = g('badge'), bid = g('badgeId');
+    if (bn) {
+      const b = badgeList.find((x) => String(x.name).toLowerCase() === bn.toLowerCase());
+      if (!b) return err('badge "' + bn + '" tidak ditemukan');
+      badgeId = b.id;
+    } else if (bid) {
+      const b = badgeList.find((x) => String(x.id) === bid);
+      if (!b) return err('badgeId tidak ditemukan');
+      badgeId = b.id;
+    }
+    return { row: { title, description, grade, type, points, due, status, badgeId } };
+  }
+  function downloadTemplate() {
+    const rows = [TEMPLATE_HEADERS,
+      ['Perulangan For & While', 'Buat program yang mencetak angka 1 sampai 10.', 'SMP', 'kode', '50', inDays(7), 'draft', ''],
+      ['Halaman Profil Pribadi', 'Rancang halaman profil sederhana dengan HTML dan CSS.', 'SMP', 'proyek', '80', inDays(14), 'terbit', ''],
+      ['Susun Blok Perulangan', 'Selesaikan 5 level tentang perulangan.', 'SD', 'kuis', '30', inDays(3), 'draft', '']];
+    const csv = '\uFEFF' + rows.map((r) => r.map((c) => (/[",\n;]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c)).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'template-tugas.csv';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function openImport() {
+    let valid = [];
+    const el = modal('Impor Tugas dari File', `
+      <p class="text-xs text-slate-500 dark:text-slate-400">Unggah file <b>CSV</b> (bisa diekspor dari Excel atau Google Sheets) atau <b>JSON</b>. Satu baris sama dengan satu tugas, maksimal ${MAX_IMPORT} tugas per file.</p>
+      <div><button type="button" data-im="tpl" class="dc-btn dc-btn-sec dc-btn-sm"><i class="fa-solid fa-download text-xs"></i><span>Unduh template CSV</span></button></div>
+      ${field('Pilih file', `<input id="imFile" type="file" accept=".csv,.json,.txt,text/csv,application/json" class="${INPUT}">`)}
+      <div id="imPreview" class="text-xs space-y-2"></div>
+      <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">Kolom: <code>title</code>, <code>description</code>, <code>grade</code> (SD/SMP/SMK), <code>type</code> (kode/proyek/kuis), <code>points</code>, <code>due</code> (YYYY-MM-DD; kosong = 7 hari lagi), <code>status</code> (draft/terbit/ditutup; kosong = draft), <code>badge</code> (nama badge kustom, boleh kosong).</p>`,
+      async () => {
+        if (!valid.length) return 'Pilih file yang berisi minimal satu tugas yang valid.';
+        let ok = 0; const failed = [];
+        for (const r of valid) {
+          try { await tasks.save({ ...r, submissions: 0 }); ok++; }
+          catch (ex) { failed.push(r.title + ': ' + ((ex && ex.message) || 'gagal')); }
+        }
+        toast(`${ok} tugas diimpor` + (failed.length ? `, ${failed.length} gagal (${failed[0]})` : '.'), failed.length ? 'error' : undefined);
+        renderTugas();
+      }, 'Impor');
+    const prev = el.querySelector('#imPreview');
+    el.addEventListener('click', (e) => { if (e.target.closest('[data-im="tpl"]')) downloadTemplate(); });
+    el.querySelector('#imFile').addEventListener('change', async (e) => {
+      valid = []; prev.innerHTML = '';
+      const file = e.target.files && e.target.files[0]; if (!file) return;
+      const fail = (m) => { prev.innerHTML = `<p class="font-medium text-rose-600 dark:text-rose-400">${esc(m)}</p>`; };
+      if (file.size > 1024 * 1024) return fail('File terlalu besar (maksimal 1 MB).');
+      try {
+        const { csv, records } = parseImport(file.name, await file.text());
+        if (!records.length) throw new Error('File tidak berisi tugas.');
+        if (records.length > MAX_IMPORT) throw new Error(`Maksimal ${MAX_IMPORT} tugas per file (file ini berisi ${records.length}).`);
+        const bad = [];
+        records.forEach((r, i) => { const res = importRow(r); if (res.row) valid.push(res.row); else bad.push(`${csv ? 'Baris' : 'Item'} ${i + (csv ? 2 : 1)}: ${res.error}`); });
+        const sample = valid.slice(0, 5).map((r) => `<tr><td class="py-1 pr-3 font-medium text-slate-800 dark:text-slate-100">${esc(r.title)}</td><td class="py-1 pr-3">${esc(GRADES[r.grade])}</td><td class="py-1 pr-3">${esc(TYPES[r.type])}</td><td class="py-1 pr-3">${r.points} poin</td><td class="py-1">${esc(fmtDate(r.due))}</td></tr>`).join('');
+        prev.innerHTML = `<div class="flex flex-wrap gap-2 font-mono text-[11px]"><span class="px-2 py-0.5 rounded-full border ${STATUS.terbit[1]}">${valid.length} tugas siap diimpor</span>${bad.length ? `<span class="px-2 py-0.5 rounded-full border ${STATUS.ditutup[1]}">${bad.length} dilewati</span>` : ''}</div>` +
+          (sample ? `<table class="text-[11px] text-slate-600 dark:text-slate-300"><tbody>${sample}</tbody></table>${valid.length > 5 ? `<p class="text-slate-400">...dan ${valid.length - 5} lainnya</p>` : ''}` : '') +
+          (bad.length ? `<ul class="list-disc pl-4 text-rose-600 dark:text-rose-400">${bad.slice(0, 6).map((m) => `<li>${esc(m)}</li>`).join('')}${bad.length > 6 ? `<li>...dan ${bad.length - 6} baris lain</li>` : ''}</ul>` : '');
+      } catch (ex) { fail(ex.message || 'File tidak bisa dibaca.'); }
+    });
+  }
+
   function taskForm(t) {
     t = t || { title: '', description: '', grade: 'SMP', type: 'kode', points: 50, due: inDays(7), status: 'draft', badgeId: null };
     const act = badgeList.filter((b) => b.active || b.id === t.badgeId);
@@ -265,14 +643,19 @@
   }
   vTugas.addEventListener('input', (e) => {
     if (e.target.id === 'tgQ') { filt.q = e.target.value; renderTugasRows(); }
+    if (e.target.id === 'curQ') { curFilt.q = e.target.value; renderCurRows(); }
   });
   vTugas.addEventListener('change', (e) => {
     if (e.target.id === 'tgGrade') { filt.grade = e.target.value; renderTugasRows(); }
     if (e.target.id === 'tgStatus') { filt.status = e.target.value; renderTugasRows(); }
+    if (e.target.id === 'curGrade') { curFilt.grade = e.target.value; curFilt.jalur = ''; drawTugas(); }
+    if (e.target.id === 'curJalur') { curFilt.jalur = e.target.value; renderCurRows(); }
   });
   vTugas.addEventListener('click', async (e) => {
     const a = e.target.closest('[data-t]'); if (!a) return;
     const t = taskList.find((x) => String(x.id) === a.dataset.id);
+    if (a.dataset.t === 'tab') { tgTab = a.dataset.tab; renderTugas(); return; }
+    if (a.dataset.t === 'import') return openImport();
     if (a.dataset.t === 'new') return taskForm();
     if (a.dataset.t === 'review' && t) return openReview(t);
     if (a.dataset.t === 'dup' && t) {

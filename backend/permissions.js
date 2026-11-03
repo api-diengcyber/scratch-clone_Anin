@@ -9,7 +9,6 @@
 // Permission yang dipakai UI Admin (Akses & Hak Pengguna):
 //   siswa.kelola            Kelola siswa
 //   kurikulum.kelola        Kelola kurikulum & tahap
-//   codelab.kelola          Kelola Code Lab
 //   tugas.kelola            Buat & ubah tugas
 //   tugas.nilai             Menilai tugas
 //   badge.kelola            Kelola badge
@@ -23,7 +22,6 @@
 const PERMISSIONS = [
   "siswa.kelola",
   "kurikulum.kelola",
-  "codelab.kelola",
   "tugas.kelola",
   "tugas.nilai",
   "badge.kelola",
@@ -38,8 +36,16 @@ const ROLE_KEYS = ["admin", "instruktur", "siswa"];
 
 const DEFAULT_ROLE_PERMISSIONS = {
   admin: [...PERMISSIONS],
-  instruktur: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
-  siswa: ["materi.akses", "tugas.kumpul"]
+  instruktur: [
+    "siswa.kelola",
+    "kurikulum.kelola",
+    "codelab.kelola",
+    "tugas.kelola",
+    "tugas.nilai",
+    "badge.kelola"
+  ],
+  siswa: ["materi.akses", "tugas.kumpul"],
+  ortu: ["anak.lihat"]
 };
 
 function permissionsForRole(db, role) {

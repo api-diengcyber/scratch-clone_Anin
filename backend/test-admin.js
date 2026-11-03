@@ -311,8 +311,6 @@ async function cleanup() {
   let uploadedVersionId = null;
   let uploadedVersionNumber = null;
   let previewPath = null;
-  let codeLabSdId = null;
-  let codeLabPythonId = null;
   let instrId = null;
 
   await t("GET /api/admin/users tanpa token -> 401", async () => {
@@ -1057,134 +1055,43 @@ async function cleanup() {
     ok(entry.completed_at, "completed_at");
   });
 
-  await t("Code Lab: murid tidak boleh memakai CRUD admin", async () => {
+  await t("Murid login ulang dan tidak boleh memakai endpoint admin", async () => {
     const login = await api("POST", "/api/auth/login", {
       body: { username: "student-renamed", password: NEW_STUDENT_PASS }
     });
     eq(login.r.status, 200, "login murid");
     studentToken = login.d.token;
 
-    const { r, d } = await api("GET", "/api/admin/code-lab", { token: studentToken });
+    const { r, d } = await api("GET", "/api/admin/badges", { token: studentToken });
     eq(r.status, 403, "status");
     eq(d.code, "ADMIN_REQUIRED", "code");
   });
 
-  await t("Code Lab: admin membuat tantangan Blockly + kode", async () => {
-    let res = await api("POST", "/api/admin/code-lab", {
-      token: adminToken,
-      body: {
-        title: "Test Robot SD",
-        type: "blockly",
-        grade: "SD",
-        language: "Blockly",
-        instructions: "Gerakkan robot sampai ke bintang.",
-        goal: "Sampai ke bintang",
-        blocks: ["Maju", "Belok kiri"],
-        blockLimit: 4,
-        status: "published"
-      }
-    });
-    eq(res.r.status, 201, "status blockly");
-    eq(res.d.challenge.type, "blockly", "type blockly");
-    eq(res.d.challenge.grade, "SD", "grade blockly");
-    eqJson(res.d.challenge.blocks, ["Maju", "Belok kiri"], "blocks");
-    codeLabSdId = res.d.challenge.id;
+  await t("Lencana jalur dan tugas kurikulum: katalog, hak akses, dan 404", async () => {
+    let res = await api("GET", "/api/admin/lencana", { token: studentToken });
+    eq(res.r.status, 403, "murid dilarang");
 
-    res = await api("POST", "/api/admin/code-lab", {
-      token: adminToken,
-      body: {
-        title: "Test Python SMK",
-        type: "kode",
-        grade: "SMK",
-        language: "Python",
-        instructions: "Tulis fungsi luas persegi.",
-        starterCode: "def luas(s):\n    pass",
-        tests: [{ i: "2", o: "4" }],
-        criteria: "",
-        status: "published"
-      }
-    });
-    eq(res.r.status, 201, "status kode");
-    eq(res.d.challenge.type, "kode", "type kode");
-    eq(res.d.challenge.grade, "SMK", "grade kode");
-    eq(res.d.challenge.language, "Python", "language");
-    eq(res.d.challenge.tests.length, 1, "tests");
-    codeLabPythonId = res.d.challenge.id;
-  });
-
-  await t("Code Lab: filter admin dan validasi blok", async () => {
-    let res = await api("GET", "/api/admin/code-lab?grade=SD&status=published&search=Test", { token: adminToken });
-    eq(res.r.status, 200, "status");
-    eq(res.d.total, 1, "total filter");
-    eq(res.d.challenges[0].id, codeLabSdId, "id SD");
-
-    res = await api("POST", "/api/admin/code-lab", {
-      token: adminToken,
-      body: {
-        title: "Blok tidak dikenal",
-        type: "blockly",
-        instructions: "Tes validasi.",
-        goal: "Sampai ke bintang",
-        blocks: ["Terbang"],
-        blockLimit: 3
-      }
-    });
-    eq(res.r.status, 400, "status validasi");
-    eq(res.d.code, "CODELAB_INVALID", "code validasi");
-    eq(res.d.details.field, "blocks[0]", "field");
-  });
-
-  await t("Code Lab publik: hanya published + sesuai jenjang + tests disembunyikan", async () => {
-    let res = await api("GET", "/api/code-lab", { token: studentToken });
-    eq(res.r.status, 200, "status");
-    ok(res.d.challenges.some((c) => c.id === codeLabPythonId), "tantangan SMK tampil");
-    ok(!res.d.challenges.some((c) => c.id === codeLabSdId), "tantangan SD tidak tampil untuk akun SMP/SMK");
-    const python = res.d.challenges.find((c) => c.id === codeLabPythonId);
-    eq(python.tests, undefined, "tests tidak dikirim ke murid");
-
-    res = await api("GET", `/api/code-lab/${codeLabPythonId}`, { token: studentToken });
-    eq(res.r.status, 200, "detail published");
-    eq(res.d.challenge.title, "Test Python SMK", "judul");
-    eq(res.d.challenge.tests, undefined, "tests detail tidak dikirim");
-
-    res = await api("GET", `/api/code-lab/${codeLabSdId}`, { token: studentToken });
-    eq(res.r.status, 403, "detail beda jenjang");
-    eq(res.d.code, "GRADE_FORBIDDEN", "code beda jenjang");
-  });
-
-  await t("Code Lab: patch status menyembunyikan dari endpoint murid", async () => {
-    let res = await api("PATCH", `/api/admin/code-lab/${codeLabPythonId}`, {
-      token: adminToken,
-      body: { status: "draft" }
-    });
-    eq(res.r.status, 200, "patch");
-    eq(res.d.challenge.status, "draft", "status draft");
-
-    res = await api("GET", "/api/code-lab", { token: studentToken });
-    ok(!res.d.challenges.some((c) => c.id === codeLabPythonId), "draft tidak tampil");
-
-    res = await api("PATCH", `/api/admin/code-lab/${codeLabPythonId}`, {
-      token: adminToken,
-      body: { status: "published" }
-    });
-    eq(res.r.status, 200, "publish lagi");
-  });
-
-  await t("Code Lab: delete menghapus tantangan + audit + stats", async () => {
-    let res = await api("DELETE", `/api/admin/code-lab/${codeLabSdId}`, { token: adminToken });
-    eq(res.r.status, 200, "delete");
-    res = await api("GET", `/api/admin/code-lab/${codeLabSdId}`, { token: adminToken });
-    eq(res.r.status, 404, "sudah tidak ada");
-
-    const stats = await api("GET", "/api/admin/stats", { token: adminToken });
-    eq(stats.r.status, 200, "stats");
-    ok(stats.d.codelab.total >= 1, "codelab.total");
-    ok(stats.d.codelab.published >= 1, "codelab.published");
-
-    const actions = db.prepare("SELECT action FROM admin_audit").all().map((r) => r.action);
-    for (const required of ["code_lab.create", "code_lab.update", "code_lab.delete"]) {
-      ok(actions.includes(required), `audit ${required}`);
+    res = await api("GET", "/api/admin/lencana", { token: adminToken });
+    eq(res.r.status, 200, "admin boleh");
+    ok(Array.isArray(res.d.items) && res.d.items.length >= 1, "ada lencana jalur");
+    const item = res.d.items[0];
+    for (const field of ["key", "grade", "jalur", "emoji", "label", "totalTasks", "awarded"]) {
+      ok(field in item, `field ${field}`);
     }
+    ok(!("taskIds" in item), "daftar task tidak ikut dikirim");
+
+    res = await api("GET", `/api/admin/lencana/${encodeURIComponent(item.key)}/students`, { token: adminToken });
+    eq(res.r.status, 200, "daftar siswa berhak");
+    ok(Array.isArray(res.d.students), "students berupa array");
+
+    res = await api("GET", "/api/admin/lencana/ZZZ%3Anope/students", { token: adminToken });
+    eq(res.r.status, 404, "jalur tidak ada");
+
+    res = await api("GET", "/api/admin/curriculum-tasks", { token: adminToken });
+    eq(res.r.status, 200, "tugas kurikulum");
+    ok(Array.isArray(res.d.items), "items berupa array");
+    res = await api("GET", "/api/admin/curriculum-tasks", { token: studentToken });
+    eq(res.r.status, 403, "murid dilarang tugas kurikulum");
   });
 
   await t("GET /api/admin/users?grade=SD memfilter jenjang", async () => {
@@ -1239,9 +1146,9 @@ async function cleanup() {
   await t("Notifikasi admin: daftar, isolasi per admin, baca, dan hapus", async () => {
     let res = await api("GET", "/api/admin/notifications?limit=100", { token: adminToken });
     eq(res.r.status, 200, "status");
-    ok(res.d.notifications.length >= 5, "jumlah notifikasi");
+    ok(res.d.notifications.length >= 4, "jumlah notifikasi");
     const kinds = new Set(res.d.notifications.map((n) => n.kind));
-    for (const required of ["student.create", "curriculum.update", "code_lab.published", "plugin.publish", "progress.complete"]) {
+    for (const required of ["student.create", "curriculum.update", "plugin.publish", "progress.complete"]) {
       ok(kinds.has(required), `jenis ${required}`);
     }
     ok(res.d.unreadCount >= 1, "unread awal");
@@ -1497,16 +1404,26 @@ async function cleanup() {
     eq(res.d.roles.admin.length, 11, "admin punya semua hak");
     eq(res.d.roles.instruktur.length, 6, "instruktur default");
     eq(res.d.roles.siswa.length, 2, "siswa default");
-    eq(res.d.roles.ortu, undefined, "role ortu sudah dihapus");
+    eq(res.d.roles.ortu.length, 1, "ortu default");
     eq(res.d.roles.instruktur.includes("codelab.kelola"), true, "instruktur punya codelab");
+    eq(res.d.roles.instruktur.includes("tugas.kelola"), true, "instruktur punya tugas.kelola");
+    eq(res.d.roles.instruktur.length, 5, "instruktur default");
+    eq(res.d.roles.siswa.length, 2, "siswa default");
+    eq(res.d.roles.ortu.length, 1, "ortu default");
+    eq(res.d.roles.instruktur.includes("tugas.kelola"), true, "instruktur punya tugas.kelola");
 
     const me = await api("GET", "/api/admin/me", { token: adminToken });
-    ok(Array.isArray(me.d.permissions) && me.d.permissions.includes("codelab.kelola"), "me memuat permissions");
+    ok(Array.isArray(me.d.permissions) && me.d.permissions.includes("kurikulum.kelola"), "me memuat permissions");
   });
 
   await t("Akses: PUT /api/admin/roles validasi dan simpan", async () => {
     const putRoles = async (roles) => api("PUT", "/api/admin/roles", { token: adminToken, body: { roles } });
-    let res = await putRoles({ admin: ["siswa.kelola"], instruktur: ["codelab.kelola"], siswa: ["materi.akses"] });
+    let res = await putRoles({
+      admin: ["siswa.kelola"],
+      instruktur: ["codelab.kelola", "tugas.kelola"],
+      siswa: ["materi.akses"],
+      ortu: []
+    });
     eq(res.r.status, 200, "put valid");
 
     res = await putRoles({ admin: ["siswa.zzz"], instruktur: ["siswa.zzz"], siswa: ["materi.akses"] });
@@ -1522,12 +1439,13 @@ async function cleanup() {
     res = await putRoles({
       admin: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola", "plugin.kelola", "pengaturan.ubah", "akses.kelola", "materi.akses", "tugas.kumpul"],
       instruktur: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
-      siswa: ["materi.akses", "tugas.kumpul"]
+      siswa: ["materi.akses", "tugas.kumpul"],
+      ortu: ["anak.lihat"]
     });
     eq(res.r.status, 200, "put default");
   });
 
-  await t("Akses: instruktur dibuat, boleh codelab, dilarang user management, dan tidak bisa mengubah hak akses", async () => {
+  await t("Akses: instruktur dibuat, boleh badge, dilarang user management, dan tidak bisa mengubah hak akses", async () => {
     let res = await api("POST", "/api/admin/instructors", {
       token: adminToken,
       body: { name: "Instruktur Uji", email: "instr1@diengcyber.local", role: "instruktur", grades: ["SMP", "SMK"], active: true }
@@ -1547,10 +1465,10 @@ async function cleanup() {
     res = await api("GET", "/api/admin/me", { token: instrToken });
     eq(res.r.status, 200, "me instruktur");
     eq(res.d.role, "instruktur", "me role");
-    ok(res.d.permissions.includes("codelab.kelola"), "me permissions default");
+    ok(res.d.permissions.includes("kurikulum.kelola"), "me permissions default");
 
-    res = await api("GET", "/api/admin/code-lab", { token: instrToken });
-    eq(res.r.status, 200, "instruktur boleh akses codelab");
+    res = await api("GET", "/api/admin/badges", { token: instrToken });
+    eq(res.r.status, 200, "instruktur boleh akses badge");
 
     res = await api("GET", "/api/admin/users", { token: instrToken });
     eq(res.r.status, 200, "instruktur boleh user management (siswa.kelola)");

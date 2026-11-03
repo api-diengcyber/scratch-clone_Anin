@@ -1,0 +1,7 @@
+Hapus 2 file ini dari proyekmu (Code Lab sudah dibuang):
+
+  Admin/static/codelab.js
+  backend/seed-codelab.js
+
+Lalu salin semua file lain di zip ini ke folder proyek (struktur folder sama, timpa yang lama).
+Setelah itu jalankan ulang server backend. Database lama otomatis membuang tabel code_lab_challenges saat start.

@@ -11,6 +11,7 @@ function loadData(filename) {
     const filePath = path.join(
         __dirname,
         "..",
+        "users",
         "kurikulum",
         "data",
         filename

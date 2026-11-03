@@ -300,6 +300,8 @@
 
   <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
   <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+  <script src="/kurikulum/data/jalur-data-smp.js?v=20261019"></script>
+  <script src="/kurikulum/data/jalur-data-smak.js?v=20261019"></script>
   <script src="/shared/js/avatar-frame.js?v=20261019"></script>
 
   <script src="/shared/js/utils.js?v=20261019"></script>
@@ -719,26 +721,107 @@
       return html;
     }
 
+    // ---------- LENCANA ASLI (sama dengan halaman Laporan & menu admin) ----------
+    // SD = satu lencana per jalur; SMP & SMA/SMK = satu lencana per tahap.
+    // Terbuka kalau SEMUA task selesai DAN Project Akhir / Capstone selesai.
+    const GRADE_NAMA = { sd: "SD", smp: "SMP", smak: "SMA/SMK" };
+
+    function statusLencana(grade, judul, nama, done, total, capDone, istilah) {
+      const sisa = total - done;
+      const ok = total > 0 && capDone && sisa === 0;
+      const hint = ok ? ""
+        : capDone ? istilah + " selesai, tinggal " + sisa + " task lagi"
+        : sisa === 1 ? "Tinggal " + istilah + "-nya!"
+        : done + " dari " + total + " langkah. Selesaikan semua task dan " + istilah;
+      return { grade, judul, nama, ok, hint };
+    }
+
+    function daftarLencana() {
+      const out = [];
+      const boleh = LP.allowedGrades ? LP.allowedGrades() : ["sd", "smp", "smak"];
+
+      if (boleh.includes("sd") && window.LP_DATA) {
+        LP_DATA.tahap.forEach(th => th.pembelajaran.forEach(pb => {
+          if (!pb.project) return;
+          const p = LP.progressOf(pb);
+          out.push(statusLencana("sd", pb.judul, pb.project.lencana || "🏅 Lencana " + pb.judul,
+            p.done, p.total, LP.isDone(pb.project.id), "Project Akhir"));
+        }));
+      }
+
+      const sel = LP._get("smpTasks", {});   // task SMP & SMA/SMK: id "modul:nomor"
+      [["smp", window.LP_SMP], ["smak", window.LP_SMAK]].forEach(([g, tracks]) => {
+        if (!boleh.includes(g)) return;
+        (tracks || []).forEach(tr => {
+          let total = 0, done = 0, capId = null, lastId = null;
+          (tr.nodes || []).forEach(nd => nd.tasks.forEach((t, i) => {
+            const id = nd.id + ":" + i;
+            total++; lastId = id;
+            if (sel[id]) done++;
+            if (t.kumpul) capId = id;
+          }));
+          out.push(statusLencana(g, tr.nama, tr.lencana || "🏅 Lencana " + tr.nama,
+            done, total, !!sel[capId || lastId], "Capstone"));
+        });
+      });
+      return out;
+    }
+
+    function kartuLencana(x) {
+      const m = x.nama.match(/^(\p{Extended_Pictographic}\uFE0F?)\s*(.*)$/u);
+      const emoji = m ? m[1] : "🏅";
+      const label = m ? (m[2] || x.judul) : x.nama;
+
+      if (x.ok) {
+        return `
+          <div class="p-4 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center gap-3">
+            <span class="text-3xl">${esc(emoji)}</span>
+            <div class="min-w-0">
+              <h4 class="text-sm font-extrabold text-amber-900">${esc(label)}</h4>
+              <small class="text-amber-700">${esc(x.judul)} · Telah Diraih ✨</small>
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div class="p-4 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center gap-3" title="Belum diraih">
+          <span class="text-3xl grayscale opacity-50">🔒</span>
+          <div class="min-w-0">
+            <h4 class="text-sm font-extrabold text-slate-500">${esc(label)}</h4>
+            <small class="text-slate-400 block">${esc(x.judul)}</small>
+            <small class="text-slate-400 block">${esc(x.hint)}</small>
+          </div>
+        </div>`;
+    }
+
     function renderBadges() {
+      const semua = daftarLencana();
+      const diraih = semua.filter(x => x.ok).length;
+
+      const grup = ["sd", "smp", "smak"].map(g => {
+        const items = semua.filter(x => x.grade === g);
+        if (!items.length) return "";
+        return `
+          <div class="mb-6">
+            <p class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-3">
+              ${GRADE_NAMA[g]} · ${items.filter(x => x.ok).length} dari ${items.length} lencana
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              ${items.map(kartuLencana).join("")}
+            </div>
+          </div>`;
+      }).join("");
+
       return `
         <div class="pb-4 border-b border-slate-100 mb-5">
           <h3 class="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2">
             🏅 Koleksi Lencana
           </h3>
           <p class="text-sm text-slate-500 mt-1">
-            Lihat pencapaian yang kamu dapatkan selama belajar.
+            ${diraih} dari ${semua.length} lencana diraih. Selesaikan semua task dan Project Akhir / Capstone untuk membuka lencana berikutnya.
           </p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div class="p-4 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center gap-3">
-            <span class="text-3xl">🏅</span>
-            <div>
-              <h4 class="text-sm font-extrabold text-amber-900">Kreator Muda</h4>
-              <small class="text-amber-700">Telah Diraih ✨</small>
-            </div>
-          </div>
-        </div>
+        ${grup || '<p class="text-sm text-slate-500">Belum ada lencana untuk jenjangmu.</p>'}
       `;
     }
 
@@ -867,7 +950,10 @@
     render();
 
     if (LP.loadFromServer) {
-      LP.loadFromServer()
+      Promise.all([
+        LP.loadFromServer(),
+        LP.loadAllowedGrades ? LP.loadAllowedGrades().catch(() => null) : null
+      ])
         .then(render)
         .catch(error => {
           console.error("Gagal memuat saldo terbaru:", error);

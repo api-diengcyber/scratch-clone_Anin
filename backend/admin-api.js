@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const { extractZipSafely, sha256, MAX_ZIP_BYTES } = require("./plugin-zip");
 const { notifyAdmins } = require("./notifications");
 const learningService = require("./learning-service");
-
+const lencana = require("./lencana-catalog");
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
   const PLUGIN_DIR = process.env.PLUGIN_DIR || (process.env.NODE_ENV === "production" ? "/data/plugins" : path.join(__dirname, "plugin-data"));
@@ -45,9 +45,10 @@ function registerAdminApi(app, deps) {
     { re: /^\/activity\/?$/, perm: null },
     { re: /^\/audit/, perm: "akses.kelola" },
     { re: /^\/users/, perm: "siswa.kelola" },
+    { re: /^\/curriculum-tasks/, perm: "tugas.kelola" },
     { re: /^\/curriculum/, perm: "kurikulum.kelola" },
-    { re: /^\/code-lab/, perm: "codelab.kelola" },
     { re: /^\/badges/, perm: "badge.kelola" },
+    { re: /^\/lencana/, perm: "badge.kelola" },
     { re: /^\/tasks\/\d+\/submissions/, perm: "tugas.nilai" },
     { re: /^\/submissions/, perm: "tugas.nilai" },
     { re: /^\/tasks/, perm: "tugas.kelola" },
@@ -269,133 +270,6 @@ function registerAdminApi(app, deps) {
       candidate = root.slice(0, Math.max(1, 32 - suffix.length)) + suffix;
     }
     return candidate;
-  }
-
-  // ------------------------------------------------------------
-  // Code Lab & Blockly.
-  // Semua input divalidasi di server; UI hanya alat bantu. Tantangan
-  // berstatus draft tidak boleh muncul di endpoint murid.
-  // ------------------------------------------------------------
-  const CODE_LAB_BLOCKS = new Set(["Maju", "Belok kiri", "Belok kanan", "Ulangi", "Jika"]);
-  const CODE_LAB_LANGUAGES = new Set(["Blockly", "HTML/CSS", "Python", "JavaScript"]);
-
-  function codeLabError(message, field) {
-    const err = new Error(message);
-    err.code = "CODELAB_INVALID";
-    err.field = field || null;
-    throw err;
-  }
-  function codeLabText(value, field, max, required = false) {
-    if (value === undefined || value === null) {
-      if (required) codeLabError(`${field} wajib diisi.`, field);
-      return "";
-    }
-    if (typeof value !== "string") codeLabError(`${field} harus berupa teks.`, field);
-    const text = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim();
-    if (required && !text) codeLabError(`${field} wajib diisi.`, field);
-    if (text.length > max) codeLabError(`${field} maksimal ${max} karakter.`, field);
-    return text;
-  }
-  function codeLabInteger(value, field, min, max) {
-    const num = typeof value === "number" ? value : Number(value);
-    if (!Number.isInteger(num) || num < min || num > max) {
-      codeLabError(`${field} harus bilangan bulat ${min}-${max}.`, field);
-    }
-    return num;
-  }
-  function codeLabEnum(value, field, allowed) {
-    const text = typeof value === "string" ? value.trim() : "";
-    if (!allowed.includes(text)) codeLabError(`${field} harus salah satu: ${allowed.join(", ")}.`, field);
-    return text;
-  }
-  function codeLabJson(value, fallback) {
-    if (value === undefined || value === null || value === "") return fallback;
-    if (typeof value !== "string") return fallback;
-    try { return JSON.parse(value); } catch { return fallback; }
-  }
-  function normalizeCodeLab(input) {
-    if (!input || typeof input !== "object" || Array.isArray(input)) {
-      codeLabError("Body tantangan harus berupa objek.", "body");
-    }
-    const title = codeLabText(input.title, "title", 200, true);
-    if (title.length < 3) codeLabError("title minimal 3 karakter.", "title");
-    const type = codeLabEnum(input.type, "type", ["blockly", "kode"]);
-    const instructions = codeLabText(input.instructions, "instructions", 20_000, true);
-    const status = codeLabEnum(input.status || "draft", "status", ["draft", "published"]);
-
-    let grade;
-    let language;
-    let goal = "";
-    let blocks = [];
-    let blockLimit = null;
-    let starterCode = "";
-    let tests = [];
-    let criteria = "";
-
-    if (type === "blockly") {
-      grade = "SD";
-      language = "Blockly";
-      goal = codeLabText(input.goal, "goal", 200, true);
-      if (!Array.isArray(input.blocks) || input.blocks.length < 1 || input.blocks.length > 20) {
-        codeLabError("blocks harus berisi 1-20 blok.", "blocks");
-      }
-      blocks = [...new Set(input.blocks.map((block, index) => {
-        const name = codeLabText(block, `blocks[${index}]`, 40, true);
-        if (!CODE_LAB_BLOCKS.has(name)) codeLabError(`blocks[${index}] tidak dikenal.`, `blocks[${index}]`);
-        return name;
-      }))];
-      blockLimit = codeLabInteger(input.blockLimit, "blockLimit", 1, 50);
-    } else {
-      grade = codeLabEnum(input.grade, "grade", ["SMP", "SMK"]);
-      language = codeLabEnum(input.language, "language", ["HTML/CSS", "Python", "JavaScript"]);
-      starterCode = codeLabText(input.starterCode, "starterCode", 50_000);
-      criteria = codeLabText(input.criteria, "criteria", 20_000, language === "HTML/CSS");
-      if (language === "Python" || language === "JavaScript") {
-        if (!Array.isArray(input.tests)) input.tests = [];
-        if (input.tests.length < 1 || input.tests.length > 100) {
-          codeLabError("tests harus berisi 1-100 kasus uji.", "tests");
-        }
-        tests = input.tests.map((test, index) => {
-          if (!test || typeof test !== "object" || Array.isArray(test)) {
-            codeLabError(`tests[${index}] harus objek.`, `tests[${index}]`);
-          }
-          return {
-            i: codeLabText(test.i, `tests[${index}].i`, 2_000, true),
-            o: codeLabText(test.o, `tests[${index}].o`, 2_000, true)
-          };
-        });
-      }
-    }
-
-    return { title, type, grade, language, instructions, goal, blocks, blockLimit, starterCode, tests, criteria, status };
-  }
-  function codeLabRow(row) {
-    const blocks = codeLabJson(row.blocks_json, []);
-    const tests = codeLabJson(row.tests_json, []);
-    return {
-      id: Number(row.id),
-      title: row.title,
-      type: row.type,
-      grade: row.grade,
-      language: row.language,
-      instructions: row.instructions,
-      goal: row.goal || "",
-      blocks: Array.isArray(blocks) ? blocks : [],
-      blockLimit: row.block_limit === null || row.block_limit === undefined ? null : Number(row.block_limit),
-      starterCode: row.starter_code || "",
-      tests: Array.isArray(tests) ? tests : [],
-      criteria: row.criteria || "",
-      status: row.status,
-      completions: Number(row.completions || 0),
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
-  }
-  function publicCodeLabRow(row) {
-    const item = codeLabRow(row);
-    // Kasus uji tidak dikirim ke murid agar jawaban tidak bocor.
-    delete item.tests;
-    return item;
   }
 
   function pluginDeveloper(req, res, next) {
@@ -635,11 +509,6 @@ function registerAdminApi(app, deps) {
       SUM(CASE WHEN status = 'quarantine' THEN 1 ELSE 0 END) AS quarantine,
       SUM(CASE WHEN status = 'disabled' THEN 1 ELSE 0 END) AS disabled
       FROM plugins`).get();
-    const codelab = db.prepare(`SELECT COUNT(*) AS total,
-      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published,
-      SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
-      SUM(completions) AS completions
-      FROM code_lab_challenges`).get();
     const activity = db.prepare(`SELECT
       (SELECT COUNT(*) FROM attempts WHERE date(updated_at) = date('now')) AS attemptsToday,
       (SELECT COUNT(*) FROM progress WHERE completed = 1 AND date(completed_at) = date('now')) AS completedToday,
@@ -672,7 +541,6 @@ function registerAdminApi(app, deps) {
         curriculumMaterials: curriculum.materials
       },
       plugins: numbers(plugins),
-      codelab: numbers(codelab),
       activity: numbers(activity),
       grades: numbers(grades),
       curriculum
@@ -1020,6 +888,60 @@ function registerAdminApi(app, deps) {
     audit(req, "badge.delete", "admin_badge", id, { name: row.name });
     return sendApiSuccess(res, { id }, "Badge dihapus.");
   });
+
+  // Tugas kurikulum (yang dilihat siswa di jalur belajar), hanya untuk dibaca admin.
+  // Beda dengan tabel admin_tasks yang berisi tugas buatan admin.
+  app.get("/api/admin/curriculum-tasks", (req, res) => lencanaGuard(res, () => {
+    const gradeQ = String(req.query.grade || "").toUpperCase();
+    const where = ["SD", "SMP", "SMK"].includes(gradeQ) ? "WHERE t.grade = ?" : "";
+    const rows = db.prepare(`
+      SELECT t.grade, t.module_id, t.task_id, t.task_index, t.title, t.is_project, t.points,
+        (SELECT COUNT(*) FROM progress p WHERE p.task_id = t.task_id AND p.completed = 1) AS completed
+      FROM tasks t ${where}
+      ORDER BY t.grade, t.module_id, t.task_index LIMIT 3000
+    `).all(...(where ? [gradeQ] : []));
+    // Nama jalur diambil dari katalog yang sama dengan lencana.
+    const jalurOf = new Map();
+    try {
+      for (const item of lencana.getCatalog()) for (const id of item.taskIds) jalurOf.set(id, item);
+    } catch (_) { /* katalog tidak ada: pakai module_id */ }
+    const items = rows.map((r) => {
+      const j = jalurOf.get(r.task_id);
+      return {
+        id: r.task_id,
+        grade: r.grade,
+        module: r.module_id,
+        jalur: j ? j.jalur : r.module_id,
+        no: Number(r.task_index) + 1,
+        title: r.title,
+        isProject: Number(r.is_project) === 1,
+        points: Number(r.points) || 0,
+        completed: Number(r.completed) || 0
+      };
+    });
+    return sendApiSuccess(res, { items, total: items.length });
+  }));
+
+  // Lencana jalur belajar: katalog yang sama dengan yang dilihat siswa (dibaca dari
+  // users/kurikulum/data) + siswa yang sudah berhak, dipakai untuk cetak sertifikat.
+  function lencanaGuard(res, fn) {
+    try { return fn(); }
+    catch (e) {
+      if (e && e.code === "LENCANA_DATA_MISSING") return sendApiError(res, 503, e.message, "LENCANA_DATA_MISSING");
+      throw e;
+    }
+  }
+  app.get("/api/admin/lencana", (req, res) => lencanaGuard(res, () => {
+    const items = lencana.getCatalog().map((item) => lencana.publicItem(item, lencana.eligibleStudents(db, item).length));
+    return sendApiSuccess(res, { items, total: items.length });
+  }));
+
+  app.get("/api/admin/lencana/:key/students", (req, res) => lencanaGuard(res, () => {
+    const item = lencana.findItem(String(req.params.key || ""));
+    if (!item) return sendApiError(res, 404, "Lencana jalur tidak ditemukan.", "NOT_FOUND");
+    const students = lencana.eligibleStudents(db, item);
+    return sendApiSuccess(res, { item: lencana.publicItem(item, students.length), students, total: students.length });
+  }));
 
   const ADMIN_TASK_GRADES = ["SD", "SMP", "SMK"];
   const ADMIN_TASK_TYPES = ["kode", "proyek", "kuis"];
@@ -1460,6 +1382,63 @@ function registerAdminApi(app, deps) {
     }
     return sendApiSuccess(res, { challenge: publicCodeLabRow(row) });
   });
+
+  // ------------------------------------------------------------
+  // Tautan orang tua <-> siswa.
+  // Hanya akun role `ortu` yang bisa menjadi induk tautan. Daftar siswa
+  // yang dikirim bersifat replace (bukan append) agar UI mudah mengelola.
+  // ------------------------------------------------------------
+  function parentTarget(id) {
+    const num = Number(id);
+    if (!Number.isSafeInteger(num) || num < 1) return null;
+    return db.prepare("SELECT id, role, status FROM users WHERE id = ?").get(num) || null;
+  }
+
+  app.get("/api/admin/instructors/:id/children", (req, res) => {
+    const parent = parentTarget(req.params.id);
+    if (!parent || parent.status === "deleted") return sendApiError(res, 404, "Akun orang tua tidak ditemukan.", "NOT_FOUND");
+    if (parent.role !== "ortu") return sendApiError(res, 400, "Tautan anak hanya berlaku untuk akun orang tua.", "NOT_PARENT");
+    const items = parentLinks.listChildren(db, parent.id);
+    return sendApiSuccess(res, { items, total: items.length });
+  });
+
+  app.put("/api/admin/instructors/:id/children", (req, res) => adminDataResponse(res, () => {
+    const parent = parentTarget(req.params.id);
+    if (!parent || parent.status === "deleted") return sendApiError(res, 404, "Akun orang tua tidak ditemukan.", "NOT_FOUND");
+    if (parent.role !== "ortu") return sendApiError(res, 400, "Tautan anak hanya berlaku untuk akun orang tua.", "NOT_PARENT");
+
+    const raw = (req.body || {}).studentIds;
+    if (!Array.isArray(raw)) adminDataError("studentIds harus berupa array ID siswa.", "studentIds");
+    if (raw.length > parentLinks.MAX_CHILDREN) {
+      adminDataError(`Maksimal ${parentLinks.MAX_CHILDREN} siswa per akun orang tua.`, "studentIds");
+    }
+    const ids = [...new Set(raw.map((value) => Number(value)))];
+    if (ids.some((id) => !Number.isSafeInteger(id) || id < 1)) {
+      adminDataError("Setiap studentIds harus ID siswa yang valid.", "studentIds");
+    }
+    if (ids.includes(Number(parent.id))) adminDataError("Akun orang tua tidak bisa ditautkan ke dirinya sendiri.", "studentIds");
+
+    if (ids.length) {
+      const placeholders = ids.map(() => "?").join(",");
+      const found = db.prepare(`
+        SELECT id FROM users
+        WHERE role = 'student' AND status <> 'deleted' AND id IN (${placeholders})
+      `).all(...ids).map((row) => Number(row.id));
+      const missing = ids.filter((id) => !found.includes(id));
+      if (missing.length) {
+        return sendApiError(res, 400, "Ada siswa yang tidak ditemukan atau bukan role student.", "STUDENT_NOT_FOUND", { missing });
+      }
+    }
+
+    const before = parentLinks.childIds(db, parent.id);
+    parentLinks.replaceChildren(db, parent.id, ids, req.userId);
+    const added = ids.filter((id) => !before.includes(id));
+    const removed = before.filter((id) => !ids.includes(id));
+    audit(req, "parent.children.update", "user", parent.id, { added, removed });
+
+    const items = parentLinks.listChildren(db, parent.id);
+    return sendApiSuccess(res, { items, total: items.length }, "Tautan anak diperbarui.");
+  }));
 
   // M3: daftar user student saja. Pencarian dan pagination dibatasi di server.
   app.get("/api/admin/users", (req, res) => {

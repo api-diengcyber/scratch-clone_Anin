@@ -11,6 +11,7 @@ const db = require("./database");
 const dataFile = path.join(
     __dirname,
     "..",
+    "users",
     "kurikulum",
     "data",
     "jalur-data-smp.js"

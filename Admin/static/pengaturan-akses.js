@@ -239,7 +239,6 @@
   const PERMS = [
     ['siswa.kelola', 'Kelola siswa', 'Tambah, ubah, suspend, dan hapus akun siswa', 'fa-user-graduate'],
     ['kurikulum.kelola', 'Kelola kurikulum & tahap', 'Atur modul, jalur belajar, dan tahap', 'fa-book-open'],
-    ['codelab.kelola', 'Kelola Code Lab', 'Buat dan ubah tantangan koding', 'fa-flask'],
     ['tugas.kelola', 'Buat & ubah tugas', 'Tambah, ubah, salin, dan hapus tugas', 'fa-list-check'],
     ['tugas.nilai', 'Menilai tugas', 'Lihat jawaban siswa, beri nilai dan revisi', 'fa-clipboard-check'],
     ['badge.kelola', 'Kelola badge', 'Buat dan atur badge penghargaan', 'fa-award'],
@@ -257,7 +256,8 @@
   const roleStore = objStore('/api/admin/roles', 'roles', 'dc-roles', () => ({
     admin: PERMS.map((p) => p[0]),
     instruktur: ['siswa.kelola', 'kurikulum.kelola', 'codelab.kelola', 'tugas.kelola', 'tugas.nilai', 'badge.kelola'],
-    siswa: ['materi.akses', 'tugas.kumpul']
+    siswa: ['materi.akses', 'tugas.kumpul'],
+    ortu: ['anak.lihat']
   }));
   const meInfo = () => { const m = window.DCAdminMe || {}, u = m.user || m; return { name: u.full_name || u.fullName || u.name || u.username || 'Admin', email: u.email || 'admin@diengcyber.local' }; };
   const instr = makeStore('/api/admin/instructors', 'dc-instructors', () => [

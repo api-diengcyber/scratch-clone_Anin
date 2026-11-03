@@ -472,7 +472,7 @@ function handleCourseSubmit(e) {
   e.preventDefault();
   toggleModal('modalAddCourse');
   e.target.reset();
-  showToast('Form Code Lab belum terhubung ke backend. Gunakan menu Modul & Kurikulum untuk jalur dan materi.');
+  showToast('Form ini belum terhubung ke backend. Gunakan menu Modul & Kurikulum untuk jalur dan materi.');
 }
 
 async function refreshData() {

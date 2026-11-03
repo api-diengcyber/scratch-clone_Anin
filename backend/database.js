@@ -211,35 +211,10 @@ db.exec(`
 `);
 
 // ============================================================
-// CODE LAB & BLOCKLY
+// Fitur Code Lab & Blockly sudah dihapus. Tabel lamanya dibuang supaya
+// database yang sudah berjalan ikut bersih.
 // ============================================================
-// Tantangan dikelola Admin. `status` draft/published menentukan apakah
-// tantangan boleh muncul di endpoint murid. Data tes disimpan JSON agar
-// fleksibel, tetapi divalidasi ketat sebelum masuk DB.
-db.exec(`
-    CREATE TABLE IF NOT EXISTS code_lab_challenges (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        type TEXT NOT NULL CHECK (type IN ('blockly', 'kode')),
-        grade TEXT NOT NULL CHECK (grade IN ('SD', 'SMP', 'SMK')),
-        language TEXT NOT NULL,
-        instructions TEXT NOT NULL,
-        goal TEXT NOT NULL DEFAULT '',
-        blocks_json TEXT NOT NULL DEFAULT '[]',
-        block_limit INTEGER,
-        starter_code TEXT NOT NULL DEFAULT '',
-        tests_json TEXT NOT NULL DEFAULT '[]',
-        criteria TEXT NOT NULL DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
-        completions INTEGER NOT NULL DEFAULT 0 CHECK (completions >= 0),
-        created_by INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(created_by) REFERENCES users(id)
-    );
-    CREATE INDEX IF NOT EXISTS idx_code_lab_status_grade
-        ON code_lab_challenges(status, grade, id DESC);
-`);
+db.exec("DROP TABLE IF EXISTS code_lab_challenges");
 
 // ============================================================
 // NOTIFIKASI ADMIN
