@@ -207,8 +207,8 @@ Perilaku penting:
 - Endpoint `/api/admin/roles` dan `/api/admin/instructors` tersedia. Hak akses disimpan di tabel `admin_role_permissions` (peran → daftar permission); `PUT /api/admin/roles` hanya boleh admin dan melakukan validasi permission yang dikenal.
 - Wali siswa untuk laporan publik disimpan di tabel `student_guardians` (`student_user_id`, `name`, `email`, `relation`, `created_by`). Wali bukan akun login dan tidak punya password/sesi. Satu siswa maksimal 5 wali; email unik per siswa.
 - Tautan laporan publik disimpan di tabel `report_links` (`token_hash`, `student_user_id`, `guardian_id`, `expires_at`, `revoked_at`, `access_count`). Token asli hanya dikembalikan sekali saat pembuatan; database menyimpan SHA-256. Default berlaku 30 hari, maksimal 365 hari, dan bisa dicabut kapan saja.
-- Orang tua yang memiliki akun login dapat ditautkan ke siswa melalui tabel `parent_students` (`parent_user_id`, `student_user_id`, `created_by`). Satu siswa boleh ditautkan ke beberapa orang tua. Tautan bersifat replace lewat `PUT`, dan siswa berstatus `deleted` otomatis tidak ditampilkan.
-- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`). Aksi Code Lab memakai `code_lab.create`, `code_lab.update`, dan `code_lab.delete`; perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`, dan perubahan tautan anak memakai `parent.children.update`.
+- Orang tua tidak lagi punya akun login; kontak wali disimpan di `student_guardians` dan laporan dibagikan lewat tautan publik `report_links`.
+- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`); perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, dan pencabutan `report_link.revoke`.
 - Rate limit admin: 60 request/menit per admin per path.
 
 ## Laporan Wali (publik)

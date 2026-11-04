@@ -39,13 +39,11 @@ const DEFAULT_ROLE_PERMISSIONS = {
   instruktur: [
     "siswa.kelola",
     "kurikulum.kelola",
-    "codelab.kelola",
     "tugas.kelola",
     "tugas.nilai",
     "badge.kelola"
   ],
-  siswa: ["materi.akses", "tugas.kumpul"],
-  ortu: ["anak.lihat"]
+  siswa: ["materi.akses", "tugas.kumpul"]
 };
 
 function permissionsForRole(db, role) {

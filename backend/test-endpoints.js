@@ -198,7 +198,7 @@ const B = `http://localhost:${PORT}`;
     r = await fetch(`${B}/api/progress/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", completed: false }) });
     d = await j(r); eq(d.points, 10, "debit 55"); eq(d.earned.bonus, -5, "debit bonus");
     r = await fetch(`${B}/api/progress/bonustest`, { method: "POST", headers: hdr, body: JSON.stringify({ taskId: "testmod:project", completed: true }) });
-    d = await j(r); eq(d.points, 60, "tanpa bonus kedua"); eq(d.earned.bonus, 0, "bonus 0");
+    d = await j(r); eq(d.points, 65, "bonus kembali saat re-complete"); eq(d.earned.bonus, 0, "earned bonus 0 (bonus tak digandakan)");
   });
   await t("attempts task ngawur -> 404", async () => {
     let r = await fetch(`${B}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "bonustest", password: "abcd1234" }) });

@@ -1401,16 +1401,12 @@ async function cleanup() {
     const res = await api("GET", "/api/admin/roles", { token: adminToken });
     eq(res.r.status, 200, "status");
     ok(res.d.roles && res.d.roles.admin, "ada roles");
-    eq(res.d.roles.admin.length, 11, "admin punya semua hak");
-    eq(res.d.roles.instruktur.length, 6, "instruktur default");
-    eq(res.d.roles.siswa.length, 2, "siswa default");
-    eq(res.d.roles.ortu.length, 1, "ortu default");
-    eq(res.d.roles.instruktur.includes("codelab.kelola"), true, "instruktur punya codelab");
+    eq(res.d.roles.admin.length, 10, "admin punya semua hak");
+    eq(res.d.roles.ortu, undefined, "role ortu sudah dihapus");
+    eq(res.d.roles.instruktur.includes("codelab.kelola"), false, "instruktur tidak lagi punya codelab");
     eq(res.d.roles.instruktur.includes("tugas.kelola"), true, "instruktur punya tugas.kelola");
     eq(res.d.roles.instruktur.length, 5, "instruktur default");
     eq(res.d.roles.siswa.length, 2, "siswa default");
-    eq(res.d.roles.ortu.length, 1, "ortu default");
-    eq(res.d.roles.instruktur.includes("tugas.kelola"), true, "instruktur punya tugas.kelola");
 
     const me = await api("GET", "/api/admin/me", { token: adminToken });
     ok(Array.isArray(me.d.permissions) && me.d.permissions.includes("kurikulum.kelola"), "me memuat permissions");
@@ -1420,9 +1416,8 @@ async function cleanup() {
     const putRoles = async (roles) => api("PUT", "/api/admin/roles", { token: adminToken, body: { roles } });
     let res = await putRoles({
       admin: ["siswa.kelola"],
-      instruktur: ["codelab.kelola", "tugas.kelola"],
-      siswa: ["materi.akses"],
-      ortu: []
+      instruktur: ["tugas.kelola"],
+      siswa: ["materi.akses"]
     });
     eq(res.r.status, 200, "put valid");
 
@@ -1434,13 +1429,12 @@ async function cleanup() {
     eq(res.r.status, 200, "put valid 2");
     res = await api("GET", "/api/admin/roles", { token: adminToken });
     eq(res.d.roles.instruktur.includes("akses.kelola"), true, "instruktur punya akses.kelola");
-    eq(res.d.roles.admin.length, 11, "admin tetap semua");
+    eq(res.d.roles.admin.length, 10, "admin tetap semua");
 
     res = await putRoles({
-      admin: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola", "plugin.kelola", "pengaturan.ubah", "akses.kelola", "materi.akses", "tugas.kumpul"],
-      instruktur: ["siswa.kelola", "kurikulum.kelola", "codelab.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
-      siswa: ["materi.akses", "tugas.kumpul"],
-      ortu: ["anak.lihat"]
+      admin: ["siswa.kelola", "kurikulum.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola", "plugin.kelola", "pengaturan.ubah", "akses.kelola", "materi.akses", "tugas.kumpul"],
+      instruktur: ["siswa.kelola", "kurikulum.kelola", "tugas.kelola", "tugas.nilai", "badge.kelola"],
+      siswa: ["materi.akses", "tugas.kumpul"]
     });
     eq(res.r.status, 200, "put default");
   });

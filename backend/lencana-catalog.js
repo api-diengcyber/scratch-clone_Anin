@@ -141,7 +141,7 @@ function eligibleStudents(db, item) {
     SELECT u.id AS userId, u.username AS username, u.full_name AS fullName,
            COUNT(*) AS done, MAX(p.completed_at) AS completedAt
     FROM progress p
-    JOIN users u ON u.username = p.username
+    JOIN users u ON u.id = p.user_id
     WHERE p.completed = 1 AND u.role = 'student' AND p.task_id IN (${marks})
     GROUP BY u.id
     HAVING COUNT(*) = ?

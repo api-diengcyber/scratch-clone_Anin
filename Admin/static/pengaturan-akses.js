@@ -245,7 +245,7 @@
     ['plugin.kelola', 'Kelola plugin', 'Unggah, review, dan terbitkan plugin', 'fa-puzzle-piece'],
     ['pengaturan.ubah', 'Ubah pengaturan instansi', 'Profil, penilaian, dan keamanan akun', 'fa-sliders'],
     ['akses.kelola', 'Kelola pengguna & hak akses', 'Tambah akun dan atur peran', 'fa-shield-halved'],
-    ['materi.akses', 'Akses materi & studio coding', 'Belajar lewat materi, tahap, dan Code Lab sesuai jenjang', 'fa-laptop-code'],
+    ['materi.akses', 'Akses materi & studio coding', 'Belajar lewat materi, tahap, dan tantangan sesuai jenjang', 'fa-laptop-code'],
     ['tugas.kumpul', 'Mengerjakan & mengumpulkan tugas', 'Kirim jawaban tugas dan melihat nilai sendiri', 'fa-paper-plane']
   ];
   const ROLES = {
@@ -255,9 +255,8 @@
   };
   const roleStore = objStore('/api/admin/roles', 'roles', 'dc-roles', () => ({
     admin: PERMS.map((p) => p[0]),
-    instruktur: ['siswa.kelola', 'kurikulum.kelola', 'codelab.kelola', 'tugas.kelola', 'tugas.nilai', 'badge.kelola'],
-    siswa: ['materi.akses', 'tugas.kumpul'],
-    ortu: ['anak.lihat']
+    instruktur: ['siswa.kelola', 'kurikulum.kelola', 'tugas.kelola', 'tugas.nilai', 'badge.kelola'],
+    siswa: ['materi.akses', 'tugas.kumpul']
   }));
   const meInfo = () => { const m = window.DCAdminMe || {}, u = m.user || m; return { name: u.full_name || u.fullName || u.name || u.username || 'Admin', email: u.email || 'admin@diengcyber.local' }; };
   const instr = makeStore('/api/admin/instructors', 'dc-instructors', () => [
