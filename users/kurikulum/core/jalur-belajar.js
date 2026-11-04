@@ -338,6 +338,7 @@ const LP = Object.assign({}, window.LP_DATA, {
       const profil = {
         fullName: pilih(s.fullName, lokal.fullName),
         email: pilih(s.email, lokal.email),
+        parentEmail: pilih(s.parentEmail, lokal.parentEmail),
         bio: pilih(s.bio, lokal.bio),
         avatar: pilih(s.avatarUrl, lokal.avatar)
       };
@@ -356,6 +357,7 @@ const LP = Object.assign({}, window.LP_DATA, {
     try {
       const body = { fullName: data.fullName, bio: data.bio, avatarUrl: data.avatar };
       if (data.email) body.email = data.email;   // server menolak email tanpa "@" (termasuk kosong), jadi email kosong tidak dikirim
+      if (data.parentEmail) body.parentEmail = data.parentEmail;   // email orangtua (wajib diisi di halaman profil)
       const r = await fetch("/api/profile", { method: "PUT", headers: this.authHeaders(), body: JSON.stringify(body) });
       let b = {};
       try { b = await r.json(); } catch (e) { b = {}; }
@@ -364,6 +366,7 @@ const LP = Object.assign({}, window.LP_DATA, {
       const profil = {
         fullName: s.fullName || data.fullName || "",
         email: s.email || "",
+        parentEmail: s.parentEmail || data.parentEmail || "",
         bio: s.bio || "",
         avatar: s.avatarUrl || data.avatar || ""
       };

@@ -36,7 +36,7 @@
         const done = (i * 7 + 3) % 21;
         const slug = name.toLowerCase().replace(/[^a-z ]/g, '').replace(/ /g, '.');
         return {
-          id: i + 1, username: slug, email: slug + '@diengcyber.sch.id', full_name: name,
+          id: i + 1, username: slug, email: slug + '@diengcyber.sch.id', parent_email: i % 3 === 0 ? '' : 'ortu.' + slug + '@gmail.com', full_name: name,
           status: i === 5 || i === 17 ? 'suspended' : 'active', allowedGrades: GRADES[i % GRADES.length].slice(),
           completed_tasks: done, points_total: done * 10 + (i % 5) * 5, item_count: i % 4,
           created_at: ago(24 * (60 - i)), last_login_at: i % 6 === 0 ? '' : ago(1 + ((i * 13) % 200)), suspend_reason: i === 5 ? 'Contoh: pelanggaran tata tertib lab' : '',
@@ -96,7 +96,7 @@
         let username = email.split('@')[0].replace(/[^a-z0-9._-]/g, '') || 'siswa', n = 1, base = username;
         while (db.users.some((u) => u.username === username)) username = base + (++n);
         const password = tempPassword();
-        db.users.push({ id: db.nextId++, username, email, full_name: fullName, status: 'active', allowedGrades: clean(b.allowedGrades), completed_tasks: 0, points_total: 0, item_count: 0, created_at: new Date().toISOString(), last_login_at: '', suspend_reason: '' });
+        db.users.push({ id: db.nextId++, username, email, parent_email: String(b.parentEmail || '').trim().toLowerCase(), full_name: fullName, status: 'active', allowedGrades: clean(b.allowedGrades), completed_tasks: 0, points_total: 0, item_count: 0, created_at: new Date().toISOString(), last_login_at: '', suspend_reason: '' });
         save();
         return { ok: true, username, temporaryPassword: password };
       },
@@ -106,6 +106,7 @@
         if (b.email && mailTaken(String(b.email).trim(), id)) fail('Email sudah dipakai siswa lain.', 409);
         if (b.fullName) u.full_name = String(b.fullName).trim();
         if (b.email) u.email = String(b.email).trim().toLowerCase();
+        if (b.parentEmail !== undefined) u.parent_email = String(b.parentEmail).trim().toLowerCase();
         if (b.allowedGrades) u.allowedGrades = clean(b.allowedGrades);
         save(); return { ok: true };
       },
@@ -174,6 +175,12 @@
   // ---------- HELPER ----------
   const nameOf = (u) => u.full_name || u.username || ('Siswa #' + u.id);
   const nisOf = (u) => '#DC-' + String(u.id).padStart(4, '0');
+  // Email orangtua & kelengkapan data diri (aturan sama dengan sisi siswa: nama + email + email orangtua)
+  const parentOf = (u) => String((u && (u.parentEmail || u.parent_email)) || '').trim();
+  const profileComplete = (u) => {
+    const ok = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+    return !!String((u && (u.full_name || u.fullName)) || '').trim() && ok(u && u.email) && ok(parentOf(u));
+  };
   const lastSeen = (u) => u.last_login_at || u.last_seen_at || u.last_active_at || u.last_login || '';
   const pctOf = (done) => (S.totalTasks ? Math.min(100, Math.round((Number(done || 0) / S.totalTasks) * 100)) : 0);
   const metaOf = (u) => GRADE_META[primaryGrade(u)] || GRADE_META.ALL;
@@ -642,6 +649,8 @@
           ${infoRow('Nama lengkap', esc(nameOf(u)))}
           ${infoRow('Username', esc(u.username || '-'), true)}
           ${infoRow('Email', esc(u.email || '-'), true)}
+          ${infoRow('Email orangtua', parentOf(u) ? esc(parentOf(u)) : '<span class="text-amber-600 dark:text-amber-400 font-semibold">Belum diisi</span>', !!parentOf(u))}
+          ${infoRow('Data diri', profileComplete(u) ? '<span class="text-emerald-600 dark:text-emerald-400 font-semibold">Lengkap</span>' : '<span class="text-amber-600 dark:text-amber-400 font-semibold">Belum lengkap (siswa belum bisa mengakses course)</span>')}
           ${infoRow('NIS', nisOf(u), true)}
           ${infoRow('Jenjang', gradeBadges(u))}
           ${infoRow('Status', statusPill(u.status))}
@@ -706,10 +715,17 @@
         </div>
         <form id="swFormEl" class="space-y-4 pt-4 text-xs" novalidate>
           <div><label class="${LBL}" for="swfName">Nama Lengkap</label><input id="swfName" name="fullName" type="text" required maxlength="80" placeholder="Contoh: Raditya Pratama" class="${INPUT}"></div>
-          <div><label class="${LBL}" for="swfEmail">Email Akun Belajar</label><input id="swfEmail" name="email" type="email" required placeholder="siswa@diengcyber.sch.id" class="${INPUT}"></div>
+          <div><label class="${LBL}" for="swfEmail">Email Akun Belajar <span class="text-rose-500">*</span></label><input id="swfEmail" name="email" type="email" required placeholder="siswa@diengcyber.sch.id" class="${INPUT}"></div>
+          <div><label class="${LBL}" for="swfParentEmail">Email Orangtua <span class="text-rose-500">*</span></label><input id="swfParentEmail" name="parentEmail" type="email" required autocomplete="off" placeholder="orangtua@email.com" class="${INPUT} read-only:opacity-70 read-only:cursor-not-allowed">
+            <label class="flex items-center gap-2 mt-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer"><input type="checkbox" name="parentSame"> Email orangtua sama dengan email user</label></div>
           <div><span class="${LBL}">Jenjang</span>
             <div class="grid grid-cols-3 gap-2">${GRADE_KEYS.map((g) => `<label class="cursor-pointer"><input type="checkbox" name="grade" value="${g}" class="peer sr-only"><span class="flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[11px] font-semibold text-center transition peer-checked:border-sky-500 peer-checked:bg-sky-50 dark:peer-checked:bg-sky-500/10 peer-checked:text-sky-700 dark:peer-checked:text-sky-300 peer-focus-visible:ring-2 peer-focus-visible:ring-sky-500/40 hover:bg-slate-50 dark:hover:bg-slate-800"><i class="${GRADE_META[g].icon} text-sm"></i>${esc(GRADE_META[g].label)}</span></label>`).join('')}</div>
             <p class="text-[11px] text-slate-400 mt-1.5">Boleh memilih lebih dari satu jenjang.</p>
+          </div>
+          <div id="swfPassWrap" class="space-y-2">
+            <label class="${LBL}" for="swfPass">Password awal <span class="normal-case font-normal text-slate-400">(opsional)</span></label>
+            <input id="swfPass" name="password" type="text" autocomplete="off" maxlength="64" placeholder="Kosongkan untuk dibuat otomatis" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm font-mono text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500">
+            <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><input type="checkbox" name="mustChange" checked> Siswa wajib ganti password saat login pertama</label>
           </div>
           <p id="swFormNote" class="text-[11px] text-slate-500 dark:text-slate-400 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800"></p>
           <p id="swFormErr" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"></p>
@@ -721,7 +737,16 @@
       </div></div>`);
     document.body.appendChild(m);
     $('#swFormEl', m).addEventListener('submit', submitForm);
+    const fe = $('#swFormEl', m);
+    fe.email.addEventListener('input', () => syncParentSame(fe));
+    fe.parentSame.addEventListener('change', () => syncParentSame(fe));
     return m;
+  }
+
+  // Centang "sama dengan email user": kolom email orangtua mengikuti email siswa dan dikunci.
+  function syncParentSame(f) {
+    if (f.parentSame.checked) f.parentEmail.value = f.email.value.trim();
+    f.parentEmail.readOnly = f.parentSame.checked;
   }
 
   function openForm(user) {
@@ -732,10 +757,14 @@
     $('#swFormErr').classList.add('hidden');
     $('#swFormTitle').innerHTML = user ? '<i class="fa-solid fa-user-pen text-sky-600 dark:text-sky-400"></i>Edit Data Siswa' : '<i class="fa-solid fa-user-plus text-sky-600 dark:text-sky-400"></i>Pendaftaran Siswa Baru';
     $('#swFormSubmit').textContent = user ? 'Simpan Perubahan' : 'Daftarkan Siswa';
+    $('#swfPassWrap').classList.toggle('hidden', !!user);
     $('#swFormNote').innerHTML = user ? '<i class="fa-solid fa-circle-info mr-1.5"></i>Perubahan email tidak mengubah password siswa.' : '<i class="fa-solid fa-circle-info mr-1.5"></i>Password sementara dibuat otomatis dan ditampilkan sekali setelah akun dibuat.';
     if (user) {
       f.fullName.value = user.full_name || '';
       f.email.value = user.email || '';
+      f.parentEmail.value = parentOf(user);
+      f.parentSame.checked = !!f.parentEmail.value && f.parentEmail.value.toLowerCase() === (user.email || '').trim().toLowerCase();
+      syncParentSame(f);
       const gs = gradeOrder(user.allowedGrades);
       $$('input[name="grade"]', f).forEach((c) => { c.checked = gs.includes(c.value); });
     } else {
@@ -754,23 +783,28 @@
     err.classList.add('hidden');
     const fullName = f.fullName.value.trim();
     const email = f.email.value.trim();
+    syncParentSame(f);
+    const parentEmail = f.parentEmail.value.trim();
     const grades = $$('input[name="grade"]:checked', f).map((c) => c.value);
     if (fullName.length < 2) return fail('Nama lengkap minimal 2 huruf.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Format email belum benar.');
+    if (!parentEmail) return fail('Email orangtua wajib diisi.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail)) return fail('Format email orangtua belum benar.');
     if (!grades.length) return fail('Pilih minimal satu jenjang.');
     const btn = $('#swFormSubmit');
     btn.disabled = true;
     try {
       if (S.formUser) {
-        await api().updateUser(S.formUser.id, { fullName, email, allowedGrades: grades });
+        await api().updateUser(S.formUser.id, { fullName, email, parentEmail, allowedGrades: grades });
         closeForm();
         showToast('Data siswa diperbarui.');
       } else {
-        const r = await api().createUser({ fullName, email, allowedGrades: grades });
+        const pw = (f.password.value || '').trim();
+        if (pw && pw.length < 8) { btn.disabled = false; return fail('Password awal minimal 8 karakter.'); }
+        const r = await api().createUser({ fullName, email, parentEmail, allowedGrades: grades, ...(pw ? { password: pw, mustChangePassword: f.mustChange.checked } : {}) });
         closeForm();
         S.page = 1;
-        if (r.temporaryPassword) showCred({ title: 'Siswa berhasil dibuat', note: 'Simpan password sementara ini sekarang. Minta siswa menggantinya setelah login pertama.', entries: [{ name: fullName, username: r.username, password: r.temporaryPassword }] });
-        else showToast('Siswa ' + (r.username || fullName) + ' berhasil dibuat.');
+        showCredResult(r, pw, { name: fullName, username: r.username, title: 'Siswa berhasil dibuat' });
       }
       await reloadAll();
     } catch (ex) {
@@ -873,8 +907,8 @@
         page++;
       } while (page <= pages && page <= 200);
       if (!all.length) { showToast('Belum ada siswa yang cocok untuk diekspor.'); return; }
-      const rows = [['ID', 'NIS', 'Nama', 'Username', 'Email', 'Jenjang', 'Status', 'Task Selesai', 'Poin']];
-      all.forEach((u) => rows.push([u.id, nisOf(u), u.full_name || '', u.username || '', u.email || '', gradeText(u), statusMeta(u.status).text, u.completed_tasks || 0, u.points_total || 0]));
+      const rows = [['ID', 'NIS', 'Nama', 'Username', 'Email', 'Email Orangtua', 'Jenjang', 'Status', 'Task Selesai', 'Poin']];
+      all.forEach((u) => rows.push([u.id, nisOf(u), u.full_name || '', u.username || '', u.email || '', parentOf(u), gradeText(u), statusMeta(u.status).text, u.completed_tasks || 0, u.points_total || 0]));
       downloadCsv('siswa-dieng-cyber-' + new Date().toISOString().slice(0, 10) + '.csv', rows);
       showToast(fmtNum(all.length) + ' siswa diekspor ke CSV.', 'success');
     } catch (e) { showToast(e.message || 'Gagal mengekspor data.', 'error'); }
@@ -1030,15 +1064,36 @@
   }
 
   // ---------- AKSI ----------
+  // Tampilkan kredensial hasil buat/reset. Kalau admin mengisi password sendiri tapi server tetap membuat password acak,
+  // yang ditampilkan adalah password dari server (yang benar-benar berlaku) disertai peringatan.
+  function showCredResult(r, pw, { name, username, title }) {
+    const server = r && r.temporaryPassword, used = server || pw;
+    if (!used) return showToast(title + '.');
+    const ignored = !!(pw && server && server !== pw);
+    showCred({ title, note: ignored ? 'Server membuat password sendiri dan mengabaikan password yang kamu isi. Catat yang tampil di sini.' : 'Simpan password ini sekarang. Password tidak akan ditampilkan lagi.',
+      entries: [{ name, username: (r && r.username) || username, password: used }] });
+  }
+
   async function doReset(id) {
     const u = findUser(id); if (!u) return;
-    const ok = await dcConfirm({ title: 'Reset password siswa?', message: 'Password lama langsung tidak berlaku dan password sementara baru dibuat.', detail: nameOf(u), confirmText: 'Reset password', tone: 'warning' });
-    if (!ok) return;
-    try {
-      const r = await api().resetPassword(id, {});
-      if (r.temporaryPassword) showCred({ title: 'Password berhasil direset', note: 'Berikan password sementara ini kepada siswa. Password tidak akan ditampilkan lagi.', entries: [{ name: nameOf(u), username: r.username || u.username, password: r.temporaryPassword }] });
-      else showToast('Password ' + nameOf(u) + ' direset.');
-    } catch (e) { showToast(e.message || 'Gagal mereset password.', 'error'); }
+    if (!window.DCUI || !window.DCUI.modal) {   // cadangan: reset acak seperti sebelumnya
+      const ok = await dcConfirm({ title: 'Reset password siswa?', message: 'Password lama langsung tidak berlaku dan password sementara baru dibuat.', detail: nameOf(u), confirmText: 'Reset password', tone: 'warning' });
+      if (!ok) return;
+      try { showCredResult(await api().resetPassword(id, {}), '', { name: nameOf(u), username: u.username, title: 'Password berhasil direset' }); }
+      catch (e) { showToast(e.message || 'Gagal mereset password.', 'error'); }
+      return;
+    }
+    const { modal, field, INPUT } = window.DCUI;
+    modal('Reset password: ' + nameOf(u), `
+      <p class="text-xs text-slate-500 dark:text-slate-400">Password lama langsung tidak berlaku. Isi password baru yang mudah diingat siswa, atau kosongkan supaya dibuat otomatis.</p>
+      ${field('Password baru', `<input name="password" type="text" autocomplete="off" maxlength="64" class="${INPUT} font-mono" placeholder="Kosongkan untuk dibuat otomatis">`)}
+      <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><input type="checkbox" name="mustChange" checked> Siswa wajib ganti password saat login berikutnya</label>`,
+      async (f) => {
+        const pw = (f.password || '').trim();
+        if (pw && pw.length < 8) return 'Password minimal 8 karakter.';
+        const r = await api().resetPassword(id, pw ? { password: pw, mustChangePassword: !!f.mustChange } : {});
+        showCredResult(r, pw, { name: nameOf(u), username: u.username, title: 'Password berhasil direset' });
+      }, false, 'Reset password');
   }
 
   async function doSuspend(id, on) {

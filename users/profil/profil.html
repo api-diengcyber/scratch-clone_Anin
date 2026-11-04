@@ -167,9 +167,19 @@
             </div>
 
             <div class="space-y-1.5">
-              <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Alamat Email Belajar</label>
-              <input type="email" id="email" value="" placeholder="nama@email.com"
+              <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Alamat Email Belajar <span class="text-rose-500">*</span></label>
+              <input type="email" id="email" value="" placeholder="nama@email.com" required
                      class="w-full px-4 py-2.5 bg-slate-50 focus:bg-white text-sm font-medium border border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all">
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="parentEmail" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Email Orangtua <span class="text-rose-500">*</span></label>
+              <input type="email" id="parentEmail" value="" placeholder="orangtua@email.com" required autocomplete="off"
+                     class="w-full px-4 py-2.5 bg-slate-50 focus:bg-white text-sm font-medium border border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all read-only:bg-slate-100 read-only:text-slate-500 read-only:cursor-not-allowed">
+              <label for="parentSame" class="inline-flex items-center gap-2 mt-1 text-xs font-semibold text-slate-600 cursor-pointer select-none">
+                <input type="checkbox" id="parentSame" class="w-4 h-4 rounded border-slate-300 accent-sky-600">
+                Email orangtua sama dengan email user
+              </label>
             </div>
 
             <div class="space-y-1.5">
@@ -244,6 +254,9 @@
     const fullNameInput = document.getElementById('fullName');
     const usernameInput = document.getElementById('username');
     const emailInput = document.getElementById('email');
+    const parentEmailInput = document.getElementById('parentEmail');
+    const parentSame = document.getElementById('parentSame');
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const bioInput = document.getElementById('bio');
 
     let toastTimeout = null;
@@ -286,10 +299,34 @@
       paintFrame();   // teks username ditulis ulang di atas, jadi gelar & bingkai dipasang lagi
     }
 
+    // ---------- Email orangtua + centang "sama dengan email user" ----------
+    // Kalau dicentang, kolom email orangtua mengikuti email user dan dikunci. Tidak ada kolom tambahan di server:
+    // yang disimpan tetap alamat emailnya; centang otomatis aktif lagi bila keduanya sama.
+    function syncParent() {
+      if (parentSame.checked) parentEmailInput.value = emailInput.value.trim();
+      parentEmailInput.readOnly = parentSame.checked;
+    }
+    function setParentEmail(parent, email) {
+      parentEmailInput.value = parent || '';
+      parentSame.checked = !!parent && !!email && String(parent).toLowerCase() === String(email).toLowerCase();
+      syncParent();
+    }
+    parentSame.addEventListener('change', () => {
+      if (parentSame.checked && !emailInput.value.trim()) {
+        parentSame.checked = false;
+        showNotification('Isi email kamu dulu, baru bisa disamakan dengan email orangtua.', 'error');
+        return;
+      }
+      syncParent();
+      disentuh = true;
+    });
+    emailInput.addEventListener('input', syncParent);
+
     // Isi form dari data tersimpan
     fullNameInput.value = profile.fullName || '';
     usernameInput.value = currentUser;
     emailInput.value = profile.email || '';
+    setParentEmail(profile.parentEmail, profile.email);
     bioInput.value = profile.bio || '';
     setAvatar(currentAvatar);
     paintNames(profile.fullName || '');
@@ -297,11 +334,12 @@
     // Ambil profil terbaru dari server. Form baru diisi ulang kalau pengguna belum mengetik / memilih foto,
     // supaya ketikannya tidak tertimpa.
     let disentuh = false, avatarDiubah = false;
-    [fullNameInput, emailInput, bioInput].forEach((el) => el.addEventListener('input', () => { disentuh = true; }));
+    [fullNameInput, emailInput, parentEmailInput, bioInput].forEach((el) => el.addEventListener('input', () => { disentuh = true; }));
     LP.loadProfile().then((p) => {
       if (!p || disentuh) return;
       fullNameInput.value = p.fullName || '';
       emailInput.value = p.email || '';
+      setParentEmail(p.parentEmail, p.email);
       bioInput.value = p.bio || '';
       if (p.avatar && !avatarDiubah) setAvatar(DefaultAvatar.normalize(p.avatar));
       paintNames(p.fullName || '');
@@ -398,11 +436,30 @@
         return;
       }
 
+      syncParent();
+      const emailVal = emailInput.value.trim(), parentVal = parentEmailInput.value.trim();
+      if (!EMAIL_RE.test(emailVal)) {
+        showNotification('Alamat email belajar wajib diisi dengan format yang benar.', 'error');
+        emailInput.focus();
+        return;
+      }
+      if (!parentVal) {
+        showNotification('Email orangtua wajib diisi ya!', 'error');
+        parentEmailInput.focus();
+        return;
+      }
+      if (!EMAIL_RE.test(parentVal)) {
+        showNotification('Format email orangtua belum benar.', 'error');
+        parentEmailInput.focus();
+        return;
+      }
+
       const tombol = profileForm.querySelector('[type="submit"]');
       if (tombol) tombol.disabled = true;   // cegah klik ganda selama menyimpan
       const hasil = await LP.saveProfile({
         fullName: fullNameVal,
-        email: emailInput.value.trim(),
+        email: emailVal,
+        parentEmail: parentVal,
         bio: bioInput.value.trim(),
         avatar: currentAvatar
       });
@@ -416,6 +473,8 @@
       disentuh = false; avatarDiubah = false;
       paintNames(hasil.profile.fullName || fullNameVal);
       showNotification('Data profil berhasil disimpan!');
+      // dibuka dari pop up "Data diri belum dilengkapi" → setelah lengkap, kembali ke dashboard
+      if (new URLSearchParams(location.search).get('lengkapi') === '1') setTimeout(() => location.replace('/dashboard.html'), 1200);
     });
   </script>
 </body>

@@ -1,7 +1,7 @@
 /* Pengaturan Instansi & Akses/Hak Pengguna
    Endpoint yang dipakai (jika belum ada / 404, otomatis memakai data contoh di browser):
      GET  /api/admin/settings            -> { settings: {...} }       PUT /api/admin/settings { settings }
-     GET  /api/admin/roles               -> { roles: { admin:[], instruktur:[], siswa:[] } }   PUT /api/admin/roles { roles }
+     GET  /api/admin/roles               -> { roles: { admin:[], instruktur:[], siswa:[], ortu:[] } }   PUT /api/admin/roles { roles }
      GET/POST /api/admin/instructors     PATCH/DELETE /api/admin/instructors/:id
    Catatan: tampilan ini hanya mengatur data. Pembatasan hak akses yang sebenarnya HARUS dicek di server. */
 (function () {
@@ -241,29 +241,33 @@
     ['kurikulum.kelola', 'Kelola kurikulum & tahap', 'Atur modul, jalur belajar, dan tahap', 'fa-book-open'],
     ['tugas.kelola', 'Buat & ubah tugas', 'Tambah, ubah, salin, dan hapus tugas', 'fa-list-check'],
     ['tugas.nilai', 'Menilai tugas', 'Lihat jawaban siswa, beri nilai dan revisi', 'fa-clipboard-check'],
-    ['badge.kelola', 'Kelola badge', 'Buat dan atur badge penghargaan', 'fa-award'],
+    ['badge.kelola', 'Kelola lencana & hadiah', 'Atur lencana, badge penghargaan, bingkai avatar, dan gelar julukan', 'fa-award'],
     ['plugin.kelola', 'Kelola plugin', 'Unggah, review, dan terbitkan plugin', 'fa-puzzle-piece'],
     ['pengaturan.ubah', 'Ubah pengaturan instansi', 'Profil, penilaian, dan keamanan akun', 'fa-sliders'],
     ['akses.kelola', 'Kelola pengguna & hak akses', 'Tambah akun dan atur peran', 'fa-shield-halved'],
-    ['materi.akses', 'Akses materi & studio coding', 'Belajar lewat materi, tahap, dan tantangan sesuai jenjang', 'fa-laptop-code'],
-    ['tugas.kumpul', 'Mengerjakan & mengumpulkan tugas', 'Kirim jawaban tugas dan melihat nilai sendiri', 'fa-paper-plane']
+    ['materi.akses', 'Akses materi & studio coding', 'Belajar lewat materi dan tahap sesuai jenjang', 'fa-laptop-code'],
+    ['tugas.kumpul', 'Mengerjakan & mengumpulkan tugas', 'Kirim jawaban tugas dan melihat nilai sendiri', 'fa-paper-plane'],
+    ['anak.lihat', 'Pantau perkembangan siswa', 'Lihat progres, nilai, dan badge siswa yang ditautkan ke akun orang tua', 'fa-chart-line']
   ];
   const ROLES = {
     admin: ['Admin', 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-500/30'],
     instruktur: ['Instruktur', 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/30'],
-    siswa: ['Siswa', 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/30']
+    siswa: ['Siswa', 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/30'],
+    ortu: ['Orang Tua', 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30']
   };
   const roleStore = objStore('/api/admin/roles', 'roles', 'dc-roles', () => ({
     admin: PERMS.map((p) => p[0]),
     instruktur: ['siswa.kelola', 'kurikulum.kelola', 'tugas.kelola', 'tugas.nilai', 'badge.kelola'],
-    siswa: ['materi.akses', 'tugas.kumpul']
+    siswa: ['materi.akses', 'tugas.kumpul'],
+    ortu: ['anak.lihat']
   }));
   const meInfo = () => { const m = window.DCAdminMe || {}, u = m.user || m; return { name: u.full_name || u.fullName || u.name || u.username || 'Admin', email: u.email || 'admin@diengcyber.local' }; };
   const instr = makeStore('/api/admin/instructors', 'dc-instructors', () => [
     { id: 1, ...meInfo(), role: 'admin', grades: ['SD', 'SMP', 'SMK'], active: true },
     { id: 2, name: 'Nurul Hidayah', email: 'nurul@diengcyber.local', role: 'instruktur', grades: ['SMP', 'SMK'], active: true },
     { id: 3, name: 'Rizky Pratama', email: 'rizky@diengcyber.local', role: 'instruktur', grades: ['SD'], active: true },
-    { id: 4, name: 'Salsa Amelia', email: 'salsa@diengcyber.local', role: 'siswa', grades: ['SMP'], active: false }
+    { id: 4, name: 'Salsa Amelia', email: 'salsa@diengcyber.local', role: 'siswa', grades: ['SMP'], active: false },
+    { id: 5, name: 'Siti Aminah', email: 'siti@diengcyber.local', role: 'ortu', grades: ['SD'], active: true }
   ]);
   let people = [], rolesSaved = null, rolesNow = null;
   const isSelf = (p) => !!(p.email && p.email.toLowerCase() === meInfo().email.toLowerCase());
@@ -298,6 +302,14 @@
   }
   async function renderAkses() {
     try { [people, rolesSaved] = await Promise.all([instr.list(), roleStore.get()]); } catch (e) { return toast(e.message || 'Gagal memuat data akses.', 'error'); }
+    // data contoh lama di browser belum punya orang tua: tambahkan satu kali (hanya mode lokal)
+    try {
+      if (instr.isLocal() && !people.some((x) => x.role === 'ortu') && !localStorage.getItem('dc-seed-ortu')) {
+        localStorage.setItem('dc-seed-ortu', '1');
+        await instr.save({ name: 'Siti Aminah', email: 'siti@diengcyber.local', role: 'ortu', grades: ['SD'], active: true });
+        people = await instr.list();
+      }
+    } catch (_) {}
     ['super', 'asisten'].forEach((k) => { delete rolesSaved[k]; }); // data lama: 'super' kini 'admin', 'asisten' diganti 'siswa'
     Object.keys(ROLES).forEach((r) => { if (!Array.isArray(rolesSaved[r])) rolesSaved[r] = []; });
     people = people.map((x) => (x.role === 'super' ? { ...x, role: 'admin' } : x.role === 'asisten' ? { ...x, role: 'siswa' } : x));
@@ -306,7 +318,7 @@
     vAk.innerHTML = `
       <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4"><div>
         ${crumb('Akses &amp; Hak Pengguna')}<h1 class="${H1}">Akses &amp; Hak Pengguna<span id="akCount" class="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300/60 dark:border-sky-500/30">0 Akun</span></h1>
-        <p class="${SUB}">Atur akun admin, instruktur, dan siswa, serta apa yang boleh dilakukan tiap peran.</p></div>
+        <p class="${SUB}">Atur akun admin, instruktur, siswa, dan orang tua, serta apa yang boleh dilakukan tiap peran.</p></div>
         <button type="button" data-a="new" class="${BTN} self-start md:self-auto"><i class="fa-solid fa-plus text-xs"></i><span>Tambah Pengguna</span></button></div>
       ${demoNote(instr, '/api/admin/instructors')}
       <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse">
@@ -340,7 +352,7 @@
         if (!name) return 'Nama harus diisi.';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Format email tidak valid.';
         if (people.some((x) => x.id !== p.id && (x.email || '').toLowerCase() === email)) return 'Email sudah dipakai pengguna lain.';
-        if (!['admin'].includes(role) && !grades.length) return 'Pilih minimal satu jenjang yang diampu.';
+        if (!['admin', 'ortu'].includes(role) && !grades.length) return 'Pilih minimal satu jenjang yang diampu.';
         const res = await instr.save({ ...(p.id ? { id: p.id } : {}), name, email, role, grades, active: self ? true : f.active === '1' });
         toast(p.id ? 'Data pengguna diperbarui.' : 'Pengguna ditambahkan.');
         await renderAkses();

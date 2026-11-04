@@ -24,6 +24,12 @@
     ag.src = "/shared/js/auth-guard.js?v=20261019";
     document.head.appendChild(ag);
   }
+  // Halaman materi juga diblokir bila data diri belum lengkap (profil-gate.js memeriksanya sendiri).
+  if (!window.__profilGate) {
+    var pg = document.createElement("script");
+    pg.src = "/shared/js/profil-gate.js?v=20261019";
+    document.head.appendChild(pg);
+  }
 
   // ---------- PENGATURAN (ubah di sini) ----------
   var DETIK_PER_KATA = 1 / 15;     // halaman gulir: waktu baca minimal = jumlah kata / 15 detik ...

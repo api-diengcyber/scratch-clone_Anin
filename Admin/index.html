@@ -19,8 +19,9 @@
 
   <script src="static/tailwind-config.js?v=5"></script>
 
-  <link rel="stylesheet" href="static/admin.css?v=20">
+  <link rel="stylesheet" href="static/admin.css?v=21">
   <link rel="stylesheet" href="static/glass.css?v=5">
+  <link rel="stylesheet" href="static/frames.css?v=1">
 </head>
 
 <body class="text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
@@ -81,6 +82,7 @@
         <span class="nav-chip">3 Level</span>
       </a>
 
+
       <a href="#" data-view="siswa" class="nav-link group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-user-graduate w-4 text-center text-sm"></i>
@@ -96,7 +98,7 @@
 
       <a href="#" data-view="badge" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
         <i class="fa-solid fa-award w-4 text-center text-sm"></i>
-        <span>Sertifikat &amp; Badges</span>
+        <span>Lencana &amp; Hadiah</span>
       </a>
 
       <div class="nav-title pt-5">Konfigurasi</div>
@@ -438,7 +440,7 @@
           </div>
           <select id="kurSort" aria-label="Urutkan" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500">
             <option value="default">Sesuai Tahapan</option>
-            <option value="lab">Jumlah Lab</option>
+            <option value="lab">Jumlah Materi</option>
             <option value="siswa">Siswa Terbanyak</option>
           </select>
         </div>
@@ -477,62 +479,6 @@
     <div id="view-akses" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-profil" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
   </main>
-
-  <!-- Modal 1: Tambah Materi Coding Baru -->
-  <div id="modalAddCourse" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative">
-      
-      <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <i class="fa-solid fa-code text-sky-600 dark:text-sky-400"></i>
-            Tambah Modul Baru
-          </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Materi akan langsung diterbitkan ke portal siswa</p>
-        </div>
-        <button onclick="toggleModal('modalAddCourse')" class="dc-close">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <form id="courseForm" onsubmit="handleCourseSubmit(event)" class="space-y-4 pt-4 text-xs">
-        <div>
-          <label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">Judul Modul Coding</label>
-          <input type="text" required placeholder="Contoh: Logika Percabangan IF-ELSE Pada Blockly" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">Jenjang Target</label>
-            <select class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-800 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500">
-              <option>SD (Scratch & Blockly)</option>
-              <option>SMP (Web HTML/CSS/JS)</option>
-              <option>SMA/SMK (Python & Backend)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">Tipe Praktikum</label>
-            <select class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-800 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500">
-              <option>Visual Code Block</option>
-              <option>Live Text Editor Code</option>
-              <option>Proyek Akhir (Portfolio)</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">Boilerplate / Kode Pemula (Opsional)</label>
-          <textarea rows="3" placeholder="// Tuliskan kerangka kode awal di sini..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-800 dark:text-white font-mono text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></textarea>
-        </div>
-
-        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <button type="button" onclick="toggleModal('modalAddCourse')" class="dc-btn dc-btn-ghost">Batal</button>
-          <button type="submit" class="dc-btn dc-btn-pri">Simpan & Terbitkan</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Modal 2: Tambah Siswa Baru -->
   <div id="modalAddStudent" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
@@ -635,6 +581,7 @@
           <div class="col-span-2"><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Ikon</label><div data-ikon-picker><input type="hidden" name="ikon"><button type="button" data-ikon-open class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 flex items-center gap-2.5 text-left hover:border-sky-400"><span class="w-6 h-6 flex items-center justify-center shrink-0"><i data-ikon-preview class="fa-solid fa-cube"></i></span><span data-ikon-label class="truncate flex-1">Pilih ikon</span><i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i></button></div></div>
           <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Warna</label><input name="warna" type="color" value="#0ea5e9" class="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-1"></div>
         </div>
+        <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Lencana Tahap <span class="normal-case font-normal text-slate-400">(SMP &amp; SMA/SMK)</span></label><input name="lencana" maxlength="60" placeholder="🐍 Lencana Programmer Python" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 placeholder-slate-400"><p class="text-[11px] text-slate-400 mt-1">Didapat siswa jika semua task dan Capstone di tahap ini selesai.</p></div>
         <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Info Singkat <span class="normal-case font-normal text-slate-400">(opsional)</span></label><input name="meta" maxlength="80" placeholder="Usia 15–18 tahun · 36 Pertemuan" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 placeholder-slate-400"></div>
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
           <button type="button" onclick="toggleModal('modalTahap')" class="dc-btn dc-btn-ghost">Batal</button>
@@ -682,11 +629,11 @@
             <select name="tahap" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></select></div>
         </div>
         <div class="grid grid-cols-3 gap-3">
-          <div class="col-span-2"><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Lencana</label><input name="lencana" maxlength="60" placeholder="🐍 Lencana Programmer Python" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></div>
+          <div class="col-span-2"><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Lencana <span class="normal-case font-normal text-slate-400">(SD: hadiah Project Akhir)</span></label><input name="lencana" maxlength="60" placeholder="🐍 Lencana Programmer Python" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></div>
           <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Warna</label><input name="warna" type="color" value="#3d8bf5" class="w-full h-9 p-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer"></div>
         </div>
         <div class="grid grid-cols-3 gap-3">
-          <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Jumlah Lab</label><input name="lab" type="number" min="0" max="99" value="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></div>
+          <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Jumlah Materi</label><input name="lab" type="number" min="0" max="99" value="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></div>
           <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Durasi</label><input name="durasi" maxlength="20" placeholder="3.5 Jam" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"></div>
           <div><label class="block font-mono font-semibold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">Ikon</label><div data-ikon-picker><input type="hidden" name="ikon"><button type="button" data-ikon-open class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 flex items-center gap-2.5 text-left hover:border-sky-400"><span class="w-6 h-6 flex items-center justify-center shrink-0"><i data-ikon-preview class="fa-solid fa-cube"></i></span><span data-ikon-label class="truncate flex-1">Pilih ikon</span><i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i></button></div></div>
         </div>
@@ -703,7 +650,7 @@
     </div>
   </div>
 
-  <!-- Modal: Silabus & Lab (pratinjau jalur) -->
+  <!-- Modal: Silabus & Materi (pratinjau jalur) -->
   <div id="modalPreview" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl">
       <div class="flex justify-between items-start pb-4 border-b border-slate-200 dark:border-slate-800">
@@ -737,11 +684,12 @@
 <script src="static/common.js?v=2"></script>
 <script src="static/dialog.js?v=2"></script>
 <script src="static/editor.js?v=12"></script>
-<script src="static/kurikulum.js?v=24"></script>
+<script src="static/kurikulum.js?v=26"></script>
 <script src="static/plugins.js?v=2"></script>
-   <script src="static/siswa.js?v=8"></script>
-   <script src="static/badge-tugas.js?v=7"></script>
-   <script src="static/pengaturan-akses.js?v=11"></script>
+   <script src="static/siswa.js?v=9"></script>
+   <script src="static/avatar-frame.js?v=1"></script>
+   <script src="static/badge-tugas.js?v=16"></script>
+   <script src="static/pengaturan-akses.js?v=10"></script>
    <script src="static/profil.js?v=10"></script>
 </body>
 </html>

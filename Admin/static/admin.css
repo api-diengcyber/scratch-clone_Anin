@@ -169,7 +169,7 @@ html.dark .promo-card { background: linear-gradient(160deg, rgba(31,160,110,.14)
   #sbToggle {
     display: flex; align-items: center; justify-content: center;
     position: absolute; z-index: 5;
-    top: 50%; margin-top: -.8rem; right: -.8rem;   /* tepat di tengah tinggi sidebar */
+    top: var(--sb-toggle-top, 50%); margin-top: -.8rem; right: -.8rem;   /* sejajar judul "Konfigurasi" (diukur admin.js) */
     width: 1.6rem; height: 1.6rem; border-radius: 9999px;
     font-size: .62rem; color: var(--j-700);
     background: #fff; border: 1px solid var(--j-100);
@@ -500,9 +500,9 @@ html.dark #view-kurikulum .module-card [data-edit]:hover { background: rgba(31, 
 @media (prefers-reduced-motion: reduce) { #view-kurikulum .module-card:hover { transform: none; } }
 
 /* Modal kurikulum (Materi, Tahap, Ikon, Jalur, Silabus): panel bulat + overlay hijau tua */
-:is(#modalAddCourse, #modalTahap, #modalIkon, #modalJalur, #modalPreview) { background: rgba(5, 42, 30, .55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-:is(#modalAddCourse, #modalTahap, #modalIkon, #modalJalur, #modalPreview) > div { border-radius: 1.75rem; border-color: var(--j-100); box-shadow: 0 30px 60px -20px rgba(5, 42, 30, .45); }
-html.dark :is(#modalAddCourse, #modalTahap, #modalIkon, #modalJalur, #modalPreview) > div { background: #101c16; border-color: rgba(255, 255, 255, .08); }
+:is(#modalTahap, #modalIkon, #modalJalur, #modalPreview) { background: rgba(5, 42, 30, .55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+:is(#modalTahap, #modalIkon, #modalJalur, #modalPreview) > div { border-radius: 1.75rem; border-color: var(--j-100); box-shadow: 0 30px 60px -20px rgba(5, 42, 30, .45); }
+html.dark :is(#modalTahap, #modalIkon, #modalJalur, #modalPreview) > div { background: #101c16; border-color: rgba(255, 255, 255, .08); }
 
 
 /* ==========================================================================

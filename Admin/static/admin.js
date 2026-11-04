@@ -47,6 +47,19 @@ function setCollapsed(collapsed, persist) {
   if (sbToggle) sbToggle.setAttribute('aria-expanded', String(!collapsed));
   if (persist) { try { localStorage.setItem(SB_KEY, collapsed ? '1' : '0'); } catch (e) {} }
 }
+// Sejajarkan tombol ciut/buka dengan judul grup "Konfigurasi" di sidebar.
+// Diukur saat sidebar terbuka (judul grup menyusut saat rail), lalu posisinya dipakai tetap agar tombol tidak melompat.
+function alignSbToggle() {
+  if (!sidebar || isMobileNav()) return;
+  const title = [...document.querySelectorAll('#sidebarNav .nav-title')].find((t) => /konfigurasi/i.test(t.textContent));
+  if (!title) return;
+  const was = document.body.classList.contains('sb-collapsed');
+  if (was) document.body.classList.remove('sb-collapsed');
+  const s = sidebar.getBoundingClientRect(), t = title.getBoundingClientRect();
+  if (was) document.body.classList.add('sb-collapsed');
+  if (!t.height) return;
+  sidebar.style.setProperty('--sb-toggle-top', Math.round(t.top - s.top + t.height / 2) + 'px');
+}
 function applyAutoSidebar() {
   // Preferensi pengguna menang; kalau belum pernah memilih, ciut otomatis di lebar < 1100px.
   let pref = null;
@@ -66,6 +79,10 @@ if (sidebar) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setDrawer(false); });
   window.addEventListener('resize', applyAutoSidebar);
   applyAutoSidebar();
+  alignSbToggle();
+  window.addEventListener('resize', alignSbToggle);
+  window.addEventListener('load', alignSbToggle);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignSbToggle);
 }
 
 // --- 3. Modal Controllers ---
@@ -466,13 +483,6 @@ async function handleStudentSubmit(e) {
   } finally {
     if (submit) submit.disabled = false;
   }
-}
-
-function handleCourseSubmit(e) {
-  e.preventDefault();
-  toggleModal('modalAddCourse');
-  e.target.reset();
-  showToast('Form ini belum terhubung ke backend. Gunakan menu Modul & Kurikulum untuk jalur dan materi.');
 }
 
 async function refreshData() {

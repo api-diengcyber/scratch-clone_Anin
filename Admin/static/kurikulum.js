@@ -22,13 +22,43 @@
     'SD|1': { nama: 'Basic', ikon: 'fa-solid fa-seedling', warna: '#f59e0b' },
     'SD|2': { nama: 'Explore', ikon: 'fa-solid fa-compass', warna: '#0ea5e9' },
     'SMP|1': { nama: 'Python Start', ikon: 'fa-brands fa-python', warna: '#2563eb' },
-    'SMP|2': { nama: 'Web Advanced', ikon: 'fa-brands fa-html5', warna: '#10b981' },
+    'SMP|2': { nama: 'AI & Creative Tech', ikon: 'fa-solid fa-robot', warna: '#8f6bff' },
     'SMP|3': { nama: 'Game Dev 3D Lanjutan', ikon: 'fa-solid fa-cube', warna: '#f97316' },
     'SMK|1': { nama: 'Python Lanjutan & Algoritma', ikon: 'fa-brands fa-python', warna: '#0f9b8e', meta: 'Usia 15–18 tahun · 36 Pertemuan · 90 Menit/Sesi' },
     'SMK|2': { nama: 'Web Development Advanced', ikon: 'fa-brands fa-html5', warna: '#e11d48', meta: 'Usia 15–18 tahun · 36 Pertemuan · 90 Menit/Sesi' },
     'SMK|3': { nama: 'Data & AI Terapan', ikon: 'fa-solid fa-brain', warna: '#7c3aed', meta: 'Usia 15–18 tahun · 36 Pertemuan · 90 Menit/Sesi' },
   };
   const IKON_DEFAULT = 'fa-solid fa-cube';
+
+  // ---------- LENCANA (disamakan dengan portal siswa: kurikulum/data/*.js) ----------
+  // Di portal siswa: SD = satu lencana per jalur (hadiah Project Akhir), SMP & SMA/SMK = satu lencana per tahap/track.
+  // Lencana didapat kalau SEMUA task selesai DAN Project Akhir / Capstone selesai (lihat laporan/laporan.html).
+  const LENCANA_USER = {
+    jalur: {
+      'SD|Animasi Sederhana': '🎬 Lencana Animator', 'SD|Seni dari Komputer': '🎨 Lencana Seniman Digital',
+      'SD|Memahat Tanah Liat': '🏺 Lencana Pemahat Cilik', 'SD|Mendesain Rumah': '🏠 Lencana Arsitek Cilik',
+      'SD|Animasi ala Peppa Pig': '🐷 Lencana Sutradara Cilik', 'SD|Game Development': '🎮 Lencana Game Developer',
+      'SD|3D & Roblox': '🧊 Lencana Pembangun 3D', 'SD|Website Development': '🌐 Lencana Web Developer',
+    },
+    tahap: {
+      'SMP|Python Start': '🐍 Lencana Programmer Python', 'SMP|AI & Creative Tech': '🤖 Lencana Kreator AI',
+      'SMP|Game Dev 3D Lanjutan': '🎮 Lencana Game Developer 3D',
+      'SMK|Python Lanjutan & Algoritma': '🧮 Lencana Master Algoritma', 'SMK|Web Development Advanced': '🌐 Lencana Web Developer Pro',
+      'SMK|Data & AI Terapan': '📊 Lencana Data & AI Explorer',
+    },
+  };
+  // Cadangan menurut nomor tahap (portal siswa): dipakai kalau nama tahap di server berbeda/belum diganti.
+  const LENCANA_NO = {
+    'SMP|1': '🐍 Lencana Programmer Python', 'SMP|2': '🤖 Lencana Kreator AI', 'SMP|3': '🎮 Lencana Game Developer 3D',
+    'SMK|1': '🧮 Lencana Master Algoritma', 'SMK|2': '🌐 Lencana Web Developer Pro', 'SMK|3': '📊 Lencana Data & AI Explorer',
+  };
+  // Isi lencana yang masih kosong dengan data portal siswa (hanya di memori, baru tersimpan bila admin menyimpan).
+  function fillLencana(d) {
+    (d.jalur || []).forEach((j) => { if (!String(j.lencana || '').trim() && j.jenjang === 'SD') j.lencana = LENCANA_USER.jalur['SD|' + j.nama] || ''; });
+    (d.tahap || []).forEach((t) => { if (!String(t.lencana || '').trim()) t.lencana = LENCANA_USER.tahap[t.jenjang + '|' + t.nama] || LENCANA_NO[t.jenjang + '|' + Number(t.no)] || ''; });
+    return d;
+  }
+  window.DCLencana = { fill: fillLencana, byNo: (jn, no) => LENCANA_NO[jn + '|' + Number(no)] || '' };
 
   // ---------- DATA LAYER ----------
   // mk(jenjang, tahap, nama, warna, ikon, ringkas, {tags, lab, durasi, siswa, capstone, proyek, lencana, meta, materi})
@@ -54,9 +84,9 @@
     mk('SMP', 1, 'Dasar Python & Variabel', '#2563eb', 'fa-brands fa-python',
       'Sintaks `print()` pertama, manajemen variabel memori, tipe data primitif, dan interaktivitas `input()`.',
       { tags: ['Syntax', 'Variables', 'Data Types'], lab: 8, durasi: '3.5 Jam', siswa: 420,
-        lencana: '🐍 Lencana Programmer Python', meta: '36 Pertemuan · 90 Menit/Sesi',
+        meta: '36 Pertemuan · 90 Menit/Sesi',
         materi: [
-          lab('Pengenalan Lingkungan Code Lab', 'Hands-on', '15 Mnt'),
+          lab('Pengenalan Lingkungan Coding', 'Hands-on', '15 Mnt'),
           lab('Variabel & Penamaan Identifier', 'Live Compiler', '25 Mnt'),
           lab('Tipe Data String, Int & Float', 'Evaluasi Otomatis', '30 Mnt'),
           lab('Tantangan Logika Mini: Kalkulator Umur', 'Quiz Praktikum', '40 Mnt', true),
@@ -77,25 +107,13 @@
       'Proyek tim penutup Tahap 1: tantangan coding nyata secara kolaboratif dengan Git dan presentasi kode.',
       { tags: ['Teamwork', 'Portfolio', 'Review'], capstone: true, durasi: '6.0 Jam', siswa: 260, proyek: 'Karya tim' }),
 
-    // ===== SMP · Tahap 2 — Web Advanced =====
-    mk('SMP', 2, 'HTML Semantik & Struktur Halaman', '#10b981', 'fa-brands fa-html5',
-      'Pondasi web modern: tag `<header>`, `<nav>`, `<main>`, `<section>`, dan optimasi SEO.',
-      { tags: ['Semantic', 'Accessibility', 'SEO Dasar'], lab: 8, durasi: '3.2 Jam', siswa: 310 }),
-    mk('SMP', 2, 'Layout CSS: Flexbox & Grid', '#10b981', 'fa-brands fa-css3-alt',
-      'Menyusun tata letak halaman modern secara presisi: alignment flexbox, multi-column grid, gap system, tanpa float.',
-      { tags: ['Flexbox', 'CSS Grid', 'Modern Layout'], lab: 8, durasi: '4.2 Jam', siswa: 295 }),
-    mk('SMP', 2, 'Responsif & Media Query', '#10b981', 'fa-solid fa-mobile-screen-button',
-      'Tampilan adaptif di HP, tablet, dan desktop memakai `@media` queries dan fluid typography.',
-      { tags: ['Responsive', 'Mobile-First', 'Breakpoints'], lab: 8, durasi: '3.5 Jam', siswa: 280 }),
-    mk('SMP', 2, 'Form & Aksesibilitas', '#10b981', 'fa-solid fa-square-pen',
-      'Form interaktif yang benar, validasi input HTML5, label semantik, dan standar aksesibilitas pembaca layar.',
-      { tags: ['Forms', 'Validation', 'A11y'], lab: 8, durasi: '3.0 Jam', siswa: 250 }),
-    mk('SMP', 2, 'JavaScript Dasar & DOM', '#10b981', 'fa-brands fa-js',
-      'Menghidupkan halaman web: selector DOM, event klik dan input, perubahan style dinamis, mini kalkulator.',
-      { tags: ['DOM Events', 'Functions', 'Interactivity'], lab: 8, durasi: '4.5 Jam', siswa: 240 }),
-    mk('SMP', 2, 'Portofolio Web Pribadi', '#10b981', 'fa-solid fa-globe',
-      'Mempublikasikan website portofolio interaktif ke GitHub Pages dengan custom domain gratis dari Dieng Cyber.',
-      { tags: ['Deployment', 'GitHub Pages', 'Showcase'], capstone: true, durasi: '5.5 Jam', siswa: 230, proyek: 'Website portofolio pribadi' }),
+    // ===== SMP · Tahap 2 — AI & Creative Tech (sama dengan portal siswa) =====
+    mk('SMP', 2, 'Prompt Engineering', '#8f6bff', 'fa-solid fa-comments', 'Menulis prompt yang jelas dan terarah.'),
+    mk('SMP', 2, 'Web HTML/CSS via AI', '#8f6bff', 'fa-brands fa-html5', 'Dasar HTML/CSS dan memeriksa kode AI.'),
+    mk('SMP', 2, '14 Tools AI', '#8f6bff', 'fa-solid fa-toolbox', 'Audio, video, dan gambar dengan AI.'),
+    mk('SMP', 2, 'Aset Gambar, Audio & Video', '#8f6bff', 'fa-solid fa-photo-film', 'Membuat paket aset kreatif.'),
+    mk('SMP', 2, 'Game & Storytelling', '#8f6bff', 'fa-solid fa-book-open', 'Board game dan cerita bercabang.'),
+    mk('SMP', 2, 'Portofolio Web', '#8f6bff', 'fa-solid fa-globe', 'Website portofolio online.', { capstone: true, proyek: 'Portofolio website online' }),
 
     // ===== SMP · Tahap 3 — Game Dev 3D Lanjutan =====
     mk('SMP', 3, 'World Building & Transformasi', '#f97316', 'fa-solid fa-earth-asia', 'Membangun dunia 3D dan memindah/memutar objek.'),
@@ -128,11 +146,11 @@
     mk('SMK', 3, 'Capstone: Proyek Data & AI', '#7c3aed', 'fa-solid fa-graduation-cap', 'Proyek dari pertanyaan sampai kesimpulan.', { capstone: true }),
   ];
 
-  const seedTahap = () => Object.entries(TAHAP_INFO).map(([k, v]) => {
+  const seedTahap = () => fillLencana({ tahap: Object.entries(TAHAP_INFO).map(([k, v]) => {
     const [jenjang, no] = k.split('|');
-    return { jenjang, no: Number(no), nama: v.nama, ikon: v.ikon || IKON_DEFAULT, warna: v.warna || TAHAP_WARNA[no], meta: v.meta || '' };
-  });
-  const seedJalur = () => structuredClone(SEED);
+    return { jenjang, no: Number(no), nama: v.nama, ikon: v.ikon || IKON_DEFAULT, warna: v.warna || TAHAP_WARNA[no], meta: v.meta || '', lencana: '' };
+  }) }).tahap;
+  const seedJalur = () => fillLencana({ jalur: structuredClone(SEED) }).jalur;
 
   const doc = { exists: false, version: 0, tahap: [], jalur: [], loaded: false };
   let loadPromise = null;
@@ -148,6 +166,7 @@
     doc.version = Number(data.version) || 0;
     doc.tahap = Array.isArray(curriculum.tahap) ? curriculum.tahap : [];
     doc.jalur = Array.isArray(curriculum.jalur) ? curriculum.jalur : [];
+    fillLencana(doc);
     doc.loaded = true;
     if (doc.exists) {
       try {
@@ -284,7 +303,7 @@
       </div>`;
     (document.getElementById('kurStats') || document.createElement('div')).innerHTML =
       box({ key: 'modul', label: 'Total Modul', icon: 'fa-solid fa-cube', tone: 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400', hover: 'hover:border-sky-300 dark:hover:border-sky-500/50', text: 'group-hover:text-sky-600 dark:group-hover:text-sky-400', value: jalur.length, unit: 'Modul', note: `${Object.keys(JENJANG).filter((k) => jalur.some((j) => j.jenjang === k)).length} jenjang`, hint: 'Reset filter', active: false }) +
-      box({ key: 'lab', label: 'Total Code Lab', icon: 'fa-solid fa-code', tone: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400', hover: 'hover:border-indigo-300 dark:hover:border-indigo-500/50', text: 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400', value: totalLab, unit: 'Lab', note: 'Praktikum interaktif', hint: 'Urutkan', active: sortBy === 'lab' }) +
+      box({ key: 'lab', label: 'Total Materi', icon: 'fa-solid fa-code', tone: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400', hover: 'hover:border-indigo-300 dark:hover:border-indigo-500/50', text: 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400', value: totalLab, unit: 'Materi', note: 'Materi & praktik', hint: 'Urutkan', active: sortBy === 'lab' }) +
       box({ key: 'siswa', label: 'Siswa Aktif', icon: 'fa-solid fa-users', tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', hover: 'hover:border-emerald-300 dark:hover:border-emerald-500/50', text: 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400', value: totalSiswa, unit: 'Siswa', note: 'Jumlah per modul', hint: 'Urutkan', active: sortBy === 'siswa' }) +
       box({ key: 'capstone', label: 'Proyek Akhir', icon: 'fa-solid fa-trophy', tone: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400', hover: 'hover:border-amber-300 dark:hover:border-amber-500/50', text: 'group-hover:text-amber-600 dark:group-hover:text-amber-400', value: capstone, unit: 'Capstone', note: 'Penutup tiap tahap', hint: 'Filter', active: onlyCapstone });
     $('#kurCount').textContent = `${jalur.length} Modul Aktif`;
@@ -332,7 +351,7 @@
       </div>
       <div class="px-5 py-3.5 bg-slate-50/60 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
         <button data-prev="${esc(j.id)}" class="text-xs font-semibold flex items-center gap-1.5 hover:opacity-80 transition" style="color:${c}">
-          <i class="fa-solid fa-eye text-xs"></i><span>Silabus &amp; Lab</span>
+          <i class="fa-solid fa-eye text-xs"></i><span>Silabus &amp; Materi</span>
         </button>
         <div class="flex items-center gap-1.5">
           <button data-edit="${esc(j.id)}" class="dc-btn dc-btn-sec dc-btn-sm">
@@ -357,7 +376,7 @@
           <span class="px-2.5 py-1 rounded-md font-mono text-[11px] font-bold uppercase tracking-wider" style="background:${c}1f;color:${c}">${esc(label)} • TAHAP ${tahap}</span>
           ${info ? `<h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono flex items-center gap-2"><i class="${esc(info.ikon || IKON_DEFAULT)}" style="color:${c}"></i>${esc(info.nama)}</h2>` : ''}
         </div>
-        <span class="text-xs font-mono text-slate-500 dark:text-slate-400">${rows.length} Modul${totalLab ? ` • ${totalLab} Code Lab` : ''}${info && info.meta ? ` • ${esc(info.meta)}` : ''}</span>
+        <span class="text-xs font-mono text-slate-500 dark:text-slate-400">${rows.length} Modul${totalLab ? ` • ${totalLab} Materi` : ''}${info && info.meta ? ` • ${esc(info.meta)}` : ''}</span>
       </div>`;
   }
 
@@ -383,7 +402,6 @@
       html += `<section class="space-y-4">${sectionHead(jenjang, Number(tahap), list)}<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">${list.map(card).join('')}</div></section>`;
     });
     $('#jalurGrid').innerHTML = html || `<div class="text-center text-sm text-slate-500 py-12">${jalur.length ? 'Tidak ada modul yang cocok.' : 'Belum ada jalur belajar. Klik "Tambah Jalur" untuk membuat.'}</div>`;
-    fillMateriSelect();
     if (previewId && !$('#modalPreview').classList.contains('hidden')) renderPreview();
   }
 
@@ -418,7 +436,7 @@
       </div>`).join('')
       : '<div class="text-center text-slate-400 py-8">Belum ada materi di modul ini.<br>Klik “Tambah Materi” untuk menambahkan.</div>';
     const nTerbit = list.filter(isTerbit).length;
-    $('#prevFoot').textContent = `${list.length} materi · ${nTerbit} tersedia · ${list.length - nTerbit} draft${j.lab && j.lab > list.length ? ` (target ${j.lab} lab)` : ''}`;
+    $('#prevFoot').textContent = `${list.length} materi · ${nTerbit} tersedia · ${list.length - nTerbit} draft${j.lab && j.lab > list.length ? ` (target ${j.lab} materi)` : ''}`;
   }
 
   function openPreview(id) {
@@ -631,6 +649,7 @@
               <div class="text-[11px] font-mono font-bold uppercase tracking-wider" style="color:${c}">Tahap ${t.no}</div>
               <div class="text-sm font-bold text-slate-900 dark:text-white truncate">${esc(t.nama)}</div>
               <div class="text-[11px] text-slate-500 dark:text-slate-400">${n} jalur${t.meta ? ' • ' + esc(t.meta) : ''}</div>
+              ${t.lencana ? `<div class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 truncate">${esc(t.lencana)}</div>` : ''}
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
@@ -656,7 +675,7 @@
     f.jenjang.disabled = !!t; // jenjang tidak diubah saat edit
     if (t) {
       f.jenjang.value = t.jenjang; f.no.value = t.no; f.nama.value = t.nama;
-      f.ikon.value = t.ikon || ''; f.warna.value = hex(t.warna); f.meta.value = t.meta || '';
+      f.ikon.value = t.ikon || ''; f.warna.value = hex(t.warna); f.meta.value = t.meta || ''; f.lencana.value = t.lencana || '';
     } else {
       f.no.value = nextTahapNo(f.jenjang.value);
       f.warna.value = TAHAP_WARNA[f.no.value];
@@ -678,7 +697,7 @@
     const jenjang = oldKey ? oldKey.split('|')[0] : f.jenjang.value;
     const t = {
       jenjang, no: Math.min(99, Math.max(1, Math.round(Number(f.no.value)) || 1)), nama: f.nama.value.trim(),
-      ikon: /^[a-z0-9 -]+$/i.test(ikon) ? ikon : IKON_DEFAULT, warna: hex(f.warna.value), meta: f.meta.value.trim(),
+      ikon: /^[a-z0-9 -]+$/i.test(ikon) ? ikon : IKON_DEFAULT, warna: hex(f.warna.value), meta: f.meta.value.trim(), lencana: f.lencana.value.trim(),
     };
     if (!t.nama) return;
     const newKey = tahapKey(t);
@@ -728,15 +747,6 @@
   }
 
   // ---------- MATERI (di dalam jalur) ----------
-  function fillMateriSelect() {
-    const sel = $('#courseForm select');
-    if (!sel) return;
-    const cur = sel.value;
-    sel.previousElementSibling.textContent = 'Jalur Belajar';
-    sel.innerHTML = jalur.map((j) => `<option value="${esc(j.id)}">${esc(j.nama)} (${esc(j.jenjang === 'SMK' ? 'SMA/SMK' : j.jenjang)} · Tahap ${tahapOf(j)})</option>`).join('') || '<option value="">Buat jalur dulu</option>';
-    if (cur && jalur.some((j) => j.id === cur)) sel.value = cur;
-  }
-
   const jenjangLabel = (j) => (j.jenjang === 'SMK' ? 'SMA/SMK' : j.jenjang);
 
   // Tambah materi baru / edit materi yang sudah ada (editor WYSIWYG: static/editor.js)
