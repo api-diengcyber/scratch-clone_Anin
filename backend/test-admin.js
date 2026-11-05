@@ -1574,6 +1574,8 @@ async function cleanup() {
     ok(Number.isSafeInteger(created.d.item.id), "id tautan");
     eq(created.d.item.guardianId, guardianId, "guardian tautan");
     ok(/\/api\/reports\/[A-Za-z0-9_-]{43}$/.test(created.d.item.url), "url tautan");
+    ok(/^https?:\/\/[^/]+\/orangtua\/laporan\.html#[A-Za-z0-9_-]{43}$/.test(created.d.item.pageUrl), "pageUrl halaman wali (token setelah #)");
+    eq(created.d.item.pageUrl.split("#")[1], created.d.item.url.split("/").pop(), "token pageUrl sama dengan url API");
     ok(created.d.item.expiresAt, "expiresAt tautan");
 
     const token = created.d.item.url.split("/").pop();
@@ -1592,6 +1594,18 @@ async function cleanup() {
     // Siswa ini di-rename lebih awal (fullName "Renamed Student"); laporan memakai full_name.
     eq(res.d.report.student.name, "Renamed Student", "nama siswa laporan");
     eq(res.d.link.guardianName, "Ayah Siswa", "wali pada laporan");
+    // Whitelist: daftar kunci dikunci persis. Menambah field ke laporan publik (yang bisa dibuka
+    // siapa pun pemegang tautan) harus keputusan sadar, bukan kebetulan.
+    eqJson(Object.keys(res.d.report), ["generatedAt", "institution", "student", "summary", "grades", "completedTasks", "submissions", "mentorNote"], "kunci laporan publik");
+    eqJson(Object.keys(res.d.report.summary), ["points", "totalTasks", "completedTasks", "completionRate", "gradedSubmissions", "averageScore", "completedModules", "failedAttempts", "timeSpentSeconds"], "kunci summary publik");
+    eqJson(Object.keys(res.d.link), ["expiresAt", "guardianName"], "kunci link publik");
+    eqJson(Object.keys(res.d.child), ["fullName"], "kunci child");
+    ok(Array.isArray(res.d.progress) && Array.isArray(res.d.attempts), "progress dan attempts berupa array");
+    const owner = db.prepare("SELECT username, email FROM users WHERE id = ?").get(studentId);
+    const publicBody = JSON.stringify(res.d);
+    ok(!publicBody.includes(owner.username), "username siswa tidak bocor");
+    if (owner.email) ok(!publicBody.includes(owner.email), "email siswa tidak bocor");
+    ok(!/achievement|lencana|analytics/i.test(publicBody), "tidak ada data lencana/analytics");
     ok(Array.isArray(res.d.report.grades), "grades laporan");
     ok(Array.isArray(res.d.report.completedTasks), "completedTasks laporan");
     ok(Array.isArray(res.d.report.submissions), "submissions laporan");
@@ -1634,7 +1648,9 @@ async function cleanup() {
 
     res = await api("GET", `/api/reports/${secondToken}`);
     eq(res.r.status, 200, "akses siswa 2");
-    eq(res.d.report.student.name, "siswa-laporan", "laporan hanya siswa 2");
+    eq(res.d.report.student.name, null, "siswa tanpa nama lengkap tidak memakai username sebagai nama");
+    eq(res.d.child.fullName, null, "child.fullName kosong, bukan username");
+    ok(!JSON.stringify(res.d).includes("siswa-laporan"), "username siswa 2 tidak muncul di laporan");
     eq(res.d.link.guardianName, "Wali Dua", "wali siswa 2");
 
     // Cabut tautan pertama.
@@ -1758,6 +1774,141 @@ async function cleanup() {
 
     res = await api("GET", `/api/admin/users/${sid}/report-links`, { token: adminToken });
     ok(res.d.items.some((x) => x.id === linkAyah.d.item.id && x.status === "revoked"), "status revoked tercatat");
+  });
+
+  await t("Berlangganan: admin menyimpan tanggal mulai dan melihat jatuh tempo laporan pertama", async () => {
+    const sid = addUser("siswa-langganan", "siswa-langganan@example.com", STUDENT_PASS, "student");
+    const put = (body, token = adminToken) => api("PUT", `/api/admin/users/${sid}/subscription`, { token, body });
+
+    let res = await put({ startedAt: "2026-11-04" });
+    eq(res.r.status, 200, "simpan tanggal");
+    eq(res.d.item.subscriptionStartedAt, "2026-11-04", "tanggal tersimpan");
+    eq(res.d.item.firstReportDueDate, "2026-12-04", "jatuh tempo 1 bulan kemudian");
+
+    res = await api("GET", `/api/admin/users/${sid}`, { token: adminToken });
+    eq(res.d.user.subscriptionStartedAt, "2026-11-04", "detail user memuat tanggal");
+    eq(res.d.user.firstReportDueDate, "2026-12-04", "detail user memuat jatuh tempo");
+    ok(!("subscription_started_at" in res.d.user), "tidak ada duplikat snake_case");
+
+    res = await api("GET", "/api/admin/users?search=siswa-langganan", { token: adminToken });
+    eq(res.d.users[0].subscriptionStartedAt, "2026-11-04", "daftar user memuat tanggal");
+
+    res = await put({ startedAt: "2026-01-31" });
+    eq(res.d.item.firstReportDueDate, "2026-02-28", "31 Jan + 1 bulan = 28 Feb");
+
+    for (const bad of ["2026-02-30", "04-11-2026", "2026-11-04T00:00:00Z", "", "bukan tanggal", 20261104, true, {}]) {
+      res = await put({ startedAt: bad });
+      eq(res.r.status, 400, `tanggal ditolak: ${JSON.stringify(bad)}`);
+      eq(res.d.code, "ADMIN_DATA_INVALID", `code untuk ${JSON.stringify(bad)}`);
+    }
+    res = await put({});
+    eq(res.r.status, 400, "startedAt wajib ada (null harus eksplisit)");
+    res = await api("GET", `/api/admin/users/${sid}`, { token: adminToken });
+    eq(res.d.user.subscriptionStartedAt, "2026-01-31", "input salah tidak mengubah data");
+
+    res = await put({ startedAt: null });
+    eq(res.r.status, 200, "hapus tanggal");
+    eq(res.d.item.subscriptionStartedAt, null, "tanggal kosong");
+    eq(res.d.item.firstReportDueDate, null, "jatuh tempo kosong");
+
+    res = await api("PUT", "/api/admin/users/999999/subscription", { token: adminToken, body: { startedAt: "2026-11-04" } });
+    eq(res.r.status, 404, "siswa tidak ada");
+    res = await api("PUT", `/api/admin/users/${adminId}/subscription`, { token: adminToken, body: { startedAt: "2026-11-04" } });
+    eq(res.r.status, 404, "akun admin bukan target berlangganan");
+    res = await put({ startedAt: "2026-11-04" }, studentToken);
+    eq(res.r.status, 403, "siswa dilarang");
+    res = await put({ startedAt: "2026-11-04" }, null);
+    eq(res.r.status, 401, "tanpa token");
+
+    const audits = db.prepare("SELECT details FROM admin_audit WHERE action = 'subscription.update' AND target_id = ? ORDER BY id").all(String(sid)).map((r) => JSON.parse(r.details));
+    eq(audits.length, 3, "tiga perubahan sukses tercatat di audit");
+    eqJson([audits[0].from, audits[0].to], [null, "2026-11-04"], "audit: dari kosong ke tanggal");
+    eqJson([audits[2].from, audits[2].to], ["2026-01-31", null], "audit: penghapusan tercatat");
+  });
+
+  await t("Berlangganan: mengubah tanggal menyesuaikan pengiriman yang belum terkirim", async () => {
+    const deliveries = require("./report-deliveries");
+    const sid = addUser("siswa-sesuai", "siswa-sesuai@example.com", STUDENT_PASS, "student");
+    const put = (startedAt) => api("PUT", `/api/admin/users/${sid}/subscription`, { token: adminToken, body: { startedAt } });
+    await put("2026-11-04");
+    const pending = deliveries.queueDelivery(db, { studentId: sid, recipientEmail: "belum@example.com", dueDate: "2026-12-04" });
+    const sentRow = deliveries.queueDelivery(db, { studentId: sid, recipientEmail: "sudah@example.com", dueDate: "2026-12-04" });
+    deliveries.markSent(db, sentRow.id);
+
+    let res = await put("2027-01-31");
+    eqJson(res.d.deliveries, { rescheduled: 1, skipped: 0 }, "hanya pending yang digeser");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const byEmail = Object.fromEntries(res.d.items.map((x) => [x.recipientEmail, x]));
+    eq(byEmail["belum@example.com"].dueDate, "2027-02-28", "pending digeser ke 28 Feb");
+    eq(byEmail["sudah@example.com"].dueDate, "2026-12-04", "sent tidak diubah");
+
+    res = await put(null);
+    eqJson(res.d.deliveries, { rescheduled: 0, skipped: 1 }, "tanggal dihapus membatalkan yang belum terkirim");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const after = Object.fromEntries(res.d.items.map((x) => [x.recipientEmail, x.status]));
+    eq(after["belum@example.com"], "skipped", "yang belum terkirim dibatalkan");
+    eq(after["sudah@example.com"], "sent", "yang sudah terkirim tetap sent");
+    ok(pending.id > 0);
+  });
+
+  await t("Catatan pengiriman: daftar per siswa dan global, filter, dan hak akses", async () => {
+    const deliveries = require("./report-deliveries");
+    const sid = addUser("siswa-catatan", "siswa-catatan@example.com", STUDENT_PASS, "student");
+    const a = deliveries.queueDelivery(db, { studentId: sid, recipientEmail: "a@example.com", dueDate: "2026-12-04" });
+    const b = deliveries.queueDelivery(db, { studentId: sid, recipientEmail: "b@example.com", dueDate: "2026-12-04" });
+    deliveries.markSent(db, a.id);
+    deliveries.markFailed(db, b.id, "SMTP timeout");
+
+    let res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    eq(res.r.status, 200, "daftar per siswa");
+    eqJson([res.d.total, res.d.items.length], [2, 2], "dua catatan");
+    eq(res.d.items[0].status, "failed", "terbaru dulu");
+    eq(res.d.items[0].lastError, "SMTP timeout", "alasan gagal terlihat");
+
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries?status=sent`, { token: adminToken });
+    eqJson([res.d.total, res.d.items[0].recipientEmail], [1, "a@example.com"], "filter status sent");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries?status=ngawur`, { token: adminToken });
+    eq(res.r.status, 400, "status tidak dikenal ditolak");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries?limit=1&page=2`, { token: adminToken });
+    eqJson([res.d.items.length, res.d.pages], [1, 2], "paginasi");
+    res = await api("GET", "/api/admin/users/999999/report-deliveries", { token: adminToken });
+    eq(res.r.status, 404, "siswa tidak ada");
+
+    res = await api("GET", "/api/admin/report-deliveries?status=failed", { token: adminToken });
+    eq(res.r.status, 200, "daftar global");
+    ok(res.d.items.length >= 1 && res.d.items.every((x) => x.status === "failed"), "filter global");
+    ok(res.d.items.every((x) => typeof x.studentName === "string"), "nama siswa ikut tampil");
+    ok(!/token/i.test(JSON.stringify(res.d)), "tidak ada token/hash di respons");
+
+    res = await api("GET", "/api/admin/report-deliveries", { token: studentToken });
+    eq(res.r.status, 403, "siswa dilarang (global)");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: studentToken });
+    eq(res.r.status, 403, "siswa dilarang (per siswa)");
+    res = await api("GET", "/api/admin/report-deliveries", { token: null });
+    eq(res.r.status, 401, "tanpa token (global)");
+
+    const instrUserId = addUser("instr-kirim", "instr-kirim@diengcyber.local", "InstrPass123!", "instruktur");
+    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(instrUserId);
+    const instrToken = auth.createSession(instrUserId);
+    res = await api("GET", "/api/admin/report-deliveries", { token: instrToken });
+    eq(res.r.status, 200, "instruktur dengan siswa.kelola boleh");
+
+    // Route global baru tidak boleh lolos tanpa aturan izin: tanpa siswa.kelola harus 403.
+    const previous = db.prepare("SELECT permissions FROM admin_role_permissions WHERE role = 'instruktur'").get();
+    db.prepare(`INSERT INTO admin_role_permissions (role, permissions) VALUES ('instruktur', ?)
+      ON CONFLICT(role) DO UPDATE SET permissions = excluded.permissions`).run(JSON.stringify(["tugas.kelola"]));
+    try {
+      res = await api("GET", "/api/admin/report-deliveries", { token: instrToken });
+      eq(res.r.status, 403, "instruktur tanpa siswa.kelola dilarang (global)");
+      eq(res.d.code, "PERMISSION_DENIED", "code global");
+      res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: instrToken });
+      eq(res.r.status, 403, "instruktur tanpa siswa.kelola dilarang (per siswa)");
+      res = await api("PUT", `/api/admin/users/${sid}/subscription`, { token: instrToken, body: { startedAt: "2026-11-04" } });
+      eq(res.r.status, 403, "instruktur tanpa siswa.kelola dilarang ubah tanggal");
+    } finally {
+      if (previous) db.prepare("UPDATE admin_role_permissions SET permissions = ? WHERE role = 'instruktur'").run(previous.permissions);
+      else db.prepare("DELETE FROM admin_role_permissions WHERE role = 'instruktur'").run();
+    }
   });
 
   // Harus paling akhir: setelah ini IP tes terkunci sementara oleh rate limit laporan.

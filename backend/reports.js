@@ -8,12 +8,20 @@
 
 const crypto = require("crypto");
 const learningService = require("./learning-service");
+const reportDeliveries = require("./report-deliveries");
 
 const RELATIONS = ["ayah", "ibu", "wali", "lainnya"];
 const MAX_GUARDIANS = 5;
 const DEFAULT_EXPIRY_DAYS = 30;
 const MAX_EXPIRY_DAYS = 365;
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
+// Halaman wali. Token ditaruh setelah '#': bagian itu tidak ikut dikirim browser ke
+// server, jadi tidak masuk log, riwayat server, maupun header Referer.
+const REPORT_PAGE_PATH = "/orangtua/laporan.html";
+
+function reportPageUrl(baseUrl, token) {
+  return `${String(baseUrl).replace(/\/+$/, "")}${REPORT_PAGE_PATH}#${token}`;
+}
 const GRADES = ["SD", "SMP", "SMK"];
 
 function hashToken(token) {
@@ -98,6 +106,8 @@ function replaceGuardians(db, studentId, guardians, createdBy) {
     for (const row of existing) {
       if (wanted.has(String(row.email).toLowerCase())) continue;
       revokeLinks.run(row.id);
+      // Email laporan yang belum terkirim ke wali ini juga dibatalkan.
+      reportDeliveries.skipPendingForGuardian(db, row.id, "Wali dihapus dari daftar");
       remove.run(row.id);
     }
 
@@ -243,11 +253,6 @@ function buildStudentReport(db, studentId) {
   const analytics = learningService.buildLearningAnalytics(db, studentId);
   const mentorNote = learningService.getMentorNote(db, studentId);
   if (!analytics) return null;
-  // Laporan wali tidak membutuhkan ID internal atau username login siswa.
-  analytics.student = {
-    name: analytics.student.name,
-    grades: analytics.student.grades
-  };
   const recent = db.prepare(`
     SELECT pr.task_id, t.title, t.grade, t.points, pr.completed_at
     FROM progress pr
@@ -297,8 +302,12 @@ function buildStudentReport(db, studentId) {
       semester: settings.semester || null,
       kkm: settings.kkm === undefined ? null : settings.kkm
     },
+    // Laporan ini dibuka siapa pun yang memegang tautan, jadi isinya WHITELIST eksplisit:
+    // tidak ada username/ID/email, tidak ada data lencana, dan `analytics` utuh tidak
+    // dikirim (tiap modul di dalamnya membawa data lencana sendiri). Siswa tanpa
+    // nama lengkap tampil tanpa nama; username adalah separuh kredensial login.
     student: {
-      name: student.full_name || student.username,
+      name: student.full_name || null,
       grades: gradeFilter
     },
     summary: {
@@ -309,17 +318,42 @@ function buildStudentReport(db, studentId) {
       gradedSubmissions: graded.length,
       averageScore,
       completedModules: analytics.summary.completedModules,
-      achievementsEarned: analytics.summary.achievementsEarned,
       failedAttempts: analytics.summary.failedAttempts,
       timeSpentSeconds: analytics.summary.timeSpentSeconds
     },
     grades: gradeSummary,
     completedTasks: recent,
     submissions,
-    analytics,
-    achievements: analytics.achievements,
-    mentorNote
+    // Pesan mentor boleh dilihat wali; ID internal penulisnya tidak ikut.
+    mentorNote: mentorNote
+      ? { text: mentorNote.text, authorName: mentorNote.authorName || null, updatedAt: mentorNote.updatedAt }
+      : null
   };
+}
+
+// Data mentah untuk halaman wali: halaman menghitung tampilannya di browser dengan mesin
+// yang sama seperti "Laporan Saya", jadi ia butuh baris progres dan percobaan.
+// Sengaja minimal: tanpa username, tanpa waktu selesai, tanpa baris yang belum selesai.
+const MAX_CHILD_ROWS = 5000;
+
+function buildChildData(db, studentId, fullName) {
+  const progress = db.prepare(`
+    SELECT task_id FROM progress
+    WHERE user_id = ? AND completed = 1
+    ORDER BY id ASC LIMIT ?
+  `).all(studentId, MAX_CHILD_ROWS).map((row) => ({ task_id: row.task_id, completed: true }));
+
+  const attempts = db.prepare(`
+    SELECT task_id, fails, time_spent FROM attempts
+    WHERE user_id = ?
+    ORDER BY id ASC LIMIT ?
+  `).all(studentId, MAX_CHILD_ROWS).map((row) => ({
+    task_id: row.task_id,
+    fails: Number(row.fails || 0),
+    time_spent: Number(row.time_spent || 0)
+  }));
+
+  return { child: { fullName: fullName || null }, progress, attempts };
 }
 
 function resolveReportToken(db, token) {
@@ -348,6 +382,7 @@ function resolveReportToken(db, token) {
   `).run(row.id);
 
   return {
+    ...buildChildData(db, Number(row.student_user_id), report.student.name),
     report,
     link: {
       expiresAt: isoFromSqlite(row.expires_at),
@@ -368,5 +403,8 @@ module.exports = {
   listReportLinks,
   revokeReportLink,
   buildStudentReport,
-  resolveReportToken
+  resolveReportToken,
+  buildChildData,
+  REPORT_PAGE_PATH,
+  reportPageUrl
 };

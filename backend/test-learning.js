@@ -220,12 +220,34 @@ async function waitReady() {
       assert(response.status === 200 && data.item.text.includes("Bagus!"), "pesan mentor tidak terbaca");
     });
 
-    await test("laporan wali ikut memuat analytics, achievements, dan pesan mentor", async () => {
+    await test("laporan wali memuat ringkasan dan pesan mentor, tanpa lencana, analytics, dan username", async () => {
+      // Siswa ini sudah menyelesaikan satu modul dan punya lencana (dicek lewat endpoint miliknya sendiri),
+      // tetapi laporan yang dibuka wali tidak boleh membawa data lencana apa pun.
+      const own = await request("/api/achievements", { token: studentToken });
+      assert(own.response.status === 200 && JSON.stringify(own.data).match(/"earned":\s*true/), "siswa seharusnya punya lencana");
+
       const { response, data } = await request(`/api/reports/${reportLink.token}`);
       assert(response.status === 200 && data.ok, "tautan laporan gagal");
-      assert(data.report.analytics.summary.completedTasks === 2, "analytics tidak ada di laporan");
-      assert(data.report.achievements.some((item) => item.earned), "achievement tidak ada di laporan");
+      assert(data.report.summary.completedTasks === 2, "ringkasan tugas selesai tidak ada di laporan");
       assert(data.report.mentorNote.text.includes("Bagus!"), "pesan mentor tidak ada di laporan");
+      assert(!("authorId" in data.report.mentorNote), "ID penulis pesan mentor bocor");
+      assert(data.report.analytics === undefined && data.report.achievements === undefined, "analytics/achievements ikut terkirim");
+      assert(!("achievementsEarned" in data.report.summary), "jumlah lencana ikut terkirim");
+      const body = JSON.stringify(data);
+      assert(!/achievement|lencana/i.test(body), "data lencana bocor ke laporan wali");
+      assert(!body.includes("learner"), "username siswa bocor ke laporan wali");
+      assert(data.report.student.name === null && data.child.fullName === null, "siswa tanpa nama lengkap tidak boleh memakai username");
+    });
+
+    await test("laporan wali memuat data mentah minimal untuk halaman wali (child, progress, attempts)", async () => {
+      const { response, data } = await request(`/api/reports/${reportLink.token}`);
+      assert(response.status === 200, "tautan laporan gagal");
+      assert(JSON.stringify(Object.keys(data.child)) === JSON.stringify(["fullName"]), "child hanya boleh berisi fullName");
+      assert(data.progress.length === 2 && data.progress.every((row) => row.completed === true), "progress hanya baris yang selesai");
+      assert(data.progress.every((row) => JSON.stringify(Object.keys(row)) === JSON.stringify(["task_id", "completed"])), "bentuk baris progress");
+      const attempt = data.attempts.find((row) => row.task_id === "testmod:1");
+      assert(attempt && attempt.fails === 1 && attempt.time_spent === 120, "baris attempts tidak sesuai");
+      assert(data.attempts.every((row) => JSON.stringify(Object.keys(row)) === JSON.stringify(["task_id", "fails", "time_spent"])), "bentuk baris attempts");
     });
 
     await test("user tidak bisa membaca progress akun lain", async () => {

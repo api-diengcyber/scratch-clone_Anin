@@ -7,6 +7,7 @@ dotenv.config({
 });
 
 const pino = require("pino");
+const { redactPathForLog } = require("./log-redact");
 const logger = pino({
     level: process.env.LOG_LEVEL || "info",
     base: { service: "dcc-backend" }
@@ -199,9 +200,13 @@ app.use((req, res, next) => {
     res.on("finish", () => {
         try {
             const ms = Date.now() - start;
-            const log = res.statusCode >= 400 ? logger.warn : logger.info;
-            log({ reqId: req.id, method: req.method, path: req.path, status: res.statusCode, ms },
-                `${req.method} ${req.path} ${res.statusCode} ${ms}ms`);
+            // Panggil lewat logger[level]: method pino tidak boleh dilepas dari objeknya
+            // (tanpa `this` ia melempar TypeError yang lalu ditelan catch di bawah, sehingga
+            // dulu tidak ada satu pun log request yang tertulis).
+            const level = res.statusCode >= 400 ? "warn" : "info";
+            const safePath = redactPathForLog(req.path);
+            logger[level]({ reqId: req.id, method: req.method, path: safePath, status: res.statusCode, ms },
+                `${req.method} ${safePath} ${res.statusCode} ${ms}ms`);
         } catch (e) {
             // Logger errors should never crash the request
         }

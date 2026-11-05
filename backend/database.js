@@ -176,6 +176,21 @@ if (!existingUserColumns.includes("last_login_at")) {
 })();
 
 // ============================================================
+// TANGGAL MULAI BERLANGGANAN
+// ============================================================
+// Format 'YYYY-MM-DD' (tanggal saja, tanpa jam). Dipakai untuk menentukan kapan
+// email laporan pertama ke wali jatuh tempo (1 bulan setelah mulai).
+// PENTING: kolom ini sengaja ditambahkan SETELAH migrateUserRoles(). Rebuild
+// tabel users di atas menyalin kolom dengan daftar eksplisit, jadi kolom yang
+// ditambahkan sebelum rebuild akan hilang diam-diam pada database lama.
+// Kalau kelak ada rebuild tabel users lagi, kolom ini harus ikut disalin.
+if (!db.prepare("PRAGMA table_info(users)").all().some((c) => c.name === "subscription_started_at")) {
+    db.exec(`ALTER TABLE users ADD COLUMN subscription_started_at TEXT
+        CHECK (subscription_started_at IS NULL
+               OR subscription_started_at GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')`);
+}
+
+// ============================================================
 // ADMIN AUDIT
 // ============================================================
 // actor_user_id sengaja tidak memakai FK: audit harus tetap ada walaupun
@@ -410,6 +425,45 @@ db.exec(`
         ON report_links(student_user_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_report_links_expires
         ON report_links(expires_at);
+`);
+
+// Catatan pengiriman email laporan ke wali. Satu baris = satu email ke satu
+// penerima. Indeks unik (siswa + email + jenis + periode) menjadi pengaman
+// supaya penjadwal yang jalan dua kali atau server yang restart tidak mengirim
+// email dobel. Email penerima disimpan sebagai salinan (snapshot) karena baris
+// wali bisa dibuat ulang atau dihapus. Token mentah TIDAK disimpan di sini;
+// hanya referensi ke report_links (yang menyimpan hash).
+//   kind   : jenis kiriman, saat ini 'month1' (laporan 1 bulan setelah berlangganan)
+//   period : kosong untuk kiriman sekali; diisi (mis. '2027-01') bila kelak berulang
+//   status : pending -> sent | failed | skipped ('sent' bersifat final)
+db.exec(`
+    CREATE TABLE IF NOT EXISTS report_deliveries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_user_id INTEGER NOT NULL,
+        guardian_id INTEGER,
+        recipient_email TEXT NOT NULL,
+        recipient_name TEXT,
+        kind TEXT NOT NULL,
+        period TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pending'
+            CHECK (status IN ('pending', 'sent', 'failed', 'skipped')),
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        report_link_id INTEGER,
+        due_date TEXT,
+        sent_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(guardian_id) REFERENCES student_guardians(id) ON DELETE SET NULL,
+        FOREIGN KEY(report_link_id) REFERENCES report_links(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_report_deliveries_once
+        ON report_deliveries(student_user_id, recipient_email COLLATE NOCASE, kind, period);
+    CREATE INDEX IF NOT EXISTS idx_report_deliveries_status
+        ON report_deliveries(status, due_date);
+    CREATE INDEX IF NOT EXISTS idx_report_deliveries_student
+        ON report_deliveries(student_user_id, id DESC);
 `);
 
 // Catatan mentor disimpan di backend agar dapat dibaca siswa dan wali melalui

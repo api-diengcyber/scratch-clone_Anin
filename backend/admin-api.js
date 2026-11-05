@@ -38,6 +38,7 @@ function registerAdminApi(app, deps) {
   }
   const permissionsModule = require("./permissions");
   const reports = require("./reports");
+  const reportDeliveries = require("./report-deliveries");
   const ADMIN_PATH_RULES = [
     { re: /^\/me(?:\/|$)/, perm: null },
     { re: /^\/notifications/, perm: null },
@@ -45,6 +46,7 @@ function registerAdminApi(app, deps) {
     { re: /^\/activity\/?$/, perm: null },
     { re: /^\/audit/, perm: "akses.kelola" },
     { re: /^\/users/, perm: "siswa.kelola" },
+    { re: /^\/report-deliveries/, perm: "siswa.kelola" },
     { re: /^\/curriculum-tasks/, perm: "tugas.kelola" },
     { re: /^\/curriculum/, perm: "kurikulum.kelola" },
     { re: /^\/badges/, perm: "badge.kelola" },
@@ -76,7 +78,7 @@ function registerAdminApi(app, deps) {
     const num = Number(id);
     if (!Number.isSafeInteger(num) || num < 1) return null;
     const user = db.prepare(`SELECT id, username, email, full_name, bio, avatar_url, allowed_grades, role, status,
-        must_change_password, last_login_at, created_at FROM users WHERE id = ?`).get(num);
+        must_change_password, last_login_at, created_at, subscription_started_at FROM users WHERE id = ?`).get(num);
     return user && user.role === "student" ? user : null;
   }
   function jsonAllowedGrades(value) {
@@ -1263,13 +1265,13 @@ function registerAdminApi(app, deps) {
     const clause = where.join(" AND ");
     const total = db.prepare(`SELECT COUNT(*) AS n FROM users u WHERE ${clause}`).get(...params).n;
     const aggregate = db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status='suspended' THEN 1 ELSE 0 END) AS suspended, (SELECT COUNT(*) FROM tasks) AS tasks_total FROM users WHERE role='student'").get();
-    const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.status, u.allowed_grades, u.last_login_at, u.created_at,
+    const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.status, u.allowed_grades, u.last_login_at, u.created_at, u.subscription_started_at,
         COALESCE(p.total,0) AS points_total,
         (SELECT COUNT(*) FROM progress pr WHERE pr.user_id=u.id AND pr.completed=1) AS completed_tasks,
         (SELECT COUNT(*) FROM user_items ui WHERE ui.user_id=u.id) AS item_count
       FROM users u LEFT JOIN points p ON p.user_id=u.id
       WHERE ${clause} ORDER BY u.id DESC LIMIT ? OFFSET ?`).all(...params, limitN, (page - 1) * limitN);
-    return sendApiSuccess(res, { users: rows.map(r => ({ ...r, allowedGrades: jsonAllowedGrades(r.allowed_grades), allowed_grades: undefined })), page, limit: limitN, total, pages: Math.ceil(total / limitN), stats: aggregate });
+    return sendApiSuccess(res, { users: rows.map(r => ({ ...r, allowedGrades: jsonAllowedGrades(r.allowed_grades), allowed_grades: undefined, subscriptionStartedAt: r.subscription_started_at || null, subscription_started_at: undefined })), page, limit: limitN, total, pages: Math.ceil(total / limitN), stats: aggregate });
   });
 
   app.get("/api/admin/users/:id", (req, res) => {
@@ -1283,6 +1285,8 @@ function registerAdminApi(app, deps) {
     const sessions = db.prepare("SELECT created_at, expires_at FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 20").all(u.id);
     const progressRows = db.prepare("SELECT task_id, completed, completed_at, bonus_awarded FROM progress WHERE user_id = ? ORDER BY id DESC LIMIT 100").all(u.id);
     const safe = { ...u, allowedGrades: jsonAllowedGrades(u.allowed_grades) }; delete safe.allowed_grades;
+    safe.subscriptionStartedAt = u.subscription_started_at || null; delete safe.subscription_started_at;
+    safe.firstReportDueDate = reportDeliveries.firstReportDueDate(safe.subscriptionStartedAt);
     return sendApiSuccess(res, { user: safe, points, progress, progressRows, items, sessions, activeSessions: sessionCount.active });
   });
 
@@ -1511,6 +1515,7 @@ function registerAdminApi(app, deps) {
         studentId: link.studentId,
         guardianId: link.guardianId,
         url: `${reportBaseUrl(req)}/api/reports/${link.token}`,
+        pageUrl: reports.reportPageUrl(reportBaseUrl(req), link.token),
         expiresAt: link.expiresAt,
         createdAt: link.createdAt
       }
@@ -1529,6 +1534,77 @@ function registerAdminApi(app, deps) {
     audit(req, "report_link.revoke", "user", u.id, { linkId });
     return sendApiSuccess(res, result, "Tautan laporan dicabut.");
   });
+
+  // ------------------------------------------------------------
+  // BERLANGGANAN & CATATAN PENGIRIMAN EMAIL LAPORAN
+  // Email laporan pertama ke wali jatuh tempo 1 bulan setelah tanggal mulai
+  // berlangganan. Pengirim email dan penjadwalnya belum ada; endpoint di sini
+  // hanya mengatur tanggal dan menampilkan catatan pengiriman.
+  // ------------------------------------------------------------
+  function subscriptionItem(userId, startedAt) {
+    return {
+      userId,
+      subscriptionStartedAt: startedAt || null,
+      firstReportDueDate: reportDeliveries.firstReportDueDate(startedAt || null)
+    };
+  }
+
+  function deliveryQuery(req) {
+    const rawStatus = req.query.status === undefined ? "" : String(req.query.status);
+    if (rawStatus && !reportDeliveries.STATUSES.includes(rawStatus)) {
+      adminDataError(`status harus salah satu dari: ${reportDeliveries.STATUSES.join(", ")}.`, "status");
+    }
+    return { status: rawStatus || null, page: req.query.page, limit: req.query.limit };
+  }
+
+  app.put("/api/admin/users/:id/subscription", (req, res) => adminDataResponse(res, () => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+
+    const body = req.body || {};
+    if (!Object.prototype.hasOwnProperty.call(body, "startedAt")) {
+      adminDataError("startedAt wajib diisi (YYYY-MM-DD) atau null untuk menghapus.", "startedAt");
+    }
+    let startedAt = body.startedAt;
+    if (startedAt !== null) {
+      if (typeof startedAt !== "string" || !reportDeliveries.isValidDateOnly(startedAt.trim())) {
+        adminDataError("startedAt harus tanggal yang valid berformat YYYY-MM-DD (tahun 2000-2100) atau null.", "startedAt");
+      }
+      startedAt = startedAt.trim();
+    }
+
+    const previous = u.subscription_started_at || null;
+    const sync = db.transaction(() => {
+      db.prepare("UPDATE users SET subscription_started_at = ? WHERE id = ? AND role = 'student'").run(startedAt, u.id);
+      const result = reportDeliveries.syncPendingForSubscription(db, u.id, startedAt);
+      audit(req, "subscription.update", "user", u.id, {
+        from: previous,
+        to: startedAt,
+        rescheduled: result.rescheduled,
+        skipped: result.skipped
+      });
+      return result;
+    })();
+
+    return sendApiSuccess(res, {
+      item: subscriptionItem(u.id, startedAt),
+      deliveries: sync
+    }, startedAt ? "Tanggal mulai berlangganan disimpan." : "Tanggal mulai berlangganan dihapus.");
+  }));
+
+  app.get("/api/admin/users/:id/report-deliveries", (req, res) => adminDataResponse(res, () => {
+    const u = reportStudent(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const result = reportDeliveries.listDeliveries(db, { ...deliveryQuery(req), studentId: u.id });
+    return sendApiSuccess(res, {
+      ...result,
+      subscription: subscriptionItem(u.id, u.subscription_started_at)
+    });
+  }));
+
+  app.get("/api/admin/report-deliveries", (req, res) => adminDataResponse(res, () => {
+    return sendApiSuccess(res, reportDeliveries.listDeliveries(db, deliveryQuery(req)));
+  }));
 
   // Learning analytics dan achievements untuk dashboard staff.
   // Akses melewati permission siswa.kelola dari adminPermissionGate.

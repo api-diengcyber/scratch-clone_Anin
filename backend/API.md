@@ -173,8 +173,11 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | GET | `/api/admin/users/:id/guardians` | - | `{ items, total }`; daftar wali `{ id, name, email, relation, createdAt, updatedAt }` |
 | PUT | `/api/admin/users/:id/guardians` | `{ guardians: [{ name, email, relation? }] }` | `{ items, total }`; **replace** seluruh wali (dicocokkan lewat email: wali yang dipertahankan tetap memakai `id` dan tautannya, wali yang dihilangkan dihapus dan tautannya otomatis dicabut), maks. 5; `relation` = `ayah`/`ibu`/`wali`/`lainnya` (default `wali`); email unik per siswa |
 | GET | `/api/admin/users/:id/report-links` | - | `{ items, total }`; daftar tautan `{ id, guardianId, guardianName, guardianEmail, status, expiresAt, revokedAt, lastAccessedAt, accessCount, createdAt }`; `status` = `active`/`expired`/`revoked` |
-| POST | `/api/admin/users/:id/report-links` | `{ guardianId?, expiresInDays? }` | `{ item: { id, studentId, guardianId, url, expiresAt, createdAt } }`; token asli hanya muncul sekali di `url` |
+| POST | `/api/admin/users/:id/report-links` | `{ guardianId?, expiresInDays? }` | `{ item: { id, studentId, guardianId, url, pageUrl, expiresAt, createdAt } }`; `url` = alamat API (JSON), `pageUrl` = alamat halaman wali yang dikirim ke email; token asli hanya muncul sekali (di `url` dan `pageUrl`) |
 | DELETE | `/api/admin/users/:id/report-links/:linkId` | - | `{ id, revoked: true }`; tautan langsung tidak bisa diakses lagi |
+| PUT | `/api/admin/users/:id/subscription` | `{ startedAt: "YYYY-MM-DD" \| null }` | `{ item: { userId, subscriptionStartedAt, firstReportDueDate }, deliveries: { rescheduled, skipped } }`; `null` menghapus tanggal; field `startedAt` wajib ada |
+| GET | `/api/admin/users/:id/report-deliveries` | query `status?`, `page?`, `limit?` (maks. 100) | `{ items, total, page, limit, pages, subscription }`; catatan pengiriman email laporan siswa itu |
+| GET | `/api/admin/report-deliveries` | query `status?`, `page?`, `limit?` | `{ items, total, page, limit, pages }`; semua siswa, berguna untuk memantau yang `failed` |
 
 Perilaku penting:
 
@@ -208,7 +211,13 @@ Perilaku penting:
 - Wali siswa untuk laporan publik disimpan di tabel `student_guardians` (`student_user_id`, `name`, `email`, `relation`, `created_by`). Wali bukan akun login dan tidak punya password/sesi. Satu siswa maksimal 5 wali; email unik per siswa.
 - Tautan laporan publik disimpan di tabel `report_links` (`token_hash`, `student_user_id`, `guardian_id`, `expires_at`, `revoked_at`, `access_count`). Token asli hanya dikembalikan sekali saat pembuatan; database menyimpan SHA-256. Default berlaku 30 hari, maksimal 365 hari, dan bisa dicabut kapan saja.
 - Orang tua tidak lagi punya akun login; kontak wali disimpan di `student_guardians` dan laporan dibagikan lewat tautan publik `report_links`.
-- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`); perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, dan pencabutan `report_link.revoke`.
+- Tanggal mulai berlangganan disimpan di `users.subscription_started_at` (`YYYY-MM-DD`, tanpa jam; kosong = belum berlangganan). Tanggal harus sah (mis. `2026-02-30` ditolak) dengan tahun 2000-2100. `GET /api/admin/users/:id` dan daftar user memuat `subscriptionStartedAt`; detail juga memuat `firstReportDueDate`.
+- Email laporan pertama jatuh tempo **1 bulan kalender setelah** tanggal mulai; bila tanggalnya tidak ada di bulan tujuan, dipotong ke hari terakhir bulan itu (31 Jan → 28/29 Feb).
+- Catatan pengiriman disimpan di tabel `report_deliveries`, satu baris per email per penerima. Indeks unik (siswa + email penerima tanpa beda huruf besar/kecil + `kind` + `period`) mencegah email ganda walaupun penjadwal berjalan dua kali atau server restart. Email penerima disimpan sebagai salinan; token mentah tidak pernah disimpan (hanya `report_link_id`).
+- `status`: `pending` → `sent` | `failed` | `skipped`. `sent` bersifat final (tidak bisa dibatalkan atau dikirim ulang). `failed` boleh dicoba lagi (`attempts` bertambah, alasan di `lastError`, maks. 500 karakter). `skipped` boleh dihidupkan lagi oleh antrean bila tanggal atau wali diisi kembali.
+- Mengubah tanggal berlangganan menggeser `dueDate` pengiriman `pending`; menghapus tanggal membatalkan yang `pending`/`failed` (`skipped`). Yang sudah `sent` tidak disentuh. Menghapus wali membatalkan email yang belum terkirim ke wali itu, sejalan dengan tautannya yang dicabut.
+- **Belum ada** pengirim email maupun penjadwal. Endpoint di atas hanya mengatur tanggal dan menampilkan catatan; modul `report-deliveries.js` (`queueDelivery`, `markSent`, `markFailed`, `listDeliveries`) disiapkan untuk dipakai keduanya kelak.
+- Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`); perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`, dan perubahan tanggal berlangganan `subscription.update` (berisi `from`, `to`, `rescheduled`, `skipped`).
 - Rate limit admin: 60 request/menit per admin per path.
 
 ## Laporan Wali (publik)
@@ -217,9 +226,24 @@ Wali tidak punya akun. Admin membuat tautan laporan per siswa lalu mengirim URL-
 
 | Method | Alamat | Hasil |
 |---|---|---|
-| GET | `/api/reports/:token` | `{ report, link }`; tanpa login |
+| GET | `/api/reports/:token` | `{ child, progress, attempts, report, link }`; tanpa login |
 
-Bentuk `report`:
+Isi respons ini adalah **whitelist**: apa pun yang tidak tercantum di bawah tidak pernah dikirim, karena siapa pun yang memegang tautan bisa membacanya. Tidak ada username, ID, atau email siswa; tidak ada data lencana (`achievements`, `analytics`, `summary.achievementsEarned`); dan ID internal penulis pesan mentor tidak ikut. Daftar kunci dikunci oleh test, jadi menambah field adalah keputusan sadar.
+
+Data mentah untuk halaman wali (halaman menghitung tampilannya di browser dengan mesin yang sama seperti "Laporan Saya"):
+
+```json
+{
+  "child": { "fullName": "Nama Siswa" },
+  "progress": [{ "task_id": "py1:0", "completed": true }],
+  "attempts": [{ "task_id": "py1:1", "fails": 1, "time_spent": 120 }]
+}
+```
+
+- `child.fullName` bisa `null` (siswa tanpa nama lengkap). Tampilkan nama netral, jangan username.
+- `progress` hanya berisi tugas yang sudah selesai; `attempts` berisi percobaan gagal dan waktu per tugas. Maksimal 5000 baris per daftar.
+
+Bentuk `report` (ringkasan yang sudah dihitung server):
 
 ```json
 {
@@ -234,18 +258,28 @@ Bentuk `report`:
     "gradedSubmissions": 3,
     "averageScore": 85.3,
     "completedModules": 4,
-    "achievementsEarned": 4,
     "failedAttempts": 8,
     "timeSpentSeconds": 7200
   },
   "grades": [{ "grade": "SMP", "totalTasks": 40, "completedTasks": 25, "completionRate": 62.5 }],
   "completedTasks": [{ "taskId": "py1:0", "title": "Judul", "grade": "SMP", "points": 10, "completedAt": "..." }],
   "submissions": [{ "id": 1, "taskId": 2, "title": "Tugas", "grade": "SMP", "status": "dinilai", "score": 90, "feedback": "...", "submittedAt": "...", "gradedAt": "..." }],
-  "analytics": { "summary": { "totalTasks": 40, "completedTasks": 25, "completionRate": 62.5, "totalModules": 8, "completedModules": 4, "achievementsEarned": 4, "failedAttempts": 8, "timeSpentSeconds": 7200, "points": { "earned": 120, "spent": 20, "balance": 100 } }, "grades": [], "modules": [], "taskDetails": [], "completedTaskHistory": [], "achievements": [], "recommendations": [] },
-  "achievements": [{ "key": "course:SMP:py1", "title": "Lencana PY1", "grade": "SMP", "moduleId": "py1", "earned": true, "earnedAt": "..." }],
-  "mentorNote": { "text": "Pertahankan semangat belajarmu!", "authorId": 2, "authorName": "Kak Mentor", "createdAt": "...", "updatedAt": "..." }
+  "mentorNote": { "text": "Pertahankan semangat belajarmu!", "authorName": "Kak Mentor", "updatedAt": "..." }
 }
 ```
+
+`link` berisi `{ expiresAt, guardianName }`. `student.name` dan `mentorNote` bisa `null`.
+
+### Halaman wali
+
+Admin mengirim `pageUrl` (bukan `url`) ke email wali: `https://domain/orangtua/laporan.html#<token>`. Token ditaruh setelah `#` supaya tidak dikirim browser ke server, tidak masuk log, dan tidak ikut header Referer. Kontrak untuk frontend:
+
+1. Baca token dari `location.hash` (tanpa `#`).
+2. Panggil `GET /api/reports/<token>` tanpa header `Authorization`.
+3. Token salah/kedaluwarsa/dicabut → `404 REPORT_NOT_FOUND`; terlalu sering → `429 RATE_LIMITED` (cek `Retry-After`).
+4. Jangan menyimpan token di `localStorage`. Wali tidak punya akun maupun sesi.
+
+Perubahan dari versi sebelumnya (tidak kompatibel bagi pemakai lama): `report.analytics`, `report.achievements`, dan `report.summary.achievementsEarned` dihapus; `report.student.name` bernilai `null` untuk siswa tanpa nama lengkap (dulu memakai username); `report.mentorNote` tidak lagi memuat `authorId` dan `createdAt`.
 
 Perilaku penting:
 
