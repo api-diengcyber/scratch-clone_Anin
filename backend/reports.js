@@ -136,6 +136,32 @@ function replaceGuardians(db, studentId, guardians, createdBy) {
   return listGuardians(db, studentId);
 }
 
+// Masukkan email laporan ke antrean untuk SEMUA wali siswa. Aman dipanggil
+// berkali-kali: queueDelivery tidak membuat baris ganda dan tidak menyentuh
+// kiriman yang sudah 'sent'. Tanpa tanggal berlangganan, tidak ada yang diantrekan.
+function queueGuardianDeliveries(db, studentId, startedAt) {
+  if (!startedAt) return { queued: 0, created: 0, revived: 0 };
+  const dueDate = reportDeliveries.firstReportDueDate(startedAt);
+  if (!dueDate) return { queued: 0, created: 0, revived: 0 };
+
+  let created = 0;
+  let revived = 0;
+  const guardians = listGuardians(db, studentId);
+  for (const guardian of guardians) {
+    const result = reportDeliveries.queueDelivery(db, {
+      studentId,
+      guardianId: guardian.id,
+      recipientEmail: guardian.email,
+      recipientName: guardian.name,
+      kind: reportDeliveries.DEFAULT_KIND,
+      dueDate
+    });
+    if (result.created) created += 1;
+    if (result.revived) revived += 1;
+  }
+  return { queued: guardians.length, created, revived };
+}
+
 function createReportLink(db, studentId, { guardianId = null, expiresInDays = DEFAULT_EXPIRY_DAYS, createdBy = null } = {}) {
   const token = crypto.randomBytes(32).toString("base64url");
   const expires = new Date(Date.now() + Number(expiresInDays) * 86400000);
@@ -399,6 +425,7 @@ module.exports = {
   listGuardians,
   getGuardian,
   replaceGuardians,
+  queueGuardianDeliveries,
   createReportLink,
   listReportLinks,
   revokeReportLink,

@@ -4,8 +4,11 @@ const path = require("path");
 const crypto = require("crypto");
 const { extractZipSafely, sha256, MAX_ZIP_BYTES } = require("./plugin-zip");
 const { notifyAdmins } = require("./notifications");
+const { notifyStudent } = require("./student-notifications");
 const learningService = require("./learning-service");
 const lencana = require("./lencana-catalog");
+const reportScheduler = require("./report-scheduler");
+const reportEmail = require("./report-email");
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
   const PLUGIN_DIR = process.env.PLUGIN_DIR || (process.env.NODE_ENV === "production" ? "/data/plugins" : path.join(__dirname, "plugin-data"));
@@ -973,6 +976,18 @@ function registerAdminApi(app, deps) {
     return sendApiSuccess(res, { items: rows.map(submissionDto), total: rows.length });
   });
 
+  // Pengaturan "Hasil review & nilai" (notifGraded). Default menyala bila belum pernah diatur.
+  function notifGradedEnabled() {
+    const row = db.prepare("SELECT payload_json FROM admin_settings WHERE id = 1").get();
+    if (!row) return true;
+    try {
+      const settings = JSON.parse(row.payload_json);
+      return !settings || settings.notifGraded !== false;
+    } catch (_) {
+      return true;
+    }
+  }
+
   app.patch("/api/admin/submissions/:id", (req, res) => adminDataResponse(res, () => {
     const id = Number(req.params.id);
     if (!Number.isSafeInteger(id) || id < 1) return sendApiError(res, 400, "ID pengumpulan tidak valid.", "VALIDATION_ERROR");
@@ -987,9 +1002,46 @@ function registerAdminApi(app, deps) {
     }
     if (status === "dinilai" && score === null) adminDataError("score wajib diisi saat status dinilai.", "score");
     if (status === "revisi" && !feedback) adminDataError("feedback wajib diisi saat meminta revisi.", "feedback");
-    db.prepare(`UPDATE admin_task_submissions SET status=?, score=?, feedback=?,
-      graded_at=${status === "dinilai" ? "CURRENT_TIMESTAMP" : "NULL"} WHERE id=?`).run(status, score, feedback, id);
-    audit(req, "admin_task.grade", "admin_task_submission", id, { taskId: Number(current.task_id), studentId: Number(current.user_id), status, score });
+    const task = db.prepare("SELECT title FROM admin_tasks WHERE id = ?").get(current.task_id);
+    const taskTitle = task && task.title ? task.title : `Tugas #${current.task_id}`;
+    const notifyEnabled = notifGradedEnabled();
+    const previousScore = current.score === null || current.score === undefined ? null : Number(current.score);
+
+    // Nilai, audit, dan notifikasi satu transaksi: kalau notifikasi gagal dibuat, nilai ikut batal
+    // sehingga percobaan ulang tidak kehilangan notifikasi (perubahan status tidak lagi terdeteksi
+    // bila nilainya sudah telanjur tersimpan).
+    db.transaction(() => {
+      db.prepare(`UPDATE admin_task_submissions SET status=?, score=?, feedback=?,
+        graded_at=${status === "dinilai" ? "CURRENT_TIMESTAMP" : "NULL"} WHERE id=?`).run(status, score, feedback, id);
+      audit(req, "admin_task.grade", "admin_task_submission", id, { taskId: Number(current.task_id), studentId: Number(current.user_id), status, score });
+
+      // Hanya bila admin tidak mematikan "Hasil review & nilai" di Pengaturan, dan hanya saat benar-benar
+      // ada perubahan status/nilai (menyimpan ulang nilai yang sama tidak menumpuk notifikasi).
+      // Kunci dedupe memuat waktu: nilai yang kembali ke angka lama (90 -> 80 -> 90) tetap diberitahukan.
+      if (!notifyEnabled) return;
+      if (status === "dinilai" && (current.status !== "dinilai" || previousScore !== score)) {
+        notifyStudent(db, Number(current.user_id), {
+          kind: "task.graded",
+          title: `Nilai tugas keluar: ${taskTitle}`,
+          body: `Nilai ${score}/100${feedback ? ` - ${feedback}` : ""}`,
+          view: "tugas",
+          icon: "fa-solid fa-star",
+          tone: "emerald",
+          dedupeKey: `task.graded:${id}:${score}:${Date.now()}`
+        });
+      }
+      if (status === "revisi" && (current.status !== "revisi" || String(current.feedback || "") !== feedback)) {
+        notifyStudent(db, Number(current.user_id), {
+          kind: "task.revision",
+          title: `Revisi tugas: ${taskTitle}`,
+          body: feedback,
+          view: "tugas",
+          icon: "fa-solid fa-rotate-left",
+          tone: "amber",
+          dedupeKey: `task.revision:${id}:${Date.now()}`
+        });
+      }
+    })();
     const row = db.prepare(`
       SELECT s.*, u.username, u.full_name FROM admin_task_submissions s
       JOIN users u ON u.id = s.user_id WHERE s.id = ?
@@ -1466,8 +1518,14 @@ function registerAdminApi(app, deps) {
     if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
     const guardians = guardianPayload(req.body || {});
     const items = reports.replaceGuardians(db, u.id, guardians, req.userId);
-    audit(req, "guardian.update", "user", u.id, { total: items.length });
-    return sendApiSuccess(res, { items, total: items.length }, "Data wali diperbarui.");
+    // Wali baru/berubah langsung masuk antrean bila siswa sudah berlangganan.
+    const queued = reports.queueGuardianDeliveries(db, u.id, u.subscription_started_at || null);
+    audit(req, "guardian.update", "user", u.id, { total: items.length, queued });
+    return sendApiSuccess(res, {
+      items,
+      total: items.length,
+      queued: { created: queued.created, revived: queued.revived, total: queued.queued }
+    }, "Data wali diperbarui.");
   }));
 
   app.get("/api/admin/users/:id/report-links", (req, res) => {
@@ -1577,18 +1635,23 @@ function registerAdminApi(app, deps) {
     const sync = db.transaction(() => {
       db.prepare("UPDATE users SET subscription_started_at = ? WHERE id = ? AND role = 'student'").run(startedAt, u.id);
       const result = reportDeliveries.syncPendingForSubscription(db, u.id, startedAt);
+      // Email laporan untuk tiap wali ikut diantrekan saat tanggal diisi.
+      // Idempoten: baris yang sudah ada (termasuk 'sent') tidak diduplikasi.
+      const queued = reports.queueGuardianDeliveries(db, u.id, startedAt);
       audit(req, "subscription.update", "user", u.id, {
         from: previous,
         to: startedAt,
         rescheduled: result.rescheduled,
-        skipped: result.skipped
+        skipped: result.skipped,
+        queued
       });
-      return result;
+      return { ...result, queued };
     })();
 
     return sendApiSuccess(res, {
       item: subscriptionItem(u.id, startedAt),
-      deliveries: sync
+      deliveries: { rescheduled: sync.rescheduled, skipped: sync.skipped },
+      queued: { created: sync.queued.created, revived: sync.queued.revived, total: sync.queued.queued }
     }, startedAt ? "Tanggal mulai berlangganan disimpan." : "Tanggal mulai berlangganan dihapus.");
   }));
 
@@ -1604,6 +1667,101 @@ function registerAdminApi(app, deps) {
 
   app.get("/api/admin/report-deliveries", (req, res) => adminDataResponse(res, () => {
     return sendApiSuccess(res, reportDeliveries.listDeliveries(db, deliveryQuery(req)));
+  }));
+
+  // Jalankan penjadwal sekali secara manual. Tanpa studentId semua baris yang
+  // jatuh tempo diproses; `today` boleh diisi untuk simulasi.
+  app.post("/api/admin/report-deliveries/run", async (req, res) => {
+    try {
+      const body = req.body || {};
+      let today;
+      if (body.today !== undefined && body.today !== null && body.today !== "") {
+        today = String(body.today).trim();
+        if (!reportDeliveries.isValidDateOnly(today)) {
+          adminDataError("today harus tanggal valid berformat YYYY-MM-DD.", "today");
+        }
+        // Boleh mundur (simulasi), tidak boleh maju: memajukan tanggal akan mengirim email ke wali
+        // sebelum jatuh tempo, dan pengiriman yang sudah 'sent' tidak bisa ditarik kembali.
+        if (today > reportDeliveries.dateOnlyToday()) {
+          adminDataError("today tidak boleh lebih dari hari ini.", "today");
+        }
+      }
+      let studentId;
+      if (body.studentId !== undefined && body.studentId !== null && body.studentId !== "") {
+        studentId = Number(body.studentId);
+        if (!Number.isSafeInteger(studentId) || studentId < 1) {
+          adminDataError("studentId tidak valid.", "studentId");
+        }
+      }
+      let batchSize;
+      if (body.limit !== undefined && body.limit !== null && body.limit !== "") {
+        batchSize = Number(body.limit);
+        if (!Number.isSafeInteger(batchSize) || batchSize < 1) {
+          adminDataError("limit harus bilangan bulat positif.", "limit");
+        }
+      }
+
+      const summary = await reportScheduler.processDueDeliveries(db, {
+        baseUrl: reportBaseUrl(req),
+        today,
+        studentId,
+        batchSize
+      });
+      audit(req, "report_delivery.run", "report_delivery", studentId || "all", {
+        today: summary.today,
+        processed: summary.processed,
+        sent: summary.sent,
+        failed: summary.failed,
+        skipped: summary.skipped
+      });
+      return sendApiSuccess(res, { summary }, "Pengiriman email laporan dijalankan.");
+    } catch (error) {
+      if (error && error.code === "ADMIN_DATA_INVALID") {
+        return sendApiError(res, 400, error.message, "ADMIN_DATA_INVALID", error.field ? { field: error.field } : undefined);
+      }
+      if (error && error.code === "CONFIGURATION_ERROR") {
+        return sendApiError(res, 503, error.message, "CONFIGURATION_ERROR");
+      }
+      console.error("Gagal menjalankan pengiriman laporan:", error);
+      return sendApiError(res, 500, "Gagal menjalankan pengiriman laporan.", "INTERNAL_ERROR");
+    }
+  });
+
+  app.post("/api/admin/report-deliveries/:id/retry", (req, res) => adminDataResponse(res, () => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return sendApiError(res, 400, "ID pengiriman tidak valid.", "VALIDATION_ERROR");
+    }
+    const result = reportDeliveries.retryDelivery(db, id);
+    if (!result.found) return sendApiError(res, 404, "Pengiriman tidak ditemukan.", "NOT_FOUND");
+    if (result.sent) {
+      return sendApiError(res, 409, "Pengiriman yang sudah terkirim tidak bisa diulang.", "DELIVERY_ALREADY_SENT");
+    }
+    audit(req, "report_delivery.retry", "report_delivery", id, {});
+    return sendApiSuccess(res, {
+      item: reportDeliveries.getDelivery(db, id)
+    }, "Pengiriman dijadwalkan ulang.");
+  }));
+
+  // Pratinjau isi email tanpa membuat tautan asli dan tanpa mengubah status.
+  app.post("/api/admin/report-deliveries/:id/preview", (req, res) => adminDataResponse(res, () => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return sendApiError(res, 400, "ID pengiriman tidak valid.", "VALIDATION_ERROR");
+    }
+    const item = reportDeliveries.getDelivery(db, id);
+    if (!item) return sendApiError(res, 404, "Pengiriman tidak ditemukan.", "NOT_FOUND");
+    const report = reports.buildStudentReport(db, item.studentId);
+    if (!report) return sendApiError(res, 404, "Siswa untuk pengiriman ini tidak ditemukan.", "STUDENT_NOT_FOUND");
+    const email = reportEmail.buildReportEmail({
+      report,
+      studentName: report.student.name,
+      guardianName: item.recipientName,
+      institutionName: report.institution.name,
+      pageUrl: reports.reportPageUrl(reportBaseUrl(req), "x".repeat(43)),
+      expiresAt: null
+    });
+    return sendApiSuccess(res, { item, email, preview: true });
   }));
 
   // Learning analytics dan achievements untuk dashboard staff.

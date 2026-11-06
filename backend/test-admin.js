@@ -26,6 +26,8 @@ fs.rmSync(PLUGIN_DIR, { recursive: true, force: true });
 process.env.DB_PATH = TMPDB;
 process.env.NODE_ENV = "test";
 process.env.PORT = String(PORT);
+process.env.REPORT_EMAIL_ENABLED = "false";
+process.env.REPORT_EMAIL_PROVIDER = "mock";
 
 const db = require("./database");
 const auth = require("./auth");
@@ -1300,12 +1302,45 @@ async function cleanup() {
     eq(res.d.item.score, 90, "score");
     ok(res.d.item.graded_at, "graded_at");
 
+    // Siswa menerima notifikasi saat tugas dinilai dan saat diminta revisi.
+    let notif = await api("GET", "/api/notifications", { token: studentToken });
+    eq(notif.r.status, 200, "notifikasi siswa");
+    const gradedNotif = notif.d.notifications.find((n) => n.kind === "task.graded" && n.title.includes("Percabangan If-Else"));
+    ok(gradedNotif, "notifikasi nilai muncul");
+    eq(gradedNotif.read, false, "notifikasi nilai belum dibaca");
+    ok(gradedNotif.body.includes("90/100"), "isi notifikasi memuat nilai");
+    ok(notif.d.unreadCount >= 1, "unread siswa");
+
+    notif = await api("POST", `/api/notifications/${gradedNotif.id}/read`, { token: studentToken });
+    eq(notif.r.status, 200, "baca notifikasi");
+    eq(notif.d.read, true, "notifikasi ditandai dibaca");
+
+    // Menyimpan ulang nilai yang sama tidak membuat notifikasi ganda.
+    res = await api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body: { status: "dinilai", score: 90, feedback: "Mantap" } });
+    eq(res.r.status, 200, "nilai ulang");
+    notif = await api("GET", "/api/notifications?limit=100", { token: studentToken });
+    eq(notif.d.notifications.filter((n) => n.kind === "task.graded" && n.title.includes("Percabangan If-Else")).length, 1, "tidak ada notifikasi ganda");
+
+    notif = await api("GET", "/api/notifications", { token: adminToken });
+    eq(notif.r.status, 403, "admin tidak memakai endpoint notifikasi siswa");
+    eq(notif.d.code, "STUDENT_REQUIRED", "code khusus siswa");
+    notif = await api("GET", "/api/notifications");
+    eq(notif.r.status, 401, "notifikasi tanpa token");
+
     res = await api("GET", "/api/admin/tasks", { token: adminToken });
     eq(res.d.items.find((x) => x.id === taskId).pending, 0, "pending nol setelah dinilai");
 
     res = await api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body: { status: "revisi", feedback: "Perbaiki validasi" } });
     eq(res.r.status, 200, "revisi");
     eq(res.d.item.graded_at, null, "graded_at kosong saat revisi");
+
+    notif = await api("GET", "/api/notifications", { token: studentToken });
+    const revisionNotif = notif.d.notifications.find((n) => n.kind === "task.revision");
+    ok(revisionNotif, "notifikasi revisi muncul");
+    ok(revisionNotif.body.includes("Perbaiki validasi"), "isi notifikasi revisi");
+    notif = await api("POST", "/api/notifications/read-all", { token: studentToken });
+    eq(notif.r.status, 200, "baca semua notifikasi siswa");
+    eq(notif.d.unreadCount, 0, "unread siswa nol");
 
     res = await api("PATCH", "/api/admin/submissions/999999", { token: adminToken, body: { status: "dinilai", score: 80 } });
     eq(res.r.status, 404, "submission tidak ada");
@@ -1908,6 +1943,204 @@ async function cleanup() {
     } finally {
       if (previous) db.prepare("UPDATE admin_role_permissions SET permissions = ? WHERE role = 'instruktur'").run(previous.permissions);
       else db.prepare("DELETE FROM admin_role_permissions WHERE role = 'instruktur'").run();
+    }
+  });
+
+  await t("Email laporan: antre otomatis, pratinjau, kirim manual, dan retry", async () => {
+    const deliveries = require("./report-deliveries");
+    const sid = addUser("siswa-email", "siswa-email@example.com", STUDENT_PASS, "student");
+
+    // Wali disimpan dulu saat belum berlangganan: belum ada yang diantrekan.
+    let res = await api("PUT", `/api/admin/users/${sid}/guardians`, {
+      token: adminToken,
+      body: { guardians: [{ name: "Ibu Email", email: "ibu-email@example.com", relation: "ibu" }] }
+    });
+    eq(res.r.status, 200, "simpan wali");
+    eq(res.d.queued.total, 0, "belum ada antrean tanpa tanggal");
+
+    res = await api("PUT", `/api/admin/users/${sid}/subscription`, {
+      token: adminToken,
+      body: { startedAt: "2020-01-01" }
+    });
+    eq(res.r.status, 200, "simpan tanggal lampau");
+    eq(res.d.queued.created, 1, "email wali masuk antrean");
+    eq(res.d.queued.total, 1, "satu penerima");
+
+    // Menyimpan ulang tidak menggandakan antrean.
+    res = await api("PUT", `/api/admin/users/${sid}/subscription`, {
+      token: adminToken,
+      body: { startedAt: "2020-01-01" }
+    });
+    eq(res.d.queued.created, 0, "antrean idempoten");
+
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const ibuDelivery = res.d.items.find((x) => x.recipientEmail === "ibu-email@example.com");
+    eq(ibuDelivery.status, "pending", "status awal pending");
+    eq(ibuDelivery.dueDate, "2020-02-01", "jatuh tempo 1 bulan setelah mulai");
+
+    // Pratinjau memakai token placeholder dan tidak membuat tautan asli.
+    const linksBefore = Number(db.prepare("SELECT COUNT(*) n FROM report_links WHERE student_user_id = ?").get(sid).n);
+    res = await api("POST", `/api/admin/report-deliveries/${ibuDelivery.id}/preview`, { token: adminToken });
+    eq(res.r.status, 200, "pratinjau");
+    eq(res.d.preview, true, "penanda pratinjau");
+    ok(res.d.email.subject.includes("Laporan belajar"), "subjek pratinjau");
+    ok(res.d.email.text.includes("/orangtua/laporan.html#"), "tautan halaman pada pratinjau");
+    eq(Number(db.prepare("SELECT COUNT(*) n FROM report_links WHERE student_user_id = ?").get(sid).n), linksBefore, "pratinjau tidak membuat tautan");
+
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    eq(res.d.items.find((x) => x.id === ibuDelivery.id).status, "pending", "pratinjau tidak mengubah status");
+
+    // Kirim manual hanya untuk siswa ini (provider mock saat tes).
+    res = await api("POST", "/api/admin/report-deliveries/run", { token: adminToken, body: { studentId: sid } });
+    eq(res.r.status, 200, "run manual");
+    eq(res.d.summary.sent, 1, "satu email terkirim");
+    eq(res.d.summary.failed, 0, "tanpa gagal");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const sentIbu = res.d.items.find((x) => x.id === ibuDelivery.id);
+    eq(sentIbu.status, "sent", "status menjadi sent");
+    ok(sentIbu.reportLinkId, "tautan laporan tercatat");
+    const link = db.prepare("SELECT * FROM report_links WHERE id = ?").get(sentIbu.reportLinkId);
+    ok(link && link.token_hash.length === 64, "tautan disimpan sebagai hash");
+    ok(link.revoked_at === null, "tautan terkirim masih aktif");
+
+    res = await api("POST", `/api/admin/report-deliveries/${ibuDelivery.id}/retry`, { token: adminToken });
+    eq(res.r.status, 409, "yang sudah sent tidak bisa retry");
+    eq(res.d.code, "DELIVERY_ALREADY_SENT", "code sent");
+
+    // Tambah wali kedua -> antrean baru; simulasikan gagal lalu retry.
+    res = await api("PUT", `/api/admin/users/${sid}/guardians`, {
+      token: adminToken,
+      body: {
+        guardians: [
+          { name: "Ibu Email", email: "ibu-email@example.com", relation: "ibu" },
+          { name: "Ayah Email", email: "ayah-email@example.com", relation: "ayah" }
+        ]
+      }
+    });
+    eq(res.r.status, 200, "tambah wali kedua");
+    eq(res.d.queued.created, 1, "wali baru masuk antrean");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const ayahDelivery = res.d.items.find((x) => x.recipientEmail === "ayah-email@example.com");
+    ok(ayahDelivery, "baris wali kedua ada");
+    deliveries.markFailed(db, ayahDelivery.id, "SMTP timeout");
+
+    res = await api("POST", `/api/admin/report-deliveries/${ayahDelivery.id}/retry`, { token: adminToken });
+    eq(res.r.status, 200, "retry");
+    eq(res.d.item.status, "pending", "kembali pending");
+    eq(res.d.item.attempts, 0, "attempts direset");
+    eq(res.d.item.lastError, null, "error dibersihkan");
+
+    res = await api("POST", "/api/admin/report-deliveries/run", { token: adminToken, body: { studentId: sid } });
+    eq(res.r.status, 200, "run setelah retry");
+    eq(res.d.summary.sent, 1, "wali kedua terkirim");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    eq(res.d.items.find((x) => x.id === ayahDelivery.id).status, "sent", "status wali kedua sent");
+
+    // Validasi & hak akses endpoint aksi.
+    res = await api("POST", "/api/admin/report-deliveries/0/retry", { token: adminToken });
+    eq(res.r.status, 400, "retry id salah");
+    res = await api("POST", "/api/admin/report-deliveries/999999/retry", { token: adminToken });
+    eq(res.r.status, 404, "retry tidak ada");
+    res = await api("POST", "/api/admin/report-deliveries/999999/preview", { token: adminToken });
+    eq(res.r.status, 404, "preview tidak ada");
+    res = await api("POST", "/api/admin/report-deliveries/run", { token: adminToken, body: { today: "2026-02-30" } });
+    eq(res.r.status, 400, "today tidak valid");
+    res = await api("POST", "/api/admin/report-deliveries/run", { token: adminToken, body: { studentId: "x" } });
+    eq(res.r.status, 400, "studentId tidak valid");
+    res = await api("POST", "/api/admin/report-deliveries/run", { token: studentToken, body: {} });
+    eq(res.r.status, 403, "siswa dilarang run");
+    res = await api("POST", "/api/admin/report-deliveries/run", { body: {} });
+    eq(res.r.status, 401, "tanpa token run");
+    res = await api("POST", `/api/admin/report-deliveries/${ibuDelivery.id}/preview`, { token: studentToken });
+    eq(res.r.status, 403, "siswa dilarang preview");
+  });
+
+  await t("Email laporan: run manual menolak today di masa depan agar jadwal tidak bisa dipercepat", async () => {
+    const deliveries = require("./report-deliveries");
+    const sid = addUser("siswa-percepat", "siswa-percepat@example.com", STUDENT_PASS, "student");
+    const gid = Number(db.prepare(
+      "INSERT INTO student_guardians (student_user_id, name, email, relation) VALUES (?, 'Ibu Percepat', 'ibu-percepat@example.com', 'ibu')"
+    ).run(sid).lastInsertRowid);
+    const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    const queued = deliveries.queueDelivery(db, {
+      studentId: sid, guardianId: gid, recipientEmail: "ibu-percepat@example.com", dueDate: nextMonth
+    });
+    const run = (today) => api("POST", "/api/admin/report-deliveries/run", { token: adminToken, body: { today, studentId: sid } });
+    const status = () => db.prepare("SELECT status FROM report_deliveries WHERE id = ?").get(queued.id).status;
+
+    let res = await run("2099-01-01");
+    eq(res.r.status, 400, "today masa depan ditolak");
+    eq(res.d.code, "ADMIN_DATA_INVALID", "code today masa depan");
+    eq(res.d.details.field, "today", "field today");
+    eq(status(), "pending", "email yang belum jatuh tempo tidak terkirim");
+
+    res = await run(deliveries.dateOnlyToday());
+    eq(res.r.status, 200, "today = hari ini sah");
+    eq(res.d.summary.sent, 0, "belum jatuh tempo, tidak terkirim");
+    eq(status(), "pending", "tetap pending");
+
+    res = await run("2020-01-01");
+    eq(res.r.status, 200, "simulasi mundur tetap boleh");
+    eq(res.d.summary.sent, 0, "simulasi mundur tidak mengirim");
+  });
+
+  await t("Notifikasi nilai: menghormati notifGraded, atomik dengan penyimpanan nilai, dan nilai kembali ke angka lama tetap diberitahukan", async () => {
+    const sid = addUser("siswa-nilai", "siswa-nilai@example.com", STUDENT_PASS, "student");
+    db.prepare("UPDATE users SET must_change_password = 0 WHERE id = ?").run(sid);
+    const token = auth.createSession(sid);
+    let res = await api("POST", "/api/admin/tasks", {
+      token: adminToken,
+      body: { title: "Tugas Notifikasi", grade: "SMP", type: "kuis", points: 10, due: "2026-12-31" }
+    });
+    ok(res.d.item && res.d.item.id, "tugas dibuat");
+    const submissionId = Number(db.prepare(
+      "INSERT INTO admin_task_submissions (task_id, user_id, answer, status) VALUES (?, ?, 'jawaban', 'dikumpulkan')"
+    ).run(res.d.item.id, sid).lastInsertRowid);
+    const patch = (body) => api("PATCH", `/api/admin/submissions/${submissionId}`, { token: adminToken, body });
+    const mine = async () => (await api("GET", "/api/notifications?limit=100", { token })).d.notifications;
+
+    const prior = db.prepare("SELECT payload_json FROM admin_settings WHERE id = 1").get();
+    let baseSettings = {};
+    try { baseSettings = prior ? JSON.parse(prior.payload_json) : {}; } catch (_) { baseSettings = {}; }
+    const setNotifGraded = (value) => db.prepare(`
+      INSERT INTO admin_settings (id, payload_json) VALUES (1, ?)
+      ON CONFLICT(id) DO UPDATE SET payload_json = excluded.payload_json
+    `).run(JSON.stringify({ ...baseSettings, notifGraded: value }));
+
+    try {
+      // 1) Dimatikan admin: nilai dan revisi tetap tersimpan, siswa tidak diberi notifikasi.
+      setNotifGraded(false);
+      res = await patch({ status: "dinilai", score: 70, feedback: "oke" });
+      eq(res.r.status, 200, "nilai saat notifGraded mati");
+      eq((await mine()).length, 0, "tidak ada notifikasi nilai saat notifGraded dimatikan");
+      res = await patch({ status: "revisi", feedback: "perbaiki" });
+      eq(res.r.status, 200, "revisi saat notifGraded mati");
+      eq((await mine()).length, 0, "tidak ada notifikasi revisi saat notifGraded dimatikan");
+
+      // 2) Dinyalakan: 90 -> 80 -> 90, ketiganya harus diberitahukan.
+      setNotifGraded(true);
+      for (const score of [90, 80, 90]) {
+        res = await patch({ status: "dinilai", score, feedback: "oke" });
+        eq(res.r.status, 200, `nilai ${score}`);
+      }
+      const graded = (await mine()).filter((n) => n.kind === "task.graded");
+      eq(graded.length, 3, "setiap perubahan nilai diberitahukan, termasuk kembali ke angka lama");
+
+      // 3) Atomik: kalau notifikasi gagal dibuat, nilai tidak boleh tersimpan setengah jalan.
+      db.exec("CREATE TRIGGER trg_test_notif_fail BEFORE INSERT ON student_notifications BEGIN SELECT RAISE(ABORT, 'boom'); END;");
+      try {
+        res = await patch({ status: "dinilai", score: 55, feedback: "gagal" });
+        eq(res.r.status, 500, "gangguan notifikasi menggagalkan permintaan");
+        eq(db.prepare("SELECT score FROM admin_task_submissions WHERE id = ?").get(submissionId).score, 90, "nilai tidak berubah ketika notifikasi gagal");
+      } finally {
+        db.exec("DROP TRIGGER IF EXISTS trg_test_notif_fail");
+      }
+      res = await patch({ status: "dinilai", score: 55, feedback: "gagal" });
+      eq(res.r.status, 200, "percobaan ulang berhasil");
+      eq((await mine()).filter((n) => n.kind === "task.graded").length, 4, "percobaan ulang tetap memberi notifikasi");
+    } finally {
+      if (prior) db.prepare("UPDATE admin_settings SET payload_json = ? WHERE id = 1").run(prior.payload_json);
+      else db.prepare("DELETE FROM admin_settings WHERE id = 1").run();
     }
   });
 

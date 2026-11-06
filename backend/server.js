@@ -33,6 +33,7 @@ const auth = require("./auth");
 const shop = require("./shop-catalog");
 const { notifyAdmins } = require("./notifications");
 const learningService = require("./learning-service");
+const reportScheduler = require("./report-scheduler");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1470,6 +1471,9 @@ require("./report-api").registerReportApi(app, {
 require("./learning-api").registerLearningApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
+require("./student-notifications").registerStudentNotificationApi(app, {
+    db, auth, sendApiError, sendApiSuccess
+});
 
 // ============================================================
 // 404
@@ -1514,6 +1518,10 @@ setInterval(() => {
     }
 }, 5 * 60 * 1000).unref();
 
+// Penjadwal email laporan ke wali. Default mati; aktifkan dengan
+// REPORT_EMAIL_ENABLED=true setelah provider email dikonfigurasi.
+const reportSchedulerHandle = reportScheduler.startReportScheduler(db);
+
 // ============================================================
 // START SERVER
 // ============================================================
@@ -1536,6 +1544,10 @@ const server = app.listen(PORT, "0.0.0.0", () => {
 // Di balik reverse proxy, koneksi keep-alive jangan ditutup lebih cepat dari proxy.
 server.keepAliveTimeout = 65000;
 server.headersTimeout = 66000;
+
+server.on("close", () => {
+    if (reportSchedulerHandle) reportSchedulerHandle.stop();
+});
 
 server.on("error", (err) => {
     logger.fatal({ err }, "Server listen error");

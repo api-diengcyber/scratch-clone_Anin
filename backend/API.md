@@ -84,6 +84,16 @@ Achievement kurikulum dihitung dari database: semua task pada modul harus selesa
 
 Pesan mentor maksimal 400 karakter. Hanya admin/instruktur yang lolos permission `siswa.kelola` yang dapat menulis atau menghapus pesan (`PUT` dengan `note: ""` menghapus). Siswa hanya dapat membaca pesannya sendiri. Pesan ikut dimasukkan ke response laporan wali. Belum ada relasi penugasan mentor-ke-siswa di skema saat ini; akses instruktur mengikuti permission `siswa.kelola` yang berlaku.
 
+### Notifikasi siswa
+
+| Method | Alamat | Isi (body) | Hasil |
+|---|---|---|---|
+| GET | `/api/notifications?limit=20` | - | `{ notifications, unreadCount }`; hanya notifikasi milik siswa yang login |
+| POST | `/api/notifications/:id/read` | - | `{ id, read: true, unreadCount }` |
+| POST | `/api/notifications/read-all` | - | `{ updated, unreadCount: 0 }` |
+
+Notifikasi siswa disimpan di tabel `student_notifications` (terpisah dari `admin_notifications`). Notifikasi dibuat otomatis saat pengumpulan tugas berubah menjadi `dinilai` (nilai baru/berubah) atau `revisi` (feedback baru/berubah). Menyimpan ulang nilai yang sama tidak membuat notifikasi ganda karena memakai `dedupe_key`. Item berisi `{ id, kind, title, body, view, icon, tone, read, readAt, createdAt }`; `kind` saat ini `task.graded` dan `task.revision`. Notifikasi hanya dibuat bila pengaturan admin "Hasil review & nilai" (`notifGraded`, default menyala) tidak dimatikan. Nilai, audit, dan notifikasi disimpan dalam satu transaksi (kalau notifikasi gagal dibuat, nilai ikut batal), dan nilai yang kembali ke angka lama (90 → 80 → 90) tetap diberitahukan. Endpoint hanya untuk role `student` (`403 STUDENT_REQUIRED` untuk akun lain) dan siswa tidak bisa membaca/menandai notifikasi siswa lain.
+
 ## Profil & preferensi
 
 | Method | Alamat | Isi (body) | Hasil |
@@ -171,13 +181,16 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | PATCH | `/api/admin/instructors/:id` | `{ name?, email?, role?, grades?, active? }` | `{ item }` | boleh diubah kecuali akun sendiri; admin tidak bisa diubah oleh instruktur |
 | DELETE | `/api/admin/instructors/:id` | - | soft delete `{ id, status: "deleted" }`; sesi dicabut |
 | GET | `/api/admin/users/:id/guardians` | - | `{ items, total }`; daftar wali `{ id, name, email, relation, createdAt, updatedAt }` |
-| PUT | `/api/admin/users/:id/guardians` | `{ guardians: [{ name, email, relation? }] }` | `{ items, total }`; **replace** seluruh wali (dicocokkan lewat email: wali yang dipertahankan tetap memakai `id` dan tautannya, wali yang dihilangkan dihapus dan tautannya otomatis dicabut), maks. 5; `relation` = `ayah`/`ibu`/`wali`/`lainnya` (default `wali`); email unik per siswa |
+| PUT | `/api/admin/users/:id/guardians` | `{ guardians: [{ name, email, relation? }] }` | `{ items, total, queued: { created, revived, total } }`; **replace** seluruh wali (dicocokkan lewat email: wali yang dipertahankan tetap memakai `id` dan tautannya, wali yang dihilangkan dihapus dan tautannya otomatis dicabut), maks. 5; `relation` = `ayah`/`ibu`/`wali`/`lainnya` (default `wali`); email unik per siswa. Wali baru otomatis diantrekan bila siswa sudah punya tanggal berlangganan |
 | GET | `/api/admin/users/:id/report-links` | - | `{ items, total }`; daftar tautan `{ id, guardianId, guardianName, guardianEmail, status, expiresAt, revokedAt, lastAccessedAt, accessCount, createdAt }`; `status` = `active`/`expired`/`revoked` |
 | POST | `/api/admin/users/:id/report-links` | `{ guardianId?, expiresInDays? }` | `{ item: { id, studentId, guardianId, url, pageUrl, expiresAt, createdAt } }`; `url` = alamat API (JSON), `pageUrl` = alamat halaman wali yang dikirim ke email; token asli hanya muncul sekali (di `url` dan `pageUrl`) |
 | DELETE | `/api/admin/users/:id/report-links/:linkId` | - | `{ id, revoked: true }`; tautan langsung tidak bisa diakses lagi |
-| PUT | `/api/admin/users/:id/subscription` | `{ startedAt: "YYYY-MM-DD" \| null }` | `{ item: { userId, subscriptionStartedAt, firstReportDueDate }, deliveries: { rescheduled, skipped } }`; `null` menghapus tanggal; field `startedAt` wajib ada |
+| PUT | `/api/admin/users/:id/subscription` | `{ startedAt: "YYYY-MM-DD" \| null }` | `{ item: { userId, subscriptionStartedAt, firstReportDueDate }, deliveries: { rescheduled, skipped }, queued: { created, revived, total } }`; `null` menghapus tanggal; field `startedAt` wajib ada. Email untuk semua wali ikut diantrekan saat tanggal diisi |
 | GET | `/api/admin/users/:id/report-deliveries` | query `status?`, `page?`, `limit?` (maks. 100) | `{ items, total, page, limit, pages, subscription }`; catatan pengiriman email laporan siswa itu |
 | GET | `/api/admin/report-deliveries` | query `status?`, `page?`, `limit?` | `{ items, total, page, limit, pages }`; semua siswa, berguna untuk memantau yang `failed` |
+| POST | `/api/admin/report-deliveries/run` | `{ today?, studentId?, limit? }` | `{ summary: { today, provider, processed, sent, failed, skipped, errors } }`; menjalankan pengiriman yang jatuh tempo sekarang. `today` (`YYYY-MM-DD`) hanya boleh hari ini atau sebelumnya (`400` bila lebih maju, supaya jadwal tidak bisa dipercepat); `studentId` membatasi ke satu siswa; `limit` maks. 200. Mengikuti kebijakan percobaan ulang yang sama dengan penjadwal |
+| POST | `/api/admin/report-deliveries/:id/retry` | - | `{ item }`; mengembalikan baris `pending`/`failed`/`skipped` menjadi `pending`, mereset `attempts`, membersihkan error, dan memajukan `dueDate` ke hari ini. Baris `sent` ditolak `409 DELIVERY_ALREADY_SENT` |
+| POST | `/api/admin/report-deliveries/:id/preview` | - | `{ item, email: { subject, text, html }, preview: true }`; pratinjau isi email memakai token placeholder, tidak membuat tautan asli dan tidak mengubah status |
 
 Perilaku penting:
 
@@ -216,13 +229,13 @@ Perilaku penting:
 - Catatan pengiriman disimpan di tabel `report_deliveries`, satu baris per email per penerima. Indeks unik (siswa + email penerima tanpa beda huruf besar/kecil + `kind` + `period`) mencegah email ganda walaupun penjadwal berjalan dua kali atau server restart. Email penerima disimpan sebagai salinan; token mentah tidak pernah disimpan (hanya `report_link_id`).
 - `status`: `pending` → `sent` | `failed` | `skipped`. `sent` bersifat final (tidak bisa dibatalkan atau dikirim ulang). `failed` boleh dicoba lagi (`attempts` bertambah, alasan di `lastError`, maks. 500 karakter). `skipped` boleh dihidupkan lagi oleh antrean bila tanggal atau wali diisi kembali.
 - Mengubah tanggal berlangganan menggeser `dueDate` pengiriman `pending`; menghapus tanggal membatalkan yang `pending`/`failed` (`skipped`). Yang sudah `sent` tidak disentuh. Menghapus wali membatalkan email yang belum terkirim ke wali itu, sejalan dengan tautannya yang dicabut.
-- **Belum ada** pengirim email maupun penjadwal. Endpoint di atas hanya mengatur tanggal dan menampilkan catatan; modul `report-deliveries.js` (`queueDelivery`, `markSent`, `markFailed`, `listDeliveries`) disiapkan untuk dipakai keduanya kelak.
+- Pengiriman email otomatis ke wali dijalankan penjadwal (`report-scheduler.js`) lewat `mailer.js`; cara mengaktifkan dan kebijakannya ada di bagian [Pengiriman email laporan](#pengiriman-email-laporan).
 - Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`); perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`, dan perubahan tanggal berlangganan `subscription.update` (berisi `from`, `to`, `rescheduled`, `skipped`).
 - Rate limit admin: 60 request/menit per admin per path.
 
 ## Laporan Wali (publik)
 
-Wali tidak punya akun. Admin membuat tautan laporan per siswa lalu mengirim URL-nya ke email wali (pengiriman email belum diimplementasikan; integrasi SMTP/Resend menyusul). Siapa pun yang memegang tautan dapat membaca laporan sampai tautan kedaluwarsa atau dicabut.
+Wali tidak punya akun. Admin membuat tautan laporan per siswa lalu mengirim URL-nya ke email wali; selain itu, email berisi tautan dikirim otomatis satu bulan setelah siswa mulai berlangganan (lihat [Pengiriman email laporan](#pengiriman-email-laporan)). Siapa pun yang memegang tautan dapat membaca laporan sampai tautan kedaluwarsa atau dicabut.
 
 | Method | Alamat | Hasil |
 |---|---|---|
@@ -288,6 +301,41 @@ Perilaku penting:
 - Setiap akses menambah `access_count` dan `last_accessed_at` pada tautan.
 - Menghapus wali (menghilangkannya dari `PUT .../guardians`) otomatis mencabut tautan milik wali tersebut. Mengedit wali lain tidak memengaruhi tautan wali yang dipertahankan. Daftar wali diurutkan menurut `id` (wali lama dulu, lalu yang baru).
 - Tautan hanya bisa dibuat/dicabut admin/instruktur dengan permission `siswa.kelola`.
+
+### Pengiriman email laporan
+
+Satu bulan setelah `subscriptionStartedAt`, tiap wali siswa menerima satu email berisi ringkasan dan tautan halaman wali (`pageUrl`). Barisnya masuk antrean (`report_deliveries`) saat admin mengisi tanggal berlangganan atau menyimpan daftar wali; penjadwal lalu memproses baris yang `dueDate`-nya sudah tiba.
+
+**Mengaktifkan.** Penjadwal mati secara default. Atur di `.env`:
+
+| Variabel | Arti |
+|---|---|
+| `REPORT_EMAIL_ENABLED` | `true` untuk menjalankan penjadwal |
+| `REPORT_EMAIL_PROVIDER` (atau `EMAIL_PROVIDER`) | `mock`, `resend`, atau `smtp`. **Wajib dipilih** bila penjadwal aktif; tidak ada default |
+| `APP_PUBLIC_ORIGIN` | Origin publik aplikasi, dipakai membentuk tautan di email. Wajib |
+| `REPORT_EMAIL_FROM` / `REPORT_EMAIL_REPLY_TO` | Pengirim dan alamat balasan |
+| `RESEND_API_KEY` | Wajib untuk `resend` (HTTP API, tanpa dependensi tambahan) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | Untuk `smtp`; jalankan `npm install nodemailer` lebih dulu |
+| `REPORT_EMAIL_INTERVAL_MINUTES` | Jeda antar putaran (default 60) |
+| `REPORT_EMAIL_BATCH_SIZE` | Maksimum baris per putaran (default 25, maks. 200) |
+| `REPORT_EMAIL_MAX_ATTEMPTS` | Maksimum percobaan per email (default 5, maks. 20) |
+| `REPORT_EMAIL_RETRY_MINUTES` | Jeda minimum sebelum email yang gagal dicoba lagi (default 60) |
+| `REPORT_LINK_EXPIRY_DAYS` | Umur tautan di email (default 30, maks. 365) |
+
+Kalau konfigurasinya belum lengkap (provider belum dipilih, `RESEND_API_KEY`/`SMTP_HOST` kosong, `APP_PUBLIC_ORIGIN` kosong, atau `mock` di production), penjadwal **tidak dijalankan** dan alasannya dicatat di log saat server start.
+
+**Mode dry-run (`mock`).** Tidak ada email yang dikirim; isi email (penerima, subjek, teks, termasuk tautan laporan yang asli) dicetak ke log, lalu baris ditandai `sent`. Karena `sent` bersifat final, jangan menjalankan `mock` pada database produksi: email itu tidak akan pernah dikirim ulang. `mock` ditolak bila `NODE_ENV=production`.
+
+**Kebijakan percobaan ulang.**
+- Baris `pending` selalu didahulukan; baris `failed` hanya mengisi sisa kuota batch, sehingga penyedia email yang down tidak menyumbat pengiriman baru.
+- Baris `failed` dicoba lagi paling cepat `REPORT_EMAIL_RETRY_MINUTES` setelah gagal, dan berhenti otomatis setelah `REPORT_EMAIL_MAX_ATTEMPTS` percobaan. Setelah itu statusnya tetap `failed` (terlihat di `GET /api/admin/report-deliveries?status=failed`) sampai admin memanggil `POST .../:id/retry`, yang mereset `attempts`.
+- Tiap percobaan membuat tautan baru; tautan yang gagal terkirim langsung dicabut.
+- Siswa yang sudah dihapus, wali yang sudah dihapus, atau email wali yang berubah sejak diantrekan membuat baris `skipped`.
+
+**Batasan yang perlu diketahui.**
+- Pengiriman bersifat *at-least-once*: bila server mati tepat setelah email terkirim tetapi sebelum barisnya ditandai `sent`, email itu bisa terkirim sekali lagi pada putaran berikutnya.
+- "Hari ini" dihitung dari zona waktu server. Bila server memakai UTC, atur `TZ=Asia/Jakarta` di environment supaya tanggal jatuh tempo mengikuti WIB.
+- Penjadwal berjalan di dalam proses server (satu instance). Menjalankan beberapa instance dengan database yang sama belum didukung.
 
 ## Plugin API (M4–M5)
 

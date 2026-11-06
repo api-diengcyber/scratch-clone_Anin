@@ -259,6 +259,30 @@ db.exec(`
         WHERE dedupe_key IS NOT NULL AND dedupe_key <> '';
 `);
 
+// Notifikasi siswa. Terpisah dari admin_notifications karena penerima,
+// tampilan, dan alur bacanya berbeda. Dibuat saat tugas dinilai/diminta revisi.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS student_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL DEFAULT '',
+        view TEXT NOT NULL DEFAULT 'tugas',
+        icon TEXT NOT NULL DEFAULT 'fa-solid fa-bell',
+        tone TEXT NOT NULL DEFAULT 'sky',
+        dedupe_key TEXT,
+        read_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_student_notifications_user
+        ON student_notifications(user_id, id DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_student_notifications_dedupe
+        ON student_notifications(user_id, dedupe_key)
+        WHERE dedupe_key IS NOT NULL AND dedupe_key <> '';
+`);
+
 // ============================================================
 // BADGE, TUGAS, PENGUMPULAN, PENGATURAN INSTANSI
 // ============================================================

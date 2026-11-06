@@ -208,6 +208,44 @@ function toItem(row) {
   };
 }
 
+function dateOnlyToday(now = new Date()) {
+  return `${pad(now.getFullYear(), 4)}-${pad(now.getMonth() + 1, 2)}-${pad(now.getDate(), 2)}`;
+}
+
+function getDelivery(db, id) {
+  const num = Number(id);
+  if (!Number.isSafeInteger(num) || num < 1) return null;
+  const row = db.prepare(`
+    SELECT d.*, COALESCE(NULLIF(u.full_name, ''), u.username) AS student_name
+    FROM report_deliveries d
+    LEFT JOIN users u ON u.id = d.student_user_id
+    WHERE d.id = ?
+  `).get(num);
+  return row ? toItem(row) : null;
+}
+
+// Dipakai endpoint admin "coba lagi": baris yang gagal/dibatalkan dikembalikan
+// ke pending dan jatuh temponya dimajukan ke hari ini supaya langsung diproses
+// pada penjadwalan berikutnya. Baris 'sent' tetap final.
+function retryDelivery(db, id, options = {}) {
+  const num = Number(id);
+  if (!Number.isSafeInteger(num) || num < 1) return { found: false, sent: false, changed: false };
+  const row = db.prepare("SELECT id, status FROM report_deliveries WHERE id = ?").get(num);
+  if (!row) return { found: false, sent: false, changed: false };
+  if (row.status === "sent") return { found: true, sent: true, changed: false };
+
+  let dueDate = options.dueDate === undefined ? dateOnlyToday() : options.dueDate;
+  if (dueDate !== null && !isValidDateOnly(dueDate)) dueDate = dateOnlyToday();
+
+  const changed = db.prepare(`
+    UPDATE report_deliveries
+    SET status = 'pending', attempts = 0, last_error = NULL, due_date = ?,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND status IN ('pending', 'failed', 'skipped')
+  `).run(dueDate, num).changes === 1;
+  return { found: true, sent: false, changed };
+}
+
 function listDeliveries(db, options = {}) {
   const where = [];
   const params = [];
@@ -243,11 +281,14 @@ module.exports = {
   isValidDateOnly,
   addMonths,
   firstReportDueDate,
+  dateOnlyToday,
   queueDelivery,
   markSent,
   markFailed,
   markSkipped,
   skipPendingForGuardian,
   syncPendingForSubscription,
+  getDelivery,
+  retryDelivery,
   listDeliveries
 };

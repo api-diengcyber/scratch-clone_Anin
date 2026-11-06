@@ -8,7 +8,7 @@
     "seed": "node seed-tasks-smp.js && node seed-tasks-sd-smk.js && node seed-materials.js",
     "backup": "node backup.js",
     "smoke": "node smoke-test.js",
-    "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js && node test-learning.js && node test-logging.js && node test-deliveries.js",
+    "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js && node test-learning.js && node test-logging.js && node test-deliveries.js && node test-mail.js && node test-student-notifications.js",
     "test:admin": "node test-admin.js",
     "create-admin": "node create-admin.js",
     "promote-admin": "node promote-admin.js",
@@ -17,6 +17,8 @@
     "test:learning": "node test-learning.js",
     "test:logging": "node test-logging.js",
     "test:deliveries": "node test-deliveries.js",
+    "test:mail": "node test-mail.js",
+    "test:notifications": "node test-student-notifications.js",
     "backfill:points": "node backfill-points.js"
   },
   "keywords": [],
