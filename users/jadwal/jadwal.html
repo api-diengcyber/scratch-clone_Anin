@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/js/theme.js?v=20261019"></script>
+<title>Jadwal Saya • Dieng Cyber Coding</title>
+<meta name="description" content="Kalender jadwal belajar Dieng Cyber Coding: lihat kapan ada kelas Zoom dan gabung langsung dari sini.">
+<link rel="icon" type="image/webp" href="/Assets/logo.webp">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);min-height:100vh}
+.eh{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#fff;border-bottom:3px solid #e3e9ff}.eh img{width:34px;height:34px;object-fit:contain}.eh h1{flex:1;margin:0;font-size:inherit;font-size:20px}
+.eh a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:9px 14px;border-radius:14px;font-weight:bold;font-size:14px}
+main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.card{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 6px 16px rgba(60,80,140,.1)}.card h3{margin:0 0 10px;font-size:18px}
+.hi{background:linear-gradient(135deg,#2d8cff,#6d7eea);color:#fff;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.hi .ic{font-size:40px}.hi .tx{flex:1;min-width:200px}.hi h2{margin:0 0 4px;font-size:18px}.hi p{margin:0;opacity:.95;line-height:1.45}
+.btn{display:inline-block;border:0;cursor:pointer;text-decoration:none;font:inherit;font-weight:bold;font-size:14px;padding:9px 14px;border-radius:14px;background:#34c06f;color:#fff;white-space:nowrap}
+.btn.zoom{background:#2d8cff}.btn.ghost{background:#eef1ff;color:#5a6bd8}.hi .btn{background:#fff;color:#1f6fd6}
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}.nav h3{flex:1;margin:0;text-align:center;text-transform:capitalize}
+.nav button{border:0;cursor:pointer;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;font-size:16px;border-radius:12px;padding:8px 14px}
+.dow,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.dow span{text-align:center;font-size:12px;font-weight:bold;color:#6b7494;padding:4px 0}
+.day{position:relative;min-width:0;overflow:hidden;height:64px;border:2px solid #eef1ff;border-radius:14px;background:#fff;font:inherit;font-weight:bold;font-size:15px;color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:2px 3px}
+.day.out{opacity:.4}.day.today{border-color:#ffc94d;background:#fffbea}.day.sel{border-color:#2d8cff;background:#e8f1ff}
+.lbl{max-width:100%;padding:1px 6px;border-radius:8px;background:#2d8cff;color:#fff;font-size:10px;font-weight:bold;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day:focus-visible,.nav button:focus-visible,.btn:focus-visible{outline:3px solid #2d8cff;outline-offset:2px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:#6b7494}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2d8cff;margin-right:5px}
+.ev{border:3px solid #eef1ff;border-radius:18px;padding:12px 14px;margin-bottom:10px}.ev.live{border-color:#34c06f;background:#f0fbf4}.ev.done{opacity:.65}
+.ev .top{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}.ev .time{font-weight:bold;color:#2d8cff;font-size:14px;min-width:100px}
+.ev h4{margin:0 0 2px;font-size:16px}.ev p{margin:2px 0;color:#6b7494;font-size:14px;line-height:1.45}
+.badge{font-size:11px;border-radius:10px;padding:2px 8px;font-weight:bold;background:#eef1ff;color:#5a6bd8;margin-left:6px;vertical-align:middle}.badge.live{background:#34c06f;color:#fff}.badge.soon{background:#fff4d6;color:#a86a00}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}.meta{font-size:13px;color:#6b7494}.meta b{color:#2b3350}
+.empty{text-align:center;color:#6b7494;padding:18px 8px;line-height:1.5}.empty span{display:block;font-size:34px;margin-bottom:4px}
+.warn{background:#fffbea;border-left:8px solid #ffc94d;border-radius:14px;padding:12px 14px;line-height:1.5;font-size:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:480px){main{padding:12px}.card{padding:14px}.eh{padding:10px 14px}.eh a{padding:8px 12px;font-size:13px}.day{font-size:13px;height:54px;border-radius:12px}.lbl{font-size:9px;padding:1px 3px}.dow,.days{gap:4px}.ev .time{min-width:0;width:100%}}
+</style>
+</head>
+<body>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"><h1>📅 Jadwal Saya</h1><a href="/dashboard/dashboard.html">← Dashboard</a></header>
+<main>
+  <section class="card hi" id="next" aria-live="polite">
+    <div class="ic" aria-hidden="true">🎥</div>
+    <div class="tx"><h2>Memuat jadwalmu…</h2><p>Sebentar ya.</p></div>
+  </section>
+
+  <div class="warn" id="warn" hidden></div>
+
+  <section class="card">
+    <div class="nav">
+      <button type="button" id="prev" aria-label="Bulan sebelumnya">‹</button>
+      <h3 id="monthTitle" aria-live="polite"></h3>
+      <button type="button" id="nextM" aria-label="Bulan berikutnya">›</button>
+      <button type="button" id="todayBtn">Hari ini</button>
+    </div>
+    <div class="dow" aria-hidden="true"><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span></div>
+    <div class="days" id="days" role="grid" aria-label="Kalender jadwal"></div>
+    <div class="legend"><span><i></i>Ada jadwal Zoom</span><span>🟨 Hari ini</span></div>
+  </section>
+
+  <section class="card">
+    <h3 id="dayTitle">Jadwal</h3>
+    <div id="dayList"></div>
+  </section>
+</main>
+
+<script src="/shared/js/utils.js?v=20261019"></script>
+<script>
+(function () {
+  "use strict";
+  var token = ""; try { token = localStorage.getItem("authToken") || ""; } catch (e) {}
+  if (!token || localStorage.getItem("isLoggedIn") !== "true") { location.replace("/index.html"); return; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = window.DCUtils.esc;
+  var BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  var HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+
+  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+  var ymd = function (d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var view = new Date(today.getFullYear(), today.getMonth(), 1);
+  var selected = ymd(today);
+  var events = {};            // { "2026-11-09": [event, ...] }
+  var cache = {};             // { "2026-11": true } bulan yang sudah dimuat
+  // GANTI ke false kalau endpoint /api/jadwal sudah siap (data contoh dimatikan).
+  var USE_DEMO = true;
+  var demo = USE_DEMO ? !/[?&]demo=0(&|$)/.test(location.search) : /[?&]demo(=1)?(&|$)/.test(location.search);
+  if (demo) { var w = $("warn"); w.hidden = false; w.textContent = "🧪 Mode contoh: jadwal di bawah hanya data percobaan, bukan dari server."; }
+
+  // ---------- data ----------
+  function startOf(ev) { var p = ev.tanggal.split("-"), t = (ev.mulai || "00:00").split(":"); return new Date(+p[0], +p[1] - 1, +p[2], +t[0] || 0, +t[1] || 0); }
+  function endOf(ev) { var p = ev.tanggal.split("-"), t = (ev.selesai || ev.mulai || "23:59").split(":"); return new Date(+p[0], +p[1] - 1, +p[2], +t[0] || 0, +t[1] || 0); }
+  function safeUrl(u) { try { var x = new URL(String(u)); return x.protocol === "https:" ? x.href : ""; } catch (e) { return ""; } }
+  function normalize(raw) {
+    var list = Array.isArray(raw) ? raw : (raw && (raw.jadwal || raw.schedules || raw.events)) || [];
+    return list.filter(function (e) { return e && /^\d{4}-\d{2}-\d{2}$/.test(e.tanggal || ""); });
+  }
+  function addEvents(list) {
+    list.forEach(function (ev) {
+      var arr = events[ev.tanggal] || (events[ev.tanggal] = []);
+      if (!arr.some(function (x) { return x.id != null && x.id === ev.id; })) arr.push(ev);
+    });
+    Object.keys(events).forEach(function (k) { events[k].sort(function (a, b) { return startOf(a) - startOf(b); }); });
+  }
+  function demoData(key) {
+    var p = key.split("-"), y = +p[0], m = +p[1] - 1, t = new Date();
+    var mk = function (d, h1, h2, judul, zoom) { return { id: "demo-" + key + "-" + d + "-" + h1, tanggal: y + "-" + pad(m + 1) + "-" + pad(d), mulai: h1, selesai: h2, judul: judul, mentor: "Kak Mentor", zoomUrl: zoom ? "https://zoom.us/j/1234567890" : "", meetingId: zoom ? "123 4567 8901" : "", passcode: zoom ? "belajar" : "", keterangan: "Siapkan laptop dan buka Scratch sebelum kelas mulai." }; };
+    var base = (t.getFullYear() === y && t.getMonth() === m) ? t.getDate() : 8;
+    return [mk(Math.min(base, 28), "15:00", "16:30", "Kelas Zoom: Game Pertamaku", true), mk(Math.min(base + 3, 28), "10:00", "11:00", "Tanya Jawab Coding", true), mk(Math.min(base + 3, 28), "16:00", "17:00", "Konsultasi Project Akhir", true)];
+  }
+  function load(key) {
+    if (cache[key]) return Promise.resolve();
+    if (demo) { addEvents(demoData(key)); cache[key] = true; return Promise.resolve(); }
+    return fetch("/api/jadwal?bulan=" + encodeURIComponent(key), { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
+      .then(function (res) {
+        if (res.status === 401 || res.status === 403) { try { ["authToken","isLoggedIn","username","scratch_user"].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} location.replace("/index.html"); throw new Error("auth"); }
+        if (!res.ok) throw new Error("http" + res.status);
+        return res.json();
+      })
+      .then(function (data) { addEvents(normalize(data)); cache[key] = true; $("warn").hidden = true; })
+      .catch(function (err) {
+        if (err.message === "auth") return;
+        $("warn").hidden = false;
+        $("warn").textContent = "Jadwal belum bisa dimuat dari server. Coba muat ulang halaman, atau tanya Kak Mentor ya.";
+      });
+  }
+
+  // ---------- tampilan ----------
+  function statusOf(ev) {
+    var now = new Date(), s = startOf(ev), e = endOf(ev);
+    if (now >= s && now <= e) return "live";
+    if (now > e) return "done";
+    return (s - now) < 36e5 * 24 ? "soon" : "next";
+  }
+  // Keterangan singkat di kotak tanggal: judul jadwal (tanpa awalan "Zoom"), dipotong CSS dengan "…" kalau kepanjangan.
+  function short(list, full) {
+    if (list.length > 1) return full ? list.map(function (e) { return e.judul || "Zoom"; }).join(", ") : list.length + " jadwal Zoom";
+    var t = String(list[0].judul || "Zoom").replace(/^(kelas\s+)?zoom\s*[:\-–]\s*/i, "").trim();
+    return full ? (list[0].judul || "Zoom") : (t || "Zoom");
+  }
+  function renderCalendar() {
+    var y = view.getFullYear(), m = view.getMonth();
+    $("monthTitle").textContent = BULAN[m] + " " + y;
+    var first = new Date(y, m, 1), offset = (first.getDay() + 6) % 7;   // Senin = kolom pertama
+    var start = new Date(y, m, 1 - offset), html = "";
+    for (var i = 0; i < 42; i++) {
+      var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), n = (events[k] || []).length;
+      var cls = "day" + (d.getMonth() !== m ? " out" : "") + (k === ymd(today) ? " today" : "") + (k === selected ? " sel" : "") + (n ? " has" : "") + (n > 1 ? " multi" : "");
+      var label = d.getDate() + " " + BULAN[d.getMonth()] + (n ? ", " + n + " jadwal" : ", tidak ada jadwal");
+      html += '<button type="button" class="' + cls + '" data-d="' + k + '" role="gridcell" aria-label="' + esc(label) + '"' + (k === selected ? ' aria-current="date"' : "") + ">" + d.getDate() + (n ? '<span class="lbl" title="' + esc(short(events[k], true)) + '">' + esc(short(events[k])) + "</span>" : "") + "</button>";
+    }
+    $("days").innerHTML = html;
+  }
+  function eventHtml(ev) {
+    var st = statusOf(ev), url = safeUrl(ev.zoomUrl);
+    var badge = st === "live" ? '<span class="badge live">Sedang berlangsung</span>' : st === "soon" ? '<span class="badge soon">Segera</span>' : st === "done" ? '<span class="badge">Selesai</span>' : "";
+    var h = '<article class="ev ' + (st === "live" ? "live" : st === "done" ? "done" : "") + '"><div class="top"><div class="time">🕒 ' + esc(ev.mulai || "") + (ev.selesai ? "–" + esc(ev.selesai) : "") + ' WIB</div><div style="flex:1;min-width:160px"><h4>' + esc(ev.judul || "Kelas Zoom") + badge + "</h4>";
+    if (ev.mentor) h += "<p>👩‍🏫 " + esc(ev.mentor) + "</p>";
+    if (ev.keterangan) h += "<p>" + esc(ev.keterangan) + "</p>";
+    h += "</div></div>";
+    if (url || ev.meetingId || ev.passcode) {
+      h += '<div class="acts">';
+      if (url && st !== "done") h += '<a class="btn zoom" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🎥 Gabung Zoom</a>';
+      if (ev.meetingId) h += '<span class="meta">ID: <b>' + esc(ev.meetingId) + "</b></span>";
+      if (ev.passcode) h += '<span class="meta">Kode: <b>' + esc(ev.passcode) + "</b></span>";
+      h += "</div>";
+    }
+    return h + "</article>";
+  }
+  function renderDay() {
+    var p = selected.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]), list = events[selected] || [];
+    $("dayTitle").textContent = HARI[d.getDay()] + ", " + d.getDate() + " " + BULAN[d.getMonth()] + " " + d.getFullYear();
+    $("dayList").innerHTML = list.length ? list.map(eventHtml).join("") : '<div class="empty"><span>🌤️</span>Tidak ada jadwal Zoom di hari ini.<br>Pilih tanggal bertitik biru untuk melihat jadwal.</div>';
+  }
+  function renderNext() {
+    var now = new Date(), all = [];
+    Object.keys(events).forEach(function (k) { events[k].forEach(function (e) { if (endOf(e) >= now) all.push(e); }); });
+    all.sort(function (a, b) { return startOf(a) - startOf(b); });
+    var ev = all[0], box = $("next");
+    if (!ev) { box.innerHTML = '<div class="ic" aria-hidden="true">🎥</div><div class="tx"><h2>Belum ada jadwal Zoom</h2><p>Kalau ada kelas baru, jadwalnya muncul di kalender ini.</p></div>'; return; }
+    var s = startOf(ev), url = safeUrl(ev.zoomUrl), live = statusOf(ev) === "live";
+    var tgl = s.getDate() + " " + BULAN[s.getMonth()];
+    box.innerHTML = '<div class="ic" aria-hidden="true">🎥</div><div class="tx"><h2>' + (live ? "Zoom sedang berlangsung!" : "Zoom berikutnya") + "</h2><p><b>" + esc(ev.judul || "Kelas Zoom") + "</b><br>" +
+      (ymd(s) === ymd(today) ? "Hari ini" : HARI[s.getDay()] + ", " + tgl) + " • " + esc(ev.mulai || "") + " WIB</p></div>" +
+      (url ? '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + (live ? "Gabung sekarang" : "Buka link Zoom") + "</a>" : "");
+  }
+  function renderAll() { renderCalendar(); renderDay(); renderNext(); }
+  function go(date) { view = new Date(date.getFullYear(), date.getMonth(), 1); var key = view.getFullYear() + "-" + pad(view.getMonth() + 1); renderAll(); load(key).then(renderAll); }
+
+  // ---------- event ----------
+  $("days").addEventListener("click", function (e) {
+    var b = e.target.closest(".day"); if (!b) return;
+    selected = b.getAttribute("data-d");
+    var p = selected.split("-"); if (+p[1] - 1 !== view.getMonth()) { go(new Date(+p[0], +p[1] - 1, 1)); } else { renderCalendar(); renderDay(); }
+  });
+  $("prev").addEventListener("click", function () { go(new Date(view.getFullYear(), view.getMonth() - 1, 1)); });
+  $("nextM").addEventListener("click", function () { go(new Date(view.getFullYear(), view.getMonth() + 1, 1)); });
+  $("todayBtn").addEventListener("click", function () { selected = ymd(today); go(today); });
+  setInterval(function () { renderDay(); renderNext(); }, 60000);   // status "sedang berlangsung" ikut diperbarui
+
+  // "Zoom berikutnya" juga perlu data bulan depan kalau bulan ini sudah lewat semua
+  var nm = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  go(today);
+  load(nm.getFullYear() + "-" + pad(nm.getMonth() + 1)).then(renderNext);
+})();
+</script>
+<script src="/shared/js/icons.js?v=20261019"></script>
+</body>
+</html>
