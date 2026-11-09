@@ -320,6 +320,19 @@ app.use(
 // Halaman admin: http://localhost:3000/admin/
 app.use("/admin", express.static(ADMIN_ROOT, { index: "index.html" }));
 
+// URL bersih antar-halaman admin (mis. /admin/jadwal) tetap membuka SPA
+// Admin, termasuk saat halaman di-refresh. Hanya nama view yang dikenal.
+const ADMIN_VIEWS = new Set([
+    "dashboard", "kurikulum", "tahap", "plugin", "siswa",
+    "badge", "tugas", "jadwal", "pengaturan", "akses", "profil"
+]);
+app.get("/admin/:view", (req, res, next) => {
+    if (ADMIN_VIEWS.has(req.params.view)) {
+        return res.sendFile(path.join(ADMIN_ROOT, "index.html"));
+    }
+    next();
+});
+
 // ============================================================
 // HALAMAN UTAMA
 // ============================================================
@@ -1464,6 +1477,9 @@ app.post("/api/ai/tutor", auth.requireAuth, async (req, res) => {
 require("./admin-api").registerAdminApi(app, {
     db, auth, express, sendApiError, sendApiSuccess,
     rateLimitMiddleware, sanitizeString, normalizeEmail, isValidEmail
+});
+require("./jadwal-api").registerJadwalApi(app, {
+    db, auth, sendApiError, sendApiSuccess
 });
 require("./report-api").registerReportApi(app, {
     db, rateLimitMiddleware, sendApiError, sendApiSuccess

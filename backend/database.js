@@ -426,6 +426,34 @@ db.exec(`
         ON student_guardians(email COLLATE NOCASE);
 `);
 
+// Jadwal mentoring Zoom yang tampil di halaman "Jadwal Saya" murid.
+// Tanggal dan jam disimpan sebagai teks lokal WIB (bukan UTC) supaya
+// perbandingan di frontend dan query bulan tetap sederhana. `grades`
+// berisi JSON array jenjang (SD/SMP/SMK); array kosong berarti semua jenjang.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS mentoring_schedules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        judul TEXT NOT NULL CHECK (length(trim(judul)) BETWEEN 1 AND 120),
+        jenis TEXT NOT NULL DEFAULT 'Live Mentoring',
+        level TEXT,
+        mentor TEXT,
+        keterangan TEXT,
+        tanggal TEXT NOT NULL CHECK (tanggal GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+        mulai TEXT NOT NULL CHECK (mulai GLOB '[0-9][0-9]:[0-9][0-9]'),
+        selesai TEXT NOT NULL CHECK (selesai GLOB '[0-9][0-9]:[0-9][0-9]'),
+        zoom_url TEXT,
+        meeting_id TEXT,
+        passcode TEXT,
+        grades TEXT NOT NULL DEFAULT '[]',
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_mentoring_schedules_month
+        ON mentoring_schedules(tanggal, mulai);
+`);
+
 // Tautan laporan disimpan sebagai hash token. Token asli hanya dikembalikan
 // sekali saat admin membuat tautan, sehingga bocornya database tidak langsung
 // membocorkan akses laporan siswa.

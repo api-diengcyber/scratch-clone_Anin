@@ -66,6 +66,22 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 
 `taskId` harus berupa string maksimal 128 karakter. `timeSpent` (detik) opsional, bilangan bulat 0–86400 per request, lalu dijumlahkan ke total waktu aktif per task.
 
+### Jadwal mentoring
+
+| Method | Alamat | Isi (body) | Hasil |
+|---|---|---|---|
+| GET | `/api/jadwal?bulan=YYYY-MM` | - | `{ jadwal: [{ id, judul, jenis, level, mentor, keterangan, tanggal, mulai, selesai, zoomUrl, meetingId, passcode, grades }], bulan }` |
+| GET | `/api/admin/jadwal?bulan=YYYY-MM&limit=200` | - | `{ items, total, bulan }`; tanpa `bulan` memuat jadwal terbaru |
+| POST | `/api/admin/jadwal` | `{ judul, tanggal, mulai, selesai, grades?, jenis?, level?, mentor?, keterangan?, zoomUrl?, meetingId?, passcode? }` | `{ item }`; `201` |
+| PATCH | `/api/admin/jadwal/:id` | field yang ingin diubah | `{ item }` |
+| DELETE | `/api/admin/jadwal/:id` | - | `{ id }` |
+
+- `tanggal` wajib `YYYY-MM-DD` yang sah (tahun 2000-2100), `mulai`/`selesai` wajib `HH:MM`, dan `selesai` harus lebih lambat dari `mulai`. Waktu disimpan sebagai waktu lokal WIB, bukan UTC.
+- `grades` berisi `SD`/`SMP`/`SMK`; array kosong berarti jadwal berlaku untuk semua jenjang. Murid dengan `allowed_grades` kosong juga melihat semua jadwal.
+- `zoomUrl` opsional, tetapi bila diisi wajib URL `https` tanpa kredensial. `judul` maksimal 120 karakter, `jenis` 60, `level`/`mentor` 80, `keterangan` 500, `zoomUrl` 500.
+- Endpoint murid hanya mengembalikan jadwal pada bulan yang diminta dan menyaring berdasarkan jenjang murid. Respons tidak memuat kolom internal seperti `created_by`.
+- Endpoint admin memakai permission `kurikulum.kelola`. Semua perubahan dicatat di `admin_audit` (`jadwal.create`, `jadwal.update`, `jadwal.delete`).
+
 ### Learning analytics, achievement, dan pesan mentor
 
 | Method | Alamat | Hasil |

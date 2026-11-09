@@ -9,17 +9,16 @@
 // Data dari GET /api/jadwal?bulan=YYYY-MM (sama dengan halaman Jadwal Saya).
 // Gagal / kosong → tidak menampilkan apa-apa (tidak mengganggu dashboard).
 //
-// DATA CONTOH: selama USE_DEMO = true, dashboard memakai jadwal contoh
-// (tidak memanggil backend). Ganti ke false kalau /api/jadwal sudah siap.
-// Pilih skenario lewat URL:  ?demo=live | soon | besok | none
-//                            ?demo=0  → paksa pakai data asli dari server
+// Data asli dari GET /api/jadwal. Mode contoh hanya aktif jika diminta
+// lewat URL: ?demo=live | soon | besok | none
+//            ?demo=0  → paksa pakai data asli dari server
 // ============================================================
 (function () {
   "use strict";
   if (window.__jadwalBadge) return;
   window.__jadwalBadge = true;
 
-  var USE_DEMO = true;   // ← GANTI ke false kalau endpoint /api/jadwal sudah siap
+  var USE_DEMO = false;   // endpoint /api/jadwal sudah tersedia
 
   var token = ""; try { token = localStorage.getItem("authToken") || ""; } catch (e) {}
   if (!token) return;

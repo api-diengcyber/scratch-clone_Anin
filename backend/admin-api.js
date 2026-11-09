@@ -52,6 +52,7 @@ function registerAdminApi(app, deps) {
     { re: /^\/report-deliveries/, perm: "siswa.kelola" },
     { re: /^\/curriculum-tasks/, perm: "tugas.kelola" },
     { re: /^\/curriculum/, perm: "kurikulum.kelola" },
+    { re: /^\/jadwal/, perm: "kurikulum.kelola" },
     { re: /^\/badges/, perm: "badge.kelola" },
     { re: /^\/lencana/, perm: "badge.kelola" },
     { re: /^\/tasks\/\d+\/submissions/, perm: "tugas.nilai" },

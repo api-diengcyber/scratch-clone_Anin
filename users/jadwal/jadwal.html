@@ -84,8 +84,8 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   var selected = ymd(today);
   var events = {};            // { "2026-11-09": [event, ...] }
   var cache = {};             // { "2026-11": true } bulan yang sudah dimuat
-  // GANTI ke false kalau endpoint /api/jadwal sudah siap (data contoh dimatikan).
-  var USE_DEMO = true;
+  // Data asli dari GET /api/jadwal. Tambahkan ?demo=1 untuk mode contoh.
+  var USE_DEMO = false;
   var demo = USE_DEMO ? !/[?&]demo=0(&|$)/.test(location.search) : /[?&]demo(=1)?(&|$)/.test(location.search);
   if (demo) { var w = $("warn"); w.hidden = false; w.textContent = "🧪 Mode contoh: jadwal di bawah hanya data percobaan, bukan dari server."; }
 
