@@ -210,7 +210,6 @@ Perilaku penting:
 - `PUT /api/admin/curriculum` menyimpan seluruh dokumen `tahap` + `jalur` + `materi` secara atomik. Kirim `version` yang didapat dari GET; jika sudah berubah, server membalas `409 CURRICULUM_VERSION_CONFLICT` dengan `details.currentVersion`.
 - HTML materi ditolak bila mengandung `<script>`, `<iframe>`, `<object>`, `<embed>`, event handler inline, `javascript:`, `vbscript:`, `srcdoc`, atau `data:text/html`.
 - Endpoint kurikulum masih khusus Admin. Halaman murid saat ini tetap memakai data statis di `users/kurikulum/data/`; endpoint publik untuk murid belum dibuat.
-- Blockly wajib `grade: "SD"`, `language: "Blockly"`, `goal`, `blocks` (1-20), dan `blockLimit` (1-50). Blok yang dikenal: `Maju`, `Belok kiri`, `Belok kanan`, `Ulangi`, `Jika`.
 - Soal kode wajib `grade: "SMP"` atau `"SMK"` dan `language`: `HTML/CSS`, `Python`, atau `JavaScript`. `Python`/`JavaScript` wajib punya 1-100 `tests` berisi `{ i, o }`; `HTML/CSS` wajib punya `criteria`.
 - Notifikasi admin disimpan di tabel `admin_notifications` per akun admin, sehingga status baca/hapus admin1 tidak memengaruhi admin2. Notifikasi dibuat untuk `student.create`, `progress.complete`, `curriculum.update`, `plugin.upload`, dan `plugin.publish`; `dedupe_key` mencegah duplikasi.
 - **Badge & Tugas Admin** disimpan di tabel `admin_badges`, `admin_tasks`, dan `admin_task_submissions` (bukan localStorage). Tabel `admin_tasks` terpisah dari `tasks` kurikulum.

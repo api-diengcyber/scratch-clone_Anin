@@ -628,9 +628,9 @@ function registerAdminApi(app, deps) {
     }, "Kurikulum disimpan.");
   });
 
-  // Code Lab sudah dibuang dari proyek (lihat HAPUS-FILE-INI.txt).
-  // Tabel code_lab_challenges di-drop saat database start dan
-  // endpoint /api/admin/code-lab + /api/code-lab tidak ada lagi.
+  // Code Lab sudah dibuang dari proyek. Tabel code_lab_challenges
+  // di-drop saat database start dan endpoint /api/admin/code-lab
+  // + /api/code-lab tidak ada lagi.
 
   // ------------------------------------------------------------
   // Badge, tugas, pengumpulan, dan pengaturan instansi.

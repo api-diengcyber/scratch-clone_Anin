@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Firebase / Google service-account credentials (keep outside Git)
+*-firebase-adminsdk-*.json
+*service-account*.json
+*serviceAccountKey*.json
+firebase-service-account*.json
+
+# SQLite database and sidecar files
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-shm
+*.sqlite-wal
+*.db-shm
+*.db-wal
+
+# Local backups and generated output
+backups/
+backup/
+*.bak
+*.log
+npm-debug.log*
