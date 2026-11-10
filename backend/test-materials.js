@@ -164,11 +164,12 @@ async function main() {
   });
 
   await t("materi admin: buat materi draft", async () => {
-    const body = { grade: "SMP", moduleId: "smpmod", lessonIndex: 2, path: "/SMP/materi/baru.html", judul: "Materi Baru", status: "draft" };
+    const body = { grade: "SMP", moduleId: "smpmod", lessonIndex: 2, path: "/SMP/materi/baru.html", judul: "Materi Baru", keterangan: "Catatan awal", status: "draft" };
     const { r, d } = await api("POST", "/api/admin/materials", { token: adminToken, body });
     eq(r.status, 201, "status");
     eq(d.item.status, "draft", "status draft");
     eq(d.item.lessonIndex, 2, "lessonIndex");
+    eq(d.item.keterangan, "Catatan awal", "keterangan");
     created = d.item;
 
     const pub = await api("GET", "/api/materials/SMP/smpmod");
@@ -182,6 +183,7 @@ async function main() {
     eq(r.status, 200, "status");
     eq(d.item.status, "terbit", "status");
     eq(d.item.judul, "Materi Baru Terbit", "judul");
+    eq(d.item.keterangan, "Catatan awal", "keterangan dipertahankan");
 
     const pub = await api("GET", "/api/materials/SMP/smpmod");
     ok(pub.d.materials.some((m) => m.id === created.id), "materi terbit tampil di publik");
@@ -221,6 +223,58 @@ async function main() {
     eq(d.code, "MATERIAL_EXISTS", "code");
   });
 
+  await t("materi admin: buat tanpa path dan lessonIndex (default)", async () => {
+    const { r, d } = await api("POST", "/api/admin/materials", {
+      token: adminToken,
+      body: { grade: "SMK", moduleId: "smkmod", judul: "Materi Tanpa Link", keterangan: "Catatan", status: "terbit" }
+    });
+    eq(r.status, 201, "status");
+    eq(d.item.path, "", "path kosong");
+    eq(d.item.lessonIndex, 0, "lessonIndex default");
+    eq(d.item.keterangan, "Catatan", "keterangan");
+
+    const pub = await api("GET", "/api/materials/SMK/smkmod");
+    ok(!pub.d.materials.some((m) => m.id === d.item.id), "materi tanpa link tidak tampil di publik");
+
+    const admin = await api("GET", "/api/admin/materials?grade=SMK", { token: adminToken });
+    ok(admin.d.items.some((m) => m.id === d.item.id), "admin tetap melihat materi tanpa link");
+
+    await api("DELETE", `/api/admin/materials/${d.item.id}`, { token: adminToken });
+  });
+
+  await t("materi admin: payload UI (title/order/description) diterima", async () => {
+    const { r, d } = await api("POST", "/api/admin/materials", {
+      token: adminToken,
+      body: { title: "Materi dari UI", grade: "SMP", moduleId: "smpmod", order: 4, description: "Catatan UI", status: "draft" }
+    });
+    eq(r.status, 201, "status");
+    eq(d.item.judul, "Materi dari UI", "judul");
+    eq(d.item.title, "Materi dari UI", "alias title");
+    eq(d.item.lessonIndex, 4, "lessonIndex");
+    eq(d.item.order, 4, "alias order");
+    eq(d.item.keterangan, "Catatan UI", "keterangan");
+    eq(d.item.description, "Catatan UI", "alias description");
+
+    const patched = await api("PATCH", `/api/admin/materials/${d.item.id}`, {
+      token: adminToken,
+      body: { title: "Materi UI Diubah", order: 5, description: "Catatan baru" }
+    });
+    eq(patched.r.status, 200, "patch status");
+    eq(patched.d.item.judul, "Materi UI Diubah", "patch judul");
+    eq(patched.d.item.lessonIndex, 5, "patch lessonIndex");
+
+    await api("DELETE", `/api/admin/materials/${d.item.id}`, { token: adminToken });
+  });
+
+  await t("materi admin: keterangan terlalu panjang ditolak", async () => {
+    const { r, d } = await api("POST", "/api/admin/materials", {
+      token: adminToken,
+      body: { grade: "SMP", moduleId: "smpmod", lessonIndex: 9, keterangan: "x".repeat(501) }
+    });
+    eq(r.status, 400, "status");
+    eq(d.details && d.details.field, "keterangan", "field");
+  });
+
   await t("materi admin: hapus materi", async () => {
     const { r, d } = await api("DELETE", `/api/admin/materials/${created.id}`, { token: adminToken });
     eq(r.status, 200, "status");
@@ -237,9 +291,9 @@ async function main() {
       acc[row.action] = (acc[row.action] || 0) + 1;
       return acc;
     }, {});
-    eq(counts["materi.create"], 1, "create");
-    eq(counts["materi.update"], 1, "update");
-    eq(counts["materi.delete"], 1, "delete");
+    eq(counts["materi.create"] >= 1, true, "create");
+    eq(counts["materi.update"] >= 1, true, "update");
+    eq(counts["materi.delete"] >= 1, true, "delete");
   });
 
   await t("materi admin: instruktur tanpa kurikulum.kelola ditolak", async () => {

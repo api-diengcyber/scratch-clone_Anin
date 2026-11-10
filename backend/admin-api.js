@@ -2022,17 +2022,28 @@ function registerAdminApi(app, deps) {
   const MATERIAL_GRADES = ["SD", "SMP", "SMK"];
 
   function materialDto(row) {
+    const judul = row.judul || "";
+    const keterangan = row.keterangan || "";
     return {
       id: row.id,
       grade: row.grade,
       moduleId: row.module_id,
       lessonIndex: row.lesson_index,
       path: row.path,
-      judul: row.judul || "",
+      judul,
+      keterangan,
       status: row.status || "terbit",
+      // Alias untuk kompatibilitas UI Admin (static/materi.js).
+      title: judul,
+      order: row.lesson_index,
+      description: keterangan,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+  }
+  // Ambil field kanonik; kalau tidak ada, pakai alias lama dari UI Admin.
+  function materialField(body, canonical, alias) {
+    return body[canonical] !== undefined ? body[canonical] : body[alias];
   }
   function materialInvalid(res, message, field) {
     return sendApiError(res, 400, message, "MATERIAL_INVALID", field ? { field } : undefined);
@@ -2050,9 +2061,11 @@ function registerAdminApi(app, deps) {
     return Number.isInteger(num) && num >= 0 && num <= 999 ? num : null;
   }
   function parseMaterialPath(value) {
+    if (value === undefined || value === null) return "";
     if (typeof value !== "string") return null;
     const p = value.trim();
-    if (!p || p.length > 500) return null;
+    if (p === "") return "";   // boleh kosong: materi tersimpan tetapi belum punya tautan
+    if (p.length > 500) return null;
     if (!p.startsWith("/") || p.startsWith("//")) return null;
     if (/[\\\u0000-\u001F\u007F]/.test(p)) return null;
     if (p.split("/").some((segment) => segment === "..")) return null;
@@ -2063,6 +2076,12 @@ function registerAdminApi(app, deps) {
     if (typeof value !== "string") return null;
     const title = value.replace(/[\u0000-\u001F\u007F]/g, "").trim();
     return title.length <= 200 ? title : null;
+  }
+  function parseMaterialNote(value) {
+    if (value === undefined || value === null) return "";
+    if (typeof value !== "string") return null;
+    const note = value.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+    return note.length <= 500 ? note : null;
   }
   function parseMaterialStatus(value) {
     if (value === undefined || value === null || value === "") return "terbit";
@@ -2104,14 +2123,18 @@ function registerAdminApi(app, deps) {
     const body = req.body || {};
     const grade = parseMaterialGrade(body.grade);
     if (!grade) return materialInvalid(res, "grade harus SD/SMP/SMK.", "grade");
-    const moduleId = parseMaterialModuleId(body.moduleId);
+    const moduleIdRaw = materialField(body, "moduleId", "modul");
+    const moduleId = parseMaterialModuleId(moduleIdRaw);
     if (!moduleId) return materialInvalid(res, "moduleId wajib diisi (huruf, angka, - atau _).", "moduleId");
-    const lessonIndex = parseMaterialLessonIndex(body.lessonIndex);
+    const lessonIndexRaw = materialField(body, "lessonIndex", "order");
+    const lessonIndex = lessonIndexRaw === undefined ? 0 : parseMaterialLessonIndex(lessonIndexRaw);
     if (lessonIndex === null) return materialInvalid(res, "lessonIndex harus bilangan bulat 0-999.", "lessonIndex");
-    const materialPath = parseMaterialPath(body.path);
-    if (!materialPath) return materialInvalid(res, "path harus diawali / dan berupa alamat internal.", "path");
-    const judul = parseMaterialTitle(body.judul);
+    const materialPath = parseMaterialPath(materialField(body, "path", "link"));
+    if (materialPath === null) return materialInvalid(res, "path harus diawali / dan berupa alamat internal.", "path");
+    const judul = parseMaterialTitle(materialField(body, "judul", "title"));
     if (judul === null) return materialInvalid(res, "judul maksimal 200 karakter.", "judul");
+    const keterangan = parseMaterialNote(materialField(body, "keterangan", "description"));
+    if (keterangan === null) return materialInvalid(res, "keterangan maksimal 500 karakter.", "keterangan");
     const status = parseMaterialStatus(body.status);
     if (!status) return materialInvalid(res, "status harus terbit atau draft.", "status");
     if (!materialModuleExists(grade, moduleId)) {
@@ -2120,8 +2143,8 @@ function registerAdminApi(app, deps) {
 
     let info;
     try {
-      info = db.prepare(`INSERT INTO materials (grade, module_id, lesson_index, path, judul, status)
-        VALUES (?, ?, ?, ?, ?, ?)`).run(grade, moduleId, lessonIndex, materialPath, judul, status);
+      info = db.prepare(`INSERT INTO materials (grade, module_id, lesson_index, path, judul, keterangan, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`).run(grade, moduleId, lessonIndex, materialPath, judul, keterangan, status);
     } catch (err) {
       if (String(err && err.code).startsWith("SQLITE_CONSTRAINT")) {
         return sendApiError(res, 409, "Materi untuk modul dan nomor task itu sudah ada.", "MATERIAL_EXISTS", { field: "lessonIndex" });
@@ -2143,14 +2166,21 @@ function registerAdminApi(app, deps) {
     const body = req.body || {};
     const grade = body.grade === undefined ? current.grade : parseMaterialGrade(body.grade);
     if (!grade) return materialInvalid(res, "grade harus SD/SMP/SMK.", "grade");
-    const moduleId = body.moduleId === undefined ? current.module_id : parseMaterialModuleId(body.moduleId);
+    const moduleIdRaw = materialField(body, "moduleId", "modul");
+    const moduleId = moduleIdRaw === undefined ? current.module_id : parseMaterialModuleId(moduleIdRaw);
     if (!moduleId) return materialInvalid(res, "moduleId tidak valid.", "moduleId");
-    const lessonIndex = body.lessonIndex === undefined ? current.lesson_index : parseMaterialLessonIndex(body.lessonIndex);
+    const lessonIndexRaw = materialField(body, "lessonIndex", "order");
+    const lessonIndex = lessonIndexRaw === undefined ? current.lesson_index : parseMaterialLessonIndex(lessonIndexRaw);
     if (lessonIndex === null) return materialInvalid(res, "lessonIndex harus bilangan bulat 0-999.", "lessonIndex");
-    const materialPath = body.path === undefined ? current.path : parseMaterialPath(body.path);
-    if (!materialPath) return materialInvalid(res, "path harus diawali / dan berupa alamat internal.", "path");
-    const judul = body.judul === undefined ? (current.judul || "") : parseMaterialTitle(body.judul);
+    const pathRaw = materialField(body, "path", "link");
+    const materialPath = pathRaw === undefined ? current.path : parseMaterialPath(pathRaw);
+    if (materialPath === null) return materialInvalid(res, "path harus diawali / dan berupa alamat internal.", "path");
+    const judulRaw = materialField(body, "judul", "title");
+    const judul = judulRaw === undefined ? (current.judul || "") : parseMaterialTitle(judulRaw);
     if (judul === null) return materialInvalid(res, "judul maksimal 200 karakter.", "judul");
+    const keteranganRaw = materialField(body, "keterangan", "description");
+    const keterangan = keteranganRaw === undefined ? (current.keterangan || "") : parseMaterialNote(keteranganRaw);
+    if (keterangan === null) return materialInvalid(res, "keterangan maksimal 500 karakter.", "keterangan");
     const status = body.status === undefined ? (current.status || "terbit") : parseMaterialStatus(body.status);
     if (!status) return materialInvalid(res, "status harus terbit atau draft.", "status");
     if (!materialModuleExists(grade, moduleId)) {
@@ -2159,9 +2189,9 @@ function registerAdminApi(app, deps) {
 
     try {
       db.prepare(`UPDATE materials
-        SET grade = ?, module_id = ?, lesson_index = ?, path = ?, judul = ?, status = ?,
+        SET grade = ?, module_id = ?, lesson_index = ?, path = ?, judul = ?, keterangan = ?, status = ?,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?`).run(grade, moduleId, lessonIndex, materialPath, judul, status, id);
+        WHERE id = ?`).run(grade, moduleId, lessonIndex, materialPath, judul, keterangan, status, id);
     } catch (err) {
       if (String(err && err.code).startsWith("SQLITE_CONSTRAINT")) {
         return sendApiError(res, 409, "Materi untuk modul dan nomor task itu sudah ada.", "MATERIAL_EXISTS", { field: "lessonIndex" });

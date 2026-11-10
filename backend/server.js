@@ -418,7 +418,7 @@ app.get("/api/materials/:grade/:moduleId", (req, res) => {
         const materials = db.prepare(`
             SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
             FROM materials
-            WHERE grade = ? AND module_id = ? AND status = 'terbit'
+            WHERE grade = ? AND module_id = ? AND status = 'terbit' AND path <> ''
             ORDER BY lesson_index ASC
         `).all(grade, moduleId);
 
@@ -438,19 +438,19 @@ app.get("/api/materials", (req, res) => {
             return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
         }
 
-        const materials = grade
-            ? db.prepare(`
-                SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
-                FROM materials
-                WHERE status = 'terbit' AND grade = ?
-                ORDER BY grade ASC, module_id ASC, lesson_index ASC
-            `).all(grade)
-            : db.prepare(`
-                SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
-                FROM materials
-                WHERE status = 'terbit'
-                ORDER BY grade ASC, module_id ASC, lesson_index ASC
-            `).all();
+        const conditions = ["status = 'terbit'", "path <> ''"];
+        const params = [];
+        if (grade) {
+            conditions.push("grade = ?");
+            params.push(grade);
+        }
+
+        const materials = db.prepare(`
+            SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
+            FROM materials
+            WHERE ${conditions.join(" AND ")}
+            ORDER BY grade ASC, module_id ASC, lesson_index ASC
+        `).all(...params);
 
         sendApiSuccess(res, { materials });
     } catch (error) {

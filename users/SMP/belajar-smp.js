@@ -39,8 +39,6 @@
       node.tasks.forEach((task, index) => {
         task.halamanMateri = byIndex.get(index) || "";
       });
-
-
     } catch (error) {
       console.error(
         "Gagal memuat materi dari API:",

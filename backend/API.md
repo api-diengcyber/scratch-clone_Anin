@@ -86,16 +86,18 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 
 | Method | Alamat | Hasil |
 |---|---|---|
-| GET | `/api/materials?grade=SD\|SMP\|SMK` | `{ materials }`; hanya status `terbit` |
-| GET | `/api/materials/:grade/:moduleId` | `{ materials }` satu modul; hanya status `terbit` |
+| GET | `/api/materials?grade=SD\|SMP\|SMK` | `{ materials }`; hanya status `terbit` dan `path` terisi |
+| GET | `/api/materials/:grade/:moduleId` | `{ materials }` satu modul; hanya status `terbit` dan `path` terisi |
 | GET | `/api/admin/materials?grade=&moduleId=&status=` | `{ items, total }`; semua status. Izin `kurikulum.kelola` |
 | POST | `/api/admin/materials` | `{ item }`; `201` |
 | PATCH | `/api/admin/materials/:id` | `{ item }` |
 | DELETE | `/api/admin/materials/:id` | `{ id }` |
 
-- Satu baris `materials` = satu tautan materi untuk satu task: `grade` + `moduleId` + `lessonIndex` (0-based) → `path`.
+- Satu baris `materials` = satu materi untuk satu task: `grade` + `moduleId` + `lessonIndex` (0-based) → `path` (tautan) + `judul` + `keterangan`.
+- Body POST/PATCH: `grade`, `moduleId`, `lessonIndex`, `path`, `judul`, `keterangan`, `status`. Saat POST, `lessonIndex` default `0` dan `path` boleh kosong. `keterangan` maksimal 500 karakter.
+- Alias kompatibilitas untuk UI Admin: request boleh memakai `title` (untuk `judul`), `order` (untuk `lessonIndex`), `description` (untuk `keterangan`), dan `link` (untuk `path`). Respons admin juga memuat alias `title`, `order`, `description` di samping nama kanonik.
+- `path` bila diisi wajib alamat internal yang diawali `/` (bukan `//`), tanpa segmen `..`, maksimal 500 karakter. `moduleId` 1-64 karakter (`A-Z`, `a-z`, `0-9`, `-`, `_`). `lessonIndex` bilangan bulat 0-999. `judul` maksimal 200 karakter. `status` = `terbit`/`draft`; endpoint publik menyembunyikan `draft` dan baris tanpa `path`.
 - Tabel `materials` adalah sumber data yang sama untuk Admin dan portal murid SD/SMP/SMK. `npm run seed` mengisi baris yang belum ada dari data kurikulum statis (`users/kurikulum/data`) secara idempotent; edit Admin tidak ditimpa (`INSERT OR IGNORE`, judul hanya diisi bila kosong).
-- `path` wajib alamat internal yang diawali `/` (bukan `//`). `judul` maksimal 200 karakter. `status` = `terbit`/`draft`; endpoint publik menyembunyikan `draft`.
 - Semua perubahan Admin dicatat di `admin_audit` (`materi.create`, `materi.update`, `materi.delete`).
 - Endpoint kurikulum WYSIWYG (`/api/admin/curriculum`) tetap terpisah: ia menyimpan dokumen `tahap` + `jalur` + `materi` untuk penulisan konten, sedangkan tautan materi per task yang dibaca portal murid ada di tabel `materials`.
 

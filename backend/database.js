@@ -729,6 +729,7 @@ const CREATE_MATERIALS_TABLE = `
         lesson_index INTEGER NOT NULL DEFAULT 0,
         path TEXT NOT NULL,
         judul TEXT NOT NULL DEFAULT '',
+        keterangan TEXT NOT NULL DEFAULT '',
         status TEXT NOT NULL DEFAULT 'terbit',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -783,6 +784,10 @@ const materialColumns = db.prepare("PRAGMA table_info(materials)").all().map((c)
 if (!materialColumns.includes("judul")) {
     db.exec("ALTER TABLE materials ADD COLUMN judul TEXT NOT NULL DEFAULT ''");
     console.log("Migrasi kolom materials.judul berhasil.");
+}
+if (!materialColumns.includes("keterangan")) {
+    db.exec("ALTER TABLE materials ADD COLUMN keterangan TEXT NOT NULL DEFAULT ''");
+    console.log("Migrasi kolom materials.keterangan berhasil.");
 }
 if (!materialColumns.includes("status")) {
     db.exec("ALTER TABLE materials ADD COLUMN status TEXT NOT NULL DEFAULT 'terbit'");
@@ -948,7 +953,7 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
                 CREATE TABLE materials_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     grade TEXT NOT NULL, module_id TEXT NOT NULL, lesson_index INTEGER NOT NULL DEFAULT 0,
-                    path TEXT NOT NULL, judul TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'terbit',
+                    path TEXT NOT NULL, judul TEXT NOT NULL DEFAULT '', keterangan TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'terbit',
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(grade, module_id, lesson_index),
                     FOREIGN KEY (grade, module_id) REFERENCES modules(grade, module_id)
@@ -957,8 +962,8 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
             db.exec(`
                 INSERT INTO tasks_new (id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, points, editor_url, created_at)
                 SELECT id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, points, editor_url, created_at FROM tasks;
-                INSERT INTO materials_new (id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at)
-                SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at FROM materials;
+                INSERT INTO materials_new (id, grade, module_id, lesson_index, path, judul, keterangan, status, created_at, updated_at)
+                SELECT id, grade, module_id, lesson_index, path, judul, keterangan, status, created_at, updated_at FROM materials;
                 DROP TABLE materials; DROP TABLE tasks;
                 ALTER TABLE tasks_new RENAME TO tasks;
                 ALTER TABLE materials_new RENAME TO materials;
