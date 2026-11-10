@@ -84,7 +84,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   var selected = ymd(today);
   var events = {};            // { "2026-11-09": [event, ...] }
   var cache = {};             // { "2026-11": true } bulan yang sudah dimuat
-  // Data asli dari GET /api/jadwal. Tambahkan ?demo=1 untuk mode contoh.
+  // GANTI ke false kalau endpoint /api/jadwal sudah siap (data contoh dimatikan).
   var USE_DEMO = false;
   var demo = USE_DEMO ? !/[?&]demo=0(&|$)/.test(location.search) : /[?&]demo(=1)?(&|$)/.test(location.search);
   if (demo) { var w = $("warn"); w.hidden = false; w.textContent = "🧪 Mode contoh: jadwal di bawah hanya data percobaan, bukan dari server."; }
@@ -106,7 +106,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   }
   function demoData(key) {
     var p = key.split("-"), y = +p[0], m = +p[1] - 1, t = new Date();
-    var mk = function (d, h1, h2, judul, zoom) { return { id: "demo-" + key + "-" + d + "-" + h1, tanggal: y + "-" + pad(m + 1) + "-" + pad(d), mulai: h1, selesai: h2, judul: judul, mentor: "Kak Mentor", zoomUrl: zoom ? "https://zoom.us/j/1234567890" : "", meetingId: zoom ? "123 4567 8901" : "", passcode: zoom ? "belajar" : "", keterangan: "Siapkan laptop dan buka Scratch sebelum kelas mulai." }; };
+    var mk = function (d, h1, h2, judul, zoom) { return { id: "demo-" + key + "-" + d + "-" + h1, tanggal: y + "-" + pad(m + 1) + "-" + pad(d), mulai: h1, selesai: h2, judul: judul, mentor: "Kak Mentor", zoomUrl: zoom ? "https://zoom.us/j/1234567890" : "", meetingId: zoom ? "123 4567 8901" : "", passcode: zoom ? "belajar" : "", jenis: "Live Mentoring 1-on-1", level: "Scratch Level 1", keterangan: "Siapkan laptop dan buka Scratch sebelum kelas mulai." }; };
     var base = (t.getFullYear() === y && t.getMonth() === m) ? t.getDate() : 8;
     return [mk(Math.min(base, 28), "15:00", "16:30", "Kelas Zoom: Game Pertamaku", true), mk(Math.min(base + 3, 28), "10:00", "11:00", "Tanya Jawab Coding", true), mk(Math.min(base + 3, 28), "16:00", "17:00", "Konsultasi Project Akhir", true)];
   }
@@ -157,6 +157,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     var st = statusOf(ev), url = safeUrl(ev.zoomUrl);
     var badge = st === "live" ? '<span class="badge live">Sedang berlangsung</span>' : st === "soon" ? '<span class="badge soon">Segera</span>' : st === "done" ? '<span class="badge">Selesai</span>' : "";
     var h = '<article class="ev ' + (st === "live" ? "live" : st === "done" ? "done" : "") + '"><div class="top"><div class="time">🕒 ' + esc(ev.mulai || "") + (ev.selesai ? "–" + esc(ev.selesai) : "") + ' WIB</div><div style="flex:1;min-width:160px"><h4>' + esc(ev.judul || "Kelas Zoom") + badge + "</h4>";
+    if (ev.jenis || ev.level) h += "<p>" + (ev.jenis ? esc(ev.jenis) : "") + (ev.level ? ' <span class="badge">' + esc(ev.level) + "</span>" : "") + "</p>";
     if (ev.mentor) h += "<p>👩‍🏫 " + esc(ev.mentor) + "</p>";
     if (ev.keterangan) h += "<p>" + esc(ev.keterangan) + "</p>";
     h += "</div></div>";

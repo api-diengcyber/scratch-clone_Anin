@@ -82,6 +82,11 @@
         <span class="nav-chip">3 Level</span>
       </a>
 
+      <a href="#" data-view="materi" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+        <i class="fa-solid fa-book-open w-4 text-center text-sm"></i>
+        <span>Kelola Materi</span>
+      </a>
+
 
       <a href="#" data-view="siswa" class="nav-link group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
         <div class="flex items-center gap-3">
@@ -94,11 +99,6 @@
       <a href="#" data-view="tugas" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
         <i class="fa-solid fa-list-check w-4 text-center text-sm"></i>
         <span>Tugas &amp; Review Kode</span>
-      </a>
-
-      <a href="#" data-view="jadwal" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
-        <i class="fa-regular fa-calendar-days w-4 text-center text-sm"></i>
-        <span>Jadwal Mentoring</span>
       </a>
 
       <a href="#" data-view="badge" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
@@ -477,10 +477,12 @@
     <!-- View: Manajemen Siswa (diisi static/siswa.js) -->
     <div id="view-siswa" class="sw-page hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
 
+    <!-- View: Kelola Materi (tabel materials; diisi static/materi.js) -->
+    <div id="view-materi" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+
     <!-- View: Badge & Tugas -->
     <div id="view-badge" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-tugas" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
-    <div id="view-jadwal" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-pengaturan" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-akses" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-profil" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
@@ -690,13 +692,13 @@
 <script src="static/common.js?v=2"></script>
 <script src="static/dialog.js?v=2"></script>
 <script src="static/editor.js?v=12"></script>
-<script src="static/kurikulum.js?v=26"></script>
+<script src="static/kurikulum.js?v=27"></script>
 <script src="static/plugins.js?v=2"></script>
    <script src="static/siswa.js?v=9"></script>
    <script src="static/avatar-frame.js?v=1"></script>
    <script src="static/badge-tugas.js?v=16"></script>
-   <script src="static/jadwal.js?v=1"></script>
    <script src="static/pengaturan-akses.js?v=10"></script>
    <script src="static/profil.js?v=10"></script>
+   <script src="static/materi.js?v=1"></script>
 </body>
 </html>

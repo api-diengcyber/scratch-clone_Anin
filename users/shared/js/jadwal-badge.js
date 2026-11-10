@@ -9,19 +9,23 @@
 // Data dari GET /api/jadwal?bulan=YYYY-MM (sama dengan halaman Jadwal Saya).
 // Gagal / kosong → tidak menampilkan apa-apa (tidak mengganggu dashboard).
 //
-// Data asli dari GET /api/jadwal. Mode contoh hanya aktif jika diminta
-// lewat URL: ?demo=live | soon | besok | none
-//            ?demo=0  → paksa pakai data asli dari server
+// DATA CONTOH: selama USE_DEMO = true, dashboard memakai jadwal contoh
+// (tidak memanggil backend). Ganti ke false kalau /api/jadwal sudah siap.
+// Pilih skenario lewat URL:  ?demo=live | soon | besok | none
+//                            ?demo=0  → paksa pakai data asli dari server
 // ============================================================
 (function () {
   "use strict";
   if (window.__jadwalBadge) return;
   window.__jadwalBadge = true;
 
-  var USE_DEMO = false;   // endpoint /api/jadwal sudah tersedia
+  var USE_DEMO = false;   // ← GANTI ke false kalau endpoint /api/jadwal sudah siap
 
-  var token = ""; try { token = localStorage.getItem("authToken") || ""; } catch (e) {}
-  if (!token) return;
+  // Konfigurasi. Dashboard siswa memakai bawaan di bawah. Halaman orang tua mengisi window.JADWAL_BADGE sebelum memuat file ini:
+  //   { audience: "ortu", tokenKey: "parentToken", api: "/api/parent/jadwal", link: "/orangtua/jadwal.html", mount: "#laporan" }
+  var CFG = window.JADWAL_BADGE || {};
+  var ORTU = CFG.audience === "ortu";
+  var TOKEN_KEY = CFG.tokenKey || "authToken", API = CFG.api || "/api/jadwal", LINK = CFG.link || "/jadwal/jadwal.html", MOUNT = CFG.mount || "main";
 
   var esc = (window.DCUtils && window.DCUtils.esc) || function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var pad = function (n) { return (n < 10 ? "0" : "") + n; };
@@ -30,6 +34,9 @@
 
   var m = location.search.match(/[?&]demo=?([a-z0-9]*)/), param = m ? (m[1] === "" ? "live" : m[1]) : null;
   var demo = USE_DEMO ? (param === "0" ? null : (param || "soon")) : (param && param !== "0" ? param : null);
+
+  var token = ""; try { token = localStorage.getItem(TOKEN_KEY) || ""; } catch (e) {}
+  if (!token && !demo) return;
 
   function at(tanggal, jam) { var p = tanggal.split("-"), t = (jam || "00:00").split(":"); return new Date(+p[0], +p[1] - 1, +p[2], +t[0] || 0, +t[1] || 0); }
   function safeUrl(u) { try { var x = new URL(String(u)); return x.protocol === "https:" ? x.href : ""; } catch (e) { return ""; } }
@@ -44,7 +51,7 @@
   }
   function monthKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
   function fetchMonth(key) {
-    return fetch("/api/jadwal?bulan=" + key, { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
+    return fetch(API + "?bulan=" + key, { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { var l = Array.isArray(d) ? d : (d && (d.jadwal || d.schedules || d.events)) || []; return l.filter(function (x) { return x && /^\d{4}-\d{2}-\d{2}$/.test(x.tanggal || ""); }); })
       .catch(function () { return []; });
@@ -68,7 +75,7 @@
     s.textContent =
       ".zb{--zg:linear-gradient(90deg,#2f6df6,#8b5cf6);display:flex;align-items:center;gap:16px;flex-wrap:wrap;max-width:1100px;margin:14px auto 18px;padding:18px 22px;border:1.5px solid transparent;border-radius:22px;" +
         "background:linear-gradient(90deg,#fff,#f6f4ff) padding-box,var(--zg) border-box;box-shadow:0 8px 24px rgba(79,70,229,.12);font-family:'Plus Jakarta Sans','Trebuchet MS',Nunito,Arial,sans-serif;color:#1e293b}" +
-      ".zb.live{--zg:linear-gradient(90deg,#10b981,#2f6df6)}.zb.besok{--zg:linear-gradient(90deg,#f59e0b,#fb923c)}" +
+      ".zb{--zr:239,68,68}.zb.live{--zg:linear-gradient(90deg,#10b981,#2f6df6);--zr:16,185,129}.zb.besok{--zg:linear-gradient(90deg,#f59e0b,#fb923c);--zr:245,158,11}" +
       ".zic{position:relative;flex:none;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#2f6df6,#5b4de0);box-shadow:0 6px 14px rgba(47,109,246,.35)}" +
       ".zal{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;font:800 11px/16px Arial,sans-serif;text-align:center}.zb.live .zal{background:#10b981}.zb.besok .zal{background:#f59e0b}" +
       ".zbody{flex:1;min-width:220px}.zrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}" +
@@ -88,10 +95,14 @@
       ".profile .zdot{margin:0;position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #fff}" +
       "#userMenu .um-item.zm-on{background:#eef4ff;color:#2563eb}" +
       "#userMenu .zbadge{margin:0 0 0 auto;font-size:10px;font-weight:800;letter-spacing:.4px;line-height:1.3;border-radius:999px;padding:3px 10px;background:#ef4444;color:#fff}#userMenu .zbadge.live{background:#10b981}#userMenu .zbadge.besok{background:#f59e0b}" +
-      "html[data-theme='dark'] .zb{background:linear-gradient(90deg,#1b2340,#221d45) padding-box,var(--zg) border-box;color:#e8ecff;box-shadow:0 8px 24px rgba(0,0,0,.4)}" +
-      "html[data-theme='dark'] .zdesc,html[data-theme='dark'] .zmeta,html[data-theme='dark'] .zlink{color:#a9b4d8}" +
-      "html[data-theme='dark'] .ztag{background:#2a2f63;color:#c7d2fe;border-color:#454c9a}html[data-theme='dark'] .zal{border-color:#1b2340}" +
-      "html[data-theme='dark'] #userMenu .um-item.zm-on{background:#1f2a52;color:#8ab4ff}" +
+      "html[data-dark='manual'][data-theme='dark'] .zb{background:linear-gradient(90deg,#1b2340,#221d45) padding-box,var(--zg) border-box;color:#e8ecff;box-shadow:0 8px 24px rgba(0,0,0,.4)}" +
+      "html[data-dark='manual'][data-theme='dark'] .zdesc,html[data-dark='manual'][data-theme='dark'] .zmeta,html[data-dark='manual'][data-theme='dark'] .zlink{color:#a9b4d8}" +
+      "html[data-dark='manual'][data-theme='dark'] .ztag{background:#2a2f63;color:#c7d2fe;border-color:#454c9a}html[data-dark='manual'][data-theme='dark'] .zal{border-color:#1b2340}" +
+      "html[data-dark='manual'][data-theme='dark'] #userMenu .um-item.zm-on{background:#1f2a52;color:#8ab4ff}" +
+      "@keyframes zbeat{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(var(--zr),.55)}14%{transform:scale(1.28)}28%{transform:scale(1)}42%{transform:scale(1.2);box-shadow:0 0 0 0 rgba(var(--zr),.45)}70%{box-shadow:0 0 0 10px rgba(var(--zr),0)}}" +
+      ".zal,.profile .zdot{--zr:239,68,68;animation:zbeat 1.6s ease-out infinite}.zb.live .zal{--zr:16,185,129}.zb.besok .zal{--zr:245,158,11}" +
+      "@media(prefers-reduced-motion:reduce){.zal,.profile .zdot{animation:none}}" +
+      ".zhint{font-size:13px;color:#7c6a2a}" +
       "@media(max-width:640px){.zb{margin:12px 12px 14px;padding:14px;gap:12px}.zic{width:48px;height:48px}.ztitle b{font-size:17px}.zact{width:100%;justify-content:space-between}.zbtn{flex:1;justify-content:center}}";
     document.head.appendChild(s);
   }
@@ -110,11 +121,13 @@
     var label = live ? "LIVE" : isToday ? "HARI INI" : "BESOK";
     if (!document.getElementById("zoomBadgeCss")) css();
 
-    var main = document.querySelector("main");
+    var main = document.querySelector(MOUNT);
+    var judulBanner = ORTU ? (live ? "Mentoring ananda sedang berlangsung!" : isToday ? "Ananda ada jadwal mentoring hari ini" : "Besok ananda ada jadwal mentoring")
+                           : (live ? "Mentoring sedang berlangsung!" : isToday ? "Ada jadwal mentoring hari ini" : "Besok ada jadwal mentoring");
     if (main) {
       var b = document.createElement("section");
       b.id = "zoomBanner"; b.className = "zb" + (live ? " live" : !isToday ? " besok" : ""); b.setAttribute("role", "status");
-      b.setAttribute("aria-label", (live ? "Mentoring sedang berlangsung" : isToday ? "Ada jadwal mentoring hari ini" : "Besok ada jadwal mentoring") + ": " + (ev.judul || "Mentoring Zoom"));
+      b.setAttribute("aria-label", judulBanner + ": " + (ev.judul || "Mentoring Zoom"));
       b.innerHTML =
         '<div class="zic">' + ICON.cam + '<span class="zal" aria-hidden="true">!</span></div>' +
         '<div class="zbody"><div class="zrow">' +
@@ -123,8 +136,9 @@
           (ev.jenis ? '<span class="zmeta"><i></i>' + esc(ev.jenis) + "</span>" : "") +
           (list.length > 1 ? '<span class="zmeta"><i></i>+' + (list.length - 1) + " jadwal lain</span>" : "") +
         '</div><div class="ztitle"><b>' + esc(ev.judul || "Mentoring Zoom") + "</b>" + (ev.level ? '<span class="ztag">' + esc(ev.level) + "</span>" : "") + "</div>" +
-        (ev.keterangan ? '<p class="zdesc">' + esc(ev.keterangan) + "</p>" : "") + "</div>" +
-        '<div class="zact"><a class="zlink" href="/jadwal/jadwal.html">' + ICON.cal + "Lihat Jadwal</a>" +
+        (ev.keterangan ? '<p class="zdesc">' + esc(ev.keterangan) + "</p>" : "") +
+        (ORTU && isToday ? '<p class="zdesc zhint">👨‍👩‍👧 Tips: bantu ananda membuka Zoom 5 menit sebelum mulai, dan temani di dekatnya ya.</p>' : "") + "</div>" +
+        '<div class="zact"><a class="zlink" href="' + esc(LINK) + '">' + ICON.cal + "Lihat Jadwal</a>" +
           (url && isToday ? '<a class="zbtn" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + ICON.ext + (live ? "Gabung Sekarang" : "Buka Link Zoom") + "</a>" : "") + "</div>";
       main.insertBefore(b, main.firstChild);
     }
