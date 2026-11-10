@@ -1,5 +1,5 @@
 // ============================================================
-// 3D EDITOR — Dieng Cyber Coding (gaya Roblox Studio, versi ringan)
+// 3D EDITOR — Ruang KKA (gaya Roblox Studio, versi ringan)
 //  ?task=g2-t1   → task dari Learning Path (dicek otomatis & langsung selesai saat semua ✅)
 //  ?project=...  → Project Akhir (petunjuk + tombol Screenshot)
 //  (tanpa)       → mode bebas

@@ -46,7 +46,7 @@
      PENGATURAN INSTANSI
      ===================================================================== */
   const SET_DEF = () => ({
-    name: 'Dieng Cyber', tagline: 'Platform Edukasi Coding', email: '', phone: '', website: '', address: '', logo: '',
+    name: 'Ruang KKA', tagline: 'Platform Edukasi Coding', email: '', phone: '', website: '', address: '', logo: '',
     year: String(new Date().getFullYear()) + '/' + (new Date().getFullYear() + 1), semester: 'Ganjil', grades: ['SD', 'SMP', 'SMK'],
     kkm: 75, defaultDueDays: 7, allowLate: true, latePenalty: 10,
     minPassword: 8, sessionHours: 12, forceChangePassword: true,
@@ -261,13 +261,13 @@
     siswa: ['materi.akses', 'tugas.kumpul'],
     ortu: ['anak.lihat']
   }));
-  const meInfo = () => { const m = window.DCAdminMe || {}, u = m.user || m; return { name: u.full_name || u.fullName || u.name || u.username || 'Admin', email: u.email || 'admin@diengcyber.local' }; };
+  const meInfo = () => { const m = window.DCAdminMe || {}, u = m.user || m; return { name: u.full_name || u.fullName || u.name || u.username || 'Admin', email: u.email || 'admin@ruangkka.local' }; };
   const instr = makeStore('/api/admin/instructors', 'dc-instructors', () => [
     { id: 1, ...meInfo(), role: 'admin', grades: ['SD', 'SMP', 'SMK'], active: true },
-    { id: 2, name: 'Nurul Hidayah', email: 'nurul@diengcyber.local', role: 'instruktur', grades: ['SMP', 'SMK'], active: true },
-    { id: 3, name: 'Rizky Pratama', email: 'rizky@diengcyber.local', role: 'instruktur', grades: ['SD'], active: true },
-    { id: 4, name: 'Salsa Amelia', email: 'salsa@diengcyber.local', role: 'siswa', grades: ['SMP'], active: false },
-    { id: 5, name: 'Siti Aminah', email: 'siti@diengcyber.local', role: 'ortu', grades: ['SD'], active: true }
+    { id: 2, name: 'Nurul Hidayah', email: 'nurul@ruangkka.local', role: 'instruktur', grades: ['SMP', 'SMK'], active: true },
+    { id: 3, name: 'Rizky Pratama', email: 'rizky@ruangkka.local', role: 'instruktur', grades: ['SD'], active: true },
+    { id: 4, name: 'Salsa Amelia', email: 'salsa@ruangkka.local', role: 'siswa', grades: ['SMP'], active: false },
+    { id: 5, name: 'Siti Aminah', email: 'siti@ruangkka.local', role: 'ortu', grades: ['SD'], active: true }
   ]);
   let people = [], rolesSaved = null, rolesNow = null;
   const isSelf = (p) => !!(p.email && p.email.toLowerCase() === meInfo().email.toLowerCase());
@@ -290,11 +290,12 @@
       return `<tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 ${p.active ? '' : 'opacity-60'}">
         <td class="py-3.5 px-6"><div class="flex items-center gap-3"><div class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white text-xs font-bold flex items-center justify-center">${esc(initials(p.name))}</div>
           <div class="min-w-0"><p class="font-semibold text-slate-900 dark:text-white truncate">${esc(p.name)}${self ? ' <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">Anda</span>' : ''}</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${esc(p.email)}</p></div></div></td>
+          <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${esc(p.email)}</p>${p.role === 'instruktur' ? studentLine(p) : ''}</div></div></td>
         <td class="py-3.5 px-4"><span class="text-xs font-medium px-2.5 py-1 rounded-full border whitespace-nowrap ${role[1]}">${role[0]}</span></td>
         <td class="py-3.5 px-4"><div class="flex flex-wrap gap-1">${(p.grades || []).length ? p.grades.map((g) => `<span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${esc(GRADES[g] || g)}</span>`).join('') : '<span class="text-xs text-slate-300 dark:text-slate-600">—</span>'}</div></td>
         <td class="py-3.5 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${p.active ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'}"><span class="w-1.5 h-1.5 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-400'}"></span>${p.active ? 'Aktif' : 'Nonaktif'}</span></td>
         <td class="py-3.5 px-6 text-right"><div class="inline-flex items-center gap-1">
+          ${p.role === 'instruktur' ? `<button type="button" data-a="students" data-id="${p.id}" class="dc-ib dc-ib-edit" title="Murid binaan"><i class="fa-solid fa-user-graduate"></i></button>` : ''}
           <button type="button" data-a="edit" data-id="${p.id}" class="dc-ib dc-ib-edit" title="Ubah"><i class="fa-solid fa-pen"></i></button>
           <button type="button" data-a="toggle" data-id="${p.id}" ${self ? 'disabled' : ''} class="dc-ib dc-ib-warn" title="${self ? 'Akun Anda sendiri tidak bisa dinonaktifkan' : p.active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="fa-solid ${p.active ? 'fa-user-slash' : 'fa-user-check'}"></i></button>
           <button type="button" data-a="del" data-id="${p.id}" ${self ? 'disabled' : ''} class="dc-ib dc-ib-danger" title="${self ? 'Akun Anda sendiri tidak bisa dihapus' : 'Hapus'}"><i class="fa-regular fa-trash-can text-sm"></i></button></div></td></tr>`;
@@ -306,7 +307,7 @@
     try {
       if (instr.isLocal() && !people.some((x) => x.role === 'ortu') && !localStorage.getItem('dc-seed-ortu')) {
         localStorage.setItem('dc-seed-ortu', '1');
-        await instr.save({ name: 'Siti Aminah', email: 'siti@diengcyber.local', role: 'ortu', grades: ['SD'], active: true });
+        await instr.save({ name: 'Siti Aminah', email: 'siti@ruangkka.local', role: 'ortu', grades: ['SD'], active: true });
         people = await instr.list();
       }
     } catch (_) {}
@@ -334,6 +335,89 @@
           <thead><tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800"><th class="${th} px-6 min-w-[300px]">Fitur</th>${Object.entries(ROLES).map(([k, r]) => `<th class="${th} text-center min-w-[110px]">${r[0]}</th>`).join('')}</tr></thead>
           <tbody id="rlBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div>`;
     drawPeople(); drawMatrix();
+  }
+
+  // ---------- murid binaan instruktur ----------
+  // Data: tiap instruktur punya studentIds (array id siswa). Disimpan lewat PATCH /api/admin/instructors/:id
+  const studentCount = (p) => (Array.isArray(p.studentIds) ? p.studentIds.length : 0);
+  const studentLine = (p) => `<p class="text-[11px] font-medium text-sky-600 dark:text-sky-400 mt-0.5">${studentCount(p)} murid binaan</p>`;
+
+  // Instruktur lain yang kehilangan murid karena dipindah ke instruktur p.
+  function planAssign(list, p, studentIds) {
+    const pick = new Set(studentIds.map(String));
+    return list
+      .filter((x) => x.role === 'instruktur' && x.id !== p.id && (x.studentIds || []).some((s) => pick.has(String(s))))
+      .map((x) => ({ id: x.id, studentIds: x.studentIds.filter((s) => !pick.has(String(s))) }));
+  }
+
+  async function loadStudents() {
+    const all = [];
+    try {
+      let page = 1, pages = 1;
+      do {
+        const d = await window.DCAdminApi.users({ page, limit: 100 });
+        all.push(...(Array.isArray(d.users) ? d.users : []));
+        pages = Math.max(1, Number(d.pages || 1));
+        page++;
+      } while (page <= pages && page <= 50);
+    } catch (e) {
+      if (!missing(e)) throw e;
+      try { const r = JSON.parse(localStorage.getItem('dc-siswa-data')); if (r && Array.isArray(r.users)) all.push(...r.users); } catch (_) {}
+    }
+    return all.filter((u) => u && u.status !== 'deleted');
+  }
+
+  async function assignForm(p) {
+    let students;
+    try { students = await loadStudents(); } catch (e) { return toast(e.message || 'Gagal memuat daftar siswa.', 'error'); }
+    const name = (u) => String(u.full_name || u.username || '');
+    students.sort((a, b) => name(a).localeCompare(name(b), 'id'));
+    const mine = new Set((p.studentIds || []).map(String));
+    const owner = {};   // id siswa -> nama instruktur lain yang membimbingnya
+    people.forEach((x) => { if (x.role === 'instruktur' && x.id !== p.id) (x.studentIds || []).forEach((s) => { owner[String(s)] = x.name; }); });
+    const rows = students.map((u) => {
+      const gs = Array.isArray(u.allowedGrades) ? u.allowedGrades : [];
+      const other = owner[String(u.id)];
+      return `<label data-row data-g="${esc(gs.join(' '))}" data-s="${esc([name(u), u.username, u.email].join(' ').toLowerCase())}" class="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+        <input type="checkbox" name="sid" value="${esc(u.id)}" ${mine.has(String(u.id)) ? 'checked' : ''} class="rounded">
+        <div class="min-w-0 flex-1"><p class="text-sm font-semibold text-slate-900 dark:text-white truncate">${esc(name(u))}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${esc(u.username || '')}${gs.length ? ' · ' + esc(gs.join(', ')) : ''}</p></div>
+        ${other ? `<span class="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30" title="Akan dipindahkan ke instruktur ini">Instruktur: ${esc(other)}</span>` : ''}</label>`;
+    }).join('');
+    const el = modal('Murid binaan: ' + p.name, `
+      <p class="text-xs text-slate-500 dark:text-slate-400">Centang murid yang dibimbing instruktur ini. Murid yang sudah punya instruktur lain akan dipindahkan ke sini.</p>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input type="search" data-q placeholder="Cari nama, username, atau email" autocomplete="off" class="${INPUT}">
+        <select data-g class="${INPUT} sm:w-44"><option value="">Semua jenjang</option>${Object.entries(GRADES).map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</select></div>
+      <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"><span data-n></span><span data-shown></span></div>
+      <div data-list class="max-h-[46vh] overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-slate-700 p-1.5">${rows || '<p class="py-8 text-center text-sm text-slate-500 dark:text-slate-400">Belum ada siswa.</p>'}</div>`,
+      async (f, form) => {
+        const picked = Array.from(form.querySelectorAll('[name=sid]:checked')).map((c) => c.value);
+        const byId = new Map(students.map((u) => [String(u.id), u.id]));
+        const kept = (p.studentIds || []).filter((s) => !byId.has(String(s)));   // murid di luar daftar termuat tidak ikut terhapus
+        const studentIds = picked.map((v) => byId.get(v)).concat(kept);
+        const lost = planAssign(people, p, studentIds);
+        await instr.save({ id: p.id, studentIds });
+        for (const o of lost) await instr.save(o);
+        toast('Murid binaan disimpan (' + studentIds.length + ' murid).');
+        await renderAkses();
+      }, true, 'Simpan murid binaan');
+    const list = el.querySelector('[data-list]');
+    const count = () => { el.querySelector('[data-n]').textContent = list.querySelectorAll('[name=sid]:checked').length + ' murid dipilih'; };
+    const apply = () => {
+      const q = el.querySelector('[data-q]').value.trim().toLowerCase(), g = el.querySelector('[data-g]').value;
+      let shown = 0;
+      list.querySelectorAll('[data-row]').forEach((r) => {
+        const ok = (!q || r.dataset.s.includes(q)) && (!g || r.dataset.g.split(' ').includes(g));
+        r.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      el.querySelector('[data-shown]').textContent = shown + ' ditampilkan';
+    };
+    el.addEventListener('input', (e) => { if (e.target.matches('[data-q]')) apply(); });
+    el.addEventListener('change', (e) => { if (e.target.matches('[data-g]')) apply(); if (e.target.matches('[name=sid]')) count(); });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('[data-q]')) e.preventDefault(); });   // Enter di kolom cari jangan menyimpan form
+    count(); apply();
   }
 
   function personForm(p) {
@@ -372,6 +456,7 @@
     const p = people.find((x) => String(x.id) === a.dataset.id);
     if (a.dataset.a === 'new') return personForm();
     if (a.dataset.a === 'edit' && p) return personForm(p);
+    if (a.dataset.a === 'students' && p) return assignForm(p);
     if (a.dataset.a === 'toggle' && p) {
       try { await instr.save({ id: p.id, active: !p.active }); toast(p.active ? 'Akun dinonaktifkan.' : 'Akun diaktifkan.'); renderAkses(); } catch (ex) { toast(ex.message || 'Gagal mengubah status akun.', 'error'); }
     }

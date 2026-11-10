@@ -36,7 +36,7 @@
         const done = (i * 7 + 3) % 21;
         const slug = name.toLowerCase().replace(/[^a-z ]/g, '').replace(/ /g, '.');
         return {
-          id: i + 1, username: slug, email: slug + '@diengcyber.sch.id', parent_email: i % 3 === 0 ? '' : 'ortu.' + slug + '@gmail.com', full_name: name,
+          id: i + 1, username: slug, email: slug + '@ruangkka.sch.id', parent_email: i % 3 === 0 ? '' : 'ortu.' + slug + '@gmail.com', full_name: name,
           status: i === 5 || i === 17 ? 'suspended' : 'active', allowedGrades: GRADES[i % GRADES.length].slice(),
           completed_tasks: done, points_total: done * 10 + (i % 5) * 5, item_count: i % 4,
           created_at: ago(24 * (60 - i)), last_login_at: i % 6 === 0 ? '' : ago(1 + ((i * 13) % 200)), suspend_reason: i === 5 ? 'Contoh: pelanggaran tata tertib lab' : '',
@@ -715,7 +715,7 @@
         </div>
         <form id="swFormEl" class="space-y-4 pt-4 text-xs" novalidate>
           <div><label class="${LBL}" for="swfName">Nama Lengkap</label><input id="swfName" name="fullName" type="text" required maxlength="80" placeholder="Contoh: Raditya Pratama" class="${INPUT}"></div>
-          <div><label class="${LBL}" for="swfEmail">Email Akun Belajar <span class="text-rose-500">*</span></label><input id="swfEmail" name="email" type="email" required placeholder="siswa@diengcyber.sch.id" class="${INPUT}"></div>
+          <div><label class="${LBL}" for="swfEmail">Email Akun Belajar <span class="text-rose-500">*</span></label><input id="swfEmail" name="email" type="email" required placeholder="siswa@ruangkka.sch.id" class="${INPUT}"></div>
           <div><label class="${LBL}" for="swfParentEmail">Email Orangtua <span class="text-rose-500">*</span></label><input id="swfParentEmail" name="parentEmail" type="email" required autocomplete="off" placeholder="orangtua@email.com" class="${INPUT} read-only:opacity-70 read-only:cursor-not-allowed">
             <label class="flex items-center gap-2 mt-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer"><input type="checkbox" name="parentSame"> Email orangtua sama dengan email user</label></div>
           <div><span class="${LBL}">Jenjang</span>
@@ -909,7 +909,7 @@
       if (!all.length) { showToast('Belum ada siswa yang cocok untuk diekspor.'); return; }
       const rows = [['ID', 'NIS', 'Nama', 'Username', 'Email', 'Email Orangtua', 'Jenjang', 'Status', 'Task Selesai', 'Poin']];
       all.forEach((u) => rows.push([u.id, nisOf(u), u.full_name || '', u.username || '', u.email || '', parentOf(u), gradeText(u), statusMeta(u.status).text, u.completed_tasks || 0, u.points_total || 0]));
-      downloadCsv('siswa-dieng-cyber-' + new Date().toISOString().slice(0, 10) + '.csv', rows);
+      downloadCsv('siswa-ruang-kka-' + new Date().toISOString().slice(0, 10) + '.csv', rows);
       showToast(fmtNum(all.length) + ' siswa diekspor ke CSV.', 'success');
     } catch (e) { showToast(e.message || 'Gagal mengekspor data.', 'error'); }
     finally { S.busy = false; }

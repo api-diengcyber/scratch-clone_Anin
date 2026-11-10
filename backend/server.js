@@ -168,6 +168,7 @@ function checkAiRateLimit(ip) {
 
 const PROJECT_ROOT = path.join(__dirname, "..", "users"); // frontend siswa
 const ADMIN_ROOT = path.join(__dirname, "..", "Admin");   // frontend admin
+const INSTRUKTUR_ROOT = path.join(__dirname, "..", "Instruktur"); // frontend instruktur
 
 // ============================================================
 // MIDDLEWARE
@@ -261,7 +262,9 @@ setInterval(() => {
 // ============================================================
 // SECURITY HEADERS (dasar, tanpa dependensi tambahan)
 app.use((req, res, next) => {
-    const isAdminPage = req.path === "/admin" || req.path.startsWith("/admin/");
+    const lowerPath = req.path.toLowerCase();
+    const isAdminPage = lowerPath === "/admin" || lowerPath.startsWith("/admin/") ||
+                        lowerPath === "/instruktur" || lowerPath.startsWith("/instruktur/");
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
@@ -320,11 +323,14 @@ app.use(
 // Halaman admin: http://localhost:3000/admin/
 app.use("/admin", express.static(ADMIN_ROOT, { index: "index.html" }));
 
+// Halaman instruktur: http://localhost:3000/instruktur/
+app.use("/instruktur", express.static(INSTRUKTUR_ROOT, { index: "index.html" }));
+
 // URL bersih antar-halaman admin (mis. /admin/jadwal) tetap membuka SPA
 // Admin, termasuk saat halaman di-refresh. Hanya nama view yang dikenal.
 const ADMIN_VIEWS = new Set([
     "dashboard", "kurikulum", "tahap", "plugin", "siswa",
-    "badge", "tugas", "jadwal", "pengaturan", "akses", "profil"
+    "materi", "badge", "tugas", "jadwal", "pengaturan", "akses", "profil"
 ]);
 app.get("/admin/:view", (req, res, next) => {
     if (ADMIN_VIEWS.has(req.params.view)) {
@@ -1567,6 +1573,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Dashboard: http://localhost:${PORT}/dashboard.html`);
     console.log(`Belajar  : http://localhost:${PORT}/belajar.html`);
     console.log(`Admin    : http://localhost:${PORT}/admin/`);
+    console.log(`Instruktur: http://localhost:${PORT}/instruktur/`);
     console.log(`API      : http://localhost:${PORT}/api`);
     console.log("");
     logger.info("Server siap digunakan.");

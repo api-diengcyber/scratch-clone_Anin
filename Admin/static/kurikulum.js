@@ -414,7 +414,7 @@
     badge.textContent = `${j.jenjang === 'SMK' ? 'SMA/SMK' : j.jenjang} • ${j.capstone ? 'Capstone' : 'Tahap ' + tahapOf(j)}`;
     badge.style.cssText = `background:${c}1f;color:${c}`;
     $('#prevTitle').textContent = j.nama;
-    $('#prevSub').textContent = [j.lencana, j.meta, j.proyek && 'Proyek: ' + j.proyek].filter(Boolean).join(' • ') || 'Dieng Runner Test Aktif';
+    $('#prevSub').textContent = [j.lencana, j.meta, j.proyek && 'Proyek: ' + j.proyek].filter(Boolean).join(' • ') || 'Ruang KKA Runner Test Aktif';
     const list = j.materi || [];
     $('#prevList').innerHTML = list.length ? list.map((m, i) => `
       <div class="group p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between gap-3">
@@ -803,7 +803,7 @@
     const blob = new Blob([JSON.stringify({ tahap: tahapList, jalur }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'kurikulum-dieng-cyber.json';
+    a.download = 'kurikulum-ruang-kka.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     showToast('Kurikulum diexport ke JSON.');
@@ -813,7 +813,7 @@
   const ON = ['text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold', 'is-active'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   // URL bersih: /admin/dashboard, /admin/siswa, dst. (server harus mengarahkan path ini ke index.html)
-  const VIEWS = ['dashboard', 'kurikulum', 'materi', 'tahap', 'plugin', 'siswa', 'badge', 'tugas', 'pengaturan', 'akses', 'profil'];
+  const VIEWS = ['dashboard', 'kurikulum', 'materi', 'tahap', 'plugin', 'siswa', 'badge', 'tugas', 'jadwal', 'pengaturan', 'akses', 'profil'];
   const BASE = ((location.pathname.match(/^(.*?\/admin)(?:\/|$)/) || [])[1] || '/admin') + '/';
   function viewFromUrl() {
     const seg = location.pathname.slice(BASE.length).split('/')[0];
@@ -827,7 +827,7 @@
     $('#view-tahap').classList.toggle('hidden', name !== 'tahap');
     const vPlugin = $('#view-plugin'); if (vPlugin) vPlugin.classList.toggle('hidden', name !== 'plugin');
     const vSiswa = $('#view-siswa'); if (vSiswa) vSiswa.classList.toggle('hidden', name !== 'siswa');
-    ['badge', 'tugas', 'materi', 'pengaturan', 'akses', 'profil'].forEach((n) => { const el = $('#view-' + n); if (el) el.classList.toggle('hidden', name !== n); });
+    ['badge', 'tugas', 'materi', 'jadwal', 'pengaturan', 'akses', 'profil'].forEach((n) => { const el = $('#view-' + n); if (el) el.classList.toggle('hidden', name !== n); });
     document.querySelectorAll('[data-view]').forEach((a) => {
       const active = a.dataset.view === name;
       a.classList.remove(...(active ? OFF : ON)); a.classList.add(...(active ? ON : OFF));

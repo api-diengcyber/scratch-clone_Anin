@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="/shared/js/theme.js?v=20261019"></script>
-<title>Jadwal Saya • Dieng Cyber Coding</title>
-<meta name="description" content="Kalender jadwal belajar Dieng Cyber Coding: lihat kapan ada kelas Zoom dan gabung langsung dari sini.">
+<title>Jadwal Saya • Ruang KKA</title>
+<meta name="description" content="Kalender jadwal belajar Ruang KKA: lihat kapan ada kelas Zoom dan gabung langsung dari sini.">
 <link rel="icon" type="image/webp" href="/Assets/logo.webp">
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);min-height:100vh}
@@ -13,10 +13,8 @@
 .eh a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:9px 14px;border-radius:14px;font-weight:bold;font-size:14px}
 main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .card{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 6px 16px rgba(60,80,140,.1)}.card h3{margin:0 0 10px;font-size:18px}
-.hi{background:linear-gradient(135deg,#2d8cff,#6d7eea);color:#fff;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.hi .ic{font-size:40px}.hi .tx{flex:1;min-width:200px}.hi h2{margin:0 0 4px;font-size:18px}.hi p{margin:0;opacity:.95;line-height:1.45}
 .btn{display:inline-block;border:0;cursor:pointer;text-decoration:none;font:inherit;font-weight:bold;font-size:14px;padding:9px 14px;border-radius:14px;background:#34c06f;color:#fff;white-space:nowrap}
-.btn.zoom{background:#2d8cff}.btn.ghost{background:#eef1ff;color:#5a6bd8}.hi .btn{background:#fff;color:#1f6fd6}
+.btn.zoom{background:#2d8cff}.btn.ghost{background:#eef1ff;color:#5a6bd8}
 .nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}.nav h3{flex:1;margin:0;text-align:center;text-transform:capitalize}
 .nav button{border:0;cursor:pointer;background:#eef1ff;color:#5a6bd8;font:inherit;font-weight:bold;font-size:16px;border-radius:12px;padding:8px 14px}
 .dow,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
@@ -38,12 +36,8 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 </style>
 </head>
 <body>
-<header class="eh"><img src="/Assets/logo.webp" alt="Logo Dieng Cyber" width="256" height="256"><h1>📅 Jadwal Saya</h1><a href="/dashboard/dashboard.html">← Dashboard</a></header>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>📅 Jadwal Saya</h1><a href="/dashboard/dashboard.html">← Dashboard</a></header>
 <main>
-  <section class="card hi" id="next" aria-live="polite">
-    <div class="ic" aria-hidden="true">🎥</div>
-    <div class="tx"><h2>Memuat jadwalmu…</h2><p>Sebentar ya.</p></div>
-  </section>
 
   <div class="warn" id="warn" hidden></div>
 
@@ -175,19 +169,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     $("dayTitle").textContent = HARI[d.getDay()] + ", " + d.getDate() + " " + BULAN[d.getMonth()] + " " + d.getFullYear();
     $("dayList").innerHTML = list.length ? list.map(eventHtml).join("") : '<div class="empty"><span>🌤️</span>Tidak ada jadwal Zoom di hari ini.<br>Pilih tanggal bertitik biru untuk melihat jadwal.</div>';
   }
-  function renderNext() {
-    var now = new Date(), all = [];
-    Object.keys(events).forEach(function (k) { events[k].forEach(function (e) { if (endOf(e) >= now) all.push(e); }); });
-    all.sort(function (a, b) { return startOf(a) - startOf(b); });
-    var ev = all[0], box = $("next");
-    if (!ev) { box.innerHTML = '<div class="ic" aria-hidden="true">🎥</div><div class="tx"><h2>Belum ada jadwal Zoom</h2><p>Kalau ada kelas baru, jadwalnya muncul di kalender ini.</p></div>'; return; }
-    var s = startOf(ev), url = safeUrl(ev.zoomUrl), live = statusOf(ev) === "live";
-    var tgl = s.getDate() + " " + BULAN[s.getMonth()];
-    box.innerHTML = '<div class="ic" aria-hidden="true">🎥</div><div class="tx"><h2>' + (live ? "Zoom sedang berlangsung!" : "Zoom berikutnya") + "</h2><p><b>" + esc(ev.judul || "Kelas Zoom") + "</b><br>" +
-      (ymd(s) === ymd(today) ? "Hari ini" : HARI[s.getDay()] + ", " + tgl) + " • " + esc(ev.mulai || "") + " WIB</p></div>" +
-      (url ? '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + (live ? "Gabung sekarang" : "Buka link Zoom") + "</a>" : "");
-  }
-  function renderAll() { renderCalendar(); renderDay(); renderNext(); }
+  function renderAll() { renderCalendar(); renderDay(); }
   function go(date) { view = new Date(date.getFullYear(), date.getMonth(), 1); var key = view.getFullYear() + "-" + pad(view.getMonth() + 1); renderAll(); load(key).then(renderAll); }
 
   // ---------- event ----------
@@ -199,12 +181,9 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   $("prev").addEventListener("click", function () { go(new Date(view.getFullYear(), view.getMonth() - 1, 1)); });
   $("nextM").addEventListener("click", function () { go(new Date(view.getFullYear(), view.getMonth() + 1, 1)); });
   $("todayBtn").addEventListener("click", function () { selected = ymd(today); go(today); });
-  setInterval(function () { renderDay(); renderNext(); }, 60000);   // status "sedang berlangsung" ikut diperbarui
+  setInterval(renderDay, 60000);   // status "sedang berlangsung" ikut diperbarui
 
-  // "Zoom berikutnya" juga perlu data bulan depan kalau bulan ini sudah lewat semua
-  var nm = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   go(today);
-  load(nm.getFullYear() + "-" + pad(nm.getMonth() + 1)).then(renderNext);
 })();
 </script>
 <script src="/shared/js/icons.js?v=20261019"></script>

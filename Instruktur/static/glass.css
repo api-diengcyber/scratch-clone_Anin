@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Latar halaman, sidebar melayang, header halaman, dan kartu statistik.
+   (Nama file dipertahankan "glass.css" agar tautan di index.html tidak berubah.)
+
+   - Latar    : hijau-abu sangat lembut + cahaya hijau halus di pojok (seperti UStudy).
+   - Sidebar  : kartu putih melayang, sudut bulat.
+   - Header   : .page-hero = kartu putih bersudut bulat dengan hiasan hijau lembut.
+   - Statistik: kartu putih dengan ikon bulat berwarna (tanpa gradien penuh).
+   Mau ganti warna latar? Ubah --page-bg di bawah.
+   ========================================================================== */
+
+html.light, html:not(.dark) {
+  --page-bg: #eef4f0;
+  --g-surface: #ffffff;
+  --g-line:    #e0eee6;
+  --g-shadow:  0 1px 2px rgba(16, 70, 49, .04), 0 14px 30px -16px rgba(16, 70, 49, .14);
+}
+html.dark {
+  --page-bg: #0a120e;
+  --g-surface: #101c16;
+  --g-line:    rgba(255, 255, 255, .08);
+  --g-shadow:  0 10px 30px -14px rgba(0, 0, 0, .6);
+}
+
+/* ---------- Latar ---------- */
+:where(html.light) body[class],
+html:not(.dark) body[class] {
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(900px 460px at 88% -6%, rgba(120, 209, 168, .34), transparent 62%),
+    radial-gradient(700px 420px at -4% 104%, rgba(166, 209, 56, .13), transparent 60%);
+  background-attachment: fixed;
+}
+html.dark body[class] {
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(900px 460px at 88% -6%, rgba(31, 160, 110, .16), transparent 62%),
+    radial-gradient(700px 420px at -4% 104%, rgba(166, 209, 56, .05), transparent 60%);
+  background-attachment: fixed;
+}
+body main[class] { background-color: transparent; }
+
+/* ---------- Sidebar: putih, melayang di atas latar ---------- */
+@media (min-width: 768px) {
+  body #sidebar {
+    margin: .75rem 0 .75rem .75rem;
+    border-radius: 1.75rem;
+    position: sticky;
+    top: .75rem;
+    align-self: flex-start;
+    height: calc(100vh - 1.5rem);
+    box-shadow: 0 1px 2px rgba(16, 70, 49, .05), 0 18px 40px -18px rgba(16, 70, 49, .22);
+  }
+  html.dark body #sidebar { box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .7); border: 1px solid rgba(255, 255, 255, .05); }
+}
+
+/* ---------- Header tiap halaman (Kurikulum, Tahap, Plugin, Siswa, dst.) ---------- */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--g-line);
+  background: var(--g-surface);
+  box-shadow: var(--g-shadow);
+}
+@media (min-width: 768px) { .page-hero { padding: 1.75rem 2rem; } }
+.page-hero::before,
+.page-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.page-hero::before { top: -4.5rem; right: -3rem; width: 14rem; height: 14rem; background: radial-gradient(circle at 30% 30%, rgba(120, 209, 168, .45), rgba(120, 209, 168, 0) 70%); }
+.page-hero::after  { bottom: -3.5rem; right: 9rem; width: 9rem; height: 9rem; background: radial-gradient(circle, rgba(166, 209, 56, .22), rgba(166, 209, 56, 0) 70%); }
+html.dark .page-hero::before { background: radial-gradient(circle at 30% 30%, rgba(31, 160, 110, .28), rgba(31, 160, 110, 0) 70%); }
+html.dark .page-hero::after  { background: radial-gradient(circle, rgba(166, 209, 56, .10), rgba(166, 209, 56, 0) 70%); }
+.page-hero > * { position: relative; z-index: 1; }
+.page-hero h1 { font-size: 1.5rem; line-height: 2rem; letter-spacing: -.03em; }
+@media (min-width: 640px) { .page-hero h1 { font-size: 1.75rem; line-height: 2.25rem; } }
+.page-hero h1 + p { line-height: 1.625; }
+
+/* Kartu putih di halaman lain: tepi bernuansa hijau (hanya mode terang) */
+html:not(.dark) main .shadow-card { border-color: var(--g-line); }
+
+/* ==========================================================================
+   KARTU STATISTIK di halaman Kurikulum, Siswa, dan Plugin
+   Kartu putih + ikon bulat berwarna (warna ikon dari class bawaan masing-masing halaman).
+   ========================================================================== */
+:is(#kurStats, #plStats, #swStats) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+@media (min-width: 560px)  { :is(#kurStats, #plStats, #swStats) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { :is(#kurStats, #plStats, #swStats) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+:is(#kurStats, #plStats, #swStats) > * {
+  border-radius: 1.4rem;
+  border: 1px solid transparent;
+  background-color: var(--g-surface);
+  box-shadow: var(--g-shadow);
+  transition: transform .25s, box-shadow .25s, border-color .25s;
+}
+:is(#kurStats, #plStats, #swStats) > *:hover { transform: translateY(-3px); border-color: rgba(120, 209, 168, .55); box-shadow: 0 18px 34px -14px rgba(20, 135, 91, .28); }
+/* ikon: bulat seperti UStudy */
+:is(#kurStats, #plStats, #swStats) > * .w-7,
+:is(#kurStats, #plStats, #swStats) > * .w-9 { border-radius: 9999px; }
+/* kartu yang sedang aktif sebagai filter (Kurikulum) */
+:is(#kurStats, #plStats, #swStats) > [aria-pressed="true"] { outline: 2px solid var(--j-500); outline-offset: -2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(#kurStats, #plStats, #swStats) > *:hover { transform: none; }
+}

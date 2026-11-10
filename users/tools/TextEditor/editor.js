@@ -1,5 +1,5 @@
 // ============================================================
-// TEXT EDITOR — HTML, CSS, Python & PHP (Dieng Cyber Coding)
+// TEXT EDITOR — HTML, CSS, Python & PHP (Ruang KKA)
 // Data task ada di ../jalur-data.js (task berjenis kode(...)).
 // Koin, kunci, dan progres dikelola oleh LP di ../jalur-belajar.js.
 //

@@ -1,5 +1,5 @@
 // ============================================================
-// MESIN JALUR BELAJAR — Dieng Cyber Coding
+// MESIN JALUR BELAJAR — Ruang KKA
 // Konten (tahap, jalur, task, project) ada di jalur-data.js.
 // File ini mengurus: status, kunci berurutan, koin, progres, penyimpanan.
 // Dipakai oleh: belajar.html, dashboard.html, Scratch/index.html

@@ -1,5 +1,5 @@
 /*
- * Dieng Cyber Coding — Plugin Host SDK v1 (M5)
+ * Ruang KKA — Plugin Host SDK v1 (M5)
  * Add window.DCC_PLUGIN_ORIGIN before loading this file, for example:
  *   window.DCC_PLUGIN_ORIGIN = "https://plugins.example.com";
  * This SDK does not send the user's session token into the plugin iframe.

@@ -20,17 +20,27 @@
   const GRADE_LABEL = { SD: 'SD', SMP: 'SMP', SMK: 'SMA/SMK' };
   const STATUS = { terbit: 'Terbit', draft: 'Draft' };
 
-  // Nama field di tabel `materials`. Sesuaikan di sini bila skema backend berbeda.
+  // Nama field di tabel `materials`. Kunci PERTAMA dipakai saat mengirim ke server;
+  // kunci lain hanya alternatif saat membaca respons. Sesuaikan di sini bila skema backend berbeda.
   const F = {
-    id: 'id',
-    judul: 'title',
-    grade: 'grade',
-    modul: 'moduleId',
-    status: 'status',
-    urutan: 'order',
-    keterangan: 'description'
+    id: ['id'],
+    judul: ['title', 'judul'],
+    grade: ['grade'],
+    modul: ['moduleId', 'module_id'],
+    status: ['status'],
+    urutan: ['lessonIndex', 'lesson_index', 'order'],   // 0-based: 0 = task pertama
+    keterangan: ['description', 'keterangan'],
+    path: ['path', 'link']
   };
-  const get = (item, key) => (item ? item[F[key]] : undefined);
+  const key = (k) => F[k][0];
+  const get = (item, k) => {
+    if (!item) return undefined;
+    for (const n of F[k]) if (item[n] !== undefined && item[n] !== null) return item[n];
+    return undefined;
+  };
+  // Urutan di UI mulai dari 1; server memakai 0-based (lessonIndex).
+  const urutanUi = (item) => { const n = Number(get(item, 'urutan')); return Number.isFinite(n) ? n + 1 : '-'; };
+  const safePath = (p) => typeof p === 'string' && /^\/(?!\/)[^\s]*$/.test(p) && !p.includes('..');
 
   let items = [];
   let loading = false;
@@ -140,6 +150,14 @@
       (Number(get(a, 'urutan')) || 0) - (Number(get(b, 'urutan')) || 0));
   }
 
+  function linkCell(path) {
+    const p = String(path ?? '').trim();
+    if (!p) return '<span class="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30" title="Tanpa link, materi tidak tampil di portal murid"><i class="fa-solid fa-triangle-exclamation"></i>Belum ada link</span>';
+    return safePath(p)
+      ? `<a href="${esc(p)}" target="_blank" rel="noopener noreferrer" title="${esc(p)}" class="block truncate font-mono text-xs text-sky-600 dark:text-sky-400 hover:underline">${esc(p)}</a>`
+      : `<span class="block truncate font-mono text-xs text-slate-500" title="${esc(p)}">${esc(p)}</span>`;
+  }
+
   function renderList() {
     const rows = filtered();
     const count = $('#mtCount');
@@ -164,7 +182,7 @@
     list.innerHTML = `<div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-card overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="border-b border-slate-200 dark:border-slate-800"><tr>
-          <th class="${TH}">Judul</th><th class="${TH}">Jenjang</th><th class="${TH}">Modul</th><th class="${TH}">Urutan</th><th class="${TH}">Status</th><th class="${TH} text-right">Aksi</th>
+          <th class="${TH}">Judul</th><th class="${TH}">Jenjang</th><th class="${TH}">Modul</th><th class="${TH}">Link</th><th class="${TH}">Urutan</th><th class="${TH}">Status</th><th class="${TH} text-right">Aksi</th>
         </tr></thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
           ${rows.map((item) => {
@@ -175,7 +193,8 @@
               <td class="px-4 py-3 min-w-[14rem]"><div class="font-semibold text-slate-900 dark:text-white">${esc(judul)}</div>${ket ? `<div class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">${esc(ket)}</div>` : ''}</td>
               <td class="px-4 py-3">${gradeBadge(get(item, 'grade'))}</td>
               <td class="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300">${esc(get(item, 'modul') ?? '-')}</td>
-              <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${esc(get(item, 'urutan') ?? '-')}</td>
+              <td class="px-4 py-3 max-w-[16rem]">${linkCell(get(item, 'path'))}</td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${esc(urutanUi(item))}</td>
               <td class="px-4 py-3">${statusBadge(statusOf(item))}</td>
               <td class="px-4 py-3"><div class="flex justify-end gap-2">
                 <button type="button" data-edit="${esc(id)}" class="dc-ib dc-ib-edit" aria-label="Ubah materi ${esc(judul)}"><i class="fa-solid fa-pen"></i></button>
@@ -197,6 +216,8 @@
       const res = await window.DCAdminApi.request('/api/admin/materials');
       items = Array.isArray(res.materials) ? res.materials : (Array.isArray(res.items) ? res.items : []);
       loaded = true;
+      const noLink = items.filter((x) => !String(get(x, 'path') ?? '').trim()).length;
+      if (noLink) notice(`<b>${noLink} materi belum punya link</b> sehingga tidak tampil di portal murid. Cari tanda "Belum ada link" di tabel lalu isi lewat tombol ubah.`);
     } catch (err) {
       items = [];
       if (err.status === 403) notice('Akun ini tidak punya izin <b>kurikulum.kelola</b> untuk mengelola materi.', 'error');
@@ -209,6 +230,28 @@
 
   function field(label, html) {
     return `<div><label class="${LABEL}">${label}</label>${html}</div>`;
+  }
+
+  // Modul diambil dari GET /api/modules/:grade supaya ID modul selalu valid (hindari 404 MODULE_NOT_FOUND).
+  const modCache = {};
+  async function loadModules(grade) {
+    if (modCache[grade]) return modCache[grade];
+    const r = await window.DCAdminApi.request('/api/modules/' + encodeURIComponent(grade));
+    const list = (Array.isArray(r.modules) ? r.modules : []).map((m) => String(m.module_id ?? m.moduleId ?? m.id ?? '')).filter(Boolean);
+    modCache[grade] = list;
+    return list;
+  }
+  async function fillModul(wrap, grade, current) {
+    wrap.innerHTML = field('Modul', `<select name="modul" class="${INPUT}" disabled><option>Memuat modul...</option></select>`);
+    let list = null;
+    try { list = await loadModules(grade); } catch (_) { list = null; }
+    if (!wrap.isConnected) return;
+    if (!list || !list.length) {   // cadangan: server tak bisa dihubungi / belum ada modul → ketik manual
+      wrap.innerHTML = field('Modul (ID)', `<input name="modul" required maxlength="80" value="${esc(current || '')}" placeholder="Contoh: da1" class="${INPUT}">`);
+      return;
+    }
+    const opts = !current || list.includes(current) ? list : [current, ...list];
+    wrap.innerHTML = field('Modul', `<select name="modul" class="${INPUT}">${current ? '' : '<option value="">Pilih modul...</option>'}${opts.map((m) => `<option value="${esc(m)}" ${m === current ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>`);
   }
 
   function openForm(item) {
@@ -225,10 +268,11 @@
       ${field('Judul', `<input name="judul" required maxlength="160" value="${esc(editing ? get(item, 'judul') : '')}" placeholder="Contoh: Mengenal Variabel" class="${INPUT}">`)}
       <div class="grid sm:grid-cols-2 gap-3">
         ${field('Jenjang', `<select name="grade" class="${INPUT}">${GRADES.map((g) => `<option value="${g}" ${g === grade ? 'selected' : ''}>${esc(GRADE_LABEL[g])}</option>`).join('')}</select>`)}
-        ${field('Modul (ID)', `<input name="modul" required maxlength="80" value="${esc(editing ? get(item, 'modul') : filter.modul)}" placeholder="Contoh: da1" class="${INPUT}">`)}
-        ${field('Urutan', `<input name="urutan" type="number" min="0" step="1" value="${esc(editing ? (get(item, 'urutan') ?? '') : '')}" placeholder="1" class="${INPUT}">`)}
+        <div data-modul-wrap></div>
+        ${field('Urutan task', `<input name="urutan" type="number" min="1" step="1" value="${esc(editing && Number.isFinite(Number(urutanUi(item))) ? urutanUi(item) : '')}" placeholder="1 = task pertama" class="${INPUT}">`)}
         ${field('Status', `<select name="status" class="${INPUT}">${Object.keys(STATUS).map((s) => `<option value="${s}" ${s === status ? 'selected' : ''}>${esc(STATUS[s])}</option>`).join('')}</select>`)}
       </div>
+      ${field('Link materi (path)', `<input name="path" maxlength="300" value="${esc(editing ? (get(item, 'path') || '') : '')}" placeholder="/SMP/materi/AI/ai1-t1.html" class="${INPUT} font-mono" spellcheck="false"><p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Alamat file materi di portal murid, diawali <code>/</code>. Materi tanpa link tidak tampil di portal.</p>`)}
       ${field('Keterangan', `<textarea name="keterangan" maxlength="500" rows="3" placeholder="Catatan singkat (opsional)..." class="${INPUT}">${esc(editing ? (get(item, 'keterangan') || '') : '')}</textarea>`)}
       <p data-err class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p>
       <div class="flex justify-end gap-2 pt-1">
@@ -258,17 +302,21 @@
       const fd = new FormData(form);
       const urutanRaw = String(fd.get('urutan') || '').trim();
       const data = {
-        [F.judul]: String(fd.get('judul') || '').trim(),
-        [F.grade]: String(fd.get('grade') || '').trim(),
-        [F.modul]: String(fd.get('modul') || '').trim(),
-        [F.status]: String(fd.get('status') || '').trim(),
-        [F.keterangan]: String(fd.get('keterangan') || '').trim()
+        [key('judul')]: String(fd.get('judul') || '').trim(),
+        [key('grade')]: String(fd.get('grade') || '').trim(),
+        [key('modul')]: String(fd.get('modul') || '').trim(),
+        [key('status')]: String(fd.get('status') || '').trim(),
+        [key('keterangan')]: String(fd.get('keterangan') || '').trim(),
+        [key('path')]: String(fd.get('path') || '').trim()
       };
-      if (urutanRaw !== '') data[F.urutan] = Number(urutanRaw);
-      if (!data[F.judul]) return setError('Judul wajib diisi.');
-      if (!GRADES.includes(data[F.grade])) return setError('Pilih jenjang.');
-      if (!data[F.modul]) return setError('Modul wajib diisi.');
-      if (urutanRaw !== '' && (!Number.isInteger(data[F.urutan]) || data[F.urutan] < 0)) return setError('Urutan harus bilangan bulat 0 atau lebih.');
+      if (urutanRaw !== '') data[key('urutan')] = Number(urutanRaw) - 1;   // UI 1-based → server 0-based
+      if (!data[key('judul')]) return setError('Judul wajib diisi.');
+      if (!GRADES.includes(data[key('grade')])) return setError('Pilih jenjang.');
+      if (!data[key('modul')]) return setError('Pilih modul terlebih dulu.');
+      if (urutanRaw !== '' && (!Number.isInteger(Number(urutanRaw)) || Number(urutanRaw) < 1)) return setError('Urutan task harus bilangan bulat 1 atau lebih.');
+      const pth = data[key('path')];
+      if (pth && !safePath(pth)) return setError('Link harus diawali / dan tanpa spasi, mis. /SMP/materi/AI/ai1-t1.html');
+      if (!pth && data[key('status')] === 'terbit') return setError('Materi berstatus Terbit wajib punya link agar tampil di portal murid.');
 
       const submit = form.querySelector('[type="submit"]');
       submit.disabled = true;
@@ -288,6 +336,9 @@
     });
 
     document.body.appendChild(el);
+    const wrap = form.querySelector('[data-modul-wrap]');
+    fillModul(wrap, grade, editing ? String(get(item, 'modul') ?? '') : filter.modul);
+    form.querySelector('[name="grade"]').addEventListener('change', (e) => fillModul(wrap, e.target.value, ''));
     const first = form.querySelector('input,textarea,select');
     if (first) first.focus();
   }

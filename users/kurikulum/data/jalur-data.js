@@ -1,5 +1,5 @@
 // ============================================================
-// DATA KONTEN JALUR BELAJAR — Dieng Cyber Coding
+// DATA KONTEN JALUR BELAJAR — Ruang KKA
 // ------------------------------------------------------------
 // FILE INI HANYA BERISI KONTEN. Untuk menambah / mengubah task,
 // cukup edit file ini. Mesin (status, koin, kunci) ada di jalur-belajar.js.
