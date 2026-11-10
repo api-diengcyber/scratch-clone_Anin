@@ -25,15 +25,20 @@
       const body = await response.json();
       // server membalas { ok, materials: [...] }; tetap terima array polos kalau formatnya lama
       const materials = Array.isArray(body) ? body : (body.materials || []);
+      const byIndex = new Map();
 
       for (const material of materials) {
         const index = Number(material.lesson_index);
-        const task = node.tasks[index];
-
-        if (task && material.path) {
-          task.halamanMateri = material.path;
+        if (Number.isInteger(index) && material.path) {
+          byIndex.set(index, material.path);
         }
       }
+
+      // API adalah sumber utama. Baris yang dihapus / masih draft tidak
+      // dikirim server, jadi tautan materi lama ikut disembunyikan.
+      node.tasks.forEach((task, index) => {
+        task.halamanMateri = byIndex.get(index) || "";
+      });
 
 
     } catch (error) {

@@ -67,7 +67,7 @@ tidak menghapus data user. Target data:
 
 - 44 modul
 - 238 task (SD 52, SMP 93, SMK 93)
-- 89 materi SMP
+- 224 materi (SD 44, SMP 90, SMK 90)
 
 Cek log yang harus muncul:
 

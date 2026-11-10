@@ -728,7 +728,10 @@ const CREATE_MATERIALS_TABLE = `
         module_id TEXT NOT NULL,
         lesson_index INTEGER NOT NULL DEFAULT 0,
         path TEXT NOT NULL,
+        judul TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'terbit',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(grade, module_id, lesson_index),
         FOREIGN KEY (grade, module_id) REFERENCES modules(grade, module_id)
     )
@@ -772,6 +775,25 @@ if (!materialsTableExists) {
     } else if (!columns.includes("module_id")) {
         throw new Error("Tabel materials tidak memiliki kolom module_id yang valid.");
     }
+}
+
+// Kolom tambahan untuk sinkronisasi materi Admin <-> portal murid.
+// status: 'terbit' = tampil untuk murid, 'draft' = disembunyikan.
+const materialColumns = db.prepare("PRAGMA table_info(materials)").all().map((c) => c.name);
+if (!materialColumns.includes("judul")) {
+    db.exec("ALTER TABLE materials ADD COLUMN judul TEXT NOT NULL DEFAULT ''");
+    console.log("Migrasi kolom materials.judul berhasil.");
+}
+if (!materialColumns.includes("status")) {
+    db.exec("ALTER TABLE materials ADD COLUMN status TEXT NOT NULL DEFAULT 'terbit'");
+    console.log("Migrasi kolom materials.status berhasil.");
+}
+if (!materialColumns.includes("updated_at")) {
+    // ALTER TABLE tidak mengizinkan DEFAULT CURRENT_TIMESTAMP (non-constant),
+    // jadi kolom ditambahkan lalu diisi dari created_at.
+    db.exec("ALTER TABLE materials ADD COLUMN updated_at DATETIME");
+    db.exec("UPDATE materials SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL");
+    console.log("Migrasi kolom materials.updated_at berhasil.");
 }
 
 // ============================================================
@@ -926,7 +948,8 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
                 CREATE TABLE materials_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     grade TEXT NOT NULL, module_id TEXT NOT NULL, lesson_index INTEGER NOT NULL DEFAULT 0,
-                    path TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    path TEXT NOT NULL, judul TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'terbit',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(grade, module_id, lesson_index),
                     FOREIGN KEY (grade, module_id) REFERENCES modules(grade, module_id)
                 );
@@ -934,8 +957,8 @@ if (!tasksHaveModuleFK || !materialsHaveModuleFK) {
             db.exec(`
                 INSERT INTO tasks_new (id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, points, editor_url, created_at)
                 SELECT id, grade, module_id, task_id, task_index, title, steps, is_project, requires_submission, points, editor_url, created_at FROM tasks;
-                INSERT INTO materials_new (id, grade, module_id, lesson_index, path, created_at)
-                SELECT id, grade, module_id, lesson_index, path, created_at FROM materials;
+                INSERT INTO materials_new (id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at)
+                SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at FROM materials;
                 DROP TABLE materials; DROP TABLE tasks;
                 ALTER TABLE tasks_new RENAME TO tasks;
                 ALTER TABLE materials_new RENAME TO materials;
@@ -962,6 +985,7 @@ if (!taskCols.includes("points")) {
 db.exec(`
     CREATE INDEX IF NOT EXISTS idx_tasks_grade_module ON tasks(grade, module_id);
     CREATE INDEX IF NOT EXISTS idx_materials_grade_module ON materials(grade, module_id);
+    CREATE INDEX IF NOT EXISTS idx_materials_status ON materials(status);
 `);
 
 // Percobaan gagal per task (sumber bonus percobaan pertama, semua task).

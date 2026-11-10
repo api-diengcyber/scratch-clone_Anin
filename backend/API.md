@@ -82,6 +82,23 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 - Endpoint murid hanya mengembalikan jadwal pada bulan yang diminta dan menyaring berdasarkan jenjang murid. Respons tidak memuat kolom internal seperti `created_by`.
 - Endpoint admin memakai permission `kurikulum.kelola`. Semua perubahan dicatat di `admin_audit` (`jadwal.create`, `jadwal.update`, `jadwal.delete`).
 
+### Materi per task (portal murid)
+
+| Method | Alamat | Hasil |
+|---|---|---|
+| GET | `/api/materials?grade=SD\|SMP\|SMK` | `{ materials }`; hanya status `terbit` |
+| GET | `/api/materials/:grade/:moduleId` | `{ materials }` satu modul; hanya status `terbit` |
+| GET | `/api/admin/materials?grade=&moduleId=&status=` | `{ items, total }`; semua status. Izin `kurikulum.kelola` |
+| POST | `/api/admin/materials` | `{ item }`; `201` |
+| PATCH | `/api/admin/materials/:id` | `{ item }` |
+| DELETE | `/api/admin/materials/:id` | `{ id }` |
+
+- Satu baris `materials` = satu tautan materi untuk satu task: `grade` + `moduleId` + `lessonIndex` (0-based) → `path`.
+- Tabel `materials` adalah sumber data yang sama untuk Admin dan portal murid SD/SMP/SMK. `npm run seed` mengisi baris yang belum ada dari data kurikulum statis (`users/kurikulum/data`) secara idempotent; edit Admin tidak ditimpa (`INSERT OR IGNORE`, judul hanya diisi bila kosong).
+- `path` wajib alamat internal yang diawali `/` (bukan `//`). `judul` maksimal 200 karakter. `status` = `terbit`/`draft`; endpoint publik menyembunyikan `draft`.
+- Semua perubahan Admin dicatat di `admin_audit` (`materi.create`, `materi.update`, `materi.delete`).
+- Endpoint kurikulum WYSIWYG (`/api/admin/curriculum`) tetap terpisah: ia menyimpan dokumen `tahap` + `jalur` + `materi` untuk penulisan konten, sedangkan tautan materi per task yang dibaca portal murid ada di tabel `materials`.
+
 ### Learning analytics, achievement, dan pesan mentor
 
 | Method | Alamat | Hasil |
@@ -225,7 +242,7 @@ Perilaku penting:
 - Rename username aman untuk data murid karena relasi memakai `user_id`.
 - `PUT /api/admin/curriculum` menyimpan seluruh dokumen `tahap` + `jalur` + `materi` secara atomik. Kirim `version` yang didapat dari GET; jika sudah berubah, server membalas `409 CURRICULUM_VERSION_CONFLICT` dengan `details.currentVersion`.
 - HTML materi ditolak bila mengandung `<script>`, `<iframe>`, `<object>`, `<embed>`, event handler inline, `javascript:`, `vbscript:`, `srcdoc`, atau `data:text/html`.
-- Endpoint kurikulum masih khusus Admin. Halaman murid saat ini tetap memakai data statis di `users/kurikulum/data/`; endpoint publik untuk murid belum dibuat.
+- Endpoint kurikulum WYSIWYG masih khusus Admin. Tautan materi per task yang dibaca portal murid disimpan di tabel `materials` dan disajikan oleh endpoint publik `/api/materials` (lihat bagian "Materi per task").
 - Soal kode wajib `grade: "SMP"` atau `"SMK"` dan `language`: `HTML/CSS`, `Python`, atau `JavaScript`. `Python`/`JavaScript` wajib punya 1-100 `tests` berisi `{ i, o }`; `HTML/CSS` wajib punya `criteria`.
 - Notifikasi admin disimpan di tabel `admin_notifications` per akun admin, sehingga status baca/hapus admin1 tidak memengaruhi admin2. Notifikasi dibuat untuk `student.create`, `progress.complete`, `curriculum.update`, `plugin.upload`, dan `plugin.publish`; `dedupe_key` mencegah duplikasi.
 - **Badge & Tugas Admin** disimpan di tabel `admin_badges`, `admin_tasks`, dan `admin_task_submissions` (bukan localStorage). Tabel `admin_tasks` terpisah dari `tasks` kurikulum.

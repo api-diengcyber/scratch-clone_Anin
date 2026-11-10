@@ -550,7 +550,34 @@
       name: (isProject ? "Project" : "Task " + t.no) + " — " + t.title, html: html, buttons: buttons });
   }
 
+  // ---------- MATERI DARI API ----------
+  // Sama seperti SMP/SMK: tabel materials adalah sumber tunggal.
+  // Server hanya mengirim materi berstatus 'terbit'.
+  async function loadMaterialsFromAPI() {
+    try {
+      const response = await fetch("/api/materials?grade=SD");
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const body = await response.json();
+      const materials = Array.isArray(body) ? body : (body.materials || []);
+      const byKey = new Map();
+      for (const material of materials) {
+        const index = Number(material.lesson_index);
+        if (Number.isInteger(index) && material.path) {
+          byKey.set(String(material.module_id) + "|" + index, material.path);
+        }
+      }
+      LP.tahap.forEach((th) => (th.pembelajaran || []).forEach((pb) => {
+        (pb.tasks || []).forEach((task, index) => {
+          task.halamanMateri = byKey.get(pb.id + "|" + index) || "";
+        });
+      }));
+    } catch (error) {
+      console.error("Gagal memuat materi SD dari API:", error);
+    }
+  }
+
   // ---------- MULAI ----------
+  await loadMaterialsFromAPI();
   const params = new URLSearchParams(window.location.search);
   const startTask = params.get("task"), startP = params.get("p"), startT = params.get("t");
   if (startTask && LP.find(startTask)) showTask(startTask);

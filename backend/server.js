@@ -395,7 +395,8 @@ app.get("/api/health", (req, res) => {
 // MATERIALS API
 // ============================================================
 
-// Ambil semua materi
+// Ambil materi satu modul. Hanya materi berstatus 'terbit' yang dikirim
+// ke portal murid; draft tetap tersimpan untuk Admin.
 app.get("/api/materials/:grade/:moduleId", (req, res) => {
     try {
         const grade = normalizeGrade(req.params.grade);
@@ -409,9 +410,9 @@ app.get("/api/materials/:grade/:moduleId", (req, res) => {
         }
 
         const materials = db.prepare(`
-            SELECT id, grade, module_id, lesson_index, path, created_at
+            SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
             FROM materials
-            WHERE grade = ? AND module_id = ?
+            WHERE grade = ? AND module_id = ? AND status = 'terbit'
             ORDER BY lesson_index ASC
         `).all(grade, moduleId);
 
@@ -423,13 +424,28 @@ app.get("/api/materials/:grade/:moduleId", (req, res) => {
 });
 
 // GET ALL MATERIALS
+// Default hanya materi terbit. Filter opsional ?grade=SD|SMP|SMK.
 app.get("/api/materials", (req, res) => {
     try {
-        const materials = db.prepare(`
-            SELECT id, grade, module_id, lesson_index, path, created_at
-            FROM materials
-            ORDER BY grade ASC, module_id ASC, lesson_index ASC
-        `).all();
+        const grade = req.query.grade ? normalizeGrade(req.query.grade) : null;
+        if (grade && !isValidGrade(grade)) {
+            return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
+        }
+
+        const materials = grade
+            ? db.prepare(`
+                SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
+                FROM materials
+                WHERE status = 'terbit' AND grade = ?
+                ORDER BY grade ASC, module_id ASC, lesson_index ASC
+            `).all(grade)
+            : db.prepare(`
+                SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
+                FROM materials
+                WHERE status = 'terbit'
+                ORDER BY grade ASC, module_id ASC, lesson_index ASC
+            `).all();
+
         sendApiSuccess(res, { materials });
     } catch (error) {
         console.error("Gagal mengambil semua materi:", error);

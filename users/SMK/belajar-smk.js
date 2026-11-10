@@ -39,6 +39,30 @@
     : k.kumpul ? '<button class="btn ' + (dn ? "ghost" : "green") + '" type="button" data-k="' + i + '">' + (dn ? "Lihat pengumpulan" : "📤 Kumpulkan →") + "</button>"
     : '<a class="btn ' + (dn ? "ghost" : "green") + '" href="' + esc(edHref(i)) + '">' + (dn ? "Ulangi" : "Mulai →") + "</a>";
 
+  // ============================================================
+  // MATERI DARI API — sumber data yang sama dengan Admin.
+  // Server hanya mengirim materi berstatus 'terbit'.
+  // ============================================================
+  async function loadMaterialsFromAPI() {
+    if (!node) return;
+    try {
+      const response = await fetch("/api/materials/SMK/" + encodeURIComponent(node.id));
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const body = await response.json();
+      const materials = Array.isArray(body) ? body : (body.materials || []);
+      const byIndex = new Map();
+      for (const material of materials) {
+        const index = Number(material.lesson_index);
+        if (Number.isInteger(index) && material.path) byIndex.set(index, material.path);
+      }
+      node.tasks.forEach((task, index) => {
+        task.halamanMateri = byIndex.get(index) || "";
+      });
+    } catch (error) {
+      console.error("Gagal memuat materi SMK dari API:", node.id, error);
+    }
+  }
+
   function render() {
     if (!node) return renderTahap();
     const m = M[tr.id], idx = tr.nodes.indexOf(node), p = S.prog(node), pct = Math.round(p.done / p.total * 100), cur = node.tasks.findIndex((_, i) => !S.isDone(node.id, i)), mc = col(tr, idx);
@@ -64,9 +88,13 @@
     draw(); document.body.appendChild(ov); document.addEventListener("keydown", key); ov.querySelector(".xbtn").focus();
   }
   app.addEventListener("click", (e) => { const c = e.target.closest("[data-href]"), b = e.target.closest("[data-k]"); if (c && c.dataset.href !== "#") location.href = c.dataset.href; else if (b && !b.disabled) { lastBtn = b; modal(+b.dataset.k); } });
-  LP.syncSmpFromSteps(T);   // task yang semua langkahnya sudah tercentang → tandai selesai
-  paintPoints();
-  render();
+  async function init() {
+    await loadMaterialsFromAPI();
+    LP.syncSmpFromSteps(T);   // task yang semua langkahnya sudah tercentang → tandai selesai
+    paintPoints();
+    render();
+  }
+  init();
   // Sinkronkan koin & progres dari server, lalu gambar ulang kalau berhasil
   window.addEventListener("lp:points", () => paintPoints());   // koin dari server tiba / undo → segarkan
   const syncServer = () => LP.loadFromServer().then((ok) => { if (ok) { LP.syncSmpFromSteps(T); paintPoints(); render(); } }).catch(() => {});

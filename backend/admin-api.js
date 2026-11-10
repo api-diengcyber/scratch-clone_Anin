@@ -52,6 +52,7 @@ function registerAdminApi(app, deps) {
     { re: /^\/report-deliveries/, perm: "siswa.kelola" },
     { re: /^\/curriculum-tasks/, perm: "tugas.kelola" },
     { re: /^\/curriculum/, perm: "kurikulum.kelola" },
+    { re: /^\/materials/, perm: "kurikulum.kelola" },
     { re: /^\/jadwal/, perm: "kurikulum.kelola" },
     { re: /^\/badges/, perm: "badge.kelola" },
     { re: /^\/lencana/, perm: "badge.kelola" },
@@ -2011,6 +2012,180 @@ function registerAdminApi(app, deps) {
     if(!stillLive) db.prepare("UPDATE plugins SET status='disabled',updated_at=CURRENT_TIMESTAMP WHERE plugin_id=?").run(v.plugin_id);
     audit(req,"plugin.disable","plugin_version",`${v.plugin_id}@${v.version}`,{});
     return sendApiSuccess(res,{id:v.id,status:"disabled"},"Versi plugin dinonaktifkan; file tidak dihapus untuk audit/rollback.");
+  });
+
+  // ------------------------------------------------------------
+  // MATERI — tautan materi per task (tabel `materials`).
+  // Sumber data yang sama dipakai portal murid. Endpoint publik hanya
+  // mengirim status 'terbit'; Admin bisa melihat dan mengubah draft.
+  // ------------------------------------------------------------
+  const MATERIAL_GRADES = ["SD", "SMP", "SMK"];
+
+  function materialDto(row) {
+    return {
+      id: row.id,
+      grade: row.grade,
+      moduleId: row.module_id,
+      lessonIndex: row.lesson_index,
+      path: row.path,
+      judul: row.judul || "",
+      status: row.status || "terbit",
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
+  function materialInvalid(res, message, field) {
+    return sendApiError(res, 400, message, "MATERIAL_INVALID", field ? { field } : undefined);
+  }
+  function parseMaterialGrade(value) {
+    const grade = String(value == null ? "" : value).trim().toUpperCase();
+    return MATERIAL_GRADES.includes(grade) ? grade : null;
+  }
+  function parseMaterialModuleId(value) {
+    const moduleId = String(value == null ? "" : value).trim();
+    return /^[A-Za-z0-9_-]{1,64}$/.test(moduleId) ? moduleId : null;
+  }
+  function parseMaterialLessonIndex(value) {
+    const num = typeof value === "number" ? value : Number(value);
+    return Number.isInteger(num) && num >= 0 && num <= 999 ? num : null;
+  }
+  function parseMaterialPath(value) {
+    if (typeof value !== "string") return null;
+    const p = value.trim();
+    if (!p || p.length > 500) return null;
+    if (!p.startsWith("/") || p.startsWith("//")) return null;
+    if (/[\\\u0000-\u001F\u007F]/.test(p)) return null;
+    if (p.split("/").some((segment) => segment === "..")) return null;
+    return p;
+  }
+  function parseMaterialTitle(value) {
+    if (value === undefined || value === null) return "";
+    if (typeof value !== "string") return null;
+    const title = value.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+    return title.length <= 200 ? title : null;
+  }
+  function parseMaterialStatus(value) {
+    if (value === undefined || value === null || value === "") return "terbit";
+    const status = String(value).trim().toLowerCase();
+    return status === "terbit" || status === "draft" ? status : null;
+  }
+  function materialModuleExists(grade, moduleId) {
+    return !!db.prepare("SELECT 1 FROM modules WHERE grade = ? AND module_id = ?").get(grade, moduleId);
+  }
+
+  app.get("/api/admin/materials", (req, res) => {
+    const where = [];
+    const params = [];
+    if (req.query.grade !== undefined && req.query.grade !== "") {
+      const grade = parseMaterialGrade(req.query.grade);
+      if (!grade) return materialInvalid(res, "grade harus SD/SMP/SMK.", "grade");
+      where.push("grade = ?");
+      params.push(grade);
+    }
+    if (req.query.moduleId !== undefined && req.query.moduleId !== "") {
+      const moduleId = parseMaterialModuleId(req.query.moduleId);
+      if (!moduleId) return materialInvalid(res, "moduleId tidak valid.", "moduleId");
+      where.push("module_id = ?");
+      params.push(moduleId);
+    }
+    if (req.query.status !== undefined && req.query.status !== "") {
+      const status = parseMaterialStatus(req.query.status);
+      if (!status) return materialInvalid(res, "status harus terbit atau draft.", "status");
+      where.push("status = ?");
+      params.push(status);
+    }
+    const sql = `SELECT * FROM materials${where.length ? " WHERE " + where.join(" AND ") : ""}
+      ORDER BY grade ASC, module_id ASC, lesson_index ASC`;
+    const items = db.prepare(sql).all(...params).map(materialDto);
+    return sendApiSuccess(res, { items, total: items.length });
+  });
+
+  app.post("/api/admin/materials", (req, res) => {
+    const body = req.body || {};
+    const grade = parseMaterialGrade(body.grade);
+    if (!grade) return materialInvalid(res, "grade harus SD/SMP/SMK.", "grade");
+    const moduleId = parseMaterialModuleId(body.moduleId);
+    if (!moduleId) return materialInvalid(res, "moduleId wajib diisi (huruf, angka, - atau _).", "moduleId");
+    const lessonIndex = parseMaterialLessonIndex(body.lessonIndex);
+    if (lessonIndex === null) return materialInvalid(res, "lessonIndex harus bilangan bulat 0-999.", "lessonIndex");
+    const materialPath = parseMaterialPath(body.path);
+    if (!materialPath) return materialInvalid(res, "path harus diawali / dan berupa alamat internal.", "path");
+    const judul = parseMaterialTitle(body.judul);
+    if (judul === null) return materialInvalid(res, "judul maksimal 200 karakter.", "judul");
+    const status = parseMaterialStatus(body.status);
+    if (!status) return materialInvalid(res, "status harus terbit atau draft.", "status");
+    if (!materialModuleExists(grade, moduleId)) {
+      return sendApiError(res, 404, "Modul tidak ditemukan untuk jenjang tersebut.", "MODULE_NOT_FOUND", { field: "moduleId" });
+    }
+
+    let info;
+    try {
+      info = db.prepare(`INSERT INTO materials (grade, module_id, lesson_index, path, judul, status)
+        VALUES (?, ?, ?, ?, ?, ?)`).run(grade, moduleId, lessonIndex, materialPath, judul, status);
+    } catch (err) {
+      if (String(err && err.code).startsWith("SQLITE_CONSTRAINT")) {
+        return sendApiError(res, 409, "Materi untuk modul dan nomor task itu sudah ada.", "MATERIAL_EXISTS", { field: "lessonIndex" });
+      }
+      throw err;
+    }
+    const id = Number(info.lastInsertRowid);
+    audit(req, "materi.create", "material", id, { grade, moduleId, lessonIndex, path: materialPath, status });
+    const row = db.prepare("SELECT * FROM materials WHERE id = ?").get(id);
+    return sendApiSuccess(res, { item: materialDto(row) }, "Materi berhasil dibuat.", 201);
+  });
+
+  app.patch("/api/admin/materials/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return materialInvalid(res, "ID materi tidak valid.", "id");
+    const current = db.prepare("SELECT * FROM materials WHERE id = ?").get(id);
+    if (!current) return sendApiError(res, 404, "Materi tidak ditemukan.", "NOT_FOUND");
+
+    const body = req.body || {};
+    const grade = body.grade === undefined ? current.grade : parseMaterialGrade(body.grade);
+    if (!grade) return materialInvalid(res, "grade harus SD/SMP/SMK.", "grade");
+    const moduleId = body.moduleId === undefined ? current.module_id : parseMaterialModuleId(body.moduleId);
+    if (!moduleId) return materialInvalid(res, "moduleId tidak valid.", "moduleId");
+    const lessonIndex = body.lessonIndex === undefined ? current.lesson_index : parseMaterialLessonIndex(body.lessonIndex);
+    if (lessonIndex === null) return materialInvalid(res, "lessonIndex harus bilangan bulat 0-999.", "lessonIndex");
+    const materialPath = body.path === undefined ? current.path : parseMaterialPath(body.path);
+    if (!materialPath) return materialInvalid(res, "path harus diawali / dan berupa alamat internal.", "path");
+    const judul = body.judul === undefined ? (current.judul || "") : parseMaterialTitle(body.judul);
+    if (judul === null) return materialInvalid(res, "judul maksimal 200 karakter.", "judul");
+    const status = body.status === undefined ? (current.status || "terbit") : parseMaterialStatus(body.status);
+    if (!status) return materialInvalid(res, "status harus terbit atau draft.", "status");
+    if (!materialModuleExists(grade, moduleId)) {
+      return sendApiError(res, 404, "Modul tidak ditemukan untuk jenjang tersebut.", "MODULE_NOT_FOUND", { field: "moduleId" });
+    }
+
+    try {
+      db.prepare(`UPDATE materials
+        SET grade = ?, module_id = ?, lesson_index = ?, path = ?, judul = ?, status = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?`).run(grade, moduleId, lessonIndex, materialPath, judul, status, id);
+    } catch (err) {
+      if (String(err && err.code).startsWith("SQLITE_CONSTRAINT")) {
+        return sendApiError(res, 409, "Materi untuk modul dan nomor task itu sudah ada.", "MATERIAL_EXISTS", { field: "lessonIndex" });
+      }
+      throw err;
+    }
+    audit(req, "materi.update", "material", id, { fields: Object.keys(body), grade, moduleId, lessonIndex, status });
+    const row = db.prepare("SELECT * FROM materials WHERE id = ?").get(id);
+    return sendApiSuccess(res, { item: materialDto(row) }, "Materi diperbarui.");
+  });
+
+  app.delete("/api/admin/materials/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return materialInvalid(res, "ID materi tidak valid.", "id");
+    const current = db.prepare("SELECT * FROM materials WHERE id = ?").get(id);
+    if (!current) return sendApiError(res, 404, "Materi tidak ditemukan.", "NOT_FOUND");
+    db.prepare("DELETE FROM materials WHERE id = ?").run(id);
+    audit(req, "materi.delete", "material", id, {
+      grade: current.grade,
+      moduleId: current.module_id,
+      lessonIndex: current.lesson_index,
+      path: current.path
+    });
+    return sendApiSuccess(res, { id }, "Materi dihapus.");
   });
 }
 
