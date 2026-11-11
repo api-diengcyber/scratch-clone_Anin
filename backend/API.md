@@ -101,6 +101,37 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 - Semua perubahan Admin dicatat di `admin_audit` (`materi.create`, `materi.update`, `materi.delete`).
 - Endpoint kurikulum WYSIWYG (`/api/admin/curriculum`) tetap terpisah: ia menyimpan dokumen `tahap` + `jalur` + `materi` untuk penulisan konten, sedangkan tautan materi per task yang dibaca portal murid ada di tabel `materials`.
 
+### Portal instruktur
+
+Sumber data portal `/instruktur` (tugas tambahan, ujian kelulusan, jadwal Zoom). Sebelumnya portal ini berjalan dalam "Mode contoh" karena seluruh endpoint di bawah belum ada.
+
+| Method | Alamat | Izin | Hasil |
+|---|---|---|---|
+| GET | `/api/instruktur/me` | login | `{ role, name, username, grades }` |
+| GET | `/api/instruktur/tugas?grade=&limit=` | `tugas.kelola` | `{ items, total }` |
+| POST | `/api/instruktur/tugas` | `tugas.kelola` | `{ item }`; `201` |
+| PATCH | `/api/instruktur/tugas/:id` | `tugas.kelola` | `{ item }` |
+| DELETE | `/api/instruktur/tugas/:id` | `tugas.kelola` | `{ id }` |
+| GET | `/api/instruktur/ujian?grade=&limit=` | `tugas.nilai` | `{ items, total }`; tiap item memuat `hasil` |
+| POST | `/api/instruktur/ujian` | `tugas.nilai` | `{ item }`; `201` |
+| PATCH | `/api/instruktur/ujian/:id` | `tugas.nilai` | `{ item }` |
+| DELETE | `/api/instruktur/ujian/:id` | `tugas.nilai` | `{ id }`; nilai peserta ikut terhapus |
+| GET | `/api/instruktur/jadwal?bulan=&limit=` | `kurikulum.kelola` | `{ items, total, bulan }` |
+| POST | `/api/instruktur/jadwal` | `kurikulum.kelola` | `{ item }`; `201` |
+| PATCH | `/api/instruktur/jadwal/:id` | `kurikulum.kelola` | `{ item }` |
+| DELETE | `/api/instruktur/jadwal/:id` | `kurikulum.kelola` | `{ id }` |
+| GET | `/api/tugas-tambahan?grade=SD\|SMP\|SMK` | login | `{ items, total }`; hanya `status='terbit'` |
+| GET | `/api/ujian-kelulusan?grade=SD\|SMP\|SMK` | login | `{ items, total }`; hanya terbit dan dalam jendela `buka`–`tutup` |
+
+- Cakupan data: instruktur hanya melihat dan mengubah baris miliknya (`owner_user_id`, atau `created_by` untuk jadwal). Admin melihat semua. Baris milik instruktur lain dibalas `404 NOT_FOUND` (bukan `403`) agar keberadaannya tidak bocor.
+- Tugas: `title` (wajib, 200), `description` (1000), `grade` (`SD`/`SMP`/`SMK`), `type` (`kode`/`blok`/`kuis`/`proyek`), `points` (0-1000), `due` (`YYYY-MM-DD` atau kosong), `status` (`draft`/`terbit`/`ditutup`, default `draft`).
+- Ujian: `title`, `description`, `grade`, `format` (`proyek`/`tes`), `kkm` (0-100), `durasi` menit (0-600), `buka`, `tutup`, `status`, serta `hasil` berupa array `{ nama, nilai }`. `nilai` 0-100 dan `tutup` tidak boleh mendahului `buka`. Setiap PATCH dengan `hasil` **mengganti** seluruh daftar peserta, bukan menambah.
+- Jadwal memakai tabel `mentoring_schedules` yang sama dengan halaman "Jadwal Saya" murid, sehingga jadwal yang dibuat instruktur langsung tampil di `/api/jadwal` sesuai jenjang. `mentor` diisi otomatis dari `full_name` akun bila kosong.
+- Endpoint murid tidak pernah mengirim `hasil` (nama dan nilai peserta adalah data pribadi). Murid dengan `allowed_grades` hanya menerima konten jenjang yang diizinkan.
+- Semua perubahan dicatat di `admin_audit` dengan aksi `instruktur_tugas.*`, `instruktur_ujian.*`, dan `instruktur_jadwal.*`.
+- Endpoint tulis dibatasi 60 permintaan per menit per akun (`429 RATE_LIMITED`).
+- Tabel: `instruktur_tasks`, `instruktur_exams`, `instruktur_exam_results` (dibuat otomatis saat server start).
+
 ### Learning analytics, achievement, dan pesan mentor
 
 | Method | Alamat | Hasil |

@@ -454,6 +454,65 @@ db.exec(`
         ON mentoring_schedules(tanggal, mulai);
 `);
 
+// Tugas tambahan & ujian kelulusan buatan instruktur (portal /instruktur).
+// Berbeda dari tabel `tasks` yang terikat modul kurikulum, baris di sini
+// berdiri sendiri dan hanya terikat ke akun instruktur pembuatnya.
+// `owner_user_id` NULL berarti pembuatnya sudah dihapus; admin tetap bisa
+// melihat dan merapikannya.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS instruktur_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_user_id INTEGER,
+        title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 200),
+        description TEXT NOT NULL DEFAULT '',
+        grade TEXT NOT NULL CHECK (grade IN ('SD', 'SMP', 'SMK')),
+        type TEXT NOT NULL DEFAULT 'kode' CHECK (type IN ('kode', 'blok', 'kuis', 'proyek')),
+        points INTEGER NOT NULL DEFAULT 0 CHECK (points BETWEEN 0 AND 1000),
+        due TEXT,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'terbit', 'ditutup')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruktur_tasks_owner
+        ON instruktur_tasks(owner_user_id, id);
+    CREATE INDEX IF NOT EXISTS idx_instruktur_tasks_publik
+        ON instruktur_tasks(status, grade, due);
+
+    CREATE TABLE IF NOT EXISTS instruktur_exams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_user_id INTEGER,
+        title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 200),
+        description TEXT NOT NULL DEFAULT '',
+        grade TEXT NOT NULL CHECK (grade IN ('SD', 'SMP', 'SMK')),
+        format TEXT NOT NULL DEFAULT 'proyek' CHECK (format IN ('proyek', 'tes')),
+        kkm INTEGER NOT NULL DEFAULT 75 CHECK (kkm BETWEEN 0 AND 100),
+        durasi INTEGER NOT NULL DEFAULT 0 CHECK (durasi BETWEEN 0 AND 600),
+        buka TEXT,
+        tutup TEXT,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'terbit', 'ditutup')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruktur_exams_owner
+        ON instruktur_exams(owner_user_id, id);
+    CREATE INDEX IF NOT EXISTS idx_instruktur_exams_publik
+        ON instruktur_exams(status, grade, buka, tutup);
+
+    CREATE TABLE IF NOT EXISTS instruktur_exam_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_id INTEGER NOT NULL,
+        student_name TEXT NOT NULL CHECK (length(trim(student_name)) BETWEEN 1 AND 100),
+        score INTEGER NOT NULL CHECK (score BETWEEN 0 AND 100),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(exam_id) REFERENCES instruktur_exams(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruktur_exam_results_exam
+        ON instruktur_exam_results(exam_id, id);
+`);
+
 // Tautan laporan disimpan sebagai hash token. Token asli hanya dikembalikan
 // sekali saat admin membuat tautan, sehingga bocornya database tidak langsung
 // membocorkan akses laporan siswa.

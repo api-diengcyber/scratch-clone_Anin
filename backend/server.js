@@ -1503,6 +1503,9 @@ require("./admin-api").registerAdminApi(app, {
 require("./jadwal-api").registerJadwalApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
+require("./instruktur-api").registerInstrukturApi(app, {
+    db, auth, sendApiError, sendApiSuccess
+});
 require("./report-api").registerReportApi(app, {
     db, rateLimitMiddleware, sendApiError, sendApiSuccess
 });
