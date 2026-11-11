@@ -38,6 +38,7 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 <header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>📊 Laporan Saya</h1><a href="/dashboard.html">← Dashboard</a><span class="chip">⭐ <span id="pts">0</span> koin</span></header>
 <main>
   <section class="card hi"><h2 id="hello">Halo!</h2><p>Ini perjalanan belajarmu sejauh ini. Terus semangat ya! 🚀</p><div class="sum" id="sum"></div></section>
+  <section class="card"><h3>📅 Kehadiran Mentoring</h3><div id="rekapAbsen"></div></section>
   <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
   <section class="card"><h3>⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
   <section class="card"><h3>💡 Saran untukmu</h3><div id="recs"></div></section>
@@ -50,6 +51,14 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 <script src="/kurikulum/data/jalur-data-smp.js?v=20261019"></script>
 <script src="/kurikulum/data/jalur-data-smak.js?v=20261019"></script>
 <script src="/shared/js/utils.js?v=20261019"></script>
+<script>window.DC_REKAP_DEMO = true;   // contoh tanpa backend; hapus kalau endpoint sudah siap</script>
+<script src="/shared/js/rekap-absen.js?v=20261112"></script>
+<script>
+(function () {
+  var n = ""; try { n = localStorage.getItem("username") || localStorage.getItem("scratch_user") || ""; } catch (e) {}
+  if (window.DCRekap) window.DCRekap.mount("#rekapAbsen", { nama: n || "Siswa", audience: "siswa" });
+})();
+</script>
 <script>
 if (localStorage.getItem("isLoggedIn") !== "true") location.replace("/index.html");
 const $ = (id) => document.getElementById(id);

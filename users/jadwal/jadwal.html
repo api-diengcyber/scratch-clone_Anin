@@ -22,6 +22,10 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .day{position:relative;min-width:0;overflow:hidden;height:64px;border:2px solid #eef1ff;border-radius:14px;background:#fff;font:inherit;font-weight:bold;font-size:15px;color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:2px 3px}
 .day.out{opacity:.4}.day.today{border-color:#ffc94d;background:#fffbea}.day.sel{border-color:#2d8cff;background:#e8f1ff}
 .lbl{max-width:100%;padding:1px 6px;border-radius:8px;background:#2d8cff;color:#fff;font-size:10px;font-weight:bold;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk{position:absolute;top:3px;left:4px;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;line-height:1;color:#fff}
+.mk.ok{background:#34c06f}.mk.miss{background:#d6dbec;color:#6b7494}.mk.open{background:#ffb454}
+#streakCard .dcs-card{margin:0}
+.legend .mk{position:static;display:inline-flex;width:15px;height:15px;margin-right:5px;vertical-align:middle;font-size:9px}
 .day:focus-visible,.nav button:focus-visible,.btn:focus-visible{outline:3px solid #2d8cff;outline-offset:2px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:#6b7494}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2d8cff;margin-right:5px}
 .ev{border:3px solid #eef1ff;border-radius:18px;padding:12px 14px;margin-bottom:10px}.ev.live{border-color:#34c06f;background:#f0fbf4}.ev.done{opacity:.65}
@@ -32,7 +36,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .empty{text-align:center;color:#6b7494;padding:18px 8px;line-height:1.5}.empty span{display:block;font-size:34px;margin-bottom:4px}
 .warn{background:#fffbea;border-left:8px solid #ffc94d;border-radius:14px;padding:12px 14px;line-height:1.5;font-size:14px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-@media(max-width:480px){main{padding:12px}.card{padding:14px}.eh{padding:10px 14px}.eh a{padding:8px 12px;font-size:13px}.day{font-size:13px;height:54px;border-radius:12px}.lbl{font-size:9px;padding:1px 3px}.dow,.days{gap:4px}.ev .time{min-width:0;width:100%}}
+@media(max-width:480px){.mk{width:14px;height:14px;font-size:8px;top:2px;left:2px}main{padding:12px}.card{padding:14px}.eh{padding:10px 14px}.eh a{padding:8px 12px;font-size:13px}.day{font-size:13px;height:54px;border-radius:12px}.lbl{font-size:9px;padding:1px 3px}.dow,.days{gap:4px}.ev .time{min-width:0;width:100%}}
 </style>
 </head>
 <body>
@@ -40,6 +44,8 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 <main>
 
   <div class="warn" id="warn" hidden></div>
+
+  <div id="streakCard"></div>
 
   <section class="card">
     <div class="nav">
@@ -50,7 +56,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     </div>
     <div class="dow" aria-hidden="true"><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span></div>
     <div class="days" id="days" role="grid" aria-label="Kalender jadwal"></div>
-    <div class="legend"><span><i></i>Ada jadwal Zoom</span><span>🟨 Hari ini</span></div>
+    <div class="legend"><span><i></i>Ada jadwal Zoom</span><span><b class="mk ok">✔</b>Hadir</span><span><b class="mk miss">✕</b>Tidak hadir</span><span><b class="mk open">!</b>Absen dibuka</span><span>🟨 Hari ini</span></div>
   </section>
 
   <section class="card">
@@ -60,6 +66,12 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 </main>
 
 <script src="/shared/js/utils.js?v=20261019"></script>
+<script>
+// MODE CONTOH: streak + absen memakai data percobaan (tanpa backend).
+// GANTI ke false (atau hapus baris ini) kalau /api/streak & /api/attendance sudah siap.
+window.DC_STREAK_DEMO = !/[?&]demo=0(&|$)/.test(location.search);
+</script>
+<script src="/shared/js/streak-absen.js?v=20261111c"></script>
 <script>
 (function () {
   "use strict";
@@ -78,10 +90,9 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   var selected = ymd(today);
   var events = {};            // { "2026-11-09": [event, ...] }
   var cache = {};             // { "2026-11": true } bulan yang sudah dimuat
-  // GANTI ke false kalau endpoint /api/jadwal sudah siap (data contoh dimatikan).
-  var USE_DEMO = false;
-  var demo = USE_DEMO ? !/[?&]demo=0(&|$)/.test(location.search) : /[?&]demo(=1)?(&|$)/.test(location.search);
-  if (demo) { var w = $("warn"); w.hidden = false; w.textContent = "🧪 Mode contoh: jadwal di bawah hanya data percobaan, bukan dari server."; }
+  // Data contoh aktif selama window.DC_STREAK_DEMO = true (lihat di atas). Tambah ?demo=0 di URL untuk mematikan.
+  var demo = !!window.DC_STREAK_DEMO;
+  if (demo) { var w = $("warn"); w.hidden = false; w.textContent = "🧪 Mode contoh: jadwal, streak, dan absen di bawah hanya data percobaan, belum terhubung ke server."; }
 
   // ---------- data ----------
   function startOf(ev) { var p = ev.tanggal.split("-"), t = (ev.mulai || "00:00").split(":"); return new Date(+p[0], +p[1] - 1, +p[2], +t[0] || 0, +t[1] || 0); }
@@ -98,15 +109,35 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     });
     Object.keys(events).forEach(function (k) { events[k].sort(function (a, b) { return startOf(a) - startOf(b); }); });
   }
-  function demoData(key) {
-    var p = key.split("-"), y = +p[0], m = +p[1] - 1, t = new Date();
-    var mk = function (d, h1, h2, judul, zoom) { return { id: "demo-" + key + "-" + d + "-" + h1, tanggal: y + "-" + pad(m + 1) + "-" + pad(d), mulai: h1, selesai: h2, judul: judul, mentor: "Kak Mentor", zoomUrl: zoom ? "https://zoom.us/j/1234567890" : "", meetingId: zoom ? "123 4567 8901" : "", passcode: zoom ? "belajar" : "", jenis: "Live Mentoring 1-on-1", level: "Scratch Level 1", keterangan: "Siapkan laptop dan buka Scratch sebelum kelas mulai." }; };
-    var base = (t.getFullYear() === y && t.getMonth() === m) ? t.getDate() : 8;
-    return [mk(Math.min(base, 28), "15:00", "16:30", "Kelas Zoom: Game Pertamaku", true), mk(Math.min(base + 3, 28), "10:00", "11:00", "Tanya Jawab Coding", true), mk(Math.min(base + 3, 28), "16:00", "17:00", "Konsultasi Project Akhir", true)];
+  var demoDone = false;
+  function demoData() {
+    var W = 7 * 36e5, now = Date.now(), t0 = new Date(now + W).toISOString().slice(0, 10);
+    var sh = function (n) { var p = t0.split("-"); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)).toISOString().slice(0, 10); };
+    var hm = function (ms) { return new Date(ms + W).toISOString().slice(11, 16); };
+    var mk = function (id, tgl, h1, h2, judul, level) { return { id: "demo-" + id, tanggal: tgl, mulai: h1, selesai: h2, judul: judul, mentor: "Kak Mentor", zoomUrl: "https://zoom.us/j/1234567890", meetingId: "123 4567 8901", passcode: "belajar", jenis: "Live Mentoring 1-on-1", level: level || "Scratch Level 1", keterangan: "Siapkan laptop dan buka Scratch sebelum kelas mulai." }; };
+    var dayStart = Date.parse(t0 + "T00:00:00Z") - W;   // 00:00 WIB hari ini
+    var s = Math.max(now - 10 * 6e4, dayStart), e = Math.min(now + 80 * 6e4, dayStart + 864e5 - 6e4);
+    var list = [
+      mk("a", sh(-5), "15:00", "16:30", "Kelas Zoom: Mengenal Scratch"),
+      mk("b", sh(-3), "10:00", "11:00", "Tanya Jawab Coding"),
+      mk("c", sh(-3), "16:00", "17:00", "Konsultasi Projek Akhir"),
+      mk("d", sh(-2), "15:00", "16:00", "Kelas Zoom: Variabel"),
+      mk("e", sh(-1), "15:00", "16:30", "Kelas Zoom: Game Pertamaku"),
+      mk("now", t0, hm(s), hm(e), "Kelas Zoom: Animasi Karakter"),       // jam absen sedang terbuka, bisa dicoba klik
+      mk("f", sh(2), "15:00", "16:30", "Kelas Zoom: Kloning Sprite"),
+      mk("g", sh(4), "10:00", "11:00", "Tanya Jawab Coding")
+    ];
+    var seed = {};
+    ["a", "b", "c", "e"].forEach(function (k) {   // contoh sudah hadir; "d" sengaja dilewati (tidak hadir)
+      var ev = list.filter(function (x) { return x.id === "demo-" + k; })[0];
+      seed[ev.id] = { at: new Date(Date.parse(ev.tanggal + "T" + ev.mulai + ":00+07:00") + 2 * 6e4).toISOString() };
+    });
+    if (window.DCAbsen) window.DCAbsen.seed(seed);
+    return list;
   }
   function load(key) {
     if (cache[key]) return Promise.resolve();
-    if (demo) { addEvents(demoData(key)); cache[key] = true; return Promise.resolve(); }
+    if (demo) { if (!demoDone) { demoDone = true; addEvents(demoData()); } cache[key] = true; return Promise.resolve(); }
     return fetch("/api/jadwal?bulan=" + encodeURIComponent(key), { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
       .then(function (res) {
         if (res.status === 401 || res.status === 403) { try { ["authToken","isLoggedIn","username","scratch_user"].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} location.replace("/index.html"); throw new Error("auth"); }
@@ -134,16 +165,28 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     var t = String(list[0].judul || "Zoom").replace(/^(kelas\s+)?zoom\s*[:\-–]\s*/i, "").trim();
     return full ? (list[0].judul || "Zoom") : (t || "Zoom");
   }
+  // Tanda absen di kotak tanggal: ✔ hadir, ! absen sedang dibuka, ✕ tidak hadir
+  function markOf(k) {
+    var list = events[k] || [], A = window.DCAbsen, hadir = 0, buka = 0, lewat = 0;
+    if (!A || !list.length) return null;
+    list.forEach(function (ev) { var st = A.state(ev); if (st === "hadir") hadir++; else if (st === "buka") buka++; else if (st === "lewat") lewat++; });
+    if (hadir) return { cls: "ok", icon: "✔", text: hadir === list.length ? "Hadir" : "Hadir " + hadir + " dari " + list.length + " jadwal" };
+    if (buka) return { cls: "open", icon: "!", text: "Absen sedang dibuka" };
+    if (lewat) return { cls: "miss", icon: "✕", text: "Tidak hadir" };
+    return null;
+  }
   function renderCalendar() {
     var y = view.getFullYear(), m = view.getMonth();
     $("monthTitle").textContent = BULAN[m] + " " + y;
-    var first = new Date(y, m, 1), offset = (first.getDay() + 6) % 7;   // Senin = kolom pertama
-    var start = new Date(y, m, 1 - offset), html = "";
-    for (var i = 0; i < 42; i++) {
-      var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), n = (events[k] || []).length;
-      var cls = "day" + (d.getMonth() !== m ? " out" : "") + (k === ymd(today) ? " today" : "") + (k === selected ? " sel" : "") + (n ? " has" : "") + (n > 1 ? " multi" : "");
-      var label = d.getDate() + " " + BULAN[d.getMonth()] + (n ? ", " + n + " jadwal" : ", tidak ada jadwal");
-      html += '<button type="button" class="' + cls + '" data-d="' + k + '" role="gridcell" aria-label="' + esc(label) + '"' + (k === selected ? ' aria-current="date"' : "") + ">" + d.getDate() + (n ? '<span class="lbl" title="' + esc(short(events[k], true)) + '">' + esc(short(events[k])) + "</span>" : "") + "</button>";
+    var offset = (new Date(y, m, 1).getDay() + 6) % 7, total = new Date(y, m + 1, 0).getDate();   // Senin = kolom pertama
+    var cells = Math.ceil((offset + total) / 7) * 7, html = "";
+    for (var i = 0; i < cells; i++) {
+      var day = i - offset + 1;
+      if (day < 1 || day > total) { html += '<span class="blank" aria-hidden="true"></span>'; continue; }   // tanggal bulan lain tidak ditampilkan
+      var d = new Date(y, m, day), k = ymd(d), n = (events[k] || []).length, mk = markOf(k);
+      var cls = "day" + (k === ymd(today) ? " today" : "") + (k === selected ? " sel" : "") + (n ? " has" : "") + (n > 1 ? " multi" : "");
+      var label = day + " " + BULAN[m] + (n ? ", " + n + " jadwal" : ", tidak ada jadwal") + (mk ? ", " + mk.text : "");
+      html += '<button type="button" class="' + cls + '" data-d="' + k + '" role="gridcell" aria-label="' + esc(label) + '"' + (k === selected ? ' aria-current="date"' : "") + ">" + (mk ? '<span class="mk ' + mk.cls + '" title="' + mk.text + '" aria-hidden="true">' + mk.icon + "</span>" : "") + day + (n ? '<span class="lbl" title="' + esc(short(events[k], true)) + '">' + esc(short(events[k])) + "</span>" : "") + "</button>";
     }
     $("days").innerHTML = html;
   }
@@ -162,7 +205,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
       if (ev.passcode) h += '<span class="meta">Kode: <b>' + esc(ev.passcode) + "</b></span>";
       h += "</div>";
     }
-    return h + "</article>";
+    return h + (window.DCAbsen ? window.DCAbsen.html(ev) : "") + "</article>";
   }
   function renderDay() {
     var p = selected.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]), list = events[selected] || [];
@@ -170,7 +213,28 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     $("dayList").innerHTML = list.length ? list.map(eventHtml).join("") : '<div class="empty"><span>🌤️</span>Tidak ada jadwal Zoom di hari ini.<br>Pilih tanggal bertitik biru untuk melihat jadwal.</div>';
   }
   function renderAll() { renderCalendar(); renderDay(); }
-  function go(date) { view = new Date(date.getFullYear(), date.getMonth(), 1); var key = view.getFullYear() + "-" + pad(view.getMonth() + 1); renderAll(); load(key).then(renderAll); }
+  function go(date) {
+    view = new Date(date.getFullYear(), date.getMonth(), 1);
+    var vy = view.getFullYear(), vm = view.getMonth(), sp = selected.split("-");
+    if (+sp[0] !== vy || +sp[1] - 1 !== vm) selected = (today.getFullYear() === vy && today.getMonth() === vm) ? ymd(today) : vy + "-" + pad(vm + 1) + "-01";   // tanggal terpilih selalu di bulan yang tampil
+    var key = view.getFullYear() + "-" + pad(view.getMonth() + 1); renderAll(); Promise.all([load(key), absenLoad(key)]).then(renderAll); }
+
+  // ---------- absen ----------
+  function absenLoad(key) { return window.DCAbsen ? window.DCAbsen.load(key).catch(function () {}) : Promise.resolve(); }
+  function findEvent(id) {
+    var found = null;
+    Object.keys(events).forEach(function (k) { events[k].forEach(function (x) { if (String(x.id) === id) found = x; }); });
+    return found;
+  }
+  $("dayList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-absen]"); if (!b || !window.DCAbsen) return;
+    var ev = findEvent(b.getAttribute("data-absen")); if (!ev) return;
+    b.disabled = true;
+    window.DCAbsen.mark(ev).then(function () { renderAll(); }, function (err) {
+      b.disabled = false;
+      var w = $("warn"); w.hidden = false; w.textContent = (err && err.message) || "Absen belum berhasil. Coba lagi.";
+    });
+  });
 
   // ---------- event ----------
   $("days").addEventListener("click", function (e) {
@@ -182,6 +246,10 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   $("nextM").addEventListener("click", function () { go(new Date(view.getFullYear(), view.getMonth() + 1, 1)); });
   $("todayBtn").addEventListener("click", function () { selected = ymd(today); go(today); });
   setInterval(renderDay, 60000);   // status "sedang berlangsung" ikut diperbarui
+
+  // ---------- streak ----------
+  // Kartu streak di atas kalender; streak dicatat lewat tombol "Klaim streak hari ini".
+  if (window.DCStreak) window.DCStreak.mount($("streakCard"));
 
   go(today);
 })();

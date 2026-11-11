@@ -341,7 +341,7 @@
   }
 
   // ---------- navigasi ----------
-  const VIEWS = ['dashboard', 'tugas', 'ujian', 'jadwal'];
+  const VIEWS = ['dashboard', 'tugas', 'ujian', 'jadwal', 'rekap'];
   const ON = ['is-active', 'text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   function showView(name) {
@@ -354,6 +354,7 @@
     document.body.classList.remove('sb-open');
     if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
     if (name === 'dashboard') drawDashboard();
+    if (name === 'rekap' && window.DCRekap) window.DCRekap.instruktur($('#view-rekap'));
     window.dispatchEvent(new CustomEvent('dc:view', { detail: name }));
   }
   document.addEventListener('click', (e) => { const a = e.target.closest('[data-view]'); if (a) { e.preventDefault(); showView(a.dataset.view); } });

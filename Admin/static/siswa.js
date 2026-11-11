@@ -397,6 +397,14 @@
       <button type="button" data-sw="refresh" class="${BTN_SEC} mx-auto mt-4"><i class="fa-solid fa-arrows-rotate"></i>Coba lagi</button></div>`;
   }
 
+  // kolom Kehadiran: persen hadir Zoom mentoring (hanya lihat); klik membuka tab Kehadiran di detail siswa
+  function hadirPill(u) {
+    const p = window.DCRekap ? window.DCRekap.pct(nameOf(u)) : null;
+    if (p == null) return '<span class="text-xs text-slate-400">—</span>';
+    const tone = p < 60 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+    return `<button type="button" data-sw="hadir" data-id="${Number(u.id)}" title="Lihat kehadiran mentoring" class="px-2.5 py-1 rounded-full text-[11px] font-bold font-mono ${tone} hover:opacity-80 transition">${p}%</button>`;
+  }
+
   function tableRow(u) {
     const id = Number(u.id);
     const seen = lastSeen(u);
@@ -413,6 +421,7 @@
       <td class="px-3 py-3.5 ${dim}"><div class="flex flex-wrap gap-1">${gradeBadges(u)}</div></td>
       <td class="px-3 py-3.5">${statusPill(u.status)}</td>
       <td class="px-3 py-3.5 w-44 ${dim}">${progressBar(u)}</td>
+      <td class="px-3 py-3.5 text-center hidden md:table-cell ${dim}">${hadirPill(u)}</td>
       <td class="px-3 py-3.5 hidden lg:table-cell ${dim}"><span class="font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400">${fmtNum(u.points_total)}</span><span class="block text-[11px] text-slate-400">${fmtNum(u.item_count)} item</span></td>
       <td class="px-3 py-3.5 hidden xl:table-cell text-xs text-slate-500 dark:text-slate-400 font-mono ${dim}">${seen ? esc(relativeTime(seen)) : '—'}</td>
       <td class="pl-3 pr-4 py-3.5 text-right whitespace-nowrap">${rowActions(u)}</td>
@@ -427,7 +436,7 @@
         <tr>
           <th class="pl-5 pr-2 py-3.5 w-8"><input type="checkbox" id="swCheckAll" ${all ? 'checked' : ''} data-some="${some && !all ? '1' : ''}" aria-label="Pilih semua di halaman ini" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500/40 cursor-pointer"></th>
           <th class="px-3 py-3.5 font-bold text-center">Siswa</th><th class="px-3 py-3.5 font-bold text-center">Jenjang</th><th class="px-3 py-3.5 font-bold text-center">Status</th>
-          <th class="px-3 py-3.5 font-bold text-center">Progres</th><th class="px-3 py-3.5 font-bold text-center hidden lg:table-cell">Poin</th>
+          <th class="px-3 py-3.5 font-bold text-center">Progres</th><th class="px-3 py-3.5 font-bold text-center hidden md:table-cell">Kehadiran</th><th class="px-3 py-3.5 font-bold text-center hidden lg:table-cell">Poin</th>
           <th class="px-3 py-3.5 font-bold text-center hidden xl:table-cell">Terakhir Aktif</th><th class="pl-3 pr-4 py-3.5 font-bold text-center">Aksi</th>
         </tr>
       </thead>
@@ -446,6 +455,7 @@
       </button>
       <div class="flex flex-wrap items-center gap-1.5 mt-3">${gradeBadges(u)}${statusPill(u.status)}</div>
       <div class="mt-3.5">${progressBar(u)}</div>
+      <div class="flex items-center justify-between mt-3 text-[11px] text-slate-500 dark:text-slate-400"><span>Kehadiran mentoring</span>${hadirPill(u)}</div>
       <div class="flex items-center justify-between mt-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
         <span><i class="fa-solid fa-star text-amber-500 mr-1"></i>${fmtNum(u.points_total)} poin</span><span>${seen ? esc(relativeTime(seen)) : nisOf(u)}</span>
       </div>
@@ -641,7 +651,7 @@
     const pct = pctOf(completed);
     const pts = Number((data.points && data.points.total) ?? u.points_total ?? 0);
     const m = metaOf(u);
-    const tabs = [['ringkasan', 'Ringkasan', 'fa-solid fa-id-card'], ['progres', 'Progres', 'fa-solid fa-list-check'], ['akun', 'Akun', 'fa-solid fa-shield-halved']];
+    const tabs = [['ringkasan', 'Ringkasan', 'fa-solid fa-id-card'], ['progres', 'Progres', 'fa-solid fa-list-check'], ['kehadiran', 'Kehadiran', 'fa-solid fa-calendar-check'], ['akun', 'Akun', 'fa-solid fa-shield-halved']];
 
     let body = '';
     if (D.tab === 'ringkasan') {
@@ -672,6 +682,9 @@
             ${r.points != null ? `<span class="text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400">+${fmtNum(r.points)}</span>` : ''}</li>`).join('')}</ul>
           ${rows.length > 100 ? `<p class="text-[11px] text-slate-400 mt-2 text-center">Menampilkan 100 dari ${fmtNum(rows.length)} entri.</p>` : ''}`
           : '<div class="py-10 text-center text-xs text-slate-500 dark:text-slate-400"><i class="fa-solid fa-inbox text-2xl text-slate-300 dark:text-slate-600 block mb-2"></i>Belum ada riwayat pengerjaan.</div>'}`;
+    } else if (D.tab === 'kehadiran') {
+      // hanya lihat: rekap absen Zoom mentoring siswa ini (jadwal & absen dikelola instruktur)
+      body = window.DCRekap ? window.DCRekap.html(nameOf(u), { audience: 'admin' }) : '<div class="py-10 text-center text-xs text-slate-500 dark:text-slate-400">Modul rekap absen belum dimuat.</div>';
     } else {
       const del = u.status === 'deleted';
       body = `<div class="space-y-2.5">
@@ -1189,6 +1202,7 @@
         case 'reset-local': return dcConfirm({ title: 'Kembalikan data contoh?', message: 'Semua perubahan data siswa di browser ini akan diganti dengan data contoh.', confirmText: 'Kembalikan', tone: 'warning' })
           .then((ok) => { if (!ok) return; LocalStore.reset(); resetSelection(); closeDrawer(); S.page = 1; reloadAll().then(() => showToast('Data contoh dikembalikan.')); });
         case 'view': return openDrawer(id);
+        case 'hadir': return openDrawer(id, 'kehadiran');
         case 'edit': { const u = findUser(id); if (u) { if (S.drawer.id) closeDrawer(); openForm(u); } return; }
         case 'reset': return doReset(id);
         case 'suspend': return doSuspend(id, true);

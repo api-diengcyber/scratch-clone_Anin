@@ -49,6 +49,7 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
   <div class="demo" id="demoBar" hidden>Mode contoh: data di bawah hanya contoh, bukan data anak yang sebenarnya.</div>
   <section class="card hi"><h2 id="hello">Halo, Bapak/Ibu!</h2><p>Ini perkembangan belajar <b id="anak">ananda</b> di Ruang KKA sejauh ini.</p><div class="sum" id="sum"></div></section>
   <section class="card"><div class="rec" style="margin:0"><span>📅</span><p><b>Jadwal mentoring ananda.</b> Lihat kapan ada mentoring Zoom, supaya Bapak/Ibu bisa mendampingi ananda.</p><a href="/orangtua/jadwal.html">Buka Jadwal</a></div></section>
+  <section class="card"><h3>📅 Kehadiran Mentoring</h3><div id="rekapAbsen"></div></section>
   <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
   <section class="card"><h3>⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
   <section class="card"><h3>💡 Saran untuk Bapak/Ibu</h3><div id="recs"></div></section>
@@ -58,6 +59,17 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
 <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
 <script src="/shared/js/utils.js?v=20261019"></script>
+<script>window.DC_REKAP_DEMO = true;   // contoh tanpa backend; hapus kalau endpoint sudah siap</script>
+<script src="/shared/js/rekap-absen.js?v=20261112"></script>
+<script>
+(function () {
+  var box = document.getElementById("rekapAbsen"), an = document.getElementById("anak");
+  if (!window.DCRekap || !box || !an) return;
+  function draw() { window.DCRekap.mount(box, { nama: an.textContent.trim() || "ananda", audience: "ortu" }); }
+  draw();
+  if (window.MutationObserver) new MutationObserver(draw).observe(an, { childList: true, characterData: true, subtree: true });   // nama anak diisi setelah data dimuat
+})();
+</script>
 <script>
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

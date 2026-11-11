@@ -269,6 +269,7 @@
     { id: 4, name: 'Salsa Amelia', email: 'salsa@ruangkka.local', role: 'siswa', grades: ['SMP'], active: false },
     { id: 5, name: 'Siti Aminah', email: 'siti@ruangkka.local', role: 'ortu', grades: ['SD'], active: true }
   ]);
+  U.instructors = instr;   // dipakai halaman Instruktur (instruktur-admin.js): satu store agar cache tidak bentrok
   let people = [], rolesSaved = null, rolesNow = null;
   const isSelf = (p) => !!(p.email && p.email.toLowerCase() === meInfo().email.toLowerCase());
   const initials = (n) => { const w = String(n || '?').trim().split(/\s+/); return ((w[0] || '?')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
