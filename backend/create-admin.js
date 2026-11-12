@@ -3,6 +3,7 @@ const readline = require("readline");
 const crypto = require("crypto");
 const db = require("./database");
 const auth = require("./auth");
+const { releaseDeletedEmail } = require("./user-identity");
 
 function ask(rl, prompt) {
   return new Promise((resolve) => rl.question(prompt, (answer) => resolve(answer.trim())));
@@ -44,6 +45,7 @@ function askHidden(prompt) {
     if (password.length < 8 || password.length > 128) throw new Error("Password harus 8-128 karakter.");
     if (password !== confirm) throw new Error("Password tidak sama.");
     if (db.prepare("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE").get(username)) throw new Error("Username sudah dipakai.");
+    if (email) releaseDeletedEmail(db, email);
     if (email && db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email)) throw new Error("Email sudah dipakai.");
     const { salt, hash } = auth.hashPassword(password);
     const id = Number(db.prepare(`INSERT INTO users (username,email,full_name,password_hash,password_salt,role,status,must_change_password)

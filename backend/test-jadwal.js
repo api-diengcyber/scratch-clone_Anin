@@ -368,7 +368,8 @@ async function main() {
     const r = await fetch(B + "/admin/jadwal");
     eq(r.status, 200, "status");
     const html = await r.text();
-    ok(html.includes("Jadwal Mentoring"), "halaman admin dimuat");
+    // Sejak menu jadwal dirender oleh static/jadwal.js, cek kerangka SPA Admin.
+    ok(html.includes("Ruang KKA"), "halaman admin dimuat");
   });
 
   // Ringkasan

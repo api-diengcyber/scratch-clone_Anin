@@ -32,6 +32,7 @@ const db = require("./database");
 const auth = require("./auth");
 const shop = require("./shop-catalog");
 const { notifyAdmins } = require("./notifications");
+const { releaseDeletedEmail } = require("./user-identity");
 const learningService = require("./learning-service");
 const reportScheduler = require("./report-scheduler");
 
@@ -655,6 +656,7 @@ app.post("/api/auth/firebase-login", async (req, res) => {
         const username = firebaseUser.username;
 
         // Pastikan user tersedia di SQLite
+        if (firebaseUser.email) releaseDeletedEmail(db, firebaseUser.email);
         db.prepare(`
             INSERT INTO users (username, email, firebase_uid)
             VALUES (?, ?, ?)
@@ -710,6 +712,8 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
         if (!isValidEmail(email)) {
             return sendApiError(res, 400, "Email tidak valid", "VALIDATION_ERROR");
         }
+        // Email akun yang sudah dihapus (soft delete) dilepas agar bisa daftar lagi.
+        releaseDeletedEmail(db, email);
         // Cek apakah email sudah terdaftar (case-insensitive).
         const existingEmail = db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email);
         if (existingEmail) {
@@ -786,6 +790,8 @@ app.post("/api/auth/firebase-register", async (req, res) => {
         }
 
         // Buat user baru dengan Firebase UID
+        // Email akun lokal yang sudah dihapus dilepas agar tidak bentrok unique index.
+        if (firebaseUser.email) releaseDeletedEmail(db, firebaseUser.email);
         const info = db.prepare(`
             INSERT INTO users (username, email, firebase_uid)
             VALUES (?, ?, ?)
@@ -935,6 +941,8 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
         }
 
         if (email !== undefined) {
+            // Email akun terhapus dilepas agar bisa dipakai profil baru.
+            releaseDeletedEmail(db, email);
             const taken = db.prepare(`
                 SELECT 1 FROM users
                 WHERE email = ? COLLATE NOCASE AND id <> ?

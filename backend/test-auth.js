@@ -202,6 +202,28 @@ const PASS2 = "barubaru1";
     eq(d.username, "budisantoso", "username");
   });
 
+  await t("register ulang setelah akun dihapus: email lama dilepas otomatis -> 201", async () => {
+    const Database = require("better-sqlite3");
+    const local = new Database(TMPDB);
+    local.pragma("busy_timeout = 5000");
+    try {
+      const row = local.prepare("SELECT id, email FROM users WHERE email = ? COLLATE NOCASE").get("siti@example.com");
+      if (!row) throw new Error("akun siti tidak ditemukan");
+      local.prepare("UPDATE users SET status = 'deleted' WHERE id = ?").run(row.id);
+
+      // Akun terhapus masih memegang email sampai email itu dipakai lagi.
+      eq(local.prepare("SELECT email FROM users WHERE id = ?").get(row.id).email, "siti@example.com", "email masih menempel sebelum dipakai ulang");
+
+      const { r, d } = await register({ email: "Siti@Example.com", password: PASS });
+      eq(r.status, 201, "status register ulang");
+      eq(d.email, "siti@example.com", "email lowercase");
+      eq(local.prepare("SELECT email FROM users WHERE id = ?").get(row.id).email, null, "email dilepas dari akun terhapus");
+      eq(local.prepare("SELECT COUNT(*) AS n FROM users WHERE email = ? COLLATE NOCASE").get("siti@example.com").n, 1, "hanya satu pemilik email");
+    } finally {
+      local.close();
+    }
+  });
+
   const fails = results.filter((r) => r[0] === "FAIL");
   console.log("");
   for (const [st, nm] of results) console.log(`${st === "PASS" ? "PASS" : "FAIL"}  ${nm}`);

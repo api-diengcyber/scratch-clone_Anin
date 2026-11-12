@@ -42,6 +42,7 @@ Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habi
   `cd backend && npm run promote-admin -- admin@diengcyber.local`. Idempoten; menulis audit `admin.promoted.cli`.
   Status akun tidak diubah otomatis, jadi pastikan `status = active`.
 - Status akun: `active`, `suspended`, `deleted`. Akun suspended/deleted ditolak saat login dan saat memakai token lama.
+- Menghapus akun di Admin bersifat **soft delete** (`status = 'deleted'`), sehingga histori poin, progres, dan audit tetap utuh. Email akun terhapus dilepas otomatis (`email = NULL`) saat email itu dipakai lagi oleh akun baru — lewat register publik, profil, pembuatan/pengubahan murid, pembuatan/pengubahan staf, atau CLI admin. Sebelum dipakai lagi, email tetap menempel di baris lama; dua akun aktif tetap tidak boleh memakai email yang sama (`409 EMAIL_EXISTS`).
 - Endpoint lama `/api/progress/:username`, `/api/points/:username`, dan `/api/attempts/:username` masih menerima username untuk kompatibilitas frontend. Otorisasi tetap membandingkan `users.id`; setelah rename, frontend harus memakai username baru (ambil ulang `/api/auth/me`).
 - Akses upload/review/publish plugin memakai allowlist admin developer: `PLUGIN_DEVELOPER_USER_IDS` (daftar `users.id` dipisah koma). Role `superadmin` belum diaktifkan di schema; allowlist ini adalah mekanisme developer untuk MVP.
 

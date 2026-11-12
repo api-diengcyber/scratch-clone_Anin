@@ -9,6 +9,7 @@ const learningService = require("./learning-service");
 const lencana = require("./lencana-catalog");
 const reportScheduler = require("./report-scheduler");
 const reportEmail = require("./report-email");
+const { releaseDeletedEmail } = require("./user-identity");
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
   const PLUGIN_DIR = process.env.PLUGIN_DIR || (process.env.NODE_ENV === "production" ? "/data/plugins" : path.join(__dirname, "plugin-data"));
@@ -340,6 +341,8 @@ function registerAdminApi(app, deps) {
       const email = normalizeEmail(body.email || "");
       if (!email) adminDataError("Email wajib diisi.", "email");
       if (!isValidEmail(email)) adminDataError("Format email tidak valid.", "email");
+      // Email milik akun yang sudah dihapus (soft delete) dilepas agar bisa dipakai lagi.
+      releaseDeletedEmail(db, email);
       if (db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE AND id <> ?").get(email, req.userId)) {
         return sendApiError(res, 409, "Email sudah digunakan akun lain.", "EMAIL_EXISTS");
       }
@@ -1204,6 +1207,8 @@ function registerAdminApi(app, deps) {
     const gradeList = grades.filter((g) => STAFF_GRADE_VALUES.includes(g));
     if ((dbRole === "instruktur" || dbRole === "student") && gradeList.length < 1) adminDataError("Pilih minimal satu jenjang yang diampu.", "grades");
     if (dbRole === "admin" && gradeList.length > 0) adminDataError("Peran admin tidak perlu jenjang.", "grades");
+    // Email akun terhapus dilepas agar tidak menghalangi pembuatan akun baru.
+    if (email) releaseDeletedEmail(db, email);
     if (email && db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email)) {
       return sendApiError(res, 409, "Email sudah digunakan.", "EMAIL_EXISTS");
     }
@@ -1247,6 +1252,7 @@ function registerAdminApi(app, deps) {
     if (b.email !== undefined) {
       const v = normalizeEmail(b.email || "") || null;
       if (v && !isValidEmail(v)) adminDataError("Email tidak valid.", "email");
+      if (v) releaseDeletedEmail(db, v);
       if (v && db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE AND id <> ?").get(v, num)) adminDataError("Email sudah digunakan.", "email");
       changes.email = v;
     }
@@ -1354,6 +1360,8 @@ function registerAdminApi(app, deps) {
     if (usernameProvided && !/^[a-zA-Z0-9._-]{3,32}$/.test(username)) return sendApiError(res, 400, "Username harus 3-32 karakter (huruf, angka, titik, underscore, strip).", "VALIDATION_ERROR");
     if (!usernameProvided) username = uniqueStudentUsername(email ? email.split("@")[0] : fullName || "siswa");
     if (email && !isValidEmail(email)) return sendApiError(res, 400, "Email tidak valid.", "VALIDATION_ERROR");
+    // Email akun terhapus dilepas agar murid baru bisa memakai email yang sama.
+    if (email) releaseDeletedEmail(db, email);
     if (email && db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email)) return sendApiError(res, 409, "Email sudah digunakan.", "EMAIL_EXISTS");
     if (db.prepare("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE").get(username)) return sendApiError(res, 409, "Username sudah digunakan.", "USERNAME_EXISTS");
     let allowedGrades = [];
@@ -1402,6 +1410,7 @@ function registerAdminApi(app, deps) {
     if (b.email !== undefined) {
       const v = normalizeEmail(b.email || "") || null;
       if (v && !isValidEmail(v)) return sendApiError(res, 400, "Email tidak valid.", "VALIDATION_ERROR");
+      if (v) releaseDeletedEmail(db, v);
       if (v && db.prepare("SELECT id FROM users WHERE email = ? COLLATE NOCASE AND id <> ?").get(v, u.id)) return sendApiError(res, 409, "Email sudah digunakan.", "EMAIL_EXISTS");
       changes.email = v;
     }

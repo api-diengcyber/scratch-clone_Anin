@@ -1522,6 +1522,82 @@ async function cleanup() {
     ok(!res.d.items.some((x) => Number(x.id) === instrId), "instruktur terhapus");
   });
 
+  await t("Akses: email akun terhapus bisa dipakai lagi, duplikat aktif tetap ditolak", async () => {
+    const email = "reuse.staff@diengcyber.local";
+    let res = await api("POST", "/api/admin/instructors", {
+      token: adminToken,
+      body: { name: "Reuse Satu", email, role: "instruktur", grades: ["SD"] }
+    });
+    eq(res.r.status, 201, "create staff pertama");
+    const firstId = res.d.item.id;
+    eq(db.prepare("SELECT email FROM users WHERE id = ?").get(firstId).email, email, "email tersimpan");
+
+    res = await api("DELETE", `/api/admin/instructors/${firstId}`, { token: adminToken });
+    eq(res.r.status, 200, "hapus staff pertama");
+    eq(db.prepare("SELECT email FROM users WHERE id = ?").get(firstId).email, email, "email masih di akun terhapus sampai dipakai ulang");
+
+    // Beda kapitalisasi tetap dianggap email yang sama.
+    res = await api("POST", "/api/admin/instructors", {
+      token: adminToken,
+      body: { name: "Reuse Dua", email: "ReUse.Staff@DiengCyber.Local", role: "instruktur", grades: ["SD"] }
+    });
+    eq(res.r.status, 201, "create staff ulang dengan email sama");
+    const secondId = res.d.item.id;
+    eq(db.prepare("SELECT email FROM users WHERE id = ?").get(firstId).email, null, "email dilepas dari akun terhapus");
+    eq(db.prepare("SELECT COUNT(*) AS n FROM users WHERE email = ? COLLATE NOCASE").get(email).n, 1, "hanya satu pemilik email");
+
+    res = await api("POST", "/api/admin/instructors", {
+      token: adminToken,
+      body: { name: "Reuse Tiga", email, role: "instruktur", grades: ["SD"] }
+    });
+    eq(res.r.status, 409, "duplikat akun aktif ditolak");
+    eq(res.d.code, "EMAIL_EXISTS", "kode EMAIL_EXISTS");
+
+    // PATCH email juga melepas email milik akun yang sudah dihapus.
+    const patchEmail = "reuse.staff.patch@diengcyber.local";
+    res = await api("POST", "/api/admin/instructors", {
+      token: adminToken,
+      body: { name: "Reuse Patch", email: patchEmail, role: "instruktur", grades: ["SD"] }
+    });
+    eq(res.r.status, 201, "create staff untuk patch");
+    res = await api("DELETE", `/api/admin/instructors/${res.d.item.id}`, { token: adminToken });
+    eq(res.r.status, 200, "hapus staff patch");
+    res = await api("PATCH", `/api/admin/instructors/${secondId}`, {
+      token: adminToken,
+      body: { email: patchEmail.toUpperCase() }
+    });
+    eq(res.r.status, 200, "patch staff ke email akun terhapus");
+    eq(db.prepare("SELECT email FROM users WHERE id = ?").get(secondId).email, patchEmail, "email baru tersimpan huruf kecil");
+    eq(db.prepare("SELECT COUNT(*) AS n FROM users WHERE email = ? COLLATE NOCASE").get(patchEmail).n, 1, "satu pemilik email patch");
+  });
+
+  await t("Murid: email akun terhapus bisa dipakai lagi", async () => {
+    const email = "reuse.siswa@diengcyber.local";
+    let res = await api("POST", "/api/admin/users", {
+      token: adminToken,
+      body: { fullName: "Murid Reuse", email, allowedGrades: ["SD"] }
+    });
+    eq(res.r.status, 201, "create murid pertama");
+    const firstId = res.d.id;
+
+    res = await api("DELETE", `/api/admin/users/${firstId}`, { token: adminToken });
+    eq(res.r.status, 200, "hapus murid pertama");
+
+    res = await api("POST", "/api/admin/users", {
+      token: adminToken,
+      body: { fullName: "Murid Reuse Dua", email: email.toUpperCase(), allowedGrades: ["SD"] }
+    });
+    eq(res.r.status, 201, "create murid ulang dengan email sama");
+    eq(db.prepare("SELECT email FROM users WHERE id = ?").get(firstId).email, null, "email murid terhapus dilepas");
+
+    res = await api("POST", "/api/admin/users", {
+      token: adminToken,
+      body: { fullName: "Murid Reuse Tiga", email, allowedGrades: ["SD"] }
+    });
+    eq(res.r.status, 409, "duplikat murid aktif ditolak");
+    eq(res.d.code, "EMAIL_EXISTS", "kode duplikat murid");
+  });
+
   // ------------------------------------------------------------
   // WALI SISWA & TAUTAN LAPORAN
   // Wali bukan akun login: hanya kontak yang menerima tautan laporan.
