@@ -1,288 +1,122 @@
-﻿<!DOCTYPE html>
-<html lang="id" data-dark="manual">
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <script src="/shared/js/theme.js?v=20261019"></script>
-  <title>Masuk • Ruang KKA</title>
-  <meta name="description" content="Masuk ke Ruang KKA dan lanjutkan belajar koding: Scratch, web, Python, dan 3D untuk siswa SD, SMP, dan SMA/SMK.">
-  <link rel="icon" type="image/webp" href="/Assets/logo.webp">
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
-    .card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 30px; box-shadow: 0 8px 25px rgba(50,70,110,.08); }
-    .brand { text-align: center; margin-bottom: 20px; }
-    .brand-icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 16px; background: #fff; display: grid; place-items: center; font-size: 28px; overflow: hidden; }
-    .brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
-    p { margin: 4px 0 0; color: #8791a5; font-size: 12px; }
-    label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
-    input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
-    input:focus { outline: 2px solid #7181ec; border-color: transparent; }
-    
-    /* Wrapper untuk input password dan tombol toggle */
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .password-wrapper input {
-      padding-right: 44px;
-    }
-    .toggle-password {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      padding: 0;
-      margin: 0;
-      width: auto;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #8791a5;
-    }
-    .toggle-password:hover {
-      background: none;
-      color: #556075;
-    }
-
-    .error { display: none; margin-top: 12px; color: #d33; font-size: 12px; }
-    .btn-submit { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
-    .btn-submit:hover { background: #5f70dd; }
-
-    /* Footer link untuk registrasi */
-    .register-link {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 13px;
-      color: #8791a5;
-    }
-    .register-link a {
-      color: #7181ec;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .register-link a:hover {
-      text-decoration: underline;
-    }
-  </style>
-  <link rel="stylesheet" href="/shared/css/dark.css?v=20261022">
+  <title>Text Editor • Ruang KKA</title>
+  <meta name="description" content="Text Editor Ruang KKA: tulis dan jalankan HTML, CSS, dan Python langsung di browser, lengkap dengan kartu misi dan tutor AI.">
+  <link rel="stylesheet" href="editor.css?v=20261019">
 </head>
 <body>
-  <div class="card">
-    <div class="brand">
-      <div class="brand-icon"><img src="Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"></div>
-      <h1>RUANG KKA</h1>
-      <p>Masuk untuk mulai belajar coding</p>
-    </div>
+  <header class="eh">
+    <a class="eh-back" id="backLink" href="/dashboard.html">← Dashboard</a>
+    <h1 class="eh-title">💻 Text Editor</h1>
+    <div class="points-chip">⭐ <b id="pointsValue">0</b> koin</div>
+  </header>
 
-    <form id="loginForm">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Masukkan Email" autocomplete="email" autocapitalize="none" spellcheck="false" required>
+  <!-- Kartu misi: diisi otomatis oleh editor.js saat membuka sebuah task -->
+  <section class="mission" id="mission" hidden></section>
 
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
-        <button type="button" id="togglePassword" class="toggle-password" aria-label="Tampilkan atau sembunyikan password">
-          <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button>
+  <main class="split">
+    <!-- KIRI: kode -->
+    <section class="pane">
+      <div class="pane-head">
+        <span class="ph-title">💻 Code</span>
+        <!-- pilihan bahasa: hanya tampil di mode bebas (task dari jalur belajar sudah menentukan bahasanya) -->
+        <div class="langs" id="langs" hidden>
+          <button type="button" data-m="web">🌐 HTML/CSS</button>
+          <button type="button" data-m="python">🐍 Python</button>
+          <button type="button" data-m="php">🐘 PHP</button>
+        </div>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <div class="code-wrap">
+        <pre class="hl" id="hl" aria-hidden="true"></pre>
+        <textarea class="src" id="src" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" wrap="off" aria-label="Tempat menulis kode"></textarea>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="btn run" id="runBtn">▶ Jalankan</button>
+        <button type="button" class="btn stop" id="stopBtn" hidden>⏹ Stop</button>
+        <button type="button" class="btn ghost" id="resetBtn">🔄 Reset</button>
+        <button type="button" class="btn ghost" id="clearBtn">🧹 Kosongkan</button>
+      </div>
+    </section>
+
+    <!-- KANAN: hasil. HTML/CSS & tampilan PHP → <iframe sandbox="">: semua izin dimatikan (tanpa JavaScript) supaya aman.
+         Python & teks PHP → kotak Output. -->
+    <section class="pane">
+      <div class="pane-head">
+        <span class="ph-title" id="outTitle">🌐 Preview</span>
+        <div class="tabs" id="outTabs" hidden>
+          <button type="button" data-v="view">🌐 Tampilan</button>
+          <button type="button" data-v="text">📟 Teks</button>
+        </div>
+        <span class="ph-note" id="prevNote">Berubah otomatis saat kamu mengetik</span>
+      </div>
+      <iframe id="preview" title="Preview website" sandbox=""></iframe>
+      <div class="console" id="console" hidden>
+        <pre id="consoleOut" aria-live="polite"></pre>
+      </div>
+      <div class="stdin-box" id="stdinBox" hidden>
+        <label for="stdin">⌨️ Input untuk program <span>(satu baris = jawaban untuk satu input())</span></label>
+        <textarea id="stdin" rows="2" spellcheck="false" autocomplete="off" placeholder="Contoh:&#10;Budi&#10;12"></textarea>
+      </div>
+      <div class="prev-foot" id="prevFoot">🔗 Tautan di preview tidak bisa diklik di sini. Itu normal, kodenya tetap benar!</div>
+    </section>
+  </main>
+
+  <!-- DOCK: panel "Task aktif" (smp-taskpanel.js) dan Tutor AI ditata bersama agar tidak saling menimpa -->
+  <div class="editor-dock" id="editorDock">
+    <!-- AI TUTOR -->
+  <aside class="ai-tutor" id="aiTutor">
+    <div class="ai-tutor-head">
+      <div>
+        <div class="ai-tutor-title">🤖 Tutor AI</div>
+        <div class="ai-tutor-subtitle">Tanya tentang prompt-mu</div>
       </div>
 
-      <div id="loginError" class="error">Email dan Password wajib diisi!</div>
-
-      <button type="submit" class="btn-submit">Masuk</button>
-    </form>
-
-    <!-- Navigasi Belum Punya Akun -->
-    <div class="register-link">
-      Belum punya akun? <a href="register.html">Daftar sekarang</a>
+      <button
+        type="button"
+        class="ai-tutor-min"
+        id="aiTutorMin"
+        aria-label="Minimalkan Tutor AI"
+      >
+        −
+      </button>
     </div>
+
+    <div class="ai-tutor-messages" id="aiTutorMessages">
+      <div class="ai-message ai-message-bot"><div class="ai-message-label">Tutor AI</div><div>Hai! Aku bisa membantu kamu memahami tugas dan memperbaiki prompt-mu. Coba tulis prompt yang sedang kamu buat 😊</div></div>
+    </div>
+
+    <form class="ai-tutor-form" id="aiTutorForm">
+      <textarea
+        id="aiTutorInput"
+        rows="2"
+        maxlength="4000"
+        placeholder="Tulis prompt atau tanyakan sesuatu..."
+        autocomplete="off"
+      ></textarea>
+
+      <button type="submit" id="aiTutorSend">
+        ➤
+      </button>
+    </form>
+  </aside>
   </div>
-<script type="module">
-  const loginForm = document.getElementById("loginForm");
-  const loginError = document.getElementById("loginError");
-  const passwordInput = document.getElementById("password");
-  const togglePassword = document.getElementById("togglePassword");
-  const eyeIcon = document.getElementById("eyeIcon");
 
-  // Tujuan setelah login mengikuti peran akun. Instruktur punya portal
-  // sendiri; sebelumnya semua non-admin dilempar ke dashboard murid.
-  function homeForRole(role) {
-    if (role === "admin") return "/admin/";
-    if (role === "instruktur") return "/instruktur/";
-    return "/dashboard.html";
-  }
-
-  // ======================================================
-  // TOGGLE SHOW / HIDE PASSWORD
-  // ======================================================
-
-  togglePassword.addEventListener("click", function () {
-    const isPassword =
-      passwordInput.getAttribute("type") === "password";
-
-    passwordInput.setAttribute(
-      "type",
-      isPassword ? "text" : "password"
-    );
-
-    if (isPassword) {
-      eyeIcon.innerHTML = `
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-        <line x1="1" y1="1" x2="23" y2="23"></line>
-      `;
-    } else {
-      eyeIcon.innerHTML = `
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      `;
-    }
-  });
-
-  // ======================================================
-  // LOGIN
-  // ======================================================
-
-  loginForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const email =
-      document
-        .getElementById("email")
-        .value
-        .trim();
-
-    const password =
-      passwordInput.value;
-
-    loginError.style.display = "none";
-
-    if (!email || !password) {
-      loginError.textContent =
-        "Email dan password wajib diisi.";
-
-      loginError.style.display =
-        "block";
-
-      return;
-    }
-
-    try {
-      // ==================================================
-      // LOGIN DATABASE
-      // ==================================================
-
-      const response =
-        await fetch(
-          "/api/auth/login",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body:
-              JSON.stringify({
-                email,
-                password
-              })
-          }
-        );
-
-      const data =
-        await response
-          .json()
-          .catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          "Login gagal."
-        );
-      }
-
-      const username =
-        data.username || email;
-
-      // ==================================================
-      // SIMPAN SESSION BACKEND
-      // ==================================================
-
-      localStorage.setItem(
-        "isLoggedIn",
-        "true"
-      );
-
-      localStorage.setItem(
-        "username",
-        username
-      );
-
-      localStorage.setItem(
-        "email",
-        data.email || email
-      );
-
-      localStorage.setItem(
-        "scratch_user",
-        username
-      );
-
-      localStorage.setItem(
-        "authToken",
-        data.token
-      );
-
-      // ==================================================
-      // WAJIB GANTI PASSWORD (akun baru)
-      // ==================================================
-
-      if (data.mustChangePassword) {
-        window.location.replace(
-          "/ganti-password.html"
-        );
-        return;
-      }
-
-      // ==================================================
-      // MASUK DASHBOARD
-      // ==================================================
-
-      window.location.replace(
-        homeForRole(data.role)
-      );
-
-    } catch (error) {
-      console.error(
-        "Login error:",
-        error
-      );
-
-      let message =
-        error.message ||
-        "Login gagal.";
-
-      if (
-        error instanceof TypeError
-      ) {
-        message =
-          "Backend tidak dapat dihubungi. Coba lagi.";
-      }
-
-      loginError.textContent =
-        message;
-
-      loginError.style.display =
-        "block";
-    }
-  });
-</script>
+  <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
+  <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+  <script src="/shared/js/profil-gate.js?v=20261019"></script>
+  <script src="/shared/js/task-celebration.js?v=20261019"></script>
+  <script src="/shared/js/utils.js?v=20261019"></script>
+  <script src="highlight.js?v=20261019"></script>
+  <script src="runner.js?v=20261019"></script>
+  <script src="editor.js?v=20261019"></script>
+  <script src="ai-tutor.js?v=20261019"></script>
+  <script src="/shared/js/smp-taskpanel.js?v=20261019"></script>
+  <script src="/shared/js/materi-guard.js?v=20261019"></script>
+  <script src="/shared/js/icons.js?v=20261019"></script>
 </body>
 </html>

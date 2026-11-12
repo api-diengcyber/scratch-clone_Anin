@@ -792,13 +792,8 @@ function renderSidebarAccount(me) {
   try {
     const me = await window.DCAdminApi.me();
     if (me.role !== 'admin') {
-      if (me.role === 'instruktur') {
-        showToast('Akun ini bukan admin. Mengalihkan ke portal instruktur...');
-        setTimeout(() => location.replace('/instruktur/'), 1200);
-      } else {
-        showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
-        setTimeout(() => location.replace('/dashboard.html'), 1200);
-      }
+      showToast('Akun ini bukan admin. Mengalihkan ke dashboard siswa...');
+      setTimeout(() => location.replace('/dashboard.html'), 1200);
       return;
     }
     adminState.me = me;

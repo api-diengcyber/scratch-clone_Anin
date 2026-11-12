@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/shared/js/theme.js?v=20261019"></script>
+<title>Tugas &amp; Projek Akhir • Ruang KKA</title>
+<meta name="description" content="Tugas tambahan dan projek akhir dari instruktur Ruang KKA, lengkap dengan tenggat dan nilai minimal lulus.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/webp" href="/Assets/logo.webp">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Nunito",Arial,sans-serif;color:#2b3350;background:linear-gradient(180deg,#e8f4ff,#fff8e8);min-height:100vh}
+.eh{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#fff;border-bottom:3px solid #e3e9ff}.eh img{width:34px;height:34px;object-fit:contain}.eh h1{flex:1;margin:0;font-size:20px}
+.eh a{text-decoration:none;background:#eef1ff;color:#5a6bd8;padding:9px 14px;border-radius:14px;font-weight:bold;font-size:14px}
+main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.card{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 6px 16px rgba(60,80,140,.1)}
+.card>h2{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.card>.sub{margin:0 0 12px;color:#6b7494;font-size:13px;line-height:1.45}
+.cnt{font-size:12px;font-weight:bold;background:#eef1ff;color:#5a6bd8;border-radius:10px;padding:2px 9px}
+.it{border:3px solid #eef1ff;border-radius:18px;padding:12px 14px;margin-bottom:10px}.it:last-child{margin-bottom:0}
+.it.open{border-color:#bfe9d1}.it.closed{opacity:.65}
+.it h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.it p{margin:3px 0;color:#6b7494;font-size:14px;line-height:1.45;white-space:pre-wrap}
+.meta{font-size:13px;color:#6b7494;margin-top:6px}.meta b{color:#2b3350}
+.pill{font-size:11px;border-radius:10px;padding:2px 8px;font-weight:bold;background:#eef1ff;color:#5a6bd8}.pill.ok{background:#e3f8ec;color:#1a7f45}.pill.soon{background:#fff4d6;color:#a86a00}.pill.off{background:#f1f3fa;color:#6b7494}.pill.bad{background:#ffe9e6;color:#b3321e}
+.empty{text-align:center;color:#6b7494;padding:18px 8px;line-height:1.5}.empty span{display:block;font-size:34px;margin-bottom:4px}
+.err{background:#fff4d6;border-left:8px solid #ffc94d;border-radius:14px;padding:12px 14px;line-height:1.5;font-size:14px;color:#6b4a00}.err p{margin:0 0 8px}
+.btn{border:0;cursor:pointer;font:inherit;font-weight:bold;font-size:14px;padding:9px 14px;border-radius:14px;background:#eef1ff;color:#5a6bd8}.btn:focus-visible{outline:3px solid #2d8cff;outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:480px){main{padding:12px}.card{padding:14px}.eh{padding:10px 14px}.eh a{padding:8px 12px;font-size:13px}}
+</style>
+</head>
+<body>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>📝 Tugas &amp; Projek Akhir</h1><a href="/dashboard/dashboard.html">← Dashboard</a></header>
+<main>
+  <section class="card" aria-labelledby="hTugas">
+    <h2 id="hTugas">📋 Tugas Tambahan <span class="cnt" id="cTugas" hidden></span></h2>
+    <p class="sub">Latihan ekstra dari instruktur di luar materi utama.</p>
+    <div id="tugas" aria-live="polite"><div class="empty"><span>⏳</span>Memuat tugas…</div></div>
+  </section>
+  <section class="card" aria-labelledby="hUjian">
+    <h2 id="hUjian">🏁 Projek Akhir &amp; Ujian Kelulusan <span class="cnt" id="cUjian" hidden></span></h2>
+    <p class="sub">Penentu lulus atau tidaknya kamu. Kamu lulus bila nilaimu mencapai nilai minimal (KKM).</p>
+    <div id="ujian" aria-live="polite"><div class="empty"><span>⏳</span>Memuat projek akhir…</div></div>
+  </section>
+</main>
+
+<script src="/shared/js/utils.js?v=20261019"></script>
+<script>
+// ============================================================
+// Halaman siswa: menampilkan tugas dan ujian yang dibuat instruktur. Hanya MEMBACA dari server.
+//   GET /api/tugas-tambahan   -> { ok, items: [{ id, title, description, grade, type, points, due, status }] }
+//   GET /api/ujian-kelulusan  -> { ok, items: [{ id, title, description, grade, format: "proyek"|"tes", kkm, durasi, buka, tutup, status,
+//                                                nilai?, lulus? }] }      (nilai / lulus = hasil siswa yang sedang login, bila sudah dinilai)
+// Jawaban boleh juga berupa array langsung, atau dibungkus di "data". Item berstatus "draft" tidak ditampilkan.
+// Tidak ada data cadangan di browser: kalau server tidak terjangkau, yang tampil adalah pesan galat + tombol "Coba lagi".
+// Jenjang: kalau GET /api/user/allowed-grades berhasil, item untuk jenjang lain disaring (item tanpa jenjang selalu tampil).
+// ============================================================
+(function () {
+  "use strict";
+  var token = ""; try { token = localStorage.getItem("authToken") || ""; } catch (e) {}
+  if (!token || localStorage.getItem("isLoggedIn") !== "true") { location.replace("/index.html"); return; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = window.DCUtils.esc;
+  var BLN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  var GRADE = { SD: "SD", SMP: "SMP", SMK: "SMA/SMK" };
+  var TYPE = { kode: "Kode", blok: "Block Coding", kuis: "Kuis", proyek: "Proyek" };
+  var FORMAT = { proyek: "Projek Akhir", tes: "Ujian Tes" };
+
+  var todayYmd = function () { return new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10); };
+  var validDay = function (s) { return typeof s === "string" && /^\d{4}-\d{2}-\d{2}/.test(s); };
+  var fmt = function (s) { if (!validDay(s)) return ""; var p = s.slice(0, 10).split("-"); return (+p[2]) + " " + BLN[+p[1] - 1] + " " + p[0]; };
+  var dayNum = function (s) { var p = s.slice(0, 10).split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5; };
+
+  function get(path) {
+    return fetch(path, { headers: { Authorization: "Bearer " + token }, cache: "no-store" }).then(function (res) {
+      if (res.status === 401 || res.status === 403) {
+        try { ["authToken", "isLoggedIn", "username", "scratch_user"].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+        location.replace("/index.html"); var a = new Error("auth"); a.auth = true; throw a;
+      }
+      return res.json().catch(function () { return null; }).then(function (d) {
+        if (!res.ok || (d && d.ok === false)) { var e = new Error((d && d.message) || ("Server bermasalah (HTTP " + res.status + ")")); e.status = res.status; throw e; }
+        return d;
+      });
+    }, function () { var e = new Error("Tidak dapat terhubung ke server. Periksa koneksi internet."); e.status = 0; throw e; });
+  }
+  function items(d) { var l = Array.isArray(d) ? d : (d && (d.items || (d.data && (d.data.items || d.data)))) || []; return Array.isArray(l) ? l.filter(function (x) { return x && x.title && x.status !== "draft"; }) : []; }
+
+  var allowed = null;   // ["SD", "SMP", ...] dari server, atau null kalau tidak diketahui
+  function loadAllowed() {
+    return get("/api/user/allowed-grades").then(function (d) {
+      var l = Array.isArray(d && d.grades) ? d.grades : (d && d.data && d.data.grades);
+      allowed = Array.isArray(l) && l.length ? l.map(function (g) { return String(g).toUpperCase(); }) : null;
+    }).catch(function () { allowed = null; });   // 401 sudah mengarahkan ke login di get(); galat lain: tampil tanpa saring jenjang
+  }
+  function byGrade(list) { return allowed ? list.filter(function (x) { return !x.grade || allowed.indexOf(String(x.grade).toUpperCase()) >= 0; }) : list; }
+
+  function errBox(msg, key) { return '<div class="err" role="alert"><p>' + esc(msg) + '</p><button type="button" class="btn" data-retry="' + key + '">Coba lagi</button></div>'; }
+  function empty(ico, txt) { return '<div class="empty"><span>' + ico + "</span>" + esc(txt) + "</div>"; }
+  function count(id, n) { var c = $(id); c.hidden = false; c.textContent = n; }
+  function pill(t, cls) { return '<span class="pill' + (cls ? " " + cls : "") + '">' + esc(t) + "</span>"; }
+
+  function tugasHtml(t) {
+    var td = todayYmd(), closed = t.status === "ditutup", late = !closed && validDay(t.due) && t.due.slice(0, 10) < td, state = closed ? "closed" : late ? "closed" : "open";
+    var due = "";
+    if (validDay(t.due)) { var n = dayNum(t.due) - dayNum(td); due = "Tenggat <b>" + esc(fmt(t.due)) + "</b>" + (closed ? "" : n < 0 ? " · lewat " + (-n) + " hari" : n === 0 ? " · hari ini" : " · " + n + " hari lagi"); }
+    return '<article class="it ' + state + '"><h3>' + esc(t.title) + (t.grade ? pill(GRADE[t.grade] || t.grade) : "") + (t.type ? pill(TYPE[t.type] || t.type, "off") : "") +
+      (closed ? pill("Ditutup", "off") : late ? pill("Lewat tenggat", "bad") : pill("Terbuka", "ok")) + "</h3>" +
+      (t.description ? "<p>" + esc(t.description) + "</p>" : "") +
+      '<div class="meta">' + (t.points != null && t.points !== "" ? "⭐ <b>" + esc(t.points) + "</b> poin" : "") + (due ? (t.points != null && t.points !== "" ? " · " : "") + "📅 " + due : "") + "</div></article>";
+  }
+  function ujianState(u) { var td = todayYmd(); if (u.status === "ditutup") return "closed"; if (validDay(u.buka) && td < u.buka.slice(0, 10)) return "soon"; if (validDay(u.tutup) && td > u.tutup.slice(0, 10)) return "closed"; return "open"; }
+  function ujianHtml(u) {
+    var st = ujianState(u), scored = u.nilai != null && u.nilai !== "", pass = scored ? (typeof u.lulus === "boolean" ? u.lulus : Number(u.nilai) >= Number(u.kkm)) : null;
+    var win = (validDay(u.buka) ? fmt(u.buka) : "") + (validDay(u.tutup) ? " – " + fmt(u.tutup) : "");
+    return '<article class="it ' + (st === "closed" ? "closed" : st === "open" ? "open" : "") + '"><h3>' + esc(u.title) + (u.grade ? pill(GRADE[u.grade] || u.grade) : "") + pill(FORMAT[u.format] || u.format || "Ujian", "off") +
+      (st === "open" ? pill("Sedang dibuka", "ok") : st === "soon" ? pill("Segera dibuka", "soon") : pill("Sudah ditutup", "off")) + "</h3>" +
+      (u.description ? "<p>" + esc(u.description) + "</p>" : "") +
+      '<div class="meta">' + (u.kkm != null && u.kkm !== "" ? "🎯 Nilai minimal lulus <b>" + esc(u.kkm) + "</b>" : "") + (u.durasi ? " · ⏱️ " + esc(u.durasi) + " menit" : "") + (win ? " · 📅 " + esc(win) : "") + "</div>" +
+      (scored ? '<div class="meta">Nilaimu: <b>' + esc(u.nilai) + "</b> " + (pass ? pill("Lulus 🎉", "ok") : pill("Belum lulus", "bad")) + "</div>" : "") + "</article>";
+  }
+
+  function loadTugas() {
+    $("tugas").innerHTML = empty("⏳", "Memuat tugas…");
+    return get("/api/tugas-tambahan").then(function (d) {
+      var list = byGrade(items(d)).sort(function (a, b) { var A = validDay(a.due) ? a.due : "9999", B = validDay(b.due) ? b.due : "9999"; return A < B ? -1 : A > B ? 1 : 0; });
+      count("cTugas", list.length);
+      $("tugas").innerHTML = list.length ? list.map(tugasHtml).join("") : empty("🎉", "Belum ada tugas tambahan dari instruktur.");
+    }).catch(function (e) { if (e.auth) return; $("cTugas").hidden = true; $("tugas").innerHTML = errBox(e.message, "tugas"); });
+  }
+  function loadUjian() {
+    $("ujian").innerHTML = empty("⏳", "Memuat projek akhir…");
+    return get("/api/ujian-kelulusan").then(function (d) {
+      var rank = { open: 0, soon: 1, closed: 2 };
+      var list = byGrade(items(d)).sort(function (a, b) { return rank[ujianState(a)] - rank[ujianState(b)]; });
+      count("cUjian", list.length);
+      $("ujian").innerHTML = list.length ? list.map(ujianHtml).join("") : empty("🏁", "Belum ada projek akhir atau ujian kelulusan.");
+    }).catch(function (e) { if (e.auth) return; $("cUjian").hidden = true; $("ujian").innerHTML = errBox(e.message, "ujian"); });
+  }
+
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("[data-retry]"); if (!b) return;
+    var k = b.getAttribute("data-retry");
+    loadAllowed().then(function () { return k === "ujian" ? loadUjian() : loadTugas(); });
+  });
+  window.addEventListener("pageshow", function (e) { if (e.persisted) { loadAllowed().then(function () { loadTugas(); loadUjian(); }); } });
+
+  loadAllowed().then(function () { loadTugas(); loadUjian(); });
+})();
+</script>
+<script src="/shared/js/icons.js?v=20261019"></script>
+</body>
+</html>
