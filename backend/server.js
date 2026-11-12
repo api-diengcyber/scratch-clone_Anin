@@ -1514,6 +1514,9 @@ require("./jadwal-api").registerJadwalApi(app, {
 require("./instruktur-api").registerInstrukturApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
+require("./attendance-api").registerAttendanceApi(app, {
+    db, auth, sendApiError, sendApiSuccess
+});
 require("./report-api").registerReportApi(app, {
     db, rateLimitMiddleware, sendApiError, sendApiSuccess
 });

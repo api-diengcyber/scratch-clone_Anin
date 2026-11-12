@@ -83,6 +83,31 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 - Endpoint murid hanya mengembalikan jadwal pada bulan yang diminta dan menyaring berdasarkan jenjang murid. Respons tidak memuat kolom internal seperti `created_by`.
 - Endpoint admin memakai permission `kurikulum.kelola`. Semua perubahan dicatat di `admin_audit` (`jadwal.create`, `jadwal.update`, `jadwal.delete`).
 
+### Streak harian & kehadiran mentoring
+
+| Method | Alamat | Izin | Hasil |
+|---|---|---|---|
+| GET | `/api/streak` | login | `{ current, longest, today, days }` |
+| POST | `/api/streak/checkin` | login | bentuk sama dengan GET; idempoten per hari WIB |
+| GET | `/api/attendance?bulan=YYYY-MM` | login | `{ bulan, items: [{ jadwalId, checkedInAt }], total }` |
+| POST | `/api/attendance` | murid | `{ item: { jadwalId, checkedInAt } }`; `201` |
+| GET | `/api/attendance/report?bulan=YYYY-MM` | murid | rekap murid yang sedang login |
+| GET | `/api/admin/users/:id/attendance?bulan=YYYY-MM` | `siswa.kelola` | rekap satu murid |
+| GET | `/api/instruktur/attendance?bulan=&q=&page=&limit=&urut=` | `kurikulum.kelola` | rekap semua murid aktif |
+
+- "Hari ini" selalu WIB (`Asia/Jakarta`), bukan jam perangkat atau zona waktu server. `days` berisi tanggal `YYYY-MM-DD` WIB, urut naik, maksimal 60 hari terakhir. `current` dihitung mundur dari hari ini (atau kemarin bila hari ini belum diklaim), `longest` adalah rangkaian terpanjang. `POST /api/streak/checkin` berulang pada hari yang sama tidak menambah baris.
+- Absen hanya untuk role `student` (`403 STUDENT_ONLY`). Satu murid hanya bisa absen sekali per jadwal (`409 ALREADY_CHECKED_IN`); indeks unik `(student_user_id, jadwal_id)` menjaga request yang datang bersamaan.
+- Jendela absen ditentukan server: dibuka 15 menit sebelum `mulai` dan ditutup saat `selesai` (WIB). Terlalu awal → `403 ATTENDANCE_NOT_OPEN` (`details.opensAt`), sudah lewat → `403 ATTENDANCE_CLOSED` (`details.closedAt`).
+- Jadwal yang tidak terlihat oleh jenjang murid (`allowed_grades` vs `grades`) dibalas `404 NOT_FOUND` agar keberadaannya tidak bocor. `jadwalId` yang tidak ada juga `404`.
+- `checkedInAt` disimpan dan dikembalikan sebagai ISO UTC; `tanggal`/`mulai`/`selesai` tetap waktu dinding WIB.
+- Rekap hanya menghitung sesi yang jam selesainya sudah lewat; sesi berjalan atau belum mulai tidak masuk pembagi. `pct = bulat(hadir * 100 / total)` dan bernilai `null` bila belum ada sesi.
+- Bentuk rekap murid: `{ bulan, siswa: { id, username, nama }, ringkasan, keseluruhan, perBulan, sesi }`. `ringkasan` untuk bulan yang diminta, `keseluruhan` untuk 12 bulan terakhir, `perBulan` berisi 12 baris `{ bulan, hadir, total, pct }`, dan `sesi` berisi `{ jadwalId, judul, tanggal, mulai, selesai, hadir, checkedInAt }`.
+- Bentuk rekap staf: `{ bulan, q, urut, page, limit, total, pages, ringkasan, perBulan, sesi, items }`. Tiap `items[]` memuat `{ id, username, nama, fullName, hadir, total, pct, keseluruhan, sesi }`; `sesi[]` tingkat atas memuat `siswaHadir`/`siswaTidakHadir`. `q` mencari nama/username (maks. 100 karakter), `urut` = `rendah` (default, kehadiran terendah dulu) atau `nama`, `limit` default 10 (maks. 100), `page` mulai dari 1.
+- `GET /api/admin/users` ikut memuat `attendance: { hadir, total, pct }` dan `attendancePct` per murid (12 bulan terakhir, hanya sesi selesai) supaya kolom Kehadiran dapat diisi tanpa request tambahan.
+- Tabel: `mentoring_attendance` (satu baris per murid per jadwal) dan `study_streak_days` (satu baris per murid per tanggal WIB).
+- Endpoint tulis dibatasi 60 permintaan/menit per akun (`429 RATE_LIMITED`).
+- Endpoint orang tua (`/api/parent/attendance`, `/api/parent/report`, `/api/parent/jadwal`) **belum tersedia** karena autentikasi token orang tua belum ada di backend. Modul frontend `DCRekap` juga masih berjalan dengan `window.DC_REKAP_DEMO = true`.
+
 ### Materi per task (portal murid)
 
 | Method | Alamat | Hasil |
@@ -118,6 +143,7 @@ Sumber data portal `/instruktur` (tugas tambahan, ujian kelulusan, jadwal Zoom).
 | PATCH | `/api/instruktur/ujian/:id` | `tugas.nilai` | `{ item }` |
 | DELETE | `/api/instruktur/ujian/:id` | `tugas.nilai` | `{ id }`; nilai peserta ikut terhapus |
 | GET | `/api/instruktur/jadwal?bulan=&limit=` | `kurikulum.kelola` | `{ items, total, bulan }` |
+| GET | `/api/instruktur/attendance?bulan=&q=&page=&limit=&urut=` | `kurikulum.kelola` | rekap kehadiran semua murid aktif (lihat "Streak harian & kehadiran mentoring") |
 | POST | `/api/instruktur/jadwal` | `kurikulum.kelola` | `{ item }`; `201` |
 | PATCH | `/api/instruktur/jadwal/:id` | `kurikulum.kelola` | `{ item }` |
 | DELETE | `/api/instruktur/jadwal/:id` | `kurikulum.kelola` | `{ id }` |
@@ -235,7 +261,7 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | PATCH | `/api/admin/submissions/:id` | `{ status, score?, feedback? }` | `{ item }`; `status` = `revisi` atau `dinilai` |
 | GET | `/api/admin/settings` | - | `{ settings, updatedAt }` |
 | PUT | `/api/admin/settings` | `{ settings }` | `{ settings }` |
-| GET | `/api/admin/users?search=&status=&grade=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student`; `grade` = `SD`, `SMP`, atau `SMK` |
+| GET | `/api/admin/users?search=&status=&grade=&page=&limit=` | - | `{ users, page, limit, total, pages, stats }`; hanya role `student`; `grade` = `SD`, `SMP`, atau `SMK`; tiap user memuat `attendance: { hadir, total, pct }` dan `attendancePct` |
 | GET | `/api/admin/users/:id` | - | `{ user, points, progress, progressRows, items, sessions, activeSessions }` |
 | POST | `/api/admin/users` | `{ username?, email?, fullName?, password?, allowedGrades? }` | `{ id, username, email, allowedGrades, temporaryPassword? }` |
 | PATCH | `/api/admin/users/:id` | `{ username?, email?, fullName?, bio?, avatarUrl?, allowedGrades? }` | `{ user }` |

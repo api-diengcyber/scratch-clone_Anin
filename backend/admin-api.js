@@ -9,6 +9,7 @@ const learningService = require("./learning-service");
 const lencana = require("./lencana-catalog");
 const reportScheduler = require("./report-scheduler");
 const reportEmail = require("./report-email");
+const attendanceService = require("./attendance-service");
 const { releaseDeletedEmail } = require("./user-identity");
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
@@ -1331,7 +1332,26 @@ function registerAdminApi(app, deps) {
         (SELECT COUNT(*) FROM user_items ui WHERE ui.user_id=u.id) AS item_count
       FROM users u LEFT JOIN points p ON p.user_id=u.id
       WHERE ${clause} ORDER BY u.id DESC LIMIT ? OFFSET ?`).all(...params, limitN, (page - 1) * limitN);
-    return sendApiSuccess(res, { users: rows.map(r => ({ ...r, allowedGrades: jsonAllowedGrades(r.allowed_grades), allowed_grades: undefined, subscriptionStartedAt: r.subscription_started_at || null, subscription_started_at: undefined })), page, limit: limitN, total, pages: Math.ceil(total / limitN), stats: aggregate });
+    const attendanceSummary = attendanceService.summariesForUsers(db, rows);
+    return sendApiSuccess(res, {
+      users: rows.map(r => {
+        const attendance = attendanceSummary.get(Number(r.id)) || { hadir: 0, total: 0, pct: null };
+        return {
+          ...r,
+          allowedGrades: jsonAllowedGrades(r.allowed_grades),
+          allowed_grades: undefined,
+          subscriptionStartedAt: r.subscription_started_at || null,
+          subscription_started_at: undefined,
+          attendance,
+          attendancePct: attendance.pct
+        };
+      }),
+      page,
+      limit: limitN,
+      total,
+      pages: Math.ceil(total / limitN),
+      stats: aggregate
+    });
   });
 
   app.get("/api/admin/users/:id", (req, res) => {

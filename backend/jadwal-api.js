@@ -400,5 +400,6 @@ module.exports = {
   isMonth,
   normalizeSchedule,
   scheduleDto,
-  visibleForGrades
+  visibleForGrades,
+  parseGrades
 };

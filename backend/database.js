@@ -454,6 +454,43 @@ db.exec(`
         ON mentoring_schedules(tanggal, mulai);
 `);
 
+// Kehadiran murid pada sesi mentoring Zoom. Satu baris = satu murid hadir di
+// satu jadwal, sehingga persentase dihitung dari jumlah jadwal yang sudah
+// selesai dibanding jumlah baris hadir. `checked_in_at` disimpan sebagai ISO
+// UTC agar aman dikirim ke browser; tanggal absen mengikuti jadwal (WIB).
+db.exec(`
+    CREATE TABLE IF NOT EXISTS mentoring_attendance (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_user_id INTEGER NOT NULL,
+        jadwal_id INTEGER NOT NULL,
+        checked_in_at TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(student_user_id, jadwal_id),
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(jadwal_id) REFERENCES mentoring_schedules(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_mentoring_attendance_jadwal
+        ON mentoring_attendance(jadwal_id, student_user_id);
+    CREATE INDEX IF NOT EXISTS idx_mentoring_attendance_student
+        ON mentoring_attendance(student_user_id, checked_in_at);
+`);
+
+// Hari streak belajar. Satu baris per murid per tanggal WIB; klaim berulang
+// pada hari yang sama tidak menambah baris. Tanggal disimpan sebagai teks
+// YYYY-MM-DD supaya perhitungan beruntun sederhana dan tidak terpengaruh zona
+// waktu perangkat.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS study_streak_days (
+        user_id INTEGER NOT NULL,
+        day TEXT NOT NULL CHECK (day GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(user_id, day),
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_study_streak_days_day
+        ON study_streak_days(day);
+`);
+
 // Tugas tambahan & ujian kelulusan buatan instruktur (portal /instruktur).
 // Berbeda dari tabel `tasks` yang terikat modul kurikulum, baris di sini
 // berdiri sendiri dan hanya terikat ke akun instruktur pembuatnya.
