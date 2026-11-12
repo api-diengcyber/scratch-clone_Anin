@@ -354,7 +354,10 @@
     document.body.classList.remove('sb-open');
     if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
     if (name === 'dashboard') drawDashboard();
-    if (name === 'rekap' && window.DCRekap) window.DCRekap.instruktur($('#view-rekap'));
+    if (name === 'rekap') {   // tampilan per sesi (Daftar Sesi / Time Track); rekap bulanan lama jadi tab ketiganya
+      if (window.DCSesi) window.DCSesi.mount($('#view-rekap'));
+      else if (window.DCRekap) window.DCRekap.instruktur($('#view-rekap'));
+    }
     window.dispatchEvent(new CustomEvent('dc:view', { detail: name }));
   }
   document.addEventListener('click', (e) => { const a = e.target.closest('[data-view]'); if (a) { e.preventDefault(); showView(a.dataset.view); } });
