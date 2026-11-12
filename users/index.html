@@ -110,6 +110,14 @@
   const togglePassword = document.getElementById("togglePassword");
   const eyeIcon = document.getElementById("eyeIcon");
 
+  // Tujuan setelah login mengikuti peran akun. Instruktur punya portal
+  // sendiri; sebelumnya semua non-admin dilempar ke dashboard murid.
+  function homeForRole(role) {
+    if (role === "admin") return "/admin/";
+    if (role === "instruktur") return "/instruktur/";
+    return "/dashboard.html";
+  }
+
   // ======================================================
   // TOGGLE SHOW / HIDE PASSWORD
   // ======================================================
@@ -248,9 +256,7 @@
       // ==================================================
 
       window.location.replace(
-        data.role === "admin"
-          ? "/admin/"
-          : "/dashboard.html"
+        homeForRole(data.role)
       );
 
     } catch (error) {
