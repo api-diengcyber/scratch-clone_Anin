@@ -2,7 +2,17 @@
    Menu: Ringkasan, Tugas Tambahan, Ujian Kelulusan (di sisi siswa tampil sebagai Projek Akhir), Jadwal Zoom Mentoring.
    Endpoint (belum ada di backend → otomatis memakai data lokal browser + penanda "Mode contoh"):
      GET/POST /api/instruktur/tugas | /ujian | /jadwal     PATCH/DELETE /api/instruktur/<nama>/:id
-     GET /api/instruktur/me  -> { role, name }                                                    */
+     GET /api/instruktur/me  -> { role, name }
+   Jawaban siswa pada Tugas Tambahan (belum ada di backend → data contoh lokal + penanda "Mode contoh"):
+     GET   /api/instruktur/tugas/:id/submissions            -> { items: [{ id, nama, username, text, link, submittedAt, status, nilai, feedback, gradedAt }] }
+     PATCH /api/instruktur/tugas/:id/submissions/:sid  { nilai, feedback } -> { item }
+     (item di GET /api/instruktur/tugas boleh membawa submissionCount & gradedCount untuk ditampilkan di kartu)
+   Pengumpulan Projek Akhir (Ujian Kelulusan format "proyek"; belum ada di backend → data contoh lokal + penanda "Mode contoh"):
+     GET   /api/instruktur/ujian/:id/submissions            -> { items: [{ id, nama, username, text, link, submittedAt, attempt, status: "menunggu"|"revisi"|"lulus",
+                                                                  rubrik: { fungsi, kreativitas, kerapian, penjelasan }, nilai, feedback, gradedAt }] }
+     PATCH /api/instruktur/ujian/:id/submissions/:sid  { rubrik: { fungsi, kreativitas, kerapian, penjelasan }, feedback } -> { item }
+       server: nilai = jumlah rubrik (0–100); nilai ≥ kkm → status "lulus", kalau tidak → "revisi"; siswa yang kumpul ulang → kembali "menunggu"
+     (item di GET /api/instruktur/ujian boleh membawa submissionCount, pendingCount, lulusCount untuk kartu; ujian boleh membawa learningPathId = syarat task)   */
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
@@ -167,13 +177,19 @@
     }
     function openForm(item) {
       const pre = item ? (cfg.pre ? cfg.pre(item) : item) : (cfg.blank ? cfg.blank() : {});
-      modal((item ? 'Ubah ' : 'Tambah ') + cfg.noun, `<div class="grid sm:grid-cols-2 gap-3">${cfg.fields.map((f) => fieldHtml(f, pre[f.n])).join('')}</div>`, async (f) => {
+      const dialog = modal((item ? 'Ubah ' : 'Tambah ') + cfg.noun, `<div class="grid sm:grid-cols-2 gap-3">${cfg.fields.map((f) => fieldHtml(f, pre[f.n])).join('')}</div>`, async (f) => {
         const msg = cfg.validate(f); if (msg) return msg;
         const data = cfg.norm(f);
         await store.save(item ? { ...item, ...data } : data);
         toast(item ? cfg.noun + ' diperbarui.' : cfg.noun + ' ditambahkan.');
         await load();
       }, item ? 'Simpan Perubahan' : 'Simpan', true);
+      const form = dialog.querySelector('form');
+      if (form.elements.learningPathId) {
+        refreshTargetFields(form, 'init', { path: pre.learningPathId, task: pre.taskId, pathName: pre.learningPathName, taskName: pre.taskName });
+        form.elements.grade?.addEventListener('change', () => refreshTargetFields(form, 'grade'));
+        form.elements.learningPathId.addEventListener('change', () => refreshTargetFields(form, 'path'));
+      }
     }
     view.addEventListener('click', async (e) => {
       if (e.target.closest('[data-add]')) return openForm(null);
@@ -194,6 +210,69 @@
 
   const gradeOpts = Object.entries(GRADES);
   const statusOpts = [['draft', 'Draft'], ['terbit', 'Terbit'], ['ditutup', 'Ditutup']];
+
+  // Katalog ini membaca struktur kurikulum asli; tidak membuat daftar Learning Path/Task duplikat.
+  function catalogPaths(grade) {
+    // Normalisasi nilai jenjang agar tetap cocok dengan katalog kurikulum.
+    const g = String(grade || '').trim().toUpperCase().replace(/\s+/g, '');
+    if (g === 'SD') {
+      const data = window.LP_DATA || window.LP || {};
+      return (data.tahap || []).flatMap((stage) =>
+        (stage.pembelajaran || []).map((path) => ({
+          id: path.id,
+          name: `${stage.nama || 'SD'} · ${path.judul || path.nama || path.id}`,
+          tasks: (path.tasks || []).map((t, i) => ({
+            id: t.id || `${path.id}-t${i + 1}`,
+            name: `Task ${i + 1} · ${t.title || t.judul || t.label || 'Tanpa judul'}`
+          })).concat(path.project ? [{ id: path.project.id || `${path.id}-project`, name: `Project Akhir · ${path.project.title || path.project.judul || 'Proyek'}` }] : [])
+        })));
+    }
+    const roots = g === 'SMP' ? (window.LP_SMP || [])
+      : ['SMK', 'SMA', 'SMA/SMK', 'SMA-SMK', 'SMA&SMK'].includes(g) ? (window.LP_SMAK || []) : [];
+    // SMP & SMA/SMK: Learning Path = satu MODUL (±6 task), bukan jalur besarnya; nama jalur jadi awalan agar mudah dicari.
+    return roots.flatMap((jalur) => (jalur.nodes || []).map((node) => ({
+      id: node.id,
+      name: `${jalur.nama || jalur.title || jalur.id} · ${node.title || node.id}`,
+      tasks: (node.tasks || []).map((t, i) => ({
+        id: t.id || `${node.id}-t${i + 1}`,
+        name: `Task ${i + 1}: ${t.judul || t.title || 'Tanpa judul'}`
+      }))
+    })));
+  }
+  function targetOptions(grade, pathId, kind) {
+    if (!String(grade || '').trim()) return [['', 'Pilih jenjang dulu']];
+    const paths = catalogPaths(grade);
+    if (!paths.length) return [['', (window.DC_KURIKULUM_GAGAL || []).length ? 'Data kurikulum gagal dimuat (cek jalur file kurikulum)' : 'Belum ada Learning Path untuk jenjang ini']];
+    if (kind === 'path') return [['', 'Tidak ditentukan'], ...paths.map((p) => [p.id, p.name])];
+    const path = paths.find((p) => String(p.id) === String(pathId));
+    return [['', 'Seluruh Learning Path / tidak ditentukan'], ...(path ? path.tasks.map((t) => [t.id, t.name]) : [])];
+  }
+  // want = { path, task, pathName, taskName } dari data tersimpan (saat edit). Pilihan <select> baru terisi di sini,
+  // jadi nilai tersimpan harus dipasang SETELAH opsinya dibuat, kalau tidak target hilang dan tersimpan kosong.
+  function refreshTargetFields(form, changed, want) {
+    const grade = form.elements.grade?.value || '';
+    const path = form.elements.learningPathId;
+    const task = form.elements.taskId;
+    if (!path) return;
+    const fill = (sel, opts, value, savedName) => {
+      sel.innerHTML = opts.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+      if (value && ![...sel.options].some((o) => o.value === String(value))) {   // target sudah tidak ada di kurikulum: pertahankan, jangan dihapus diam-diam
+        sel.insertAdjacentHTML('beforeend', `<option value="${esc(value)}">${esc((savedName || value) + ' (tidak ada di kurikulum saat ini)')}</option>`);
+      }
+      sel.value = value || '';
+    };
+    const wantPath = changed === 'init' ? (want && want.path) : (changed === 'grade' ? '' : path.value);
+    fill(path, targetOptions(grade, '', 'path'), wantPath, want && want.pathName);
+    if (!task) return;   // form tanpa kolom Task (mis. Ujian Kelulusan: hanya Learning Path sebagai syarat)
+    const wantTask = changed === 'init' ? (want && want.task) : '';
+    fill(task, targetOptions(grade, path.value, 'task'), wantTask, want && want.taskName);
+  }
+  function selectedTargetNames(grade, pathId, taskId) {
+    const path = catalogPaths(grade).find((p) => String(p.id) === String(pathId));
+    const task = path && path.tasks.find((t) => String(t.id) === String(taskId));
+    return { learningPathName: path?.name || '', taskName: task?.name || '' };
+  }
+
   const num = (v) => (v === '' || v == null ? '' : Number(v));
 
   // ---------- Tugas Tambahan ----------
@@ -205,6 +284,8 @@
     fields: [
       { n: 'title', l: 'Judul', full: true, ph: 'Contoh: Tantangan Perulangan' },
       { n: 'grade', l: 'Jenjang', t: 'select', o: gradeOpts, def: 'SMP' },
+      { n: 'learningPathId', l: 'Learning Path (opsional)', t: 'select', o: [['', 'Semua Learning Path / tidak ditentukan']] },
+      { n: 'taskId', l: 'Task tujuan (opsional)', t: 'select', o: [['', 'Seluruh Learning Path / tidak ditentukan']] },
       { n: 'type', l: 'Jenis', t: 'select', o: Object.entries(TYPES), def: 'kode' },
       { n: 'points', l: 'Poin', t: 'number', min: 0, maxv: 1000, def: 30 },
       { n: 'due', l: 'Tenggat', t: 'date' },
@@ -212,24 +293,135 @@
       { n: 'description', l: 'Deskripsi / Instruksi', t: 'textarea', full: true, ph: 'Jelaskan apa yang harus dikerjakan siswa...' }
     ],
     validate: (f) => (!f.title.trim() ? 'Judul wajib diisi.' : ''),
-    norm: (f) => ({ title: f.title.trim(), grade: f.grade, type: f.type, points: Number(f.points) || 0, due: f.due, status: f.status, description: f.description.trim() }),
+    norm: (f) => ({ title: f.title.trim(), grade: f.grade, learningPathId: f.learningPathId || '', taskId: f.taskId || '', ...selectedTargetNames(f.grade, f.learningPathId, f.taskId), targetScope: f.taskId ? 'task' : f.learningPathId ? 'path' : 'grade', type: f.type, points: Number(f.points) || 0, due: f.due, status: f.status, description: f.description.trim() }),
+    pre: (it) => ({ ...it, learningPathId: it.learningPathId || '', taskId: it.taskId || '' }),
     card: (t) => `<div class="flex-none w-12 h-12 rounded-xl grid place-items-center bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-300"><i class="fa-solid fa-list-check"></i></div>
       <div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><h3 class="font-bold text-slate-900 dark:text-white">${esc(t.title)}</h3>${pill(GRADES[t.grade] || t.grade)}${pill(TYPES[t.type] || t.type, 'bg-slate-100 text-slate-600 border-slate-300/70 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700')}${statusPill(t.status)}</div>
+      ${(t.learningPathName || t.taskName) ? `<p class="text-xs text-sky-700 dark:text-sky-300 mt-1"><i class="fa-solid fa-diagram-project mr-1"></i>${esc(t.learningPathName || 'Semua Learning Path')}${t.taskName ? ` · ${esc(t.taskName)}` : ''}</p>` : '<p class="text-xs text-slate-500 mt-1">Berlaku untuk seluruh jenjang yang dipilih</p>'}
       ${t.description ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${esc(t.description)}</p>` : ''}
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-star mr-1"></i>${esc(t.points)} poin${t.due ? ` &middot; <i class="fa-regular fa-calendar mr-1"></i>Tenggat ${esc(fmtDate(t.due))}` : ''}</p></div>`
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-star mr-1"></i>${esc(t.points)} poin${t.due ? ` &middot; <i class="fa-regular fa-calendar mr-1"></i>Tenggat ${esc(fmtDate(t.due))}` : ''}</p>
+      ${t.submissionCount != null ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-inbox mr-1"></i><b>${esc(t.submissionCount)}</b> terkumpul &middot; <b>${esc(t.gradedCount || 0)}</b> sudah dinilai</p>` : ''}</div>`,
+    actions: (t) => `<button type="button" data-jawaban="${esc(t.id)}" class="dc-ib dc-ib-view" aria-label="Jawaban siswa ${esc(t.title)}" title="Lihat jawaban & beri nilai"><i class="fa-solid fa-clipboard-check"></i></button>`,
+    onClick: (e, ctx) => {
+      const b = e.target.closest('[data-jawaban]'); if (!b) return;
+      const t = ctx.find(b.dataset.jawaban); if (t) openJawaban(t, ctx.reload);
+    }
   });
+
+  // ---------- Jawaban siswa pada Tugas Tambahan ----------
+  const subs = (() => {
+    let useLocal = false;
+    const KEY = 'dci-tugas-subs';
+    const missing = (e) => e && [0, 404, 405, 501].includes(e.status);
+    const req = (p, o) => window.DCAdminApi.request(p, o);
+    const base = (tid) => '/api/instruktur/tugas/' + encodeURIComponent(tid) + '/submissions';
+    const loadLocal = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (_) { return {}; } };
+    const saveLocal = (d) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (_) {} };
+    const sample = () => [
+      { id: 1, nama: 'Contoh Siswa A', text: 'Ini jawaban contoh. Program mencetak bintang dengan for dan range.', link: '', submittedAt: new Date().toISOString(), status: 'dikumpulkan' },
+      { id: 2, nama: 'Contoh Siswa B', text: 'Hasil kerjaku ada di link ya.', link: 'https://example.com/hasil-b', submittedAt: new Date(Date.now() - 36e5).toISOString(), status: 'dikumpulkan' },
+      { id: 3, nama: 'Contoh Siswa C', text: 'Sudah selesai.', link: '', submittedAt: new Date(Date.now() - 864e5).toISOString(), status: 'dinilai', nilai: 25, feedback: 'Bagus, tinggal rapikan nama variabel.', gradedAt: new Date().toISOString() }
+    ];
+    return {
+      isLocal: () => useLocal,
+      async list(tid) {
+        if (!useLocal) { try { const r = await req(base(tid)); return r.items || r.data || []; } catch (e) { if (!missing(e)) throw e; useLocal = true; } }
+        const d = loadLocal(); if (!d[tid]) { d[tid] = sample(); saveLocal(d); }
+        return d[tid].map((x) => ({ ...x }));
+      },
+      async grade(tid, sid, body) {
+        if (!useLocal) {
+          try { const r = await req(base(tid) + '/' + encodeURIComponent(sid), { method: 'PATCH', body }); return r.item || r; } catch (e) { if (!missing(e)) throw e; useLocal = true; }
+        }
+        const d = loadLocal(), l = d[tid] || [], i = l.findIndex((x) => String(x.id) === String(sid));
+        if (i < 0) return null;
+        l[i] = { ...l[i], nilai: body.nilai, feedback: body.feedback, status: 'dinilai', gradedAt: new Date().toISOString() };
+        d[tid] = l; saveLocal(d); return l[i];
+      }
+    };
+  })();
+
+  async function openJawaban(t, reload) {
+    const max = Number(t.points) > 0 ? Number(t.points) : 100;
+    const isScored = (s) => s.nilai != null && s.nilai !== '';
+    const waktu = (iso) => { try { return new Date(iso).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; } };
+    const el = document.createElement('div');
+    el.className = 'fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/50';
+    el.innerHTML = `<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4" role="dialog" aria-modal="true" aria-label="Jawaban siswa">
+      <div class="flex items-start justify-between gap-3"><div class="min-w-0"><h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Jawaban siswa</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${esc(t.title)} &middot; nilai maksimal ${max}</p></div>
+        <button type="button" data-x class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+      <div data-body class="space-y-3"><div class="text-center text-sm text-slate-500 py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat...</div></div>
+      <div class="flex justify-end"><button type="button" data-x class="dc-btn dc-btn-ghost">Tutup</button></div></div>`;
+    let changed = false, list = [], only = 'all';
+    const body = $('[data-body]', el);
+    const close = () => { el.remove(); document.removeEventListener('keydown', onKey); if (changed) reload(); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    el.addEventListener('mousedown', (e) => { if (e.target === el) close(); });
+    document.body.appendChild(el);
+
+    const rowHtml = (s) => `<article class="${CARD} p-4 space-y-3" data-sid="${esc(s.id)}">
+        <div class="flex items-center gap-2 flex-wrap"><h4 class="font-bold text-slate-900 dark:text-white">${esc(s.nama || s.username || 'Siswa')}</h4>
+          ${isScored(s) ? pill('Dinilai', STATUS.terbit[1]) : pill('Perlu dinilai', STATUS.draft[1])}
+          ${s.submittedAt ? `<span class="text-[11px] text-slate-400">${esc(waktu(s.submittedAt))}</span>` : ''}</div>
+        ${s.text ? `<p class="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">${esc(s.text)}</p>` : ''}
+        ${/^https?:\/\//i.test(s.link || '') ? `<a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline break-all"><i class="fa-solid fa-arrow-up-right-from-square"></i>${esc(s.link)}</a>` : (s.link ? `<p class="text-xs text-slate-500 break-all">${esc(s.link)}</p>` : '')}
+        <div class="grid sm:grid-cols-[110px_1fr_auto] gap-2 items-end">
+          <div><label class="${LABEL}">Nilai (0-${max})</label><input name="nilai" type="number" min="0" max="${max}" step="any" value="${esc(s.nilai ?? '')}" class="${INPUT}"></div>
+          <div><label class="${LABEL}">Komentar</label><input name="feedback" maxlength="500" value="${esc(s.feedback || '')}" placeholder="Komentar untuk siswa (opsional)" class="${INPUT}"></div>
+          <button type="button" data-save class="dc-btn dc-btn-pri"><i class="fa-solid fa-floppy-disk"></i>Simpan</button></div>
+        <p data-msg class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p></article>`;
+    const chip = (key, label, n) => `<button type="button" data-f="${key}" class="dc-btn ${only === key ? 'dc-btn-sec' : 'dc-btn-ghost'} dc-btn-sm">${label} (${n})</button>`;
+    const bar = () => {
+      const todo = list.filter((s) => !isScored(s)).length;
+      $('[data-bar]', body).innerHTML = chip('all', 'Semua', list.length) + chip('todo', 'Perlu dinilai', todo);
+    };
+    const applyFilter = () => body.querySelectorAll('[data-sid]').forEach((r) => {
+      const s = list.find((x) => String(x.id) === r.dataset.sid);
+      r.classList.toggle('hidden', only === 'todo' && s && isScored(s) && r.dataset.keep !== '1');
+    });
+    function draw() {
+      const note = subs.isLocal() ? `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh:</b> endpoint <code>/api/instruktur/tugas/:id/submissions</code> belum tersedia. Yang tampil adalah data contoh yang disimpan di browser ini saja, bukan jawaban siswa sungguhan.</span></div>` : '';
+      body.innerHTML = note + (list.length
+        ? `<div data-bar class="flex gap-2 flex-wrap"></div><div data-list class="space-y-3">${list.map(rowHtml).join('')}</div>`
+        : `<div class="text-center text-sm text-slate-500 dark:text-slate-400 py-10"><i class="fa-regular fa-inbox text-2xl mb-2 block"></i>Belum ada siswa yang mengumpulkan jawaban.</div>`);
+      if (list.length) bar();
+    }
+    try { list = await subs.list(t.id); } catch (e) { body.innerHTML = `<div class="text-sm text-rose-600 dark:text-rose-400 py-6 text-center">${esc(e.message || 'Gagal memuat jawaban.')}</div>`; return; }
+    draw();
+
+    el.addEventListener('click', async (e) => {
+      if (e.target.closest('[data-x]')) return close();
+      const f = e.target.closest('[data-f]');
+      if (f) { only = f.dataset.f; body.querySelectorAll('[data-sid]').forEach((r) => delete r.dataset.keep); bar(); applyFilter(); return; }
+      const btn = e.target.closest('[data-save]'); if (!btn) return;
+      const row = btn.closest('[data-sid]'), s = list.find((x) => String(x.id) === row.dataset.sid), msg = $('[data-msg]', row);
+      const raw = row.querySelector('[name=nilai]').value.trim(), n = Number(raw);
+      if (raw === '' || !Number.isFinite(n) || n < 0 || n > max) { msg.textContent = 'Nilai harus angka 0 sampai ' + max + '.'; msg.classList.remove('hidden'); return; }
+      msg.classList.add('hidden'); btn.disabled = true;
+      try {
+        const r = await subs.grade(t.id, s.id, { nilai: n, feedback: row.querySelector('[name=feedback]').value.trim() });
+        Object.assign(s, { nilai: n, feedback: row.querySelector('[name=feedback]').value.trim(), status: 'dinilai' }, r && typeof r === 'object' ? r : {});
+        row.outerHTML = rowHtml(s);
+        const fresh = [...body.querySelectorAll('[data-sid]')].find((x) => x.dataset.sid === String(s.id)); if (fresh) fresh.dataset.keep = '1';   // baris yang baru dinilai tidak langsung hilang dari filter "Perlu dinilai"
+        changed = true; bar(); toast('Nilai ' + (s.nama || 'siswa') + ' disimpan.');
+      } catch (ex) { msg.textContent = ex.message || 'Gagal menyimpan nilai.'; msg.classList.remove('hidden'); btn.disabled = false; }
+    });
+  }
 
   // ---------- Ujian Kelulusan ----------
   const FORMAT = { proyek: 'Projek Akhir', tes: 'Ujian Tes' };
   const hasilStat = (u) => { const h = u.hasil || []; const lulus = h.filter((x) => Number(x.nilai) >= Number(u.kkm)).length; return { total: h.length, lulus }; };
   crud({
     view: 'ujian', crumb: 'Ujian Kelulusan', title: 'Ujian Kelulusan', noun: 'Ujian', addLabel: 'Buat Ujian', icon: 'fa-solid fa-graduation-cap',
-    sub: 'Tes penentu lulus atau tidaknya siswa. Format "Projek Akhir" tampil sebagai Projek Akhir di halaman siswa.', empty: 'Belum ada ujian kelulusan.',
+    sub: 'Penentu lulus atau tidaknya siswa. Projek Akhir: siswa mengumpulkan karya, kamu menilai dengan rubrik; nilai di bawah KKM berstatus Revisi.', empty: 'Belum ada ujian kelulusan.',
     delMsg: 'Ujian beserta nilai peserta akan dihapus.',
     fields: [
       { n: 'title', l: 'Judul Ujian', full: true, ph: 'Contoh: Projek Akhir: Game 2D' },
       { n: 'grade', l: 'Jenjang', t: 'select', o: gradeOpts, def: 'SMP' },
       { n: 'format', l: 'Format', t: 'select', o: [['proyek', 'Projek Akhir (dikumpulkan siswa)'], ['tes', 'Ujian Tes (soal/praktik)']], def: 'proyek' },
+      { n: 'learningPathId', l: 'Syarat: selesaikan Learning Path (opsional)', t: 'select', o: [['', 'Tidak ada syarat task']], full: true },
       { n: 'kkm', l: 'Nilai Minimal Lulus (KKM)', t: 'number', min: 0, maxv: 100, def: 75 },
       { n: 'durasi', l: 'Durasi (menit, opsional)', t: 'number', min: 0, maxv: 600 },
       { n: 'buka', l: 'Dibuka', t: 'date' },
@@ -238,18 +430,150 @@
       { n: 'description', l: 'Instruksi & Kriteria Penilaian', t: 'textarea', full: true, max: 1000, ph: 'Apa yang harus dikerjakan, dan bagaimana dinilai...' }
     ],
     validate: (f) => !f.title.trim() ? 'Judul wajib diisi.' : (f.kkm === '' || +f.kkm < 0 || +f.kkm > 100) ? 'KKM harus 0–100.' : (f.buka && f.tutup && f.tutup < f.buka) ? 'Tanggal tutup harus setelah tanggal buka.' : '',
-    norm: (f) => ({ title: f.title.trim(), grade: f.grade, format: f.format, kkm: Number(f.kkm), durasi: num(f.durasi), buka: f.buka, tutup: f.tutup, status: f.status, description: f.description.trim() }),
+    norm: (f) => ({ title: f.title.trim(), grade: f.grade, format: f.format, learningPathId: f.learningPathId || '', learningPathName: selectedTargetNames(f.grade, f.learningPathId).learningPathName, kkm: Number(f.kkm), durasi: num(f.durasi), buka: f.buka, tutup: f.tutup, status: f.status, description: f.description.trim() }),
     card: (u) => { const s = hasilStat(u); return `<div class="flex-none w-12 h-12 rounded-xl grid place-items-center bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-300"><i class="fa-solid ${u.format === 'tes' ? 'fa-file-pen' : 'fa-flag-checkered'}"></i></div>
       <div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><h3 class="font-bold text-slate-900 dark:text-white">${esc(u.title)}</h3>${pill(GRADES[u.grade] || u.grade)}${pill(FORMAT[u.format] || u.format, 'bg-violet-50 text-violet-700 border-violet-200/70 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/30')}${statusPill(u.status)}</div>
       ${u.description ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${esc(u.description)}</p>` : ''}
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-bullseye mr-1"></i>KKM ${esc(u.kkm)}${u.durasi ? ` &middot; ${esc(u.durasi)} menit` : ''}${u.buka ? ` &middot; ${esc(fmtDate(u.buka))}` : ''}${u.tutup ? ` – ${esc(fmtDate(u.tutup))}` : ''} &middot; <b>${s.lulus}</b> lulus dari ${s.total} peserta</p></div>`; },
-    actions: (u) => `<button type="button" data-hasil="${esc(u.id)}" class="dc-ib dc-ib-view" aria-label="Penilaian ${esc(u.title)}" title="Penilaian"><i class="fa-solid fa-clipboard-check"></i></button>`,
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-bullseye mr-1"></i>KKM ${esc(u.kkm)}${u.durasi ? ` &middot; ${esc(u.durasi)} menit` : ''}${u.buka ? ` &middot; ${esc(fmtDate(u.buka))}` : ''}${u.tutup ? ` – ${esc(fmtDate(u.tutup))}` : ''} &middot; ${u.format !== 'tes' && u.submissionCount != null ? `<b>${esc(u.lulusCount || 0)}</b> lulus &middot; <b>${esc(u.pendingCount || 0)}</b> menunggu nilai &middot; ${esc(u.submissionCount)} terkumpul` : `<b>${s.lulus}</b> lulus dari ${s.total} peserta`}</p>
+      ${u.format !== 'tes' && u.learningPathName ? `<p class="text-xs text-sky-700 dark:text-sky-300 mt-1"><i class="fa-solid fa-lock-open mr-1"></i>Syarat: selesaikan semua task di ${esc(u.learningPathName)}</p>` : ''}</div>`; },
+    actions: (u) => `<button type="button" data-hasil="${esc(u.id)}" class="dc-ib dc-ib-view" aria-label="Penilaian ${esc(u.title)}" title="${u.format === 'tes' ? 'Input nilai' : 'Pengumpulan & penilaian'}"><i class="fa-solid fa-clipboard-check"></i></button>`,
     onClick: (e, ctx) => {
       const b = e.target.closest('[data-hasil]'); if (!b) return;
-      const u = ctx.find(b.dataset.hasil); if (u) openHasil(u, ctx.reload);
+      const u = ctx.find(b.dataset.hasil); if (u) (u.format === 'tes' ? openHasil : openPenilaian)(u, ctx.reload);
     }
   });
 
+  // ---------- Penilaian Projek Akhir (format "proyek"): pengumpulan siswa + rubrik ----------
+  // Kriteria bawaan (4 × 25 = 100). Ujian boleh membawa `kriteria: [{ k, l, d, max }]` untuk rubrik sendiri.
+  const RUBRIK = [
+    { k: 'fungsi', l: 'Fungsi berjalan', d: 'Karya berjalan sesuai tujuan', max: 25 },
+    { k: 'kreativitas', l: 'Kreativitas', d: 'Ide dan tampilan karya', max: 25 },
+    { k: 'kerapian', l: 'Kerapian kode', d: 'Kode rapi dan mudah dibaca', max: 25 },
+    { k: 'penjelasan', l: 'Penjelasan', d: 'Siswa bisa menjelaskan cara kerja karya', max: 25 }
+  ];
+  const kriteriaOf = (u) => (Array.isArray(u.kriteria) && u.kriteria.length ? u.kriteria : RUBRIK).map((c) => ({ k: String(c.k), l: String(c.l || c.k), d: c.d || '', max: Number(c.max) > 0 ? Number(c.max) : 25 }));
+  const PSTAT = {
+    menunggu: ['Menunggu penilaian', 'bg-sky-50 text-sky-700 border-sky-300/70 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/30'],
+    revisi: ['Revisi', 'bg-amber-50 text-amber-700 border-amber-300/70 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30'],
+    lulus: ['Lulus', STATUS.terbit[1]]
+  };
+  const statusOfSub = (s, kkm) => (s.status in PSTAT ? s.status : (s.nilai != null && s.nilai !== '' ? (Number(s.nilai) >= Number(kkm) ? 'lulus' : 'revisi') : 'menunggu'));
+
+  const ujiSubs = (() => {
+    let useLocal = false;
+    const KEY = 'dci-ujian-subs';
+    const missing = (e) => e && [0, 404, 405, 501].includes(e.status);
+    const req = (p, o) => window.DCAdminApi.request(p, o);
+    const base = (uid) => '/api/instruktur/ujian/' + encodeURIComponent(uid) + '/submissions';
+    const loadLocal = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (_) { return {}; } };
+    const saveLocal = (d) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (_) {} };
+    const sample = () => [
+      { id: 1, nama: 'Contoh Siswa A', text: 'Game 2D kucing menangkap ikan. Ada skor dan batas waktu 30 detik.', link: 'https://example.com/game-a', submittedAt: new Date().toISOString(), status: 'menunggu', attempt: 1 },
+      { id: 2, nama: 'Contoh Siswa B', text: 'Sudah kuperbaiki: pesan menang dan kalah sekarang muncul, nama variabel dirapikan.', link: '', submittedAt: new Date(Date.now() - 36e5).toISOString(), status: 'menunggu', attempt: 2, rubrik: { fungsi: 15, kreativitas: 18, kerapian: 14, penjelasan: 12 }, nilai: 59, feedback: 'Tambahkan pesan menang/kalah dan rapikan nama variabel.' },
+      { id: 3, nama: 'Contoh Siswa C', text: 'Game labirin dengan 3 level.', link: 'https://example.com/game-c', submittedAt: new Date(Date.now() - 864e5).toISOString(), status: 'lulus', attempt: 1, rubrik: { fungsi: 22, kreativitas: 20, kerapian: 21, penjelasan: 19 }, nilai: 82, feedback: 'Mantap, level 3 menantang!', gradedAt: new Date().toISOString() }
+    ];
+    return {
+      isLocal: () => useLocal,
+      async list(uid) {
+        if (!useLocal) { try { const r = await req(base(uid)); return r.items || r.data || []; } catch (e) { if (!missing(e)) throw e; useLocal = true; } }
+        const d = loadLocal(); if (!d[uid]) { d[uid] = sample(); saveLocal(d); }
+        return d[uid].map((x) => ({ ...x }));
+      },
+      async grade(uid, sid, body, kkm) {
+        if (!useLocal) {
+          try { const r = await req(base(uid) + '/' + encodeURIComponent(sid), { method: 'PATCH', body }); return r.item || r; } catch (e) { if (!missing(e)) throw e; useLocal = true; }
+        }
+        const d = loadLocal(), l = d[uid] || [], i = l.findIndex((x) => String(x.id) === String(sid));
+        if (i < 0) return null;
+        const nilai = Object.values(body.rubrik).reduce((a, b) => a + Number(b), 0);
+        l[i] = { ...l[i], rubrik: body.rubrik, feedback: body.feedback, nilai, status: nilai >= Number(kkm) ? 'lulus' : 'revisi', gradedAt: new Date().toISOString() };
+        d[uid] = l; saveLocal(d); return l[i];
+      }
+    };
+  })();
+
+  async function openPenilaian(u, reload) {
+    const kri = kriteriaOf(u), total = kri.reduce((a, c) => a + c.max, 0);
+    const waktu = (iso) => { try { return new Date(iso).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; } };
+    const el = document.createElement('div');
+    el.className = 'fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/50';
+    el.innerHTML = `<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-4" role="dialog" aria-modal="true" aria-label="Penilaian projek akhir">
+      <div class="flex items-start justify-between gap-3"><div class="min-w-0"><h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Penilaian Projek Akhir</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">${esc(u.title)} &middot; total ${total} &middot; <b>Lulus bila nilai ≥ ${esc(u.kkm)}</b>, di bawahnya status <b>Revisi</b> (siswa memperbaiki lalu kumpul lagi)</p></div>
+        <button type="button" data-x class="dc-close" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+      <div data-body class="space-y-3"><div class="text-center text-sm text-slate-500 py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat...</div></div>
+      <div class="flex justify-end"><button type="button" data-x class="dc-btn dc-btn-ghost">Tutup</button></div></div>`;
+    let changed = false, list = [], only = 'all';
+    const body = $('[data-body]', el);
+    const close = () => { el.remove(); document.removeEventListener('keydown', onKey); if (changed) reload(); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    el.addEventListener('mousedown', (e) => { if (e.target === el) close(); });
+    document.body.appendChild(el);
+
+    const sumOf = (row) => kri.reduce((a, c) => { const v = row.querySelector(`[data-k="${c.k}"]`).value.trim(); return a + (v === '' ? NaN : Number(v)); }, 0);
+    const verdict = (n) => (Number.isFinite(n) ? (n >= Number(u.kkm) ? pill('Lulus', STATUS.terbit[1]) : pill('Revisi (di bawah KKM)', PSTAT.revisi[1])) : '<span class="text-xs text-slate-400">isi semua kriteria</span>');
+    const rowHtml = (s) => {
+      const st = statusOfSub(s, u.kkm), prev = s.rubrik || {};
+      return `<article class="${CARD} p-4 space-y-3" data-sid="${esc(s.id)}" data-st="${st}">
+        <div class="flex items-center gap-2 flex-wrap"><h4 class="font-bold text-slate-900 dark:text-white">${esc(s.nama || s.username || 'Siswa')}</h4>
+          ${pill(PSTAT[st][0], PSTAT[st][1])}
+          ${s.attempt > 1 ? `<span class="text-[11px] text-slate-400">pengumpulan ke-${esc(s.attempt)}</span>` : ''}
+          ${s.submittedAt ? `<span class="text-[11px] text-slate-400">${esc(waktu(s.submittedAt))}</span>` : ''}
+          ${s.nilai != null && s.nilai !== '' ? `<span class="text-[11px] font-mono font-semibold text-slate-500">nilai terakhir ${esc(s.nilai)}</span>` : ''}</div>
+        ${s.text ? `<p class="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">${esc(s.text)}</p>` : ''}
+        ${/^https?:\/\//i.test(s.link || '') ? `<a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline break-all"><i class="fa-solid fa-arrow-up-right-from-square"></i>${esc(s.link)}</a>` : (s.link ? `<p class="text-xs text-slate-500 break-all">${esc(s.link)}</p>` : '')}
+        <div class="grid grid-cols-2 sm:grid-cols-${Math.min(kri.length, 4)} gap-2">${kri.map((c) => `<div><label class="${LABEL}" title="${esc(c.d)}">${esc(c.l)} (0-${c.max})</label><input data-k="${esc(c.k)}" type="number" min="0" max="${c.max}" step="1" value="${esc(prev[c.k] ?? '')}" class="${INPUT}"></div>`).join('')}</div>
+        <div class="flex items-center gap-3 flex-wrap"><span class="text-sm font-bold text-slate-800 dark:text-slate-100">Nilai: <span data-sum>–</span> / ${total}</span><span data-verdict></span></div>
+        <div><label class="${LABEL}">Komentar untuk siswa</label><input name="feedback" maxlength="500" value="${esc(s.feedback || '')}" placeholder="Apa yang sudah bagus, apa yang perlu diperbaiki" class="${INPUT}"></div>
+        <div class="flex justify-end"><button type="button" data-save class="dc-btn dc-btn-pri"><i class="fa-solid fa-floppy-disk"></i>Simpan penilaian</button></div>
+        <p data-msg class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p></article>`;
+    };
+    const paint = (row) => { const n = sumOf(row); row.querySelector('[data-sum]').textContent = Number.isFinite(n) ? n : '–'; row.querySelector('[data-verdict]').innerHTML = verdict(n); };
+    const chip = (key, label, n) => `<button type="button" data-f="${key}" class="dc-btn ${only === key ? 'dc-btn-sec' : 'dc-btn-ghost'} dc-btn-sm">${label} (${n})</button>`;
+    const bar = () => {
+      const c = (st) => list.filter((s) => statusOfSub(s, u.kkm) === st).length;
+      $('[data-bar]', body).innerHTML = chip('all', 'Semua', list.length) + chip('menunggu', 'Perlu dinilai', c('menunggu')) + chip('revisi', 'Revisi', c('revisi')) + chip('lulus', 'Lulus', c('lulus'));
+    };
+    const applyFilter = () => body.querySelectorAll('[data-sid]').forEach((r) => r.classList.toggle('hidden', only !== 'all' && r.dataset.st !== only && r.dataset.keep !== '1'));
+    function draw() {
+      const note = ujiSubs.isLocal() ? `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh:</b> endpoint <code>/api/instruktur/ujian/:id/submissions</code> belum tersedia. Yang tampil adalah data contoh yang disimpan di browser ini, bukan pengumpulan siswa sungguhan.</span></div>` : '';
+      body.innerHTML = note + (list.length
+        ? `<div data-bar class="flex gap-2 flex-wrap"></div><div class="space-y-3">${list.map(rowHtml).join('')}</div>`
+        : `<div class="text-center text-sm text-slate-500 dark:text-slate-400 py-10"><i class="fa-regular fa-inbox text-2xl mb-2 block"></i>Belum ada siswa yang mengumpulkan projek.</div>`);
+      if (list.length) { bar(); body.querySelectorAll('[data-sid]').forEach(paint); only = 'all'; }
+    }
+    try { list = await ujiSubs.list(u.id); } catch (e) { body.innerHTML = `<div class="text-sm text-rose-600 dark:text-rose-400 py-6 text-center">${esc(e.message || 'Gagal memuat pengumpulan.')}</div>`; return; }
+    draw();
+
+    el.addEventListener('input', (e) => { const row = e.target.closest('[data-sid]'); if (row && e.target.dataset.k) paint(row); });
+    el.addEventListener('click', async (e) => {
+      if (e.target.closest('[data-x]')) return close();
+      const f = e.target.closest('[data-f]');
+      if (f) { only = f.dataset.f; body.querySelectorAll('[data-sid]').forEach((r) => delete r.dataset.keep); bar(); applyFilter(); return; }
+      const btn = e.target.closest('[data-save]'); if (!btn) return;
+      const row = btn.closest('[data-sid]'), s = list.find((x) => String(x.id) === row.dataset.sid), msg = $('[data-msg]', row);
+      const rubrik = {};
+      for (const c of kri) {
+        const raw = row.querySelector(`[data-k="${c.k}"]`).value.trim(), n = Number(raw);
+        if (raw === '' || !Number.isFinite(n) || n < 0 || n > c.max) { msg.textContent = `Nilai "${c.l}" harus angka 0 sampai ${c.max}.`; msg.classList.remove('hidden'); return; }
+        rubrik[c.k] = n;
+      }
+      const feedback = row.querySelector('[name=feedback]').value.trim(), nilai = Object.values(rubrik).reduce((a, b) => a + b, 0);
+      msg.classList.add('hidden'); btn.disabled = true;
+      try {
+        const r = await ujiSubs.grade(u.id, s.id, { rubrik, feedback }, u.kkm);
+        Object.assign(s, { rubrik, feedback, nilai, status: nilai >= Number(u.kkm) ? 'lulus' : 'revisi' }, r && typeof r === 'object' ? r : {});
+        row.outerHTML = rowHtml(s);
+        const fresh = [...body.querySelectorAll('[data-sid]')].find((x) => x.dataset.sid === String(s.id));
+        if (fresh) { fresh.dataset.keep = '1'; paint(fresh); }   // baris yang baru dinilai tidak langsung hilang dari filter
+        changed = true; bar();
+        toast(`${s.nama || 'Siswa'}: nilai ${s.nilai} → ${statusOfSub(s, u.kkm) === 'lulus' ? 'Lulus' : 'Revisi'}.`);
+      } catch (ex) { msg.textContent = ex.message || 'Gagal menyimpan penilaian.'; msg.classList.remove('hidden'); btn.disabled = false; }
+    });
+  }
+
+  // Ujian Tes: nilai diketik manual (tidak ada pengumpulan siswa)
   function openHasil(u, reload) {
     const row = (h = {}) => `<tr data-row><td class="py-1.5 pr-2"><input name="nama" value="${esc(h.nama || '')}" placeholder="Nama siswa" maxlength="80" class="${INPUT}"></td>
       <td class="py-1.5 pr-2 w-24"><input name="nilai" type="number" min="0" max="100" value="${esc(h.nilai ?? '')}" placeholder="0-100" class="${INPUT}"></td>
@@ -288,7 +612,7 @@
     extra: () => `<input id="jwMonth" type="month" value="${esc(jw.month)}" class="${INPUT} w-auto" aria-label="Bulan jadwal">`,
     afterDraw: (view, draw) => { const m = $('#jwMonth', view); if (m) m.addEventListener('change', (e) => { if (/^\d{4}-\d{2}$/.test(e.target.value)) { jw.month = e.target.value; draw(); } }); },
     blank: () => ({ jenis: 'Live Mentoring', mentor: me.name }),
-    pre: (it) => ({ ...it, grade: (it.grades && it.grades[0]) || '' }),
+    pre: (it) => ({ ...it, grade: (it.grade || (it.grades && it.grades[0])) || '', learningPathId: it.learningPathId || '', taskId: it.taskId || '' }),
     fields: [
       { n: 'judul', l: 'Judul', ph: 'Live Mentoring: Game Pertamaku' },
       { n: 'jenis', l: 'Jenis', ph: 'Live Mentoring' },
@@ -296,6 +620,8 @@
       { n: 'mulai', l: 'Mulai', t: 'time' },
       { n: 'selesai', l: 'Selesai', t: 'time' },
       { n: 'grade', l: 'Jenjang', t: 'select', o: [['', 'Semua jenjang'], ...gradeOpts] },
+      { n: 'learningPathId', l: 'Learning Path (opsional)', t: 'select', o: [['', 'Semua Learning Path / tidak ditentukan']] },
+      { n: 'taskId', l: 'Task tujuan (opsional)', t: 'select', o: [['', 'Seluruh Learning Path / tidak ditentukan']] },
       { n: 'mentor', l: 'Mentor', ph: 'Kak Mentor' },
       { n: 'level', l: 'Level / Kelas', ph: 'Scratch Level 1' },
       { n: 'zoomUrl', l: 'Link Zoom (https)', t: 'url', ph: 'https://zoom.us/j/...', max: 500, full: true },
@@ -304,13 +630,14 @@
       { n: 'keterangan', l: 'Keterangan', t: 'textarea', full: true, max: 500, ph: 'Persiapan atau catatan untuk siswa...' }
     ],
     validate: (f) => !f.judul.trim() ? 'Judul wajib diisi.' : !f.tanggal ? 'Tanggal wajib diisi.' : (!f.mulai || !f.selesai) ? 'Jam mulai dan selesai wajib diisi.' : f.selesai <= f.mulai ? 'Jam selesai harus lebih lambat dari jam mulai.' : (f.zoomUrl && !/^https:\/\//i.test(f.zoomUrl)) ? 'Link Zoom harus memakai https://.' : '',
-    norm: (f) => ({ judul: f.judul.trim(), jenis: f.jenis.trim() || 'Live Mentoring', tanggal: f.tanggal, mulai: f.mulai, selesai: f.selesai, level: f.level.trim(), mentor: f.mentor.trim(), zoomUrl: f.zoomUrl.trim(), meetingId: f.meetingId.trim(), passcode: f.passcode.trim(), keterangan: f.keterangan.trim(), grades: f.grade ? [f.grade] : [] }),
+    norm: (f) => ({ judul: f.judul.trim(), jenis: f.jenis.trim() || 'Live Mentoring', tanggal: f.tanggal, mulai: f.mulai, selesai: f.selesai, grade: f.grade || '', learningPathId: f.learningPathId || '', taskId: f.taskId || '', ...selectedTargetNames(f.grade, f.learningPathId, f.taskId), targetScope: f.taskId ? 'task' : f.learningPathId ? 'path' : 'grade', level: f.level.trim(), mentor: f.mentor.trim(), zoomUrl: f.zoomUrl.trim(), meetingId: f.meetingId.trim(), passcode: f.passcode.trim(), keterangan: f.keterangan.trim(), grades: f.grade ? [f.grade] : [] }),
     card: (j) => { const d = new Date(j.tanggal + 'T00:00:00'); return `<div class="flex-none w-16 text-center rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200/70 dark:border-sky-500/25 py-2">
       <div class="text-[10px] font-mono font-bold uppercase text-sky-600 dark:text-sky-300">${esc(d.toLocaleDateString('id-ID', { month: 'short' }))}</div>
       <div class="text-2xl font-extrabold leading-tight text-slate-900 dark:text-white">${d.getDate()}</div>
       <div class="text-[10px] text-slate-500 dark:text-slate-400">${esc(d.toLocaleDateString('id-ID', { weekday: 'short' }))}</div></div>
       <div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><h3 class="font-bold text-slate-900 dark:text-white">${esc(j.judul)}</h3>${pill((j.grades && j.grades.length) ? j.grades.map((g) => GRADES[g] || g).join(', ') : 'Semua jenjang')}</div>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-regular fa-clock mr-1"></i>${esc(j.mulai)}–${esc(j.selesai)} WIB${j.mentor ? ` &middot; <i class="fa-solid fa-user-tie mr-1"></i>${esc(j.mentor)}` : ''}${j.jenis ? ` &middot; ${esc(j.jenis)}` : ''}</p>
+      ${(j.learningPathName || j.taskName) ? `<p class="text-xs text-sky-700 dark:text-sky-300 mt-1"><i class="fa-solid fa-diagram-project mr-1"></i>${esc(j.learningPathName || 'Semua Learning Path')}${j.taskName ? ` · ${esc(j.taskName)}` : ''}</p>` : ''}
       ${j.keterangan ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${esc(j.keterangan)}</p>` : ''}
       <div class="mt-2">${/^https:\/\//i.test(j.zoomUrl || '') ? `<a href="${esc(j.zoomUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline"><i class="fa-solid fa-video mr-1"></i>Link Zoom</a>` : '<span class="text-xs text-slate-400">Tanpa link Zoom</span>'}</div></div>`; }
   });

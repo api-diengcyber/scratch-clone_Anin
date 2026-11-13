@@ -27,7 +27,8 @@
 
   load(
     "/kurikulum/data/jalur-data-smp.js?v=20261019",
-    () => load("/kurikulum/data/jalur-data-smak.js?v=20261019", start)
+    () => load("/kurikulum/data/jalur-data-smak.js?v=20261019",
+      () => load("/shared/js/tugas-tambahan.js?v=20261114", start))
   );
 
   function start() {
@@ -103,6 +104,10 @@
       ".smpP .auto{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);font-size:13px;text-align:center;opacity:.85}" +
       ".smpP .back{background:#eef1ff;color:#3d4bb8}" +
       ".smpP .note{background:rgba(52,192,111,.16);color:#7dffa6;border-radius:10px;padding:8px 10px;margin-top:8px;font-weight:700}" +
+      ".smpP .extra{margin-top:10px;padding:9px;border:1px solid #6da5ff;border-radius:11px;background:rgba(65,130,230,.12)}" +
+      ".smpP .extra article{margin-top:7px;padding:8px;background:rgba(255,255,255,.06);border-radius:8px}" +
+      ".smpP .extra p{margin:4px 0;white-space:pre-wrap;font-size:12px}" +
+      ".smpP .extra small{font-size:11px}" +
       ".smpP .chip{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;background:rgba(52,192,111,.2);color:#7dffa6;font-size:12px;font-weight:700}" +
       ".smpP.min{width:auto;padding:8px 12px}" +
       "@media (max-width:640px){.smpP{top:auto;bottom:10px;left:10px;right:10px;width:auto;max-height:46vh}}";
@@ -219,6 +224,19 @@
     // ============================================================
     // DRAW
     // ============================================================
+    // Cache tugas tambahan per task: { state: "loading" | "ok" | "err", items }
+    const extraCache = {};
+    function extraFor(taskId) {
+      if (extraCache[taskId]) return extraCache[taskId];
+      const entry = extraCache[taskId] = { state: "loading", items: [] };
+      const H = window.DCTugasTambahan;
+      if (!H) { entry.state = "err"; return entry; }
+      H.forTask({ grade: tr.grade === "smak" ? "SMK" : "SMP", pathId: [nid, tr.id], taskId })
+        .then((items) => { entry.state = "ok"; entry.items = items; }, () => { entry.state = "err"; })
+        .then(() => { if (extraCache[taskId] === entry) draw(); });
+      return entry;
+    }
+
     function draw() {
       if (shut) {
         p.className = "smpP min";
@@ -232,6 +250,16 @@
       const dn = isDone(ti);
       const langkah = Array.isArray(k.langkah) ? k.langkah : [];
       const canNext = ti < last && dn;           // task berikutnya baru terbuka kalau task ini sudah ditandai selesai
+      // Tugas tambahan instruktur untuk task ini (dari server; dicocokkan lewat jalur + task)
+      const ex = extraFor(nid + "-t" + (ti + 1));
+      const extraHtml = ex.state === "ok" && ex.items.length
+        ? '<section class="extra"><b>📌 Tugas Tambahan</b>' + ex.items.map((x) =>
+            '<article><strong>' + esc(x.title) + '</strong>' + (x.description ? '<p>' + esc(x.description) + '</p>' : '') +
+            '<small>' + window.DCTugasTambahan.meta(x) + '</small>' +
+            '<div class="r">' + window.DCTugasTambahan.statusHtml(x) + window.DCTugasTambahan.actionHtml(x) + '</div></article>').join('') + '</section>'
+        : ex.state === "err"
+          ? '<section class="extra"><small>Tugas tambahan belum bisa dimuat. <button type="button" data-xr>Coba lagi</button></small></section>'
+          : '';
 
       const aksi = k.kumpul
         // Final Project: pengumpulan (link/catatan) ada di halaman modul
@@ -252,6 +280,7 @@
             '<input type="checkbox" disabled tabindex="-1" aria-label="Langkah ' + (i + 1) + (c.includes(i) ? ' selesai' : ' belum selesai') + '"' + (c.includes(i) ? " checked" : "") + ">" +
             "<span>Langkah " + (i + 1) + ": " + esc(l) + "</span></div>"
         ).join("") +
+        extraHtml +
         '<div class="r">' +
           '<button data-p' + (ti ? "" : " disabled") + ' aria-label="Task sebelumnya">◀</button>' +
           "<small>" + (ti + 1) + " / " + node.tasks.length + "</small>" +
@@ -277,6 +306,20 @@
         draw();
         const btn = p.querySelector("button");
         if (btn) btn.focus();
+        return;
+      }
+
+      // Kumpulkan / lihat jawaban tugas tambahan (form ada di tugas-tambahan.js; setelah terkirim panel digambar ulang)
+      if (window.DCTugasTambahan) {
+        const ex = extraCache[nid + "-t" + (ti + 1)];
+        if (window.DCTugasTambahan.handle(e, ex ? ex.items : [], draw)) return;
+      }
+
+      // Coba lagi memuat tugas tambahan
+      if (b.closest("[data-xr]")) {
+        window.DCTugasTambahan.reload();
+        delete extraCache[nid + "-t" + (ti + 1)];
+        draw();
         return;
       }
 

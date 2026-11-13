@@ -195,6 +195,7 @@ window.DC_STREAK_DEMO = !/[?&]demo=0(&|$)/.test(location.search);
     var badge = st === "live" ? '<span class="badge live">Sedang berlangsung</span>' : st === "soon" ? '<span class="badge soon">Segera</span>' : st === "done" ? '<span class="badge">Selesai</span>' : "";
     var h = '<article class="ev ' + (st === "live" ? "live" : st === "done" ? "done" : "") + '"><div class="top"><div class="time">🕒 ' + esc(ev.mulai || "") + (ev.selesai ? "–" + esc(ev.selesai) : "") + ' WIB</div><div style="flex:1;min-width:160px"><h4>' + esc(ev.judul || "Kelas Zoom") + badge + "</h4>";
     if (ev.jenis || ev.level) h += "<p>" + (ev.jenis ? esc(ev.jenis) : "") + (ev.level ? ' <span class="badge">' + esc(ev.level) + "</span>" : "") + "</p>";
+    if (ev.learningPathName || ev.taskName) h += "<p>🧩 " + esc(ev.learningPathName || "") + (ev.learningPathName && ev.taskName ? " · " : "") + esc(ev.taskName || "") + "</p>";
     if (ev.mentor) h += "<p>👩‍🏫 " + esc(ev.mentor) + "</p>";
     if (ev.keterangan) h += "<p>" + esc(ev.keterangan) + "</p>";
     h += "</div></div>";

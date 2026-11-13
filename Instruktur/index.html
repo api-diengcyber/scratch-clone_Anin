@@ -106,6 +106,24 @@
   <script>window.DC_REKAP_DEMO = true;   // rekap absen contoh tanpa backend; hapus kalau endpoint sudah siap</script>
   <script src="static/rekap-absen.js?v=2"></script>
   <script src="static/sesi-absen.js?v=1"></script>
-  <script src="static/instruktur.js?v=3"></script>
+  <script>
+    // Data kurikulum (untuk pilihan Learning Path & Task): coba beberapa lokasi karena folder "users" bisa disajikan
+    // sebagai root (/kurikulum/...) atau sebagai /users/... Urutan dijaga: data dulu, baru instruktur.js.
+    (function () {
+      var BASES = ['/kurikulum/data/', '/users/kurikulum/data/', '../users/kurikulum/data/'];
+      var FILES = [['jalur-data.js', 'LP_DATA'], ['jalur-data-smp.js', 'LP_SMP'], ['jalur-data-smak.js', 'LP_SMAK']];
+      window.DC_KURIKULUM_GAGAL = [];
+      function add(src, done) { var s = document.createElement('script'); s.src = src; s.onload = function () { done(true); }; s.onerror = function () { s.remove(); done(false); }; document.head.appendChild(s); }
+      function loadFile(i, next) {
+        var f = FILES[i]; if (!f) return next();
+        (function tryBase(b) {
+          if (window[f[1]]) return loadFile(i + 1, next);
+          if (b >= BASES.length) { window.DC_KURIKULUM_GAGAL.push(f[0]); return loadFile(i + 1, next); }
+          add(BASES[b] + f[0] + '?v=20261113', function () { tryBase(b + 1); });
+        })(0);
+      }
+      loadFile(0, function () { add('static/instruktur.js?v=9', function () {}); });
+    })();
+  </script>
 </body>
 </html>

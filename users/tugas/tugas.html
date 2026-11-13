@@ -20,6 +20,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .it.open{border-color:#bfe9d1}.it.closed{opacity:.65}
 .it h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.it p{margin:3px 0;color:#6b7494;font-size:14px;line-height:1.45;white-space:pre-wrap}
 .meta{font-size:13px;color:#6b7494;margin-top:6px}.meta b{color:#2b3350}
+.act{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}.fb{background:#f4f7ff;border-radius:12px;padding:8px 11px;font-size:13px;color:#2b3350;margin-top:8px;white-space:pre-wrap}
 .pill{font-size:11px;border-radius:10px;padding:2px 8px;font-weight:bold;background:#eef1ff;color:#5a6bd8}.pill.ok{background:#e3f8ec;color:#1a7f45}.pill.soon{background:#fff4d6;color:#a86a00}.pill.off{background:#f1f3fa;color:#6b7494}.pill.bad{background:#ffe9e6;color:#b3321e}
 .empty{text-align:center;color:#6b7494;padding:18px 8px;line-height:1.5}.empty span{display:block;font-size:34px;margin-bottom:4px}
 .err{background:#fff4d6;border-left:8px solid #ffc94d;border-radius:14px;padding:12px 14px;line-height:1.5;font-size:14px;color:#6b4a00}.err p{margin:0 0 8px}
@@ -44,12 +45,16 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 </main>
 
 <script src="/shared/js/utils.js?v=20261019"></script>
+<script src="/shared/js/tugas-tambahan.js?v=20261114"></script>
+<script src="/shared/js/ujian-kelulusan.js?v=20261115"></script>
 <script>
 // ============================================================
 // Halaman siswa: menampilkan tugas dan ujian yang dibuat instruktur. Hanya MEMBACA dari server.
 //   GET /api/tugas-tambahan   -> { ok, items: [{ id, title, description, grade, type, points, due, status }] }
 //   GET /api/ujian-kelulusan  -> { ok, items: [{ id, title, description, grade, format: "proyek"|"tes", kkm, durasi, buka, tutup, status,
 //                                                nilai?, lulus? }] }      (nilai / lulus = hasil siswa yang sedang login, bila sudah dinilai)
+//   Projek Akhir (format "proyek") juga membawa: learningPathId, syarat?, submission? — lihat /shared/js/ujian-kelulusan.js
+//   (alur: Terkunci → Belum dikumpulkan → Menunggu penilaian → Revisi → Lulus; kumpul lewat PUT /api/ujian-kelulusan/:id/submission)
 // Jawaban boleh juga berupa array langsung, atau dibungkus di "data". Item berstatus "draft" tidak ditampilkan.
 // Tidak ada data cadangan di browser: kalau server tidak terjangkau, yang tampil adalah pesan galat + tombol "Coba lagi".
 // Jenjang: kalau GET /api/user/allowed-grades berhasil, item untuk jenjang lain disaring (item tanpa jenjang selalu tampil).
@@ -105,35 +110,51 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     if (validDay(t.due)) { var n = dayNum(t.due) - dayNum(td); due = "Tenggat <b>" + esc(fmt(t.due)) + "</b>" + (closed ? "" : n < 0 ? " · lewat " + (-n) + " hari" : n === 0 ? " · hari ini" : " · " + n + " hari lagi"); }
     return '<article class="it ' + state + '"><h3>' + esc(t.title) + (t.grade ? pill(GRADE[t.grade] || t.grade) : "") + (t.type ? pill(TYPE[t.type] || t.type, "off") : "") +
       (closed ? pill("Ditutup", "off") : late ? pill("Lewat tenggat", "bad") : pill("Terbuka", "ok")) + "</h3>" +
+      ((t.learningPathName || t.taskName) ? "<p>🧩 " + esc(t.learningPathName || "") + (t.learningPathName && t.taskName ? " · " : "") + esc(t.taskName || "") + "</p>" : "") +
       (t.description ? "<p>" + esc(t.description) + "</p>" : "") +
-      '<div class="meta">' + (t.points != null && t.points !== "" ? "⭐ <b>" + esc(t.points) + "</b> poin" : "") + (due ? (t.points != null && t.points !== "" ? " · " : "") + "📅 " + due : "") + "</div></article>";
+      '<div class="meta">' + (t.points != null && t.points !== "" ? "⭐ <b>" + esc(t.points) + "</b> poin" : "") + (due ? (t.points != null && t.points !== "" ? " · " : "") + "📅 " + due : "") + "</div>" +
+      (t.submission && t.submission.feedback ? '<div class="fb">💬 ' + esc(t.submission.feedback) + "</div>" : "") +
+      '<div class="act">' + DCTugasTambahan.statusHtml(t) + DCTugasTambahan.actionHtml(t, "btn") + "</div></article>";
   }
   function ujianState(u) { var td = todayYmd(); if (u.status === "ditutup") return "closed"; if (validDay(u.buka) && td < u.buka.slice(0, 10)) return "soon"; if (validDay(u.tutup) && td > u.tutup.slice(0, 10)) return "closed"; return "open"; }
   function ujianHtml(u) {
+    var proyek = u.format !== "tes" && !!window.DCUjian;
     var st = ujianState(u), scored = u.nilai != null && u.nilai !== "", pass = scored ? (typeof u.lulus === "boolean" ? u.lulus : Number(u.nilai) >= Number(u.kkm)) : null;
     var win = (validDay(u.buka) ? fmt(u.buka) : "") + (validDay(u.tutup) ? " – " + fmt(u.tutup) : "");
     return '<article class="it ' + (st === "closed" ? "closed" : st === "open" ? "open" : "") + '"><h3>' + esc(u.title) + (u.grade ? pill(GRADE[u.grade] || u.grade) : "") + pill(FORMAT[u.format] || u.format || "Ujian", "off") +
       (st === "open" ? pill("Sedang dibuka", "ok") : st === "soon" ? pill("Segera dibuka", "soon") : pill("Sudah ditutup", "off")) + "</h3>" +
       (u.description ? "<p>" + esc(u.description) + "</p>" : "") +
+      (proyek && u.learningPathName ? "<p>🧩 Syarat: selesaikan semua task di <b>" + esc(u.learningPathName) + "</b></p>" : "") +
       '<div class="meta">' + (u.kkm != null && u.kkm !== "" ? "🎯 Nilai minimal lulus <b>" + esc(u.kkm) + "</b>" : "") + (u.durasi ? " · ⏱️ " + esc(u.durasi) + " menit" : "") + (win ? " · 📅 " + esc(win) : "") + "</div>" +
-      (scored ? '<div class="meta">Nilaimu: <b>' + esc(u.nilai) + "</b> " + (pass ? pill("Lulus 🎉", "ok") : pill("Belum lulus", "bad")) + "</div>" : "") + "</article>";
+      (proyek ? '<div class="act">' + DCUjian.statusHtml(u) + DCUjian.actionHtml(u, "btn") + "</div>" + DCUjian.extraHtml(u)
+        : scored ? '<div class="meta">Nilaimu: <b>' + esc(u.nilai) + "</b> " + (pass ? pill("Lulus 🎉", "ok") : pill("Belum lulus", "bad")) + "</div>" : "") + "</article>";
   }
 
+  var tugasList = [];
+  function renderTugas() {
+    count("cTugas", tugasList.length);
+    $("tugas").innerHTML = tugasList.length ? tugasList.map(tugasHtml).join("") : empty("🎉", "Belum ada tugas tambahan dari instruktur.");
+  }
   function loadTugas() {
     $("tugas").innerHTML = empty("⏳", "Memuat tugas…");
     return get("/api/tugas-tambahan").then(function (d) {
-      var list = byGrade(items(d)).sort(function (a, b) { var A = validDay(a.due) ? a.due : "9999", B = validDay(b.due) ? b.due : "9999"; return A < B ? -1 : A > B ? 1 : 0; });
-      count("cTugas", list.length);
-      $("tugas").innerHTML = list.length ? list.map(tugasHtml).join("") : empty("🎉", "Belum ada tugas tambahan dari instruktur.");
+      tugasList = byGrade(items(d)).sort(function (a, b) { var A = validDay(a.due) ? a.due : "9999", B = validDay(b.due) ? b.due : "9999"; return A < B ? -1 : A > B ? 1 : 0; });
+      renderTugas();
     }).catch(function (e) { if (e.auth) return; $("cTugas").hidden = true; $("tugas").innerHTML = errBox(e.message, "tugas"); });
+  }
+  var ujianList = [];
+  function renderUjian() {
+    count("cUjian", ujianList.length);
+    $("ujian").innerHTML = ujianList.length ? ujianList.map(ujianHtml).join("") : empty("🏁", "Belum ada projek akhir atau ujian kelulusan.");
   }
   function loadUjian() {
     $("ujian").innerHTML = empty("⏳", "Memuat projek akhir…");
     return get("/api/ujian-kelulusan").then(function (d) {
       var rank = { open: 0, soon: 1, closed: 2 };
       var list = byGrade(items(d)).sort(function (a, b) { return rank[ujianState(a)] - rank[ujianState(b)]; });
-      count("cUjian", list.length);
-      $("ujian").innerHTML = list.length ? list.map(ujianHtml).join("") : empty("🏁", "Belum ada projek akhir atau ujian kelulusan.");
+      ujianList = list;
+      renderUjian();   // tampil dulu
+      return window.DCUjian ? DCUjian.prepare(list).then(renderUjian) : null;   // lalu hitung syarat task & gambar ulang
     }).catch(function (e) { if (e.auth) return; $("cUjian").hidden = true; $("ujian").innerHTML = errBox(e.message, "ujian"); });
   }
 
@@ -142,6 +163,8 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
     var k = b.getAttribute("data-retry");
     loadAllowed().then(function () { return k === "ujian" ? loadUjian() : loadTugas(); });
   });
+  document.addEventListener("click", function (ev) { DCTugasTambahan.handle(ev, tugasList, renderTugas); });
+  document.addEventListener("click", function (ev) { if (window.DCUjian) DCUjian.handle(ev, ujianList, renderUjian); });   // kumpul projek akhir   // kumpul jawaban tugas tambahan
   window.addEventListener("pageshow", function (e) { if (e.persisted) { loadAllowed().then(function () { loadTugas(); loadUjian(); }); } });
 
   loadAllowed().then(function () { loadTugas(); loadUjian(); });

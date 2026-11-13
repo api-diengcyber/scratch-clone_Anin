@@ -333,6 +333,10 @@
       : isProject ? '<button class="btn gold" id="mainBtn">' + (done ? "Perbarui Pengumpulan 📤" : "Kumpulkan Project 📤") + "</button>"
       : '<button class="btn green" id="mainBtn">Sudah selesai ✅</button>';
 
+    // Tugas tambahan instruktur bersifat opsional; tugas kurikulum di atas tidak diganti.
+    // Diambil dari server (bukan dari browser) setelah halaman tampil; wadahnya diisi di bawah.
+    const extraBox = '<div id="extraTasks"></div>';
+
     app.innerHTML =
       crumbs([tahapCrumb(), { go: "pemb", text: pb.emoji + " " + esc(pb.judul) }, { go: "task", text: isProject ? "🏆 Project" : "🧩 Task " + t.no }]) +
       '<div class="tcard" style="--c:' + pb.warna + '">' +
@@ -344,7 +348,7 @@
         (done ? (isProject
           ? '<div class="done-note">📤 Project sudah dikumpulkan' + (saved.tgl ? " pada " + new Date(saved.tgl).toLocaleString("id-ID") : "") + '. Kamu boleh memperbarui hasilnya, tapi koin tidak bertambah.</div>'
           : '<div class="done-note">✅ Task ini sudah selesai! Mengulang tidak memberi koin tambahan.</div>') : "") +
-        body + '<div class="actions">' + mainBtn + '<button class="btn ghost" id="backBtn">← Kembali ke jalur</button></div></div>';
+        body + extraBox + '<div class="actions">' + mainBtn + '<button class="btn ghost" id="backBtn">← Kembali ke jalur</button></div></div>';
 
     // crumbs "task" tidak perlu pindah halaman
     app.querySelectorAll(".crumbs button").forEach((b) => b.addEventListener("click", () => {
@@ -355,7 +359,30 @@
     bindUpload(id);
     bindPraktik(f);
     if (isProject) bindProject(f);
+    loadExtraTasks(document.getElementById("extraTasks"), { grade: "SD", pathId: pb.id, taskId: t.id });
     window.scrollTo(0, 0);
+  }
+
+  // Tugas tambahan instruktur untuk task ini (GET /api/tugas-tambahan, dicocokkan lewat jalur + task)
+  function loadExtraTasks(slot, opts) {
+    const H = window.DCTugasTambahan;
+    if (!slot || !H) return;
+    H.forTask(opts).then((list) => {
+      if (!slot.isConnected || !list.length) return;      // siswa sudah pindah halaman / tidak ada tugas
+      const paint = () => {
+        slot.innerHTML = '<section class="box" style="border:2px solid #8bbcff;background:#f1f7ff;margin-top:14px"><h4 style="color:#245eaa">📌 Tugas Tambahan dari Instruktur</h4>' +
+          list.map((x) => '<article style="background:#fff;border:1px solid #d7e7ff;border-radius:12px;padding:12px;margin-top:9px"><b>' + esc(x.title) + '</b>' +
+            (x.description ? '<p style="margin:6px 0;white-space:pre-wrap">' + esc(x.description) + '</p>' : '') +
+            '<small style="color:#52719a">' + H.meta(x) + '</small>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px">' + H.statusHtml(x) + H.actionHtml(x, "btn ghost") + '</div></article>').join('') + '</section>';
+      };
+      paint();
+      slot.onclick = (ev) => { H.handle(ev, list, paint); };       // form kumpul ada di tugas-tambahan.js; setelah terkirim daftar digambar ulang
+    }, () => {
+      if (!slot.isConnected) return;
+      slot.innerHTML = '<p style="margin:12px 0 0;font-size:13px;color:#52719a">Tugas tambahan belum bisa dimuat. <button type="button" class="btn ghost" data-retry-extra>Coba lagi</button></p>';
+      slot.querySelector("[data-retry-extra]").addEventListener("click", () => { H.reload(); loadExtraTasks(slot, opts); });
+    });
   }
 
   // ---------- 3b. PROJECT AKHIR: halaman, mulai, pengumpulan ----------
