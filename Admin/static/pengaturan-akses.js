@@ -441,7 +441,7 @@
         const res = await instr.save({ ...(p.id ? { id: p.id } : {}), name, email, role, grades, active: self ? true : f.active === '1' });
         toast(p.id ? 'Data pengguna diperbarui.' : 'Pengguna ditambahkan.');
         await renderAkses();
-        if (res && res.temporaryPassword) await window.dcConfirm({ title: 'Akun pengguna dibuat', message: 'Berikan password sementara ini ke pengguna. Password hanya ditampilkan sekali.', detail: res.temporaryPassword, confirmText: 'Sudah dicatat', cancelText: 'Tutup', tone: 'success' });
+        if (res && res.temporaryPassword) await window.dcConfirm({ title: 'Akun pengguna dibuat', message: 'Berikan password sementara ini ke pengguna. Password hanya ditampilkan sekali.', detail: res.temporaryPassword, copyable: true, confirmText: 'Sudah dicatat', cancelText: 'Tutup', tone: 'success' });
       });
   }
   vAk.addEventListener('click', async (e) => {

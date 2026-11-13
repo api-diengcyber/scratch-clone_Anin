@@ -263,7 +263,7 @@
         const res = await store.save(body);
         toast(editing ? 'Data instruktur diperbarui.' : 'Instruktur ditambahkan.');
         await load();
-        if (res && res.temporaryPassword) await window.dcConfirm({ title: 'Akun instruktur dibuat', message: 'Berikan password sementara ini ke instruktur. Password hanya ditampilkan sekali.', detail: res.temporaryPassword, confirmText: 'Sudah dicatat', cancelText: 'Tutup', tone: 'success' });
+        if (res && res.temporaryPassword) await window.dcConfirm({ title: 'Akun instruktur dibuat', message: 'Berikan password sementara ini ke instruktur. Password hanya ditampilkan sekali.', detail: res.temporaryPassword, copyable: true, confirmText: 'Sudah dicatat', cancelText: 'Tutup', tone: 'success' });
       }, true);
   }
 
