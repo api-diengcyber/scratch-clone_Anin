@@ -17,6 +17,7 @@ node_modules/
 # Local backups / runtime data
 backend/backups/
 backend/plugin-data/
+users/jadwal/backup-*.zip
 
 # Logs
 *.log
