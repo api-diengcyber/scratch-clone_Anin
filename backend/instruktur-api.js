@@ -31,6 +31,7 @@
 // ============================================================
 
 const { normalizeSchedule, scheduleDto, isMonth } = require("./jadwal-api");
+const attendanceService = require("./attendance-service");
 
 const GRADES = ["SD", "SMP", "SMK"];
 const TASK_TYPES = ["kode", "blok", "kuis", "proyek"];
@@ -362,6 +363,51 @@ function registerInstrukturApi(app, deps) {
       grades: parseJsonArray(row.allowed_grades).map((grade) => String(grade).toUpperCase())
     });
   });
+
+  // ----------------------------------------------------------
+  // Absen per sesi (hanya baca)
+  // ----------------------------------------------------------
+  const sesiGuard = [auth.requireAuth, auth.requireStaff, auth.requirePermission("kurikulum.kelola")];
+
+  function sesiGrades(req) {
+    if (canSeeAll(req)) return [];
+    const row = db.prepare("SELECT allowed_grades FROM users WHERE id = ?").get(req.userId);
+    return parseJsonArray(row && row.allowed_grades)
+      .map((grade) => String(grade).toUpperCase())
+      .filter((grade) => GRADES.includes(grade));
+  }
+
+  app.get("/api/instruktur/sesi", sesiGuard, (req, res) => guard(res, () => {
+    const today = attendanceService.jakartaToday();
+    const dari = dateOnly(req.query.dari, "dari") || attendanceService.dayShift(today, -3);
+    const sampai = dateOnly(req.query.sampai, "sampai") || attendanceService.dayShift(today, 3);
+    if (dari > sampai) invalid("dari harus sebelum atau sama dengan sampai.", "dari");
+    const span = Math.round((Date.parse(`${sampai}T00:00:00Z`) - Date.parse(`${dari}T00:00:00Z`)) / 86400000);
+    if (span > 62) invalid("Rentang tanggal maksimal 63 hari.", "sampai");
+
+    const result = attendanceService.buildSessionList(db, {
+      dari,
+      sampai,
+      grades: sesiGrades(req),
+      instructorId: canSeeAll(req) ? null : req.userId,
+      restrict: !canSeeAll(req)
+    });
+    return sendApiSuccess(res, result);
+  }));
+
+  app.get("/api/instruktur/sesi/ringkasan", sesiGuard, (req, res) => guard(res, () => {
+    const raw = req.query.bulan === undefined || req.query.bulan === ""
+      ? attendanceService.currentMonth()
+      : String(req.query.bulan);
+    if (!isMonth(raw)) invalid("bulan harus berformat YYYY-MM.", "bulan");
+    const result = attendanceService.buildSessionSummary(db, {
+      month: raw,
+      grades: sesiGrades(req),
+      instructorId: canSeeAll(req) ? null : req.userId,
+      restrict: !canSeeAll(req)
+    });
+    return sendApiSuccess(res, result);
+  }));
 
   // ----------------------------------------------------------
   // Tugas tambahan

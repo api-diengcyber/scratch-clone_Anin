@@ -94,6 +94,8 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 | GET | `/api/attendance/report?bulan=YYYY-MM` | murid | rekap murid yang sedang login |
 | GET | `/api/admin/users/:id/attendance?bulan=YYYY-MM` | `siswa.kelola` | rekap satu murid |
 | GET | `/api/instruktur/attendance?bulan=&q=&page=&limit=&urut=` | `kurikulum.kelola` | rekap semua murid aktif |
+| GET | `/api/instruktur/sesi?dari=YYYY-MM-DD&sampai=YYYY-MM-DD` | `kurikulum.kelola` | `{ total, sesi: [{ id, judul, tanggal, mulai, selesai, mentor, ruang, status, total, pct, hadir, tidakHadir }] }` |
+| GET | `/api/instruktur/sesi/ringkasan?bulan=YYYY-MM` | `kurikulum.kelola` | `{ bulan, rataRata, rataRataBulanLalu, perhatian: [{ siswaId, nama, hadir, total, pct }] }` |
 
 - "Hari ini" selalu WIB (`Asia/Jakarta`), bukan jam perangkat atau zona waktu server. `days` berisi tanggal `YYYY-MM-DD` WIB, urut naik, maksimal 60 hari terakhir. `current` dihitung mundur dari hari ini (atau kemarin bila hari ini belum diklaim), `longest` adalah rangkaian terpanjang. `POST /api/streak/checkin` berulang pada hari yang sama tidak menambah baris.
 - Absen hanya untuk role `student` (`403 STUDENT_ONLY`). Satu murid hanya bisa absen sekali per jadwal (`409 ALREADY_CHECKED_IN`); indeks unik `(student_user_id, jadwal_id)` menjaga request yang datang bersamaan.
@@ -104,7 +106,9 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 - Bentuk rekap murid: `{ bulan, siswa: { id, username, nama }, ringkasan, keseluruhan, perBulan, sesi }`. `ringkasan` untuk bulan yang diminta, `keseluruhan` untuk 12 bulan terakhir, `perBulan` berisi 12 baris `{ bulan, hadir, total, pct }`, dan `sesi` berisi `{ jadwalId, judul, tanggal, mulai, selesai, hadir, checkedInAt }`.
 - Bentuk rekap staf: `{ bulan, q, urut, page, limit, total, pages, ringkasan, perBulan, sesi, items }`. Tiap `items[]` memuat `{ id, username, nama, fullName, hadir, total, pct, keseluruhan, sesi }`; `sesi[]` tingkat atas memuat `siswaHadir`/`siswaTidakHadir`. `q` mencari nama/username (maks. 100 karakter), `urut` = `rendah` (default, kehadiran terendah dulu) atau `nama`, `limit` default 10 (maks. 100), `page` mulai dari 1.
 - `GET /api/admin/users` ikut memuat `attendance: { hadir, total, pct }` dan `attendancePct` per murid (12 bulan terakhir, hanya sesi selesai) supaya kolom Kehadiran dapat diisi tanpa request tambahan.
-- Tabel: `mentoring_attendance` (satu baris per murid per jadwal) dan `study_streak_days` (satu baris per murid per tanggal WIB).
+- `GET /api/instruktur/sesi` mengembalikan sesi dalam rentang tanggal (default 3 hari sebelum sampai 3 hari setelah hari ini, maksimal 63 hari). `hadir[]` = `{ siswaId, nama, checkedInAt }`, `tidakHadir[]` = `{ siswaId, nama, whatsapp? }` dan hanya berisi murid yang belum absen pada sesi yang sudah dimulai. `status` = `next`/`live`/`done`, `total`/`pct` dihitung dari murid yang eligible untuk jenjang sesi. Instruktur yang sudah punya murid binaan hanya melihat muridnya; instruktur tanpa penugasan dan admin melihat semua murid aktif.
+- `GET /api/instruktur/sesi/ringkasan` hanya menghitung sesi yang sudah selesai pada bulan itu. `rataRata` adalah rata-rata persentase tiap sesi (0-100, satu desimal), `rataRataBulanLalu` memakai bulan sebelumnya, dan `perhatian[]` berisi murid dengan kehadiran di bawah 60% pada bulan tersebut.
+- Tabel: `mentoring_attendance` (satu baris per murid per jadwal), `study_streak_days` (satu baris per murid per tanggal WIB), serta `instructor_stages`/`instructor_students` untuk penugasan instruktur.
 - Endpoint tulis dibatasi 60 permintaan/menit per akun (`429 RATE_LIMITED`).
 - Endpoint orang tua (`/api/parent/attendance`, `/api/parent/report`, `/api/parent/jadwal`) **belum tersedia** karena autentikasi token orang tua belum ada di backend. Modul frontend `DCRekap` juga masih berjalan dengan `window.DC_REKAP_DEMO = true`.
 
@@ -269,10 +273,10 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/users/:id/suspend` | `{}` atau `{ status: "active" }` | `{ id, status }` |
 | POST | `/api/admin/users/:id/revoke-sessions` | - | `{ revoked }` |
 | DELETE | `/api/admin/users/:id` | - | soft delete `{ id, status: "deleted" }` |
-| GET | `/api/admin/instructors?limit=500` | - | `{ items, total }`; `{ id, username, name, email, role, grades, active }`; `role` = `admin`, `instruktur`, atau `siswa`; hanya akun non-deleted |
-| POST | `/api/admin/instructors` | `{ name, email, role, grades, password?, active }` | `{ item, temporaryPassword? }` | 201; `must_change_password = 1`; `password` default dibuat otomatis |
-| PATCH | `/api/admin/instructors/:id` | `{ name?, email?, role?, grades?, active? }` | `{ item }` | boleh diubah kecuali akun sendiri; admin tidak bisa diubah oleh instruktur |
-| DELETE | `/api/admin/instructors/:id` | - | soft delete `{ id, status: "deleted" }`; sesi dicabut |
+| GET | `/api/admin/instructors?limit=500` | - | `{ items, total }`; `{ id, username, name, email, role, grades, active, assignments, studentIds }`; `assignments[]` = `{ grade, tahap, studentIds[] }`; `studentIds` adalah gabungan semua murid binaan; `role` = `admin`, `instruktur`, atau `siswa`; hanya akun non-deleted |
+| POST | `/api/admin/instructors` | `{ name, email, role, grades, password?, active, assignments?, studentIds? }` | `{ item, temporaryPassword? }` | 201; `must_change_password = 1`; `password` default dibuat otomatis; penugasan tahap/murid hanya untuk `role: "instruktur"` |
+| PATCH | `/api/admin/instructors/:id` | `{ name?, email?, role?, grades?, active?, assignments?, studentIds? }` | `{ item }` | boleh diubah kecuali akun sendiri; admin tidak bisa diubah oleh instruktur. `assignments` ada → daftar tahap diganti; hanya `studentIds` → keanggotaan berubah tanpa menghapus penempatan tahap |
+| DELETE | `/api/admin/instructors/:id` | - | soft delete `{ id, status: "deleted" }`; sesi dan penugasan dicabut |
 | GET | `/api/admin/users/:id/guardians` | - | `{ items, total }`; daftar wali `{ id, name, email, relation, createdAt, updatedAt }` |
 | PUT | `/api/admin/users/:id/guardians` | `{ guardians: [{ name, email, relation? }] }` | `{ items, total, queued: { created, revived, total } }`; **replace** seluruh wali (dicocokkan lewat email: wali yang dipertahankan tetap memakai `id` dan tautannya, wali yang dihilangkan dihapus dan tautannya otomatis dicabut), maks. 5; `relation` = `ayah`/`ibu`/`wali`/`lainnya` (default `wali`); email unik per siswa. Wali baru otomatis diantrekan bila siswa sudah punya tanggal berlangganan |
 | GET | `/api/admin/users/:id/report-links` | - | `{ items, total }`; daftar tautan `{ id, guardianId, guardianName, guardianEmail, status, expiresAt, revokedAt, lastAccessedAt, accessCount, createdAt }`; `status` = `active`/`expired`/`revoked` |
@@ -290,6 +294,7 @@ Perilaku penting:
 - Semua endpoint admin (termasuk `/api/admin/roles` dan `/api/admin/instructors`) diblokir instruktur kecuali memiliki permission dari matriks `admin_role_permissions`; `admin` selalu punya semua. Penolakan memakai kode `PERMISSION_DENIED`. Mutasi berat (`PUT /roles`) hanya boleh admin.
 - Peran yang didukung: `student`, `admin`, dan `instruktur`. Role lama `ortu` tidak lagi dibuat dan ditolak saat login (`ROLE_NOT_SUPPORTED`); sisa baris `ortu` di database perlu dimigrasikan manual.
 - Akun dengan role `instruktur` login memakai `/api/auth/*` normal, tetapi akses ke panel Admin masih dibatasi UI (hanya akun admin yang masuk ke `/admin/`). Permission server tetap ditegakkan per endpoint.
+- Penugasan instruktur disimpan di `instructor_stages` (tahap yang diampu, termasuk yang belum berisi murid) dan `instructor_students` (satu murid hanya boleh punya satu instruktur). Murid yang dipindah ke instruktur lain otomatis dilepas dari pemilik lama. `studentIds` tanpa `assignments` mempertahankan penempatan tahap yang sudah ada; mengirim `assignments` mengganti seluruh daftar tahap. Murid dan tahap hanya valid untuk akun `instruktur`, dan semua ID murid divalidasi harus akun `student` yang tidak terhapus.
 
 - Admin tidak bisa membuat/mengubah akun admin lewat API; akun admin hanya lewat CLI.
 - Admin hanya melihat dan mengelola user role `student`.

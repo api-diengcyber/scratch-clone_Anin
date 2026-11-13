@@ -393,6 +393,85 @@ async function main() {
     eq(res.r.status, 400, "bulan");
   });
 
+  // ----------------------------------------------------------
+  // Absen per sesi (portal instruktur)
+  // ----------------------------------------------------------
+  const SESI_RANGE = `dari=${REPORT_DAY("10")}&sampai=${REPORT_DAY("12")}`;
+
+  await t("sesi: daftar sesi dengan hadir dan tidak hadir", async () => {
+    const { r, d } = await api("GET", `/api/instruktur/sesi?${SESI_RANGE}`, { token: instructorToken });
+    eq(r.status, 200, "status");
+    eq(d.total, 3, "tiga murid");
+    eq(d.sesi.map((s) => s.id), [s10, s11, s12], "urut tanggal");
+    const first = d.sesi.find((s) => s.id === s10);
+    eq(first.status, "done", "sesi selesai");
+    eq(first.total, 2, "eligible SD + semua");
+    eq(first.hadir.map((x) => x.siswaId), [sdId], "hadir SD");
+    eq(first.tidakHadir.map((x) => x.siswaId), [allId], "tidak hadir");
+    eq(first.pct, 50, "persen sesi");
+    ok(/^\d{4}-\d{2}-\d{2}T.*Z$/.test(first.hadir[0].checkedInAt), "checkedInAt ISO UTC");
+    const second = d.sesi.find((s) => s.id === s11);
+    eq(second.hadir.length, 2, "dua hadir di sesi semua");
+    ok(second.hadir.every((x) => x.nama), "hadir memuat nama");
+  });
+
+  await t("sesi: ringkasan bulanan dan murid yang perlu perhatian", async () => {
+    const { r, d } = await api("GET", `/api/instruktur/sesi/ringkasan?bulan=${REPORT_MONTH}`, { token: instructorToken });
+    eq(r.status, 200, "status");
+    eq(d.bulan, REPORT_MONTH, "bulan");
+    eq(d.rataRata, 38.9, "rata-rata sesi");
+    eq(d.rataRataBulanLalu, null, "belum ada sesi bulan lalu");
+    eq(d.perhatian.map((x) => Number(x.siswaId)), [allId, smpId], "urut kehadiran terendah");
+    eq(d.perhatian[0].hadir, 0, "hadir murid semua");
+    eq(d.perhatian[0].total, 3, "total sesi eligible");
+    eq(d.perhatian[0].pct, 0, "persen murid semua");
+
+    const bad = await api("GET", "/api/instruktur/sesi/ringkasan?bulan=2026-13", { token: instructorToken });
+    eq(bad.r.status, 400, "bulan salah");
+  });
+
+  await t("sesi: tanpa izin dan rentang tanggal salah ditolak", async () => {
+    let res = await api("GET", `/api/instruktur/sesi?${SESI_RANGE}`, { token: sdToken });
+    eq(res.r.status, 403, "murid tidak boleh");
+    res = await api("GET", "/api/instruktur/sesi?dari=2026-02-01&sampai=2026-01-01", { token: instructorToken });
+    eq(res.r.status, 400, "rentang terbalik");
+    res = await api("GET", "/api/instruktur/sesi?dari=2026-01-01&sampai=2026-12-31", { token: instructorToken });
+    eq(res.r.status, 400, "rentang terlalu panjang");
+  });
+
+  await t("sesi: murid binaan membatasi hadir/tidak hadir", async () => {
+    let res = await api("PATCH", `/api/admin/instructors/${instructorId}`, {
+      token: adminToken,
+      body: {
+        assignments: [{ grade: "SD", tahap: 1, studentIds: [sdId] }],
+        studentIds: [sdId]
+      }
+    });
+    eq(res.r.status, 200, "penugasan disimpan");
+
+    const list = await api("GET", `/api/instruktur/sesi?${SESI_RANGE}`, { token: instructorToken });
+    eq(list.r.status, 200, "status daftar");
+    eq(list.d.total, 1, "hanya murid binaan");
+    const first = list.d.sesi.find((s) => s.id === s10);
+    eq(first.total, 1, "eligible murid binaan");
+    eq(first.hadir.map((x) => x.siswaId), [sdId], "murid binaan hadir");
+    eq(first.tidakHadir.length, 0, "tidak ada murid lain");
+
+    const summary = await api("GET", `/api/instruktur/sesi/ringkasan?bulan=${REPORT_MONTH}`, { token: instructorToken });
+    eq(summary.r.status, 200, "status ringkasan");
+    eq(summary.d.rataRata, 100, "semua sesi dihadiri murid binaan");
+    eq(summary.d.perhatian.length, 0, "tidak ada yang perlu perhatian");
+
+    // Kembalikan tanpa penugasan agar tes lain tetap melihat semua murid.
+    res = await api("PATCH", `/api/admin/instructors/${instructorId}`, {
+      token: adminToken,
+      body: { assignments: [], studentIds: [] }
+    });
+    eq(res.r.status, 200, "penugasan dibersihkan");
+    eq(res.d.item.assignments.length, 0, "tanpa tahap");
+    eq(res.d.item.studentIds.length, 0, "tanpa murid");
+  });
+
   const fails = results.filter((r) => r[0] === "FAIL");
   console.log("");
   for (const [status, name] of results) console.log(`${status}  ${name}`);

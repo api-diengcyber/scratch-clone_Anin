@@ -1511,6 +1511,80 @@ async function cleanup() {
     eq(res.d.code, "PERMISSION_DENIED", "code PUT roles");
   });
 
+  await t("Akses: penugasan tahap dan murid instruktur tersimpan", async () => {
+    let res = await api("PATCH", `/api/admin/instructors/${instrId}`, {
+      token: adminToken,
+      body: {
+        assignments: [{ grade: "SMP", tahap: 1, studentIds: [studentId] }],
+        studentIds: [studentId]
+      }
+    });
+    eq(res.r.status, 200, "simpan penugasan");
+    eq(res.d.item.assignments.length, 1, "satu tahap");
+    eq(res.d.item.assignments[0].grade, "SMP", "jenjang tahap");
+    eq(res.d.item.assignments[0].studentIds[0], studentId, "murid di tahap");
+    eq(res.d.item.studentIds.length, 1, "murid binaan");
+
+    res = await api("GET", "/api/admin/instructors", { token: adminToken });
+    const saved = res.d.items.find((x) => Number(x.id) === instrId);
+    eq(saved.assignments[0].tahap, 1, "tahap bertahan setelah reload");
+    eq(saved.assignments[0].studentIds[0], studentId, "murid bertahan setelah reload");
+
+    // Halaman Akses hanya mengirim studentIds: penempatan tahap tidak boleh hilang.
+    res = await api("PATCH", `/api/admin/instructors/${instrId}`, {
+      token: adminToken,
+      body: { studentIds: [studentId] }
+    });
+    eq(res.r.status, 200, "simpan murid binaan saja");
+    eq(res.d.item.assignments.length, 1, "tahap tidak terhapus");
+    eq(res.d.item.assignments[0].studentIds[0], studentId, "murid tetap di tahap");
+  });
+
+  await t("Akses: validasi penugasan instruktur", async () => {
+    let res = await api("PATCH", `/api/admin/instructors/${instrId}`, {
+      token: adminToken,
+      body: { assignments: [{ grade: "SMP", tahap: 1, studentIds: [999999] }], studentIds: [999999] }
+    });
+    eq(res.r.status, 400, "murid tidak ada ditolak");
+    eq(res.d.code, "ADMIN_DATA_INVALID", "code murid tidak ada");
+
+    res = await api("PATCH", `/api/admin/instructors/${instrId}`, {
+      token: adminToken,
+      body: { assignments: [{ grade: "XX", tahap: 1, studentIds: [] }] }
+    });
+    eq(res.r.status, 400, "jenjang tidak valid ditolak");
+
+    res = await api("PATCH", `/api/admin/instructors/${studentId}`, {
+      token: adminToken,
+      body: { assignments: [{ grade: "SMP", tahap: 1, studentIds: [] }] }
+    });
+    eq(res.r.status, 400, "murid tidak boleh punya tahap");
+  });
+
+  await t("Akses: murid pindah instruktur dan dilepas saat instruktur dihapus", async () => {
+    let res = await api("POST", "/api/admin/instructors", {
+      token: adminToken,
+      body: {
+        name: "Instruktur Kedua", email: "instr2@diengcyber.local", role: "instruktur",
+        grades: ["SMP"], active: true,
+        assignments: [{ grade: "SMP", tahap: 2, studentIds: [studentId] }],
+        studentIds: [studentId]
+      }
+    });
+    eq(res.r.status, 201, "instruktur kedua dibuat dengan murid");
+    const instr2Id = res.d.item.id;
+    eq(res.d.item.assignments[0].studentIds[0], studentId, "murid langsung masuk tahap");
+
+    res = await api("GET", "/api/admin/instructors", { token: adminToken });
+    const first = res.d.items.find((x) => Number(x.id) === instrId);
+    eq(first.studentIds.length, 0, "murid dilepas dari instruktur pertama");
+
+    res = await api("DELETE", `/api/admin/instructors/${instr2Id}`, { token: adminToken });
+    eq(res.r.status, 200, "hapus instruktur kedua");
+    eq(db.prepare("SELECT COUNT(*) AS n FROM instructor_students WHERE instructor_user_id = ?").get(instr2Id).n, 0, "penugasan dibersihkan");
+    eq(db.prepare("SELECT COUNT(*) AS n FROM instructor_stages WHERE instructor_user_id = ?").get(instr2Id).n, 0, "tahap dibersihkan");
+  });
+
   await t("Akses: self-protection dan hapus akun instruktur", async () => {
     let res = await api("PATCH", `/api/admin/instructors/${adminId}`, { token: adminToken, body: { role: "instruktur" } });
     eq(res.r.status, 400, "tidak bisa ganti peran self");

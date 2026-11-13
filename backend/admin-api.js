@@ -1165,7 +1165,39 @@ function registerAdminApi(app, deps) {
   const UI_TO_DB = { admin: "admin", instruktur: "instruktur", siswa: "student" };
   const DB_TO_UI = { admin: "admin", instruktur: "instruktur", student: "siswa" };
   const STAFF_GRADE_VALUES = ["SD", "SMP", "SMK"];
-  function staffItem(u) {
+
+  // Peta penugasan instruktur: tahap yang diampu + murid di tiap tahap.
+  // Dibaca sekaligus untuk seluruh daftar supaya GET tidak menjadi N+1.
+  function instructorRosterMap(ids) {
+    const map = new Map();
+    const userIds = [...new Set(ids.map(Number).filter((n) => Number.isSafeInteger(n) && n > 0))];
+    userIds.forEach((id) => map.set(id, { stages: [], students: [] }));
+    if (!userIds.length) return map;
+    const ph = userIds.map(() => "?").join(",");
+    const stages = db.prepare(`
+      SELECT instructor_user_id, grade, tahap FROM instructor_stages
+      WHERE instructor_user_id IN (${ph}) ORDER BY grade, tahap
+    `).all(...userIds);
+    const students = db.prepare(`
+      SELECT instructor_user_id, student_user_id, grade, tahap FROM instructor_students
+      WHERE instructor_user_id IN (${ph}) ORDER BY student_user_id
+    `).all(...userIds);
+    stages.forEach((r) => map.get(Number(r.instructor_user_id))?.stages.push(r));
+    students.forEach((r) => map.get(Number(r.instructor_user_id))?.students.push(r));
+    return map;
+  }
+
+  function staffItem(u, roster = null) {
+    const info = roster && roster.get(Number(u.id));
+    const assignments = info
+      ? info.stages.map((s) => ({
+        grade: s.grade,
+        tahap: Number(s.tahap),
+        studentIds: info.students
+          .filter((x) => x.grade === s.grade && Number(x.tahap) === Number(s.tahap))
+          .map((x) => Number(x.student_user_id))
+      }))
+      : [];
     return {
       id: Number(u.id),
       username: u.username,
@@ -1173,8 +1205,124 @@ function registerAdminApi(app, deps) {
       email: u.email || "",
       role: DB_TO_UI[u.role] || "siswa",
       grades: jsonAllowedGrades(u.allowed_grades),
-      active: u.status === "active"
+      active: u.status === "active",
+      assignments,
+      // Gabungan semua murid binaan, termasuk yang belum masuk tahap.
+      studentIds: info ? info.students.map((x) => Number(x.student_user_id)) : []
     };
+  }
+
+  function instructorIdList(value, field) {
+    if (value === undefined) return null;
+    if (!Array.isArray(value)) adminDataError("Daftar siswa tidak valid.", field);
+    const out = [];
+    const seen = new Set();
+    value.forEach((raw) => {
+      const id = Number(raw);
+      if (!Number.isSafeInteger(id) || id < 1) adminDataError("ID siswa tidak valid.", field);
+      if (!seen.has(id)) { seen.add(id); out.push(id); }
+    });
+    if (out.length > 2000) adminDataError("Daftar siswa maksimal 2000 orang.", field);
+    return out;
+  }
+
+  function chunkIds(list, size = 400) {
+    const out = [];
+    for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+    return out;
+  }
+
+  function instructorAssignments(value) {
+    if (value === undefined) return null;
+    if (!Array.isArray(value)) adminDataError("Daftar tahap tidak valid.", "assignments");
+    const out = [];
+    const seen = new Set();
+    value.forEach((raw) => {
+      const grade = String((raw && raw.grade) || "").toUpperCase();
+      const tahap = Number(raw && raw.tahap);
+      if (!STAFF_GRADE_VALUES.includes(grade)) adminDataError("Jenjang tahap tidak valid.", "assignments");
+      if (!Number.isSafeInteger(tahap) || tahap < 1 || tahap > 99) adminDataError("Nomor tahap tidak valid.", "assignments");
+      const key = grade + "|" + tahap;
+      if (seen.has(key)) adminDataError("Tahap tidak boleh dipilih dua kali.", "assignments");
+      seen.add(key);
+      out.push({ grade, tahap, studentIds: instructorIdList(raw.studentIds === undefined ? [] : raw.studentIds, "assignments") });
+    });
+    return out;
+  }
+
+  function ensureStudentUsers(ids) {
+    if (!ids.length) return;
+    const found = new Map();
+    chunkIds(ids).forEach((part) => {
+      const ph = part.map(() => "?").join(",");
+      db.prepare(`SELECT id, role, status FROM users WHERE id IN (${ph})`).all(...part)
+        .forEach((r) => found.set(Number(r.id), r));
+    });
+    ids.forEach((id) => {
+      const u = found.get(id);
+      if (!u || u.role !== "student" || u.status === "deleted") adminDataError(`Siswa #${id} tidak ditemukan.`, "studentIds");
+    });
+  }
+
+  // Menyimpan penugasan instruktur. `assignments` mengganti daftar tahap,
+  // sedangkan `studentIds` saja (dipakai halaman Akses) hanya mengubah
+  // keanggotaan tanpa menghapus penempatan tahap yang sudah ada.
+  function replaceInstructorRoster(instructorId, assignments, memberIds) {
+    if (assignments === null && memberIds === null) return null;
+    const existing = db.prepare("SELECT student_user_id, grade, tahap FROM instructor_students WHERE instructor_user_id = ?")
+      .all(instructorId);
+    const existingById = new Map(existing.map((r) => [Number(r.student_user_id), r]));
+
+    let members;
+    let placed = new Map();
+    if (assignments !== null) {
+      members = memberIds === null ? [] : [...memberIds];
+      const memberSet = new Set(members);
+      assignments.forEach((a) => {
+        a.studentIds.forEach((id) => {
+          if (!placed.has(id)) placed.set(id, a);
+          if (!memberSet.has(id)) { memberSet.add(id); members.push(id); }
+        });
+      });
+      db.prepare("DELETE FROM instructor_stages WHERE instructor_user_id = ?").run(instructorId);
+      const insStage = db.prepare("INSERT INTO instructor_stages (instructor_user_id, grade, tahap) VALUES (?, ?, ?)");
+      assignments.forEach((a) => insStage.run(instructorId, a.grade, a.tahap));
+    } else {
+      members = [...memberIds];
+      // Keanggotaan yang sudah ada mempertahankan tahapnya.
+      existingById.forEach((r, id) => {
+        if (members.includes(id) && r.grade && r.tahap) placed.set(id, { grade: r.grade, tahap: Number(r.tahap) });
+      });
+    }
+
+    ensureStudentUsers(members);
+    const keep = new Set(members);
+    existingById.forEach((_, id) => { if (!keep.has(id)) db.prepare("DELETE FROM instructor_students WHERE student_user_id = ?").run(id); });
+
+    // Satu murid hanya boleh dimiliki satu instruktur: lepas dari pemilik lama.
+    chunkIds(members).forEach((part) => {
+      const ph = part.map(() => "?").join(",");
+      db.prepare(`DELETE FROM instructor_students WHERE student_user_id IN (${ph}) AND instructor_user_id <> ?`)
+        .run(...part, instructorId);
+    });
+    const upsert = db.prepare(`
+      INSERT INTO instructor_students (student_user_id, instructor_user_id, grade, tahap)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(student_user_id) DO UPDATE SET
+        instructor_user_id = excluded.instructor_user_id,
+        grade = excluded.grade,
+        tahap = excluded.tahap
+    `);
+    members.forEach((id) => {
+      const slot = placed.get(id) || null;
+      upsert.run(id, instructorId, slot ? slot.grade : null, slot ? slot.tahap : null);
+    });
+    return { stages: assignments === null ? null : assignments.length, students: members.length };
+  }
+
+  function clearInstructorRoster(instructorId) {
+    db.prepare("DELETE FROM instructor_students WHERE instructor_user_id = ?").run(instructorId);
+    db.prepare("DELETE FROM instructor_stages WHERE instructor_user_id = ?").run(instructorId);
   }
   function staffUsernameFor(email) {
     const base = String((email || "").split("@")[0] || "instruktur").replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 28);
@@ -1193,7 +1341,8 @@ function registerAdminApi(app, deps) {
       ORDER BY CASE role WHEN 'admin' THEN 0 WHEN 'instruktur' THEN 1 ELSE 2 END, id ASC
       LIMIT 500
     `).all();
-    const items = rows.map(staffItem);
+    const roster = instructorRosterMap(rows.map((r) => r.id));
+    const items = rows.map((r) => staffItem(r, roster));
     return sendApiSuccess(res, { items, total: items.length });
   });
 
@@ -1208,6 +1357,15 @@ function registerAdminApi(app, deps) {
     const gradeList = grades.filter((g) => STAFF_GRADE_VALUES.includes(g));
     if ((dbRole === "instruktur" || dbRole === "student") && gradeList.length < 1) adminDataError("Pilih minimal satu jenjang yang diampu.", "grades");
     if (dbRole === "admin" && gradeList.length > 0) adminDataError("Peran admin tidak perlu jenjang.", "grades");
+    const assignments = instructorAssignments(body.assignments);
+    const memberIds = instructorIdList(body.studentIds, "studentIds");
+    if ((assignments !== null || memberIds !== null) && dbRole !== "instruktur") {
+      adminDataError("Murid dan tahap hanya bisa diberikan ke instruktur.", "assignments");
+    }
+    const rosterMembers = assignments === null && memberIds === null
+      ? []
+      : [...new Set((memberIds || []).concat(...(assignments || []).map((a) => a.studentIds)))];
+    ensureStudentUsers(rosterMembers);
     // Email akun terhapus dilepas agar tidak menghalangi pembuatan akun baru.
     if (email) releaseDeletedEmail(db, email);
     if (email && db.prepare("SELECT 1 FROM users WHERE email = ? COLLATE NOCASE").get(email)) {
@@ -1220,14 +1378,26 @@ function registerAdminApi(app, deps) {
     const password = typeof body.password === "string" && body.password ? body.password : createTempPassword();
     if (password.length < 8 || password.length > 128) adminDataError("Password harus 8-128 karakter.", "password");
     const { salt, hash } = auth.hashPassword(password);
-    const info = db.prepare(`
-      INSERT INTO users (username, email, full_name, password_hash, password_salt, role, status, must_change_password, allowed_grades)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
-    `).run(username, email, name, hash, salt, dbRole, body.active === false ? "suspended" : "active", JSON.stringify(gradeList));
-    const id = Number(info.lastInsertRowid);
-    audit(req, "staff.create", "user", id, { username, email, role: dbRole, createdBy: req.userId });
+    let id = 0;
+    const tx = db.transaction(() => {
+      const info = db.prepare(`
+        INSERT INTO users (username, email, full_name, password_hash, password_salt, role, status, must_change_password, allowed_grades)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+      `).run(username, email, name, hash, salt, dbRole, body.active === false ? "suspended" : "active", JSON.stringify(gradeList));
+      id = Number(info.lastInsertRowid);
+      if (dbRole === "instruktur" && (assignments !== null || memberIds !== null)) {
+        replaceInstructorRoster(id, assignments, memberIds);
+      }
+    });
+    tx();
+    audit(req, "staff.create", "user", id, {
+      username, email, role: dbRole, createdBy: req.userId,
+      stages: assignments ? assignments.length : 0,
+      students: rosterMembers.length
+    });
     const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
-    return sendApiSuccess(res, { item: staffItem(row), temporaryPassword: body.password ? undefined : password }, "Pengguna berhasil dibuat.", 201);
+    const roster = instructorRosterMap([id]);
+    return sendApiSuccess(res, { item: staffItem(row, roster), temporaryPassword: body.password ? undefined : password }, "Pengguna berhasil dibuat.", 201);
   }));
 
   app.patch("/api/admin/instructors/:id", (req, res) => adminDataResponse(res, () => {
@@ -1278,14 +1448,33 @@ function registerAdminApi(app, deps) {
       if ((nextRole === "instruktur" || nextRole === "student") && gradeList.length < 1) adminDataError("Pilih minimal satu jenjang yang diampu.", "grades");
       changes.allowed_grades = JSON.stringify(gradeList);
     }
+    const assignments = instructorAssignments(b.assignments);
+    const memberIds = instructorIdList(b.studentIds, "studentIds");
+    const rosterTouched = assignments !== null || memberIds !== null;
+    if (rosterTouched && nextRole !== "instruktur") adminDataError("Murid dan tahap hanya bisa diberikan ke instruktur.", "assignments");
+    const rosterMembers = rosterTouched
+      ? [...new Set((memberIds || []).concat(...(assignments || []).map((a) => a.studentIds)))]
+      : [];
+    ensureStudentUsers(rosterMembers);
     const keys = Object.keys(changes);
-    if (keys.length) {
-      const sql = keys.map((k) => `${k} = ?`).join(", ");
-      db.prepare(`UPDATE users SET ${sql} WHERE id = ?`).run(...keys.map((k) => changes[k]), num);
-    }
-    audit(req, "staff.update", "user", num, { fields: keys, role: nextRole });
+    const tx = db.transaction(() => {
+      if (keys.length) {
+        const sql = keys.map((k) => `${k} = ?`).join(", ");
+        db.prepare(`UPDATE users SET ${sql} WHERE id = ?`).run(...keys.map((k) => changes[k]), num);
+      }
+      // Peran yang bukan instruktur tidak boleh menyisakan penugasan lama.
+      if (nextRole !== "instruktur") clearInstructorRoster(num);
+      else if (rosterTouched) replaceInstructorRoster(num, assignments, memberIds);
+    });
+    tx();
+    audit(req, "staff.update", "user", num, {
+      fields: keys, role: nextRole,
+      stages: assignments ? assignments.length : undefined,
+      students: rosterTouched ? rosterMembers.length : undefined
+    });
     const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(num);
-    return sendApiSuccess(res, { item: staffItem(updated) });
+    const roster = instructorRosterMap([num]);
+    return sendApiSuccess(res, { item: staffItem(updated, roster) });
   }));
 
   app.delete("/api/admin/instructors/:id", (req, res) => {
@@ -1299,6 +1488,7 @@ function registerAdminApi(app, deps) {
     }
     const tx = db.transaction(() => {
       db.prepare("UPDATE users SET status = 'deleted' WHERE id = ?").run(num);
+      clearInstructorRoster(num);
       auth.deleteAllSessions(num);
     });
     tx();

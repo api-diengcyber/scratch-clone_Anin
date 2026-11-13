@@ -414,6 +414,135 @@ function buildStaffReport(db, options = {}) {
   };
 }
 
+// ------------------------------------------------------------
+// Absen per sesi (portal instruktur)
+// ------------------------------------------------------------
+
+// Murid yang diharapkan hadir. Bila instruktur sudah punya murid binaan,
+// hanya mereka yang dihitung; instruktur tanpa penugasan (dan admin) melihat
+// semua murid aktif agar halaman tidak kosong sebelum pembagian murid diatur.
+function expectedStudents(db, options = {}) {
+  const all = () => db.prepare(`SELECT id, username, full_name, allowed_grades, phone FROM users
+    WHERE role = 'student' AND status = 'active' ORDER BY username ASC`).all();
+  if (!options.instructorId || options.restrict !== true) return all();
+  const owned = db.prepare("SELECT COUNT(*) AS n FROM instructor_students WHERE instructor_user_id = ?")
+    .get(options.instructorId).n;
+  if (!owned) return all();
+  return db.prepare(`SELECT u.id, u.username, u.full_name, u.allowed_grades, u.phone
+    FROM instructor_students s JOIN users u ON u.id = s.student_user_id
+    WHERE s.instructor_user_id = ? AND u.role = 'student' AND u.status = 'active'
+    ORDER BY u.username ASC`).all(options.instructorId);
+}
+
+function sessionAttendanceDto(row, students, checkedIn, now) {
+  const start = scheduleStartMs(row);
+  const end = scheduleEndMs(row);
+  const eligible = students.filter((student) => scheduleVisible(row, allowedGrades(student)));
+  const hadir = [];
+  const tidakHadir = [];
+  const started = Number.isFinite(start) && start <= now;
+  for (const student of eligible) {
+    const at = checkedIn.get(Number(student.id));
+    if (at) {
+      hadir.push({ siswaId: Number(student.id), nama: studentName(student), checkedInAt: at });
+    } else if (started) {
+      const item = { siswaId: Number(student.id), nama: studentName(student) };
+      const wa = String(student.phone || "").trim();
+      if (wa) item.whatsapp = wa;
+      tidakHadir.push(item);
+    }
+  }
+  const total = eligible.length;
+  return {
+    id: Number(row.id),
+    judul: row.judul,
+    tanggal: row.tanggal,
+    mulai: row.mulai,
+    selesai: row.selesai,
+    mentor: row.mentor || "",
+    ruang: row.meeting_id || "Zoom",
+    status: now < start ? "next" : now <= end ? "live" : "done",
+    total,
+    pct: total ? Math.round((hadir.length * 100) / total) : null,
+    hadir,
+    tidakHadir
+  };
+}
+
+// Daftar sesi dalam rentang tanggal (inklusif) beserta hadir/tidak hadir.
+function buildSessionList(db, options = {}) {
+  const now = options.now || Date.now();
+  const dari = options.dari;
+  const sampai = options.sampai;
+  const rows = db.prepare(`SELECT * FROM mentoring_schedules
+    WHERE tanggal >= ? AND tanggal <= ?
+    ORDER BY tanggal ASC, mulai ASC, id ASC`).all(dari, sampai);
+  const grades = options.grades || [];
+  const visible = rows.filter((row) => scheduleVisible(row, grades));
+  const students = expectedStudents(db, options);
+  const byStudent = attendanceByStudent(db, visible.map((row) => Number(row.id)));
+  const sesi = visible.map((row) => {
+    const checkedIn = new Map();
+    for (const student of students) {
+      const map = byStudent.get(Number(student.id));
+      if (map && map.has(Number(row.id))) checkedIn.set(Number(student.id), map.get(Number(row.id)));
+    }
+    return sessionAttendanceDto(row, students, checkedIn, now);
+  });
+  return { total: students.length, sesi };
+}
+
+// Ringkasan bulanan untuk kartu "Rekap Bulanan" portal instruktur.
+function buildSessionSummary(db, options = {}) {
+  const now = options.now || Date.now();
+  const month = options.month || currentMonth(now);
+  const prev = addMonth(month, -1);
+  const students = expectedStudents(db, options);
+  const completed = completedSchedules(db, prev, month, now).filter((row) => scheduleVisible(row, options.grades || []));
+  const byStudent = attendanceByStudent(db, completed.map((row) => Number(row.id)));
+
+  const average = (rows) => {
+    let sum = 0;
+    let counted = 0;
+    for (const row of rows) {
+      const eligible = students.filter((student) => scheduleVisible(row, allowedGrades(student)));
+      if (!eligible.length) continue;
+      let hadir = 0;
+      for (const student of eligible) {
+        const own = byStudent.get(Number(student.id));
+        if (own && own.has(Number(row.id))) hadir += 1;
+      }
+      sum += (hadir * 100) / eligible.length;
+      counted += 1;
+    }
+    return counted ? Math.round((sum / counted) * 10) / 10 : null;
+  };
+
+  const monthRows = completed.filter((row) => monthKey(row.tanggal) === month);
+  const prevRows = completed.filter((row) => monthKey(row.tanggal) === prev);
+
+  const perhatian = [];
+  for (const student of students) {
+    const own = byStudent.get(Number(student.id)) || new Map();
+    const eligible = monthRows.filter((row) => scheduleVisible(row, allowedGrades(student)));
+    if (!eligible.length) continue;
+    let hadir = 0;
+    for (const row of eligible) if (own.has(Number(row.id))) hadir += 1;
+    const pct = Math.round((hadir * 100) / eligible.length);
+    if (pct < 60) {
+      perhatian.push({ siswaId: Number(student.id), nama: studentName(student), hadir, total: eligible.length, pct });
+    }
+  }
+  perhatian.sort((a, b) => a.pct - b.pct || a.nama.localeCompare(b.nama, "id"));
+
+  return {
+    bulan: month,
+    rataRata: average(monthRows),
+    rataRataBulanLalu: average(prevRows),
+    perhatian
+  };
+}
+
 module.exports = {
   GRADES,
   ATTENDANCE_OPEN_MIN,
@@ -440,5 +569,8 @@ module.exports = {
   sessionDto,
   buildStudentReport,
   summariesForUsers,
-  buildStaffReport
+  buildStaffReport,
+  expectedStudents,
+  buildSessionList,
+  buildSessionSummary
 };

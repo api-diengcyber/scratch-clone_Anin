@@ -475,6 +475,35 @@ db.exec(`
         ON mentoring_attendance(student_user_id, checked_in_at);
 `);
 
+// Pembagian murid ke instruktur. Satu murid hanya boleh punya satu instruktur
+// (PRIMARY KEY student_user_id), sedangkan `grade`/`tahap` NULL berarti murid
+// binaan yang belum ditempatkan di tahap mana pun. `instructor_stages` menyimpan
+// tahap yang diampu walau belum ada muridnya, supaya pilihan tahap tidak hilang
+// setelah disimpan.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS instructor_stages (
+        instructor_user_id INTEGER NOT NULL,
+        grade TEXT NOT NULL CHECK (grade IN ('SD', 'SMP', 'SMK')),
+        tahap INTEGER NOT NULL CHECK (tahap BETWEEN 1 AND 99),
+        PRIMARY KEY (instructor_user_id, grade, tahap),
+        FOREIGN KEY(instructor_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_instructor_stages_instructor
+        ON instructor_stages(instructor_user_id, grade, tahap);
+
+    CREATE TABLE IF NOT EXISTS instructor_students (
+        student_user_id INTEGER PRIMARY KEY,
+        instructor_user_id INTEGER NOT NULL,
+        grade TEXT CHECK (grade IS NULL OR grade IN ('SD', 'SMP', 'SMK')),
+        tahap INTEGER CHECK (tahap IS NULL OR tahap BETWEEN 1 AND 99),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(instructor_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_instructor_students_instructor
+        ON instructor_students(instructor_user_id, grade, tahap);
+`);
+
 // Hari streak belajar. Satu baris per murid per tanggal WIB; klaim berulang
 // pada hari yang sama tidak menambah baris. Tanggal disimpan sebagai teks
 // YYYY-MM-DD supaya perhitungan beruntun sederhana dan tidak terpengaruh zona
