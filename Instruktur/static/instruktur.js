@@ -151,6 +151,7 @@
     function draw() {
       const list = shown();
       const note = store.isLocal() ? `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh:</b> endpoint <code>/api/instruktur/${cfg.view}</code> belum tersedia, data disimpan di browser ini saja dan belum tampil ke siswa.</span></div>` : '';
+      if (cfg.custom) { view.innerHTML = cfg.custom({ list: items, loaded, note }); if (cfg.afterDraw) cfg.afterDraw(view, draw); return; }
       view.innerHTML = `
         <div class="page-hero flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -202,7 +203,7 @@
         try { await store.remove(it.id); toast(cfg.noun + ' dihapus.'); await load(); } catch (ex) { toast(ex.message || 'Gagal menghapus.', 'error'); }
         return;
       }
-      if (cfg.onClick) cfg.onClick(e, { find, reload: load });
+      if (cfg.onClick) cfg.onClick(e, { find, reload: load, redraw: draw });
     });
     window.addEventListener('dc:view', (ev) => { if (ev.detail === cfg.view && !loaded) load(); });
     return { load, items: () => items };
@@ -608,10 +609,10 @@
     view: 'jadwal', crumb: 'Jadwal Zoom', title: 'Jadwal Zoom Mentoring', noun: 'Jadwal', addLabel: 'Tambah Jadwal', icon: 'fa-regular fa-calendar-xmark',
     sub: 'Atur kelas Zoom yang muncul di halaman Jadwal Saya milik siswa.', empty: 'Belum ada jadwal di bulan ini.',
     delMsg: 'Jadwal ini akan hilang dari halaman Jadwal Saya siswa.',
-    visible: (list) => list.filter((x) => String(x.tanggal || '').startsWith(jw.month)).sort((a, b) => (a.tanggal + a.mulai).localeCompare(b.tanggal + b.mulai)),
-    extra: () => `<input id="jwMonth" type="month" value="${esc(jw.month)}" class="${INPUT} w-auto" aria-label="Bulan jadwal">`,
-    afterDraw: (view, draw) => { const m = $('#jwMonth', view); if (m) m.addEventListener('change', (e) => { if (/^\d{4}-\d{2}$/.test(e.target.value)) { jw.month = e.target.value; draw(); } }); },
-    blank: () => ({ jenis: 'Live Mentoring', mentor: me.name }),
+    custom: (ctx) => window.DCJadwalUI.html(ctx),   // tampilan agenda + kalender mingguan (static/jadwal-ui.js)
+    afterDraw: (view, draw) => window.DCJadwalUI.afterDraw(view, draw),
+    onClick: (e, ctx) => window.DCJadwalUI.click(e, ctx),
+    blank: () => { const z = window.DCJadwalUI.zoomDefault(); return { jenis: 'Live Mentoring', mentor: me.name, zoomUrl: z.link, meetingId: z.id, passcode: z.pass }; },
     pre: (it) => ({ ...it, grade: (it.grade || (it.grades && it.grades[0])) || '', learningPathId: it.learningPathId || '', taskId: it.taskId || '' }),
     fields: [
       { n: 'judul', l: 'Judul', ph: 'Live Mentoring: Game Pertamaku' },
@@ -668,7 +669,7 @@
   }
 
   // ---------- navigasi ----------
-  const VIEWS = ['dashboard', 'tugas', 'ujian', 'jadwal', 'rekap'];
+  const VIEWS = ['dashboard', 'tugas', 'ujian', 'jadwal', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
   const ON = ['is-active', 'text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   function showView(name) {
@@ -685,6 +686,7 @@
       if (window.DCSesi) window.DCSesi.mount($('#view-rekap'));
       else if (window.DCRekap) window.DCRekap.instruktur($('#view-rekap'));
     }
+    if (name === 'profil' && window.DCProfil) window.DCProfil.mount($('#view-profil'), me);
     window.dispatchEvent(new CustomEvent('dc:view', { detail: name }));
   }
   document.addEventListener('click', (e) => { const a = e.target.closest('[data-view]'); if (a) { e.preventDefault(); showView(a.dataset.view); } });
@@ -706,6 +708,27 @@
     if (await window.dcConfirm({ title: 'Keluar dari akun?', message: 'Kamu akan dibawa ke halaman login.', confirmText: 'Keluar', tone: 'warning' })) window.DCAdminApi.logout();
   });
 
+  // dropdown akun (avatar topbar): Pengaturan Profil, Jadwal Saya, Konfigurasi Zoom, Keluar
+  const userMenu = $('#userMenu'), userBtn = $('#userMenuBtn');
+  const setMenu = (open) => { userMenu.classList.toggle('hidden', !open); userBtn.setAttribute('aria-expanded', String(open)); $('#userMenuChevron').classList.toggle('rotate-180', open); };
+  const paintMenu = (name, email) => {
+    const nm = (name || 'Instruktur').trim(), pr = nm.split(/\s+/);
+    const ini = ((pr[0] || 'I')[0] + (pr.length > 1 ? pr[pr.length - 1][0] : '')).toUpperCase();
+    $('#ddName').textContent = nm; $('#ddAvatar').textContent = ini; $('#ddEmail').textContent = email || '';
+  };
+  userBtn.addEventListener('click', (e) => { e.stopPropagation(); setMenu(userMenu.classList.contains('hidden')); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#userMenuWrap')) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !userMenu.classList.contains('hidden')) { setMenu(false); userBtn.focus(); } });
+  userMenu.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-menu]'); if (!b) return;
+    setMenu(false);
+    const go = b.dataset.menu;
+    if (go === 'keluar') $('#btnLogout').click();
+    else if (go === 'zoom') { if (window.DCProfil) window.DCProfil.setTab('mentoring'); showView('profil'); }
+    else showView(go);
+  });
+  window.addEventListener('dc:view', (e) => $('#ddActive').classList.toggle('hidden', e.detail !== 'profil'));
+
   // ---------- mulai: cek sesi & peran ----------
   (async function init() {
     let token = ''; try { token = localStorage.getItem('authToken') || ''; } catch (_) {}
@@ -720,6 +743,13 @@
     $('#sidebarName').textContent = me.name || 'Instruktur';
     const ini = ((parts[0] || 'I')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
     $('#sidebarAvatar').textContent = ini; $('#topAvatar').textContent = ini;
+    let mail = ''; try { mail = localStorage.getItem('email') || ''; } catch (_) {}
+    paintMenu(me.name, mail);
+    if (window.DCProfil) window.DCProfil.onSaved = (p) => {
+      const nm = (p.nama || 'Instruktur').trim(), pr = nm.split(/\s+/);
+      const ii = ((pr[0] || 'I')[0] + (pr.length > 1 ? pr[pr.length - 1][0] : '')).toUpperCase();
+      me.name = nm; paintMenu(nm, p.email); $('#sidebarName').textContent = nm; $('#sidebarAvatar').textContent = ii; $('#topAvatar').textContent = ii;
+    };
     showView(location.hash.slice(1) || 'dashboard');
   })();
 })();

@@ -83,8 +83,28 @@
           <i class="fa-solid fa-sun text-amber-500 dark:hidden text-sm"></i><i class="fa-solid fa-moon text-jade-300 hidden dark:block text-sm"></i>
         </button>
         <span class="hidden sm:block w-px h-7 bg-jade-200/70 dark:bg-slate-700"></span>
-        <div class="flex items-center gap-2.5 pl-1 pr-2 py-1">
-          <span id="topAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-jade-400 to-jade-600 text-white grid place-items-center text-xs font-bold ring-2 ring-white dark:ring-slate-800 shadow-soft">..</span>
+        <div class="relative" id="userMenuWrap">
+          <button id="userMenuBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu" aria-label="Menu akun" class="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full bg-white dark:bg-slate-800/70 border border-jade-100 dark:border-slate-700 shadow-soft hover:border-jade-300 transition">
+            <span id="topAvatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-jade-400 to-jade-600 text-white grid place-items-center text-xs font-bold">..</span>
+            <i id="userMenuChevron" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform"></i>
+          </button>
+          <div id="userMenu" role="menu" class="hidden absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] z-50 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div class="flex items-center gap-3 px-4 pt-4 pb-3">
+              <span id="ddAvatar" class="w-11 h-11 shrink-0 rounded-full bg-gradient-to-br from-jade-400 to-jade-600 text-white grid place-items-center text-sm font-bold">..</span>
+              <div class="min-w-0">
+                <p id="ddName" class="text-sm font-extrabold text-slate-900 dark:text-white truncate">Memuat...</p>
+                <p id="ddEmail" class="text-[11.5px] text-slate-500 dark:text-slate-400 truncate"></p>
+              </div>
+            </div>
+            <div class="px-4 pb-3"><span class="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-jade-700 dark:text-jade-300 bg-jade-50 dark:bg-jade-500/10 px-2.5 py-1 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-jade-500"></span>Instruktur Terverifikasi</span></div>
+            <div class="px-2 py-2 border-t border-slate-100 dark:border-slate-800 space-y-0.5">
+              <button type="button" role="menuitem" data-menu="profil" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-bold text-slate-700 dark:text-slate-200 hover:bg-jade-50 dark:hover:bg-slate-800 transition text-left"><i class="fa-solid fa-user-gear w-4 text-center text-jade-600"></i><span class="flex-1">Pengaturan Profil</span><span id="ddActive" class="hidden text-[10px] font-bold bg-jade-600 text-white px-2 py-0.5 rounded-full">Aktif</span></button>
+              <button type="button" role="menuitem" data-menu="zoom" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-bold text-slate-700 dark:text-slate-200 hover:bg-jade-50 dark:hover:bg-slate-800 transition text-left"><i class="fa-solid fa-video w-4 text-center text-slate-400"></i><span class="flex-1">Konfigurasi Zoom</span></button>
+            </div>
+            <div class="px-2 py-2 border-t border-slate-100 dark:border-slate-800">
+              <button type="button" role="menuitem" data-menu="keluar" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition text-left"><i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i><span>Keluar</span></button>
+            </div>
+          </div>
         </div>
       </div>
     </header>
@@ -93,6 +113,7 @@
     <div id="view-ujian" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-jadwal" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-rekap" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-profil" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
   </main>
 
   <div id="toast" role="status" aria-live="polite" class="fixed bottom-5 left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm z-[90] flex items-center gap-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl px-4 py-3 text-sm translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
@@ -106,6 +127,8 @@
   <script>window.DC_REKAP_DEMO = true;   // rekap absen contoh tanpa backend; hapus kalau endpoint sudah siap</script>
   <script src="static/rekap-absen.js?v=2"></script>
   <script src="static/sesi-absen.js?v=1"></script>
+  <script src="static/profil-instruktur.js?v=1"></script>
+  <script src="static/jadwal-ui.js?v=1"></script>
   <script>
     // Data kurikulum (untuk pilihan Learning Path & Task): coba beberapa lokasi karena folder "users" bisa disajikan
     // sebagai root (/kurikulum/...) atau sebagai /users/... Urutan dijaga: data dulu, baru instruktur.js.
