@@ -165,6 +165,31 @@ function normalizeSchedule(body, options = {}) {
   const grades = has("grades") || has("grade")
     ? cleanGrades(has("grades") ? body.grades : body.grade)
     : (partial ? undefined : []);
+  const learningPathId = has("learningPathId")
+    ? cleanText(body.learningPathId, "learningPathId", 120)
+    : (partial ? undefined : "");
+  const learningPathName = has("learningPathName")
+    ? cleanText(body.learningPathName, "learningPathName", 200)
+    : (partial ? undefined : "");
+  const taskId = has("taskId")
+    ? cleanText(body.taskId, "taskId", 120)
+    : (partial ? undefined : "");
+  const taskName = has("taskName")
+    ? cleanText(body.taskName, "taskName", 200)
+    : (partial ? undefined : "");
+  const scopeInput = has("targetScope") ? body.targetScope : undefined;
+  let targetScope;
+  if (scopeInput !== undefined) {
+    targetScope = String(scopeInput || "").trim().toLowerCase();
+    if (!["grade", "path", "task"].includes(targetScope)) {
+      invalid("targetScope harus grade, path, atau task.", "targetScope");
+    }
+  } else if (!partial) {
+    targetScope = taskId ? "task" : learningPathId ? "path" : "grade";
+  }
+  if (targetScope === "task" && taskId === "") {
+    invalid("taskId wajib diisi bila targetScope task.", "taskId");
+  }
 
   return {
     judul,
@@ -178,7 +203,12 @@ function normalizeSchedule(body, options = {}) {
     zoomUrl,
     meetingId,
     passcode,
-    grades
+    grades,
+    learningPathId,
+    learningPathName,
+    taskId,
+    taskName,
+    targetScope
   };
 }
 
@@ -193,6 +223,7 @@ function parseGrades(raw) {
 }
 
 function scheduleDto(row) {
+  const grades = parseGrades(row.grades);
   return {
     id: Number(row.id),
     judul: row.judul,
@@ -206,7 +237,13 @@ function scheduleDto(row) {
     zoomUrl: row.zoom_url || "",
     meetingId: row.meeting_id || "",
     passcode: row.passcode || "",
-    grades: parseGrades(row.grades),
+    grades,
+    grade: grades[0] || "",
+    learningPathId: row.learning_path_id || "",
+    learningPathName: row.learning_path_name || "",
+    taskId: row.task_id || "",
+    taskName: row.task_name || "",
+    targetScope: row.target_scope || (row.task_id ? "task" : row.learning_path_id ? "path" : "grade"),
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
   };
@@ -313,10 +350,12 @@ function registerJadwalApi(app, deps) {
 
   app.post("/api/admin/jadwal", adminGuard, (req, res) => dataResponse(res, () => {
     const item = normalizeSchedule(req.body || {});
+    const scope = item.targetScope || (item.taskId ? "task" : item.learningPathId ? "path" : "grade");
     const info = db.prepare(`INSERT INTO mentoring_schedules
       (judul, jenis, level, mentor, keterangan, tanggal, mulai, selesai,
-       zoom_url, meeting_id, passcode, grades, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+       zoom_url, meeting_id, passcode, grades,
+       learning_path_id, learning_path_name, task_id, task_name, target_scope, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
       item.judul,
       item.jenis,
       item.level || null,
@@ -329,6 +368,11 @@ function registerJadwalApi(app, deps) {
       item.meetingId || null,
       item.passcode || null,
       JSON.stringify(item.grades),
+      item.learningPathId || "",
+      item.learningPathName || "",
+      item.taskId || "",
+      item.taskName || "",
+      scope,
       req.userId
     );
     const id = Number(info.lastInsertRowid);
@@ -348,13 +392,23 @@ function registerJadwalApi(app, deps) {
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return sendApiError(res, 400, "Body jadwal harus berupa objek.", "VALIDATION_ERROR", { field: "body" });
     }
-    const merged = normalizeSchedule({ ...scheduleDto(current), ...body }, { partial: true });
+    // targetScope dihitung ulang dari taskId/learningPathId hasil merge kecuali
+    // klien mengirimnya sendiri. Jangan bawa nilai lama ke validator, karena
+    // taskId boleh dihapus sementara targetScope lama masih "task".
+    const base = scheduleDto(current);
+    delete base.targetScope;
+    const merged = normalizeSchedule({ ...base, ...body }, { partial: true });
     const next = { ...scheduleDto(current), ...merged };
+    if (!Object.prototype.hasOwnProperty.call(body, "targetScope")) {
+      next.targetScope = next.taskId ? "task" : next.learningPathId ? "path" : "grade";
+    }
     if (next.selesai <= next.mulai) {
       return sendApiError(res, 400, "selesai harus lebih lambat dari mulai.", "VALIDATION_ERROR", { field: "selesai" });
     }
+    const scope = next.targetScope || (next.taskId ? "task" : next.learningPathId ? "path" : "grade");
     db.prepare(`UPDATE mentoring_schedules SET judul=?, jenis=?, level=?, mentor=?, keterangan=?,
       tanggal=?, mulai=?, selesai=?, zoom_url=?, meeting_id=?, passcode=?, grades=?,
+      learning_path_id=?, learning_path_name=?, task_id=?, task_name=?, target_scope=?,
       updated_at=CURRENT_TIMESTAMP WHERE id=?`).run(
       next.judul,
       next.jenis || "Live Mentoring",
@@ -368,6 +422,11 @@ function registerJadwalApi(app, deps) {
       next.meetingId || null,
       next.passcode || null,
       JSON.stringify(next.grades || []),
+      next.learningPathId || "",
+      next.learningPathName || "",
+      next.taskId || "",
+      next.taskName || "",
+      scope,
       current.id
     );
     audit(req, "jadwal.update", current.id, {

@@ -454,6 +454,21 @@ db.exec(`
         ON mentoring_schedules(tanggal, mulai);
 `);
 
+// Tautan jadwal ke Learning Path/task (form jadwal portal instruktur) dan
+// `grade` tunggal untuk tampilan agenda. `grades` tetap dipertahankan untuk
+// filter jenjang yang sudah ada.
+for (const [column, definition] of [
+    ["learning_path_id", "TEXT NOT NULL DEFAULT ''"],
+    ["learning_path_name", "TEXT NOT NULL DEFAULT ''"],
+    ["task_id", "TEXT NOT NULL DEFAULT ''"],
+    ["task_name", "TEXT NOT NULL DEFAULT ''"],
+    ["target_scope", "TEXT NOT NULL DEFAULT 'grade'"]
+]) {
+    if (!tableColumns("mentoring_schedules").includes(column)) {
+        db.exec(`ALTER TABLE mentoring_schedules ADD COLUMN ${column} ${definition}`);
+    }
+}
+
 // Kehadiran murid pada sesi mentoring Zoom. Satu baris = satu murid hadir di
 // satu jadwal, sehingga persentase dihitung dari jumlah jadwal yang sudah
 // selesai dibanding jumlah baris hadir. `checked_in_at` disimpan sebagai ISO
@@ -578,6 +593,137 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_instruktur_exam_results_exam
         ON instruktur_exam_results(exam_id, id);
 `);
+
+// Jawaban murid untuk tugas tambahan. Satu baris per murid per tugas
+// (UNIQUE task_id + student_user_id); mengirim ulang sebelum dinilai
+// memperbarui baris yang sama. Setelah status 'dinilai', murid tidak boleh
+// mengubah jawaban lagi.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS instruktur_task_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        student_user_id INTEGER NOT NULL,
+        text TEXT NOT NULL DEFAULT '',
+        link TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'dikumpulkan' CHECK (status IN ('dikumpulkan', 'dinilai')),
+        nilai INTEGER CHECK (nilai IS NULL OR nilai BETWEEN 0 AND 100),
+        feedback TEXT NOT NULL DEFAULT '',
+        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        graded_at DATETIME,
+        graded_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(task_id, student_user_id),
+        FOREIGN KEY(task_id) REFERENCES instruktur_tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(graded_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruktur_task_submissions_task
+        ON instruktur_task_submissions(task_id, status);
+`);
+
+// Pengumpulan projek akhir / ujian kelulusan format "proyek". Satu baris per
+// murid per ujian; `attempt` bertambah setiap kali murid mengumpulkan ulang
+// setelah status "revisi". Rubrik, nilai, dan komentar penilaian terakhir
+// dipertahankan saat murid mengumpulkan ulang (status kembali "menunggu")
+// supaya instruktur bisa melihat nilai sebelumnya.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS instruktur_exam_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_id INTEGER NOT NULL,
+        student_user_id INTEGER NOT NULL,
+        text TEXT NOT NULL DEFAULT '',
+        link TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'menunggu' CHECK (status IN ('menunggu', 'revisi', 'lulus')),
+        attempt INTEGER NOT NULL DEFAULT 1 CHECK (attempt BETWEEN 1 AND 99),
+        rubrik TEXT NOT NULL DEFAULT '{}',
+        nilai INTEGER CHECK (nilai IS NULL OR nilai BETWEEN 0 AND 100),
+        feedback TEXT NOT NULL DEFAULT '',
+        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        graded_at DATETIME,
+        graded_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(exam_id, student_user_id),
+        FOREIGN KEY(exam_id) REFERENCES instruktur_exams(id) ON DELETE CASCADE,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(graded_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruktur_exam_submissions_exam
+        ON instruktur_exam_submissions(exam_id, status);
+`);
+
+// Profil instruktur di portal /instruktur. Nilai yang belum pernah disimpan
+// tidak dikarang di sini; endpoint GET mengisinya dari data akun (nama, email,
+// telepon, bio) lalu frontend memakai default tampilannya sendiri.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS instruktur_profile (
+        user_id INTEGER PRIMARY KEY,
+        nama TEXT NOT NULL DEFAULT '',
+        peran TEXT NOT NULL DEFAULT '',
+        email TEXT NOT NULL DEFAULT '',
+        whatsapp TEXT NOT NULL DEFAULT '',
+        bio TEXT NOT NULL DEFAULT '',
+        track TEXT NOT NULL DEFAULT '[]',
+        linkedin TEXT NOT NULL DEFAULT '',
+        github TEXT NOT NULL DEFAULT '',
+        portofolio TEXT NOT NULL DEFAULT '',
+        zoom_link TEXT NOT NULL DEFAULT '',
+        zoom_passcode TEXT NOT NULL DEFAULT '',
+        zona_waktu TEXT NOT NULL DEFAULT 'WIB' CHECK (zona_waktu IN ('WIB', 'WITA', 'WIT')),
+        pengingat INTEGER NOT NULL DEFAULT 15 CHECK (pengingat BETWEEN 0 AND 1440),
+        terima_tugas INTEGER NOT NULL DEFAULT 1 CHECK (terima_tugas IN (0, 1)),
+        notif_wa INTEGER NOT NULL DEFAULT 1 CHECK (notif_wa IN (0, 1)),
+        foto_url TEXT NOT NULL DEFAULT '',
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+`);
+
+// Ketersediaan mengajar rutin per hari (1 = Senin ... 7 = Minggu) beserta
+// preferensi jenjang, batas sesi, dan catatan untuk koordinator.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS instruktur_availability (
+        user_id INTEGER NOT NULL,
+        hari INTEGER NOT NULL CHECK (hari BETWEEN 1 AND 7),
+        aktif INTEGER NOT NULL DEFAULT 0 CHECK (aktif IN (0, 1)),
+        mulai TEXT NOT NULL DEFAULT '15:00' CHECK (mulai GLOB '[0-2][0-9]:[0-5][0-9]'),
+        selesai TEXT NOT NULL DEFAULT '18:00' CHECK (selesai GLOB '[0-2][0-9]:[0-5][0-9]'),
+        PRIMARY KEY(user_id, hari),
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE TABLE IF NOT EXISTS instruktur_availability_settings (
+        user_id INTEGER PRIMARY KEY,
+        jenjang TEXT NOT NULL DEFAULT '["SD","SMP","SMK"]',
+        max_sesi INTEGER NOT NULL DEFAULT 3 CHECK (max_sesi BETWEEN 1 AND 7),
+        catatan TEXT NOT NULL DEFAULT '',
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+`);
+
+// Kolom tambahan untuk kontrak frontend terbaru. Ditambahkan lewat ALTER agar
+// database lama tidak perlu dibangun ulang.
+for (const [column, definition] of [
+    ["learning_path_id", "TEXT NOT NULL DEFAULT ''"],
+    ["learning_path_name", "TEXT NOT NULL DEFAULT ''"],
+    ["task_id", "TEXT NOT NULL DEFAULT ''"],
+    ["task_name", "TEXT NOT NULL DEFAULT ''"],
+    ["target_scope", "TEXT NOT NULL DEFAULT 'grade'"]
+]) {
+    if (!tableColumns("instruktur_tasks").includes(column)) {
+        db.exec(`ALTER TABLE instruktur_tasks ADD COLUMN ${column} ${definition}`);
+    }
+}
+for (const [column, definition] of [
+    ["learning_path_id", "TEXT NOT NULL DEFAULT ''"],
+    ["learning_path_name", "TEXT NOT NULL DEFAULT ''"],
+    ["kriteria", "TEXT NOT NULL DEFAULT '[]'"]
+]) {
+    if (!tableColumns("instruktur_exams").includes(column)) {
+        db.exec(`ALTER TABLE instruktur_exams ADD COLUMN ${column} ${definition}`);
+    }
+}
 
 // Tautan laporan disimpan sebagai hash token. Token asli hanya dikembalikan
 // sekali saat admin membuat tautan, sehingga bocornya database tidak langsung
@@ -1320,6 +1466,20 @@ function migrateIdentityToUserId() {
 }
 
 migrateIdentityToUserId();
+
+// Metadata sesi untuk halaman "Riwayat Sesi Login Aktif" di portal instruktur.
+// Ditempatkan setelah migrasi identitas supaya database lama yang tabel
+// sessions-nya dibangun ulang tetap mendapat kolom ini.
+for (const [column, definition] of [
+    ["user_agent", "TEXT"],
+    ["ip", "TEXT"],
+    ["last_seen_at", "DATETIME"]
+]) {
+    if (!tableColumns("sessions").includes(column)) {
+        db.exec(`ALTER TABLE sessions ADD COLUMN ${column} ${definition}`);
+    }
+}
+db.exec("UPDATE sessions SET last_seen_at = created_at WHERE last_seen_at IS NULL");
 
 db.exec(`
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
