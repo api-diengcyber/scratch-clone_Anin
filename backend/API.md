@@ -151,17 +151,38 @@ Sumber data portal `/instruktur` (tugas tambahan, ujian kelulusan, jadwal Zoom).
 | POST | `/api/instruktur/jadwal` | `kurikulum.kelola` | `{ item }`; `201` |
 | PATCH | `/api/instruktur/jadwal/:id` | `kurikulum.kelola` | `{ item }` |
 | DELETE | `/api/instruktur/jadwal/:id` | `kurikulum.kelola` | `{ id }` |
-| GET | `/api/tugas-tambahan?grade=SD\|SMP\|SMK` | login | `{ items, total }`; hanya `status='terbit'` |
-| GET | `/api/ujian-kelulusan?grade=SD\|SMP\|SMK` | login | `{ items, total }`; hanya terbit dan dalam jendela `buka`–`tutup` |
+| GET | `/api/instruktur/tugas/:id/submissions` | `tugas.kelola` | `{ items, total }`; jawaban siswa untuk satu tugas |
+| PATCH | `/api/instruktur/tugas/:id/submissions/:sid` | `tugas.kelola` | `{ item }`; `{ nilai 0-100, feedback? }` |
+| GET | `/api/instruktur/ujian/:id/submissions` | `tugas.nilai` | `{ items, total, kkm, kriteria }`; hanya ujian format `proyek` |
+| PATCH | `/api/instruktur/ujian/:id/submissions/:sid` | `tugas.nilai` | `{ item }`; `{ rubrik, feedback? }` |
+| GET | `/api/instruktur/profil` | login staf | `{ item }` |
+| PATCH | `/api/instruktur/profil` | login staf | `{ item }`; lihat catatan profil di bawah |
+| POST | `/api/instruktur/profil/password` | login staf | `{ ok }`; `{ lama, baru }` |
+| GET | `/api/instruktur/sesi-login` | login | `{ items: [{ id, perangkat, lokasi, terakhir, saatIni }] }` |
+| POST | `/api/instruktur/sesi-login/:id/keluarkan` | login | `{ id }`; sesi milik akun sendiri saja |
+| GET | `/api/instruktur/ketersediaan` | login staf | `{ items, jenjang, maxSesi, catatan }` |
+| PUT | `/api/instruktur/ketersediaan` | login staf | `{ items, jenjang, maxSesi, catatan }` |
+| GET | `/api/tugas-tambahan?grade=SD\|SMP\|SMK` | login | `{ items, total }`; hanya `status='terbit'`, tiap item membawa `submission` milik siswa |
+| PUT | `/api/tugas-tambahan/:id/submission` | login siswa | `{ submission }`; `{ text, link }`, `201` saat baru |
+| GET | `/api/ujian-kelulusan?grade=SD\|SMP\|SMK` | login | `{ items, total }`; hanya terbit dan dalam jendela `buka`–`tutup`, tiap item membawa `syarat` dan `submission` |
+| PUT | `/api/ujian-kelulusan/:id/submission` | login siswa | `{ submission }`; `{ text, link }`, `201` saat baru |
 
 - Cakupan data: instruktur hanya melihat dan mengubah baris miliknya (`owner_user_id`, atau `created_by` untuk jadwal). Admin melihat semua. Baris milik instruktur lain dibalas `404 NOT_FOUND` (bukan `403`) agar keberadaannya tidak bocor.
-- Tugas: `title` (wajib, 200), `description` (1000), `grade` (`SD`/`SMP`/`SMK`), `type` (`kode`/`blok`/`kuis`/`proyek`), `points` (0-1000), `due` (`YYYY-MM-DD` atau kosong), `status` (`draft`/`terbit`/`ditutup`, default `draft`).
-- Ujian: `title`, `description`, `grade`, `format` (`proyek`/`tes`), `kkm` (0-100), `durasi` menit (0-600), `buka`, `tutup`, `status`, serta `hasil` berupa array `{ nama, nilai }`. `nilai` 0-100 dan `tutup` tidak boleh mendahului `buka`. Setiap PATCH dengan `hasil` **mengganti** seluruh daftar peserta, bukan menambah.
-- Jadwal memakai tabel `mentoring_schedules` yang sama dengan halaman "Jadwal Saya" murid, sehingga jadwal yang dibuat instruktur langsung tampil di `/api/jadwal` sesuai jenjang. `mentor` diisi otomatis dari `full_name` akun bila kosong.
-- Endpoint murid tidak pernah mengirim `hasil` (nama dan nilai peserta adalah data pribadi). Murid dengan `allowed_grades` hanya menerima konten jenjang yang diizinkan.
-- Semua perubahan dicatat di `admin_audit` dengan aksi `instruktur_tugas.*`, `instruktur_ujian.*`, dan `instruktur_jadwal.*`.
+- Tugas: `title` (wajib, 200), `description` (1000), `grade` (`SD`/`SMP`/`SMK`), `type` (`kode`/`blok`/`kuis`/`proyek`), `points` (0-1000), `due` (`YYYY-MM-DD` atau kosong), `status` (`draft`/`terbit`/`ditutup`, default `draft`), serta `learningPathId`, `learningPathName`, `taskId`, `taskName` (opsional). `targetScope` dihitung server: `task` bila `taskId` diisi, `path` bila hanya `learningPathId`, selain itu `grade`. Daftar tugas membawa `submissionCount` dan `gradedCount` untuk kartu.
+- Ujian: `title`, `description`, `grade`, `format` (`proyek`/`tes`), `kkm` (0-100), `durasi` menit (0-600), `buka`, `tutup`, `status`, `learningPathId`, `learningPathName`, `kriteria`, serta `hasil` berupa array `{ nama, nilai }`. `nilai` 0-100 dan `tutup` tidak boleh mendahului `buka`. Setiap PATCH dengan `hasil` **mengganti** seluruh daftar peserta, bukan menambah. Daftar ujian membawa `submissionCount`, `pendingCount`, dan `lulusCount`.
+- Rubrik ujian: `kriteria` opsional berisi 1-8 butir `{ k, l, d, max }` dengan total `max` tepat 100. Bila kosong, server memakai rubrik bawaan `fungsi`, `kreativitas`, `kerapian`, `penjelasan` (masing-masing 25). Nilai projek adalah jumlah seluruh butir dan status ditentukan server: `lulus` bila `nilai >= kkm`, selain itu `revisi`.
+- Jawaban tugas: satu baris per murid per tugas. Murid boleh mengirim ulang selama belum dinilai; setelah `status='dinilai'` server membalas `409 SUBMISSION_GRADED`. Nilai 0-100 dan `feedback` maksimal 500 karakter.
+- Pengumpulan projek: satu baris per murid per ujian dengan `attempt`. Setelah dinilai `revisi`, pengumpulan ulang menaikkan `attempt` dan mengembalikan status ke `menunggu` sambil mempertahankan `rubrik`, `nilai`, dan `feedback` terakhir; setelah `lulus` pengumpulan ulang ditolak `409 ALREADY_PASSED`. Hanya ujian `format='proyek'` yang bisa dikumpulkan.
+- Syarat ujian: bila `learningPathId` diisi, server menghitung `{ selesai, total, terpenuhi, nama }` dari `tasks.module_id` + `progress` murid, mengecualikan task projek. Bila modul belum ada di tabel `tasks`, `syarat` bernilai `null` dan ujian tidak dikunci. Pengumpulan saat syarat belum terpenuhi dibalas `409 EXAM_LOCKED`.
+- Jadwal memakai tabel `mentoring_schedules` yang sama dengan halaman "Jadwal Saya" murid, sehingga jadwal yang dibuat instruktur langsung tampil di `/api/jadwal` sesuai jenjang. `mentor` diisi otomatis dari `full_name` akun bila kosong. Jadwal juga menerima `learningPathId`, `learningPathName`, `taskId`, `taskName`, dan `targetScope`; DTO mengembalikan `grade` (jenjang tunggal) di samping `grades`.
+- Profil: `GET` mengisi nilai awal dari akun (`full_name`, `email`, `phone`, `bio`) lalu menimpa dengan baris `instruktur_profile`. `PATCH` menerima `nama` (wajib), `peran`, `email`, `whatsapp`, `bio` (240), `track` (maks 12), `linkedin`, `github`, `portofolio`, `zoomLink` (http/https), `zoomPasscode`, `zonaWaktu` (`WIB`/`WITA`/`WIT`), `pengingat` (5/10/15/30/60 menit), `terimaTugas`, `notifWa`, dan `fotoUrl` (URL http(s) atau data URL PNG/JPEG/WebP hingga ~3 MB). `statistik` dihitung server (`sesiZoom`, `kelasAktif`, `rating`).
+- Ganti password instruktur memakai `POST /api/instruktur/profil/password` dengan minimal 8 karakter, huruf besar, huruf kecil, dan angka; sesi lain dicabut tetapi sesi yang sedang dipakai tetap hidup.
+- Sesi login: `GET` menandai sesi yang sedang dipakai (`saatIni: true`, `terakhir: "Aktif sekarang"`) dan menampilkan sesi lain yang belum kedaluwarsa. `POST .../keluarkan` hanya bisa mengeluarkan sesi akun sendiri dan menolak sesi yang sedang dipakai (`400`).
+- Ketersediaan: satu baris per instruktur per hari (`1` = Senin ... `7` = Minggu) berisi `aktif`, `mulai`, `selesai`; preferensi `jenjang`, `maxSesi` (1-7), dan `catatan` (200) disimpan terpisah. `PUT` mengganti seluruh daftar hari.
+- Endpoint murid tidak pernah mengirim `hasil` (nama dan nilai peserta adalah data pribadi). Murid dengan `allowed_grades` hanya menerima konten jenjang yang diizinkan; `PUT` jawaban untuk tugas/ujian jenjang lain dibalas `404`.
+- Semua perubahan dicatat di `admin_audit` dengan aksi `instruktur_tugas.*`, `instruktur_ujian.*`, `instruktur_jadwal.*`, `instruktur_profil.*`, `instruktur_sesi.*`, dan `instruktur_ketersediaan.*`.
 - Endpoint tulis dibatasi 60 permintaan per menit per akun (`429 RATE_LIMITED`).
-- Tabel: `instruktur_tasks`, `instruktur_exams`, `instruktur_exam_results` (dibuat otomatis saat server start).
+- Tabel: `instruktur_tasks`, `instruktur_exams`, `instruktur_exam_results`, `instruktur_task_submissions`, `instruktur_exam_submissions`, `instruktur_profile`, `instruktur_availability`, `instruktur_availability_settings` (dibuat otomatis saat server start).
 
 ### Learning analytics, achievement, dan pesan mentor
 

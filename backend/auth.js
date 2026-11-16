@@ -73,7 +73,7 @@ function sha256(text) {
     return crypto.createHash("sha256").update(text).digest("hex");
 }
 
-function createSession(userId, { sessionHours } = {}) {
+function createSession(userId, { sessionHours, userAgent, ip } = {}) {
     const token = crypto.randomBytes(32).toString("hex");
     const hours = Number(sessionHours);
     const ttlMs = (Number.isFinite(hours) && hours > 0 ? Math.min(hours, 168) * 60 * 60 * 1000 : SESSION_DAYS * 24 * 60 * 60 * 1000);
@@ -82,10 +82,12 @@ function createSession(userId, { sessionHours } = {}) {
     const user = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
     if (!user) throw new Error("User tidak ditemukan saat membuat sesi.");
 
+    const ua = userAgent === undefined || userAgent === null ? null : String(userAgent).slice(0, 400);
+    const clientIp = ip === undefined || ip === null ? null : String(ip).slice(0, 80);
     db.prepare(`
-        INSERT INTO sessions (token_hash, user_id, expires_at)
-        VALUES (?, ?, ?)
-    `).run(sha256(token), userId, expiresAt);
+        INSERT INTO sessions (token_hash, user_id, expires_at, user_agent, ip, last_seen_at)
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).run(sha256(token), userId, expiresAt, ua, clientIp);
 
     return token;
 }
@@ -136,17 +138,33 @@ const PASSWORD_CHANGE_EXEMPT = new Set([
 ]);
 
 // "Satpam": wajib membawa session token dari backend.
+const lastSeenTouch = new Map(); // token_hash -> waktu update terakhir (ms)
+const LAST_SEEN_INTERVAL_MS = 10 * 60 * 1000;
+
+function touchSession(tokenHash) {
+    const now = Date.now();
+    const previous = lastSeenTouch.get(tokenHash);
+    if (previous && now - previous < LAST_SEEN_INTERVAL_MS) return;
+    lastSeenTouch.set(tokenHash, now);
+    try {
+        db.prepare("UPDATE sessions SET last_seen_at = CURRENT_TIMESTAMP WHERE token_hash = ?").run(tokenHash);
+    } catch (_) {
+        // Metadata sesi bersifat pelengkap; jangan gagalkan request karenanya.
+    }
+}
+
 function requireAuth(req, res, next) {
     const token = readToken(req);
     if (!token) return authError(res, 401, "Belum login", "UNAUTHORIZED");
 
+    const tokenHash = sha256(token);
     const session = db.prepare(`
         SELECT s.user_id, s.expires_at,
                u.username, u.role, u.status, u.must_change_password
         FROM sessions s
         JOIN users u ON u.id = s.user_id
         WHERE s.token_hash = ?
-    `).get(sha256(token));
+    `).get(tokenHash);
 
     if (!session || new Date(session.expires_at) < new Date()) {
         return authError(res, 401, "Sesi habis, silakan login lagi", "SESSION_EXPIRED");
@@ -176,6 +194,7 @@ function requireAuth(req, res, next) {
         return authError(res, 403, "Wajib mengganti password sebelum melanjutkan.", "PASSWORD_CHANGE_REQUIRED");
     }
 
+    touchSession(tokenHash);
     next();
 }
 
@@ -274,6 +293,9 @@ setInterval(() => {
     const now = Date.now();
     for (const [k, e] of failedLogins) {
         if (now - e.first > WINDOW_MS) failedLogins.delete(k);
+    }
+    for (const [hash, touchedAt] of lastSeenTouch) {
+        if (now - touchedAt > LAST_SEEN_INTERVAL_MS * 6) lastSeenTouch.delete(hash);
     }
 }, 5 * 60 * 1000).unref();
 

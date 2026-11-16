@@ -193,6 +193,7 @@ app.use("/api", (req, res, next) => {
     next();
 });
 
+app.use("/api/instruktur/profil", express.json({ limit: "4mb" }));
 app.use(express.json({ limit: "1mb" }));
 
 // Request ID + structured logging per request
@@ -626,7 +627,11 @@ app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
     auth.clearFails(attemptKey);
     db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
 
-    const token = auth.createSession(user.id, { sessionHours: sessionHoursFromSettings() });
+    const token = auth.createSession(user.id, {
+        sessionHours: sessionHoursFromSettings(),
+        userAgent: req.get("user-agent"),
+        ip: req.ip
+    });
     sendApiSuccess(res, {
         id: user.id,
         username: user.username,
@@ -674,7 +679,11 @@ app.post("/api/auth/firebase-login", async (req, res) => {
 
         db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
 
-        const token = auth.createSession(user.id, { sessionHours: sessionHoursFromSettings() });
+        const token = auth.createSession(user.id, {
+            sessionHours: sessionHoursFromSettings(),
+            userAgent: req.get("user-agent"),
+            ip: req.ip
+        });
         sendApiSuccess(res, {
             id: user.id,
             username: user.username,
@@ -763,7 +772,11 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
     }
 
     db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
-    const token = auth.createSession(userId, { sessionHours: sessionHoursFromSettings() });
+    const token = auth.createSession(userId, {
+        sessionHours: sessionHoursFromSettings(),
+        userAgent: req.get("user-agent"),
+        ip: req.ip
+    });
     sendApiSuccess(res, { id: userId, username, token, email: finalEmail, role: "student", accountStatus: "active" }, "Registrasi berhasil", 201);
 });
 
@@ -799,7 +812,11 @@ app.post("/api/auth/firebase-register", async (req, res) => {
         const userId = Number(info.lastInsertRowid);
 
         db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
-        const token = auth.createSession(userId, { sessionHours: sessionHoursFromSettings() });
+        const token = auth.createSession(userId, {
+            sessionHours: sessionHoursFromSettings(),
+            userAgent: req.get("user-agent"),
+            ip: req.ip
+        });
         sendApiSuccess(res, {
             id: userId,
             username,
