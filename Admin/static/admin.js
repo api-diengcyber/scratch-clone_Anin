@@ -51,11 +51,15 @@ function setCollapsed(collapsed, persist) {
 // Diukur saat sidebar terbuka (judul grup menyusut saat rail), lalu posisinya dipakai tetap agar tombol tidak melompat.
 function alignSbToggle() {
   if (!sidebar || isMobileNav()) return;
-  const title = [...document.querySelectorAll('#sidebarNav .nav-title')].find((t) => /konfigurasi/i.test(t.textContent));
+  const titles = [...document.querySelectorAll('#sidebarNav .nav-title')];
+  const title = titles.find((t) => /konfigurasi/i.test(t.textContent));
   if (!title) return;
   const was = document.body.classList.contains('sb-collapsed');
   if (was) document.body.classList.remove('sb-collapsed');
-  const s = sidebar.getBoundingClientRect(), t = title.getBoundingClientRect();
+  const s = sidebar.getBoundingClientRect();
+  let t = title.getBoundingClientRect();
+  // menu panjang: kalau judul Konfigurasi terlalu ke bawah, sejajarkan dengan judul pertama
+  if (t.top - s.top > s.height - 140 && titles[0]) t = titles[0].getBoundingClientRect();
   if (was) document.body.classList.add('sb-collapsed');
   if (!t.height) return;
   sidebar.style.setProperty('--sb-toggle-top', Math.round(t.top - s.top + t.height / 2) + 'px');
