@@ -328,12 +328,10 @@ app.use("/admin", express.static(ADMIN_ROOT, { index: "index.html" }));
 // Halaman instruktur: http://localhost:3000/instruktur/
 app.use("/instruktur", express.static(INSTRUKTUR_ROOT, { index: "index.html" }));
 
-// URL bersih antar-halaman admin (mis. /admin/jadwal) tetap membuka SPA
-// Admin, termasuk saat halaman di-refresh. Hanya nama view yang dikenal.
-const ADMIN_VIEWS = new Set([
-    "dashboard", "kurikulum", "tahap", "plugin", "siswa",
-    "materi", "badge", "tugas", "jadwal", "pengaturan", "akses", "profil"
-]);
+// URL bersih antar-halaman admin (mis. /admin/finance-invoice) tetap membuka
+// SPA Admin, termasuk saat halaman di-refresh. Hanya nama view yang dikenal;
+// daftarnya di admin-views.js agar sinkron dengan VIEWS di kurikulum.js.
+const ADMIN_VIEWS = new Set(require("./admin-views"));
 app.get("/admin/:view", (req, res, next) => {
     if (ADMIN_VIEWS.has(req.params.view)) {
         return res.sendFile(path.join(ADMIN_ROOT, "index.html"));
