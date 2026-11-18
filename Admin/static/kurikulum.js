@@ -898,8 +898,17 @@
   // ---------- INIT ----------
   Promise.all([api.list(), api.listTahap()]).then(([list, tl]) => {
     jalur = list; tahapList = tl; render();
-    showView(viewFromUrl(), 'replace');
-    // tombol back/forward browser
-    window.addEventListener('popstate', () => showView(viewFromUrl(), 'none'));
   });
+
+  // Tampilkan view awal setelah semua modul selesai dimuat. Kalau dipanggil
+  // lebih awal, listener 'dc:view' milik modul yang dimuat belakangan (mis.
+  // finance.js) belum terpasang, sehingga deep link / refresh tampak kosong.
+  const bootView = () => showView(viewFromUrl(), 'replace');
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootView, { once: true });
+  } else {
+    bootView();
+  }
+  // tombol back/forward browser
+  window.addEventListener('popstate', () => showView(viewFromUrl(), 'none'));
 })();
