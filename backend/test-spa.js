@@ -128,6 +128,20 @@ async function main() {
     ok((await r.text()).includes("dc-finance-paket"), "isi finance.js tidak sesuai");
   });
 
+  await t("spa: aset static/ yang dirujuk index.html tersedia", async () => {
+    const html = fs.readFileSync(path.join(__dirname, "..", "Admin", "index.html"), "utf8");
+    const refs = [...new Set(
+      [...html.matchAll(/(?:src|href)="(static\/[^"?#]+)/g)].map((m) => m[1])
+    )];
+    ok(refs.length >= 15, `hanya ${refs.length} aset terbaca`);
+    const missing = [];
+    for (const rel of refs) {
+      const r = await fetch(`${B}/admin/${rel}`);
+      if (r.status !== 200) missing.push(`${rel} (${r.status})`);
+    }
+    eq(missing, [], "aset yang dirujuk tidak tersedia");
+  });
+
   await t("spa: aset statis yang tidak ada tetap 404", async () => {
     const r = await fetch(`${B}/admin/static/tidak-ada.js`);
     eq(r.status, 404, "status");
