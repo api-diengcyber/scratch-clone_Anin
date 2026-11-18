@@ -140,6 +140,35 @@
         <i class="fa-solid fa-tags w-4 text-center text-sm"></i>
         <span>Paket &amp; Harga</span>
       </a>
+          <a href="#" data-view="finance-promo" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+            <i class="fa-solid fa-percent w-4 text-center text-sm"></i>
+            <span>Diskon &amp; Promo</span>
+          </a>
+        </div>
+      </div>
+
+      <div data-fin-group>
+        <button type="button" data-fin-toggle aria-expanded="false" aria-controls="finSubCompany" class="nav-link group w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+          <span class="flex items-center gap-3"><i class="fa-solid fa-building w-4 text-center text-sm"></i><span>Company Finance</span></span>
+          <i class="fa-solid fa-chevron-down fin-chev text-[10px]"></i>
+        </button>
+        <div id="finSubCompany" class="fin-sub hidden pl-4 pt-1 space-y-1">
+          <a href="#" data-view="finance-pemasukan" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+            <i class="fa-solid fa-arrow-trend-up w-4 text-center text-sm"></i>
+            <span>Pemasukan Perusahaan</span>
+          </a>
+          <a href="#" data-view="finance-pengeluaran" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+            <i class="fa-solid fa-arrow-trend-down w-4 text-center text-sm"></i>
+            <span>Pengeluaran Perusahaan</span>
+          </a>
+          <a href="#" data-view="finance-payroll" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+            <i class="fa-solid fa-money-check-dollar w-4 text-center text-sm"></i>
+            <span>Gaji &amp; Honor</span>
+          </a>
+          <a href="#" data-view="finance-anggaran" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-slate-600 dark:text-slate-400 font-medium text-sm">
+            <i class="fa-solid fa-chart-pie w-4 text-center text-sm"></i>
+            <span>Anggaran Operasional</span>
+          </a>
         </div>
       </div>
 
@@ -530,6 +559,11 @@
     <div id="view-finance-bayar" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-finance-invoice" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-finance-paket" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-finance-promo" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-finance-pemasukan" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-finance-pengeluaran" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-finance-payroll" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-finance-anggaran" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
   </main>
 
   <!-- Modal 2: Tambah Siswa Baru -->
@@ -732,11 +766,11 @@
 <!-- Javascript Logic -->
 <script src="static/admin-api.js?v=6"></script>
 <script src="static/dashboard.js?v=1"></script>
-<script src="static/admin.js?v=50"></script>
+<script src="static/admin.js?v=62"></script>
 <script src="static/common.js?v=2"></script>
 <script src="static/dialog.js?v=3"></script>
 <script src="static/editor.js?v=12"></script>
-<script src="static/kurikulum.js?v=50"></script>
+<script src="static/kurikulum.js?v=62"></script>
 <script src="static/plugins.js?v=2"></script>
    <script src="static/rekap-absen.js?v=3"></script>
    <script src="static/siswa.js?v=12"></script>
@@ -746,7 +780,9 @@
    <script src="static/profil.js?v=10"></script>
    <script src="static/materi.js?v=2"></script>
    <script src="static/instruktur-admin.js?v=2"></script>
-   <script src="static/finance-data.js?v=50"></script>
-   <script src="static/finance.js?v=51"></script>
+<script src="static/finance-data.js?v=62"></script>
+<script src="static/finance.js?v=62"></script>
+<script src="static/finance-company.js?v=62"></script>
+<script src="static/finance-payroll.js?v=62"></script>
 </body>
 </html>

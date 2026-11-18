@@ -143,7 +143,41 @@
         siswa: s, total: Math.max(0, x.harga - x.diskon)
       };
     });
-    exp = (D.pengeluaran || []).map((e) => ({ ...e, rid: e.id, tanggal: iso(shift(t, -e.daysAgo)) }));
+    exp = (D.pengeluaran || []).filter((e) => e.kategori !== 'Gaji & Honor').map((e) => ({ ...e, rid: e.id, tanggal: iso(shift(t, -e.daysAgo)) }));
+    oth = [];
+    refreshCo();
+  }
+
+  // Data transaksi siswa tetap dari API Student Finance. Ringkasan operasional
+  // mengambil pengeluaran terealisasi dan pemasukan lain dari Company Finance.
+  let oth = [];
+  let companySourceActive = false;
+  function normalizeCompanyRow(x, prefix) {
+    const date = x.tanggal || x.date || x.paidOn || x.createdAt || '';
+    return {
+      ...x,
+      rid: x.rid != null ? x.rid : x.id,
+      id: x.code || x.id || (prefix + '-' + Math.random().toString(36).slice(2, 8)),
+      kategori: x.kategori || x.category || x.jenis || 'Lainnya',
+      nominal: Number(x.nominal != null ? x.nominal : (x.amount != null ? x.amount : (x.total || 0))),
+      tanggal: /^\d{4}-\d{2}-\d{2}$/.test(String(date)) ? String(date) : (date ? wibDate(date) : iso(today())),
+      catatan: x.catatan || x.note || x.description || ''
+    };
+  }
+  function refreshCo() {
+    const c = window.DCCompany;
+    if (c && typeof c.realizedExpenses === 'function' && typeof c.otherIncome === 'function') {
+      exp = (c.realizedExpenses() || []).map((x) => normalizeCompanyRow(x, 'COMP-EXP'));
+      oth = (c.otherIncome() || []).map((x) => normalizeCompanyRow(x, 'COMP-IN'));
+      companySourceActive = true;
+      return true;
+    }
+    companySourceActive = false;
+    oth = [];
+    if (demoMode && D) {
+      exp = (D.pengeluaran || []).filter((e) => e.kategori !== 'Gaji & Honor').map((e) => ({ ...e, rid: e.id, tanggal: iso(shift(today(), -e.daysAgo)) }));
+    }
+    return false;
   }
 
   async function loadData() {
@@ -165,6 +199,7 @@
       exp = expRows.map(mapExp);
       demoMode = false;
       demoReason = '';
+      refreshCo();
     } catch (err) {
       demoMode = true;
       demoReason = 'Data keuangan server tidak bisa dimuat (' + (err.message || 'tidak diketahui') + ').';
@@ -175,6 +210,8 @@
   async function reloadExpenses() {
     if (demoMode) return;
     exp = (await fetchAll('/api/admin/finance/expenses')).map(mapExp);
+    // Jika Company Finance aktif, sumber pengeluaran laporan tetap data realisasi Company.
+    if (companySourceActive) refreshCo();
   }
 
   function init() {
@@ -242,13 +279,16 @@
     const T = trx.filter((x) => within(x.tanggal, r));
     const E = exp.filter((x) => within(x.tanggal, r));
     const paid = T.filter((x) => x.status === 'paid'), pend = T.filter((x) => x.status === 'pending');
-    const pemasukan = sum(paid, (x) => x.total), pengeluaran = sum(E, (x) => x.nominal);
+    const O = (oth || []).filter((x) => within(x.tanggal, r));
+    const pemasukan = sum(paid, (x) => Number(x.total) || 0) + sum(O, (x) => Number(x.nominal) || 0);
+    const pengeluaran = sum(E, (x) => Number(x.nominal) || 0);
     const kat = {}, masuk = {}, keluar = {};
     E.forEach((x) => {
       kat[x.kategori] = (kat[x.kategori] || 0) + x.nominal;
       keluar[x.tanggal] = (keluar[x.tanggal] || 0) + x.nominal;
     });
-    paid.forEach((x) => { masuk[x.tanggal] = (masuk[x.tanggal] || 0) + x.total; });
+    paid.forEach((x) => { masuk[x.tanggal] = (masuk[x.tanggal] || 0) + (Number(x.total) || 0); });
+    O.forEach((x) => { masuk[x.tanggal] = (masuk[x.tanggal] || 0) + (Number(x.nominal) || 0); });
     const harian = [];
     for (let d = r[0]; d <= r[1]; d = shiftIso(d, 1)) harian.push({ tanggal: d, masuk: masuk[d] || 0, keluar: keluar[d] || 0 });
     const count = (s) => T.filter((x) => x.status === s).length;
@@ -286,35 +326,64 @@
 
   async function drawOverview() {
     const v = $('#view-finance'), r = range();
+    if (!v) return;
     const bad = P.key === 'custom' && (!r[0] || !r[1] || r[0] > r[1]);
-    const S = bad ? null : await summaryFor(r);
-    const inc = S ? S.pemasukan : 0, out = S ? S.pengeluaran : 0, laba = S ? S.laba : 0;
-    const trxSum = S ? S.transaksi : { total: 0, paid: 0, pending: 0, failed: 0, refunded: 0, pemasukan: 0, menunggu: 0 };
-    const pend = S ? S.menunggu : { total: 0, count: 0 };
-    const byJ = S ? S.perJenjang : ['SD', 'SMP', 'SMK'].map((grade) => ({ grade, total: 0, count: 0 }));
-    const byK = S ? S.pengeluaranKategori : [];
+    const T = bad ? [] : trx.filter((x) => within(x.tanggal, r));
+    const E = bad ? [] : exp.filter((x) => within(x.tanggal, r));
+    const O = bad ? [] : oth.filter((x) => within(x.tanggal, r));
+    const paid = T.filter((x) => x.status === 'paid');
+    const pend = T.filter((x) => x.status === 'pending');
+    const studentIncome = sum(paid, (x) => Number(x.total) || 0);
+    const otherIncome = sum(O, (x) => Number(x.nominal) || 0);
+    const inc = studentIncome + otherIncome;
+    const out = sum(E, (x) => Number(x.nominal) || 0);
+    const laba = inc - out;
+    const trxSum = {
+      total: T.length,
+      paid: paid.length,
+      pending: pend.length,
+      failed: T.filter((x) => x.status === 'failed').length,
+      refunded: T.filter((x) => x.status === 'refunded').length
+    };
+    const byJ = ['SD', 'SMP', 'SMK'].map((grade) => ({
+      grade,
+      total: sum(paid.filter((x) => x.jenjang === grade), (x) => Number(x.total) || 0)
+    }));
+    const categoryTotals = {};
+    E.forEach((x) => {
+      const k = x.kategori || 'Lainnya';
+      categoryTotals[k] = (categoryTotals[k] || 0) + (Number(x.nominal) || 0);
+    });
+    const byK = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
     const masuk = new Map(), keluar = new Map();
-    (S ? S.harian : []).forEach((x) => { masuk.set(x.tanggal, x.masuk); keluar.set(x.tanggal, x.keluar); });
+    const addDaily = (target, date, amount) => {
+      if (!date || !Number.isFinite(Number(amount))) return;
+      target.set(date, (target.get(date) || 0) + Number(amount));
+    };
+    paid.forEach((x) => addDaily(masuk, x.tanggal, x.total));
+    O.forEach((x) => addDaily(masuk, x.tanggal, x.nominal));
+    E.forEach((x) => addDaily(keluar, x.tanggal, x.nominal));
+    const recent = T.slice().sort((a, b) => b.tanggal.localeCompare(a.tanggal) || String(b.id).localeCompare(String(a.id))).slice(0, 8);
+    const listExp = E.slice().sort((a, b) => b.tanggal.localeCompare(a.tanggal) || String(b.rid).localeCompare(String(a.rid)));
     const card = (label, val, tone, icon) => '<div class="' + CARD + ' p-4"><div class="flex items-center justify-between"><span class="text-sm text-slate-500 dark:text-slate-400">' + label + '</span><i class="fa-solid ' + icon + ' ' + tone + '"></i></div><div class="mt-2 text-xl font-extrabold text-slate-900 dark:text-white">' + val + '</div></div>';
     const dist = (rows, total, color) => rows.map((q) => '<div class="mb-2"><div class="flex justify-between text-sm"><span class="text-slate-600 dark:text-slate-300">' + esc(q[0]) + '</span><span class="font-semibold text-slate-800 dark:text-slate-100">' + rp(q[1]) + '</span></div><div class="h-2 rounded-full bg-slate-100 dark:bg-slate-800 mt-1"><div class="h-2 rounded-full" style="width:' + (total ? Math.round(q[1] / total * 100) : 0) + '%;background:' + color + '"></div></div></div>').join('') || '<p class="text-sm text-slate-400">Belum ada data pada periode ini.</p>';
-    const recent = trx.filter((x) => within(x.tanggal, r)).sort((a, b) => b.tanggal.localeCompare(a.tanggal) || String(b.id).localeCompare(String(a.id))).slice(0, 8);
-    const listExp = exp.filter((x) => within(x.tanggal, r)).sort((a, b) => b.tanggal.localeCompare(a.tanggal) || String(b.rid).localeCompare(String(a.rid)));
-    v.innerHTML = head('Ringkasan Finance', 'Pemasukan = pembayaran siswa berstatus Lunas. Laba bersih = pemasukan dikurangi pengeluaran pada periode.',
+
+    v.innerHTML = head('Ringkasan Finance', 'Pemasukan = pembayaran siswa Lunas ditambah pemasukan lain dari Company Finance. Pengeluaran = pengeluaran Company Finance yang sudah Dibayar. Laba bersih = pemasukan dikurangi pengeluaran.',
       '<button type="button" data-fin="export-overview" class="' + BTN + '"><i class="fa-solid fa-file-arrow-down mr-1.5"></i>Export laporan</button>') + banner() +
       '<div class="flex flex-wrap items-center gap-2" role="group" aria-label="Periode">' + PERIODS.map((p) => '<button type="button" data-fin-period="' + p[0] + '" aria-pressed="' + (P.key === p[0]) + '" class="px-3.5 py-2 rounded-xl text-sm font-semibold ' + (P.key === p[0] ? 'bg-jade-600 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-jade-50 dark:hover:bg-slate-800') + '">' + p[1] + '</button>').join('') +
       (P.key === 'custom' ? '<input type="date" data-fin-date="from" value="' + esc(P.from) + '" class="' + FIELD + '" aria-label="Dari tanggal"><span class="text-slate-400">–</span><input type="date" data-fin-date="to" value="' + esc(P.to) + '" class="' + FIELD + '" aria-label="Sampai tanggal">' : '') + '</div>' +
       (bad ? '<p class="text-sm text-rose-600">Isi kedua tanggal, dan pastikan tanggal akhir tidak lebih awal dari tanggal awal.</p>' : '') +
       '<div class="grid grid-cols-2 xl:grid-cols-4 gap-3">' + card('Total pemasukan', rp(inc), 'text-emerald-500', 'fa-arrow-trend-up') + card('Total pengeluaran', rp(out), 'text-rose-500', 'fa-arrow-trend-down') +
-      card('Laba bersih', (laba < 0 ? '−' : '') + rp(Math.abs(laba)), laba < 0 ? 'text-rose-500' : 'text-jade-600', 'fa-scale-balanced') + card('Pembayaran menunggu', rp(pend.total) + ' <span class="text-sm font-semibold text-slate-400">(' + pend.count + ')</span>', 'text-amber-500', 'fa-hourglass-half') + '</div>' +
+      card('Laba bersih', (laba < 0 ? '−' : '') + rp(Math.abs(laba)), laba < 0 ? 'text-rose-500' : 'text-jade-600', 'fa-scale-balanced') + card('Pembayaran menunggu', rp(sum(pend, (x) => x.total)) + ' <span class="text-sm font-semibold text-slate-400">(' + pend.length + ')</span>', 'text-amber-500', 'fa-hourglass-half') + '</div>' +
       '<div class="grid lg:grid-cols-3 gap-3"><div class="' + CARD + ' p-4 lg:col-span-2"><div class="flex items-center justify-between mb-2"><h2 class="font-bold text-slate-800 dark:text-white">Pemasukan dan pengeluaran</h2><span class="text-xs text-slate-500"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-1"></span>Masuk <span class="inline-block w-2.5 h-2.5 rounded-sm bg-rose-400 ml-3 mr-1"></span>Keluar</span></div>' + (bad ? '' : chartBuckets(r, masuk, keluar)) + '</div>' +
-      '<div class="' + CARD + ' p-4"><h2 class="font-bold text-slate-800 dark:text-white mb-3">Sumber pemasukan per jenjang</h2>' + dist(byJ.map((q) => [GRADE[q.grade], q.total]), inc, '#10b981') + '</div></div>' +
-      '<div class="grid md:grid-cols-2 gap-3"><div class="' + CARD + ' p-4"><h2 class="font-bold text-slate-800 dark:text-white mb-3">Student Finance</h2><dl class="grid grid-cols-2 gap-y-2 text-sm"><dt class="text-slate-500">Transaksi</dt><dd class="font-semibold text-right">' + trxSum.total + '</dd><dt class="text-slate-500">Lunas</dt><dd class="font-semibold text-right">' + trxSum.paid + '</dd><dt class="text-slate-500">Menunggu</dt><dd class="font-semibold text-right">' + trxSum.pending + '</dd><dt class="text-slate-500">Gagal / dikembalikan</dt><dd class="font-semibold text-right">' + (trxSum.failed + trxSum.refunded) + '</dd><dt class="text-slate-500">Total diskon (lunas)</dt><dd class="font-semibold text-right">' + rp(S ? S.diskon : 0) + '</dd></dl></div>' +
-      '<div class="' + CARD + ' p-4"><h2 class="font-bold text-slate-800 dark:text-white mb-3">Company Finance: pengeluaran per kategori</h2>' + dist(byK.map((q) => [q.kategori, q.total]), out, '#fb7185') + '</div></div>' +
+      '<div class="' + CARD + ' p-4"><h2 class="font-bold text-slate-800 dark:text-white mb-3">Sumber pemasukan per jenjang</h2>' + dist(byJ.map((q) => [GRADE[q.grade], q.total]).concat([['Pemasukan lain', otherIncome]]), inc, '#10b981') + '</div></div>' +
+      '<div class="grid md:grid-cols-2 gap-3"><div class="' + CARD + ' p-4"><h2 class="font-bold text-slate-800 dark:text-white mb-3">Student Finance</h2><dl class="grid grid-cols-2 gap-y-2 text-sm"><dt class="text-slate-500">Transaksi</dt><dd class="font-semibold text-right">' + trxSum.total + '</dd><dt class="text-slate-500">Lunas</dt><dd class="font-semibold text-right">' + trxSum.paid + '</dd><dt class="text-slate-500">Menunggu</dt><dd class="font-semibold text-right">' + trxSum.pending + '</dd><dt class="text-slate-500">Gagal / dikembalikan</dt><dd class="font-semibold text-right">' + (trxSum.failed + trxSum.refunded) + '</dd><dt class="text-slate-500">Total diskon (lunas)</dt><dd class="font-semibold text-right">' + rp(sum(paid, (x) => x.diskon)) + '</dd></dl></div>' +
+      '<div class="' + CARD + ' p-4"><h2 class="font-bold text-slate-800 dark:text-white mb-3">Company Finance: pengeluaran per kategori</h2>' + dist(byK, out, '#fb7185') + '</div></div>' +
       '<div class="' + CARD + ' p-4"><div class="flex items-center justify-between mb-3"><h2 class="font-bold text-slate-800 dark:text-white">Transaksi terbaru</h2><a href="#" data-view="finance-siswa" class="text-sm font-semibold text-jade-600">Lihat semua</a></div><div class="overflow-x-auto"><table class="w-full text-sm min-w-[640px]"><thead><tr class="text-left text-slate-500"><th class="py-2 pr-3 font-semibold">ID</th><th class="pr-3 font-semibold">Tanggal</th><th class="pr-3 font-semibold">Nama</th><th class="pr-3 font-semibold">Keterangan</th><th class="pr-3 font-semibold">Kategori</th><th class="pr-3 font-semibold text-right">Nominal</th><th class="font-semibold">Status</th></tr></thead><tbody>' +
       (recent.map((x) => '<tr class="border-t border-slate-100 dark:border-slate-800"><td class="py-2 pr-3 font-mono text-xs">' + esc(x.id) + '</td><td class="pr-3 whitespace-nowrap">' + fmt(x.tanggal) + '</td><td class="pr-3">' + esc(x.siswa.nama) + '</td><td class="pr-3">' + esc(x.jalur) + '</td><td class="pr-3">Student Finance</td><td class="pr-3 text-right whitespace-nowrap">' + rp(x.total) + '</td><td>' + badge(x.status) + '</td></tr>').join('') || '<tr><td colspan="7" class="py-6 text-center text-slate-400">Belum ada transaksi pada periode ini.</td></tr>') + '</tbody></table></div></div>' +
-      '<div class="' + CARD + ' p-4"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-bold text-slate-800 dark:text-white">Pengeluaran operasional</h2><p class="text-xs text-slate-500 dark:text-slate-400">Tambah, ubah, atau hapus pengeluaran pada periode ini.</p></div><button type="button" data-fin-expense="new" class="' + BTN + '"><i class="fa-solid fa-plus mr-1.5"></i>Tambah pengeluaran</button></div><div class="overflow-x-auto"><table class="w-full text-sm min-w-[680px]"><thead><tr class="text-left text-slate-500"><th class="py-2 pr-3 font-semibold">ID</th><th class="pr-3 font-semibold">Tanggal</th><th class="pr-3 font-semibold">Kategori</th><th class="pr-3 font-semibold">Catatan</th><th class="pr-3 font-semibold text-right">Nominal</th><th class="font-semibold">Aksi</th></tr></thead><tbody>' +
-      (listExp.map((x) => '<tr class="border-t border-slate-100 dark:border-slate-800"><td class="py-2.5 pr-3 font-mono text-xs">' + esc(x.id) + '</td><td class="pr-3 whitespace-nowrap">' + fmt(x.tanggal) + '</td><td class="pr-3">' + esc(x.kategori) + '</td><td class="pr-3 text-slate-500 dark:text-slate-400">' + esc(x.catatan || '–') + '</td><td class="pr-3 text-right whitespace-nowrap font-semibold">' + rp(x.nominal) + '</td><td><div class="flex gap-1">' + iconBtn('expense-edit', x.rid, 'fa-pen', 'Ubah') + iconBtn('expense-del', x.rid, 'fa-trash-can', 'Hapus') + '</div></td></tr>').join('') || '<tr><td colspan="6" class="py-6 text-center text-slate-400">Belum ada pengeluaran pada periode ini.</td></tr>') + '</tbody></table></div></div>';
-    v._rows = trx.filter((x) => within(x.tanggal, r));
+      '<div class="' + CARD + ' p-4"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-bold text-slate-800 dark:text-white">Pengeluaran operasional</h2><p class="text-xs text-slate-500 dark:text-slate-400">Pengeluaran yang sudah dibayar dari Company Finance.</p></div><a href="#" data-view="finance-pengeluaran" class="' + BTN + '"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>Kelola pengeluaran</a></div><div class="overflow-x-auto"><table class="w-full text-sm min-w-[680px]"><thead><tr class="text-left text-slate-500"><th class="py-2 pr-3 font-semibold">ID</th><th class="pr-3 font-semibold">Tanggal</th><th class="pr-3 font-semibold">Kategori</th><th class="pr-3 font-semibold">Catatan</th><th class="pr-3 font-semibold text-right">Nominal</th><th class="font-semibold">Aksi</th></tr></thead><tbody>' +
+      (listExp.map((x) => '<tr class="border-t border-slate-100 dark:border-slate-800"><td class="py-2.5 pr-3 font-mono text-xs">' + esc(x.id) + '</td><td class="pr-3 whitespace-nowrap">' + fmt(x.tanggal) + '</td><td class="pr-3">' + esc(x.kategori) + '</td><td class="pr-3 text-slate-500 dark:text-slate-400">' + esc(x.catatan || '–') + '</td><td class="pr-3 text-right whitespace-nowrap font-semibold">' + rp(x.nominal) + '</td><td><span class="text-xs text-slate-400">Dikelola di Company Finance</span></td></tr>').join('') || '<tr><td colspan="6" class="py-6 text-center text-slate-400">Belum ada pengeluaran dibayar pada periode ini.</td></tr>') + '</tbody></table></div></div>';
+    v._rows = T;
   }
 
   // ================= TRANSAKSI SISWA =================
@@ -596,23 +665,104 @@
     savePk(); drawPaket(); toast(aktif ? 'Paket diaktifkan.' : 'Paket dinonaktifkan.');
   }
 
+
+  // ================= DISKON & PROMO =================
+  const PM_KEY = 'dc-finance-promo', PMF = { q: '', status: '' };
+  const seedPromo = () => D.promo.map((x) => ({ kode: x.kode, nama: x.nama, tipe: x.tipe, nilai: x.nilai, jenjang: x.jenjang, mulai: iso(shift(today(), x.mulaiOff)), selesai: iso(shift(today(), x.selesaiOff)), kuota: x.kuota, aktif: true }));
+  let PM = (function () { try { return JSON.parse(localStorage.getItem(PM_KEY)); } catch (_) { return null; } })() || seedPromo();
+  const savePm = () => { try { localStorage.setItem(PM_KEY, JSON.stringify(PM)); } catch (_) {} };
+  // pemakaian = transaksi yang masih berlaku (lunas atau menunggu) dengan kode promo tersebut
+  const pmUsed = (k) => trx.filter((x) => x.promo === k && (x.status === 'paid' || x.status === 'pending')).length;
+  const PMS = { on: ['Aktif', 'paid'], off: ['Nonaktif', 'refunded'], expired: ['Kedaluwarsa', 'failed'], soon: ['Belum Mulai', 'gateway'], full: ['Kuota Habis', 'verif'] };
+  function pmStatus(p) { const t = iso(today()); if (!p.aktif) return 'off'; if (t < p.mulai) return 'soon'; if (t > p.selesai) return 'expired'; if (p.kuota != null && pmUsed(p.kode) >= p.kuota) return 'full'; return 'on'; }
+  const pmBadge = (k) => { const d = BD[PMS[k][1]]; return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ' + d[1] + '"><span class="w-1.5 h-1.5 rounded-full ' + d[2] + '"></span>' + PMS[k][0] + '</span>'; };
+  const pmDisc = (p) => p.tipe === 'persen' ? p.nilai + '%' : rp(p.nilai);
+
+  function drawPromo() {
+    const all = PM.map((p) => ({ ...p, st: pmStatus(p), used: pmUsed(p.kode) })), q = PMF.q.trim().toLowerCase();
+    const rows = all.filter((p) => (!PMF.status || p.st === PMF.status) && (!q || (p.kode + ' ' + p.nama).toLowerCase().includes(q)));
+    const card = (l, v, sub2) => '<div class="' + CARD + ' p-4"><div class="text-sm text-slate-500 dark:text-slate-400">' + l + '</div><div class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">' + v + '</div><div class="text-xs text-slate-400 mt-0.5">' + sub2 + '</div></div>';
+    const opt = (v, l) => '<option value="' + v + '"' + (PMF.status === v ? ' selected' : '') + '>' + l + '</option>';
+    $('#view-finance-promo').innerHTML = head('Diskon & Promo', 'Kode promo untuk pembelian Learning Path. Status mengikuti periode, kuota, dan pemakaian di transaksi.',
+      '<div class="flex gap-2"><button type="button" data-fin="reset-promo" class="' + BTN + '">Reset data contoh</button><button type="button" data-fin-promo-add class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700"><i class="fa-solid fa-plus mr-1.5"></i>Tambah promo</button></div>') + banner() +
+      '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' + card('Promo aktif', all.filter((p) => p.st === 'on').length, 'Dari ' + all.length + ' promo') + card('Total pemakaian', all.reduce((n, p) => n + p.used, 0), 'Transaksi lunas atau menunggu') + card('Perlu perhatian', all.filter((p) => p.st === 'expired' || p.st === 'full').length, 'Kedaluwarsa atau kuota habis') + '</div>' +
+      '<div class="' + CARD + ' p-4 space-y-3"><div class="grid sm:grid-cols-3 gap-2"><input type="search" data-fin-pm="q" value="' + esc(PMF.q) + '" placeholder="Cari kode atau nama promo" aria-label="Cari promo" class="' + FIELD + ' sm:col-span-2"><select data-fin-pm="status" aria-label="Status promo" class="' + FIELD + '">' + opt('', 'Semua status') + Object.keys(PMS).map((k) => opt(k, PMS[k][0])).join('') + '</select></div>' +
+      '<div class="overflow-x-auto"><table id="finPromo" class="w-full text-sm min-w-[1000px]"><thead><tr class="text-slate-500">' + ['Kode', 'Nama Promo', 'Diskon', 'Berlaku', 'Periode', 'Pemakaian', 'Status', 'Aksi'].map((h) => '<th class="py-2 font-semibold whitespace-nowrap">' + h + '</th>').join('') + '</tr></thead><tbody>' +
+      (rows.map((p) => '<tr class="border-t border-slate-100 dark:border-slate-800"><td class="py-2.5 font-mono text-xs font-semibold">' + esc(p.kode) + '</td><td>' + esc(p.nama) + '</td><td class="font-semibold whitespace-nowrap">' + pmDisc(p) + '</td><td>' + (p.jenjang ? GRADE[p.jenjang] : 'Semua jenjang') + '</td><td class="whitespace-nowrap">' + fmt(p.mulai) + ' – ' + fmt(p.selesai) + '</td><td class="whitespace-nowrap">' + p.used + ' / ' + (p.kuota == null ? '∞' : p.kuota) + '</td><td>' + pmBadge(p.st) + '</td><td><div class="flex items-center justify-end gap-1.5">' +
+        ib('data-fin-promo-edit', p.kode, 'fa-pen', IBTN, 'Ubah promo') + ib('data-fin-promo-toggle', p.kode, 'fa-power-off', p.aktif ? 'border-amber-100 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-600 hover:bg-amber-100' : 'border-emerald-100 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 hover:bg-emerald-100', p.aktif ? 'Nonaktifkan promo' : 'Aktifkan promo') + ib('data-fin-promo-del', p.kode, 'fa-trash', 'border-rose-100 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 text-rose-500 hover:bg-rose-100', 'Hapus promo') + '</div></td></tr>').join('') || '<tr><td colspan="8" class="py-10 text-center text-slate-400">Tidak ada promo yang cocok.</td></tr>') + '</tbody></table></div></div>';
+  }
+  function openPromo(kode) {
+    const e = kode ? PM.find((p) => p.kode === kode) : null; if (kode && !e) return;
+    const p = e || { kode: '', nama: '', tipe: 'persen', nilai: '', jenjang: '', mulai: iso(today()), selesai: iso(shift(today(), 30)), kuota: null, aktif: true };
+    let m = $('#finModal'); if (!m) { m = document.createElement('div'); m.id = 'finModal'; document.body.appendChild(m); }
+    const lab = (id, t) => '<label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mt-3 mb-1" for="' + id + '">' + t + '</label>';
+    const o = (v, l, cur) => '<option value="' + v + '"' + (String(cur) === String(v) ? ' selected' : '') + '>' + l + '</option>';
+    m.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50';
+    m.innerHTML = '<div role="dialog" aria-modal="true" aria-label="' + (e ? 'Ubah promo' : 'Tambah promo') + '" class="' + CARD + ' w-full max-w-lg max-h-[90vh] overflow-y-auto p-5"><div class="flex items-start justify-between mb-1"><h2 class="text-lg font-extrabold text-slate-900 dark:text-white">' + (e ? 'Ubah promo' : 'Tambah promo') + '</h2><button type="button" data-fin="close" aria-label="Tutup" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-solid fa-xmark"></i></button></div>' +
+      lab('finPmKode', 'Kode promo') + '<input id="finPmKode" type="text" maxlength="20" autocomplete="off" value="' + esc(p.kode) + '"' + (e ? ' readonly' : '') + ' class="' + FIELD + ' w-full uppercase">' +
+      lab('finPmNama', 'Nama promo') + '<input id="finPmNama" type="text" maxlength="60" value="' + esc(p.nama) + '" class="' + FIELD + ' w-full">' +
+      '<div class="grid grid-cols-2 gap-3"><div>' + lab('finPmTipe', 'Jenis diskon') + '<select id="finPmTipe" class="' + FIELD + ' w-full">' + o('persen', 'Persen (%)', p.tipe) + o('nominal', 'Nominal (Rp)', p.tipe) + '</select></div><div>' + lab('finPmNilai', 'Nilai diskon') + '<input id="finPmNilai" type="text" inputmode="numeric" autocomplete="off" value="' + esc(p.nilai) + '" class="' + FIELD + ' w-full"></div></div>' +
+      lab('finPmJenjang', 'Berlaku untuk') + '<select id="finPmJenjang" class="' + FIELD + ' w-full">' + o('', 'Semua jenjang', p.jenjang) + Object.keys(GRADE).map((k) => o(k, GRADE[k], p.jenjang)).join('') + '</select>' +
+      '<div class="grid grid-cols-2 gap-3"><div>' + lab('finPmMulai', 'Mulai') + '<input id="finPmMulai" type="date" value="' + esc(p.mulai) + '" class="' + FIELD + ' w-full"></div><div>' + lab('finPmSelesai', 'Berakhir') + '<input id="finPmSelesai" type="date" value="' + esc(p.selesai) + '" class="' + FIELD + ' w-full"></div></div>' +
+      '<div class="grid grid-cols-2 gap-3"><div>' + lab('finPmKuota', 'Kuota (kosong = tanpa batas)') + '<input id="finPmKuota" type="text" inputmode="numeric" autocomplete="off" value="' + (p.kuota == null ? '' : p.kuota) + '" class="' + FIELD + ' w-full"></div><div>' + lab('finPmAktif', 'Status') + '<select id="finPmAktif" class="' + FIELD + ' w-full">' + o('1', 'Aktif', p.aktif ? '1' : '0') + o('0', 'Nonaktif', p.aktif ? '1' : '0') + '</select></div></div>' +
+      '<p id="finPmErr" class="mt-3 text-sm text-rose-600" role="alert"></p><div class="flex justify-end gap-2 mt-3"><button type="button" data-fin="close" class="' + BTN + '">Batal</button><button type="button" data-fin-promo-save="' + (e ? 'edit' : 'add') + '" data-kode="' + esc(p.kode) + '" class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700">Simpan</button></div></div>';
+    const f = $(e ? '#finPmNama' : '#finPmKode', m); if (f && f.focus) f.focus();
+  }
+  function savePromo(mode, old) {
+    const g = (id) => String(($('#' + id) || {}).value == null ? '' : $('#' + id).value).trim(), err = $('#finPmErr'), fail = (t) => { err.textContent = t; };
+    const kode = (mode === 'edit' ? old : g('finPmKode')).toUpperCase(), nama = g('finPmNama'), tipe = g('finPmTipe'), nr = g('finPmNilai').replace(/\./g, ''), jenjang = g('finPmJenjang'), mulai = g('finPmMulai'), selesai = g('finPmSelesai'), kr = g('finPmKuota'), aktif = g('finPmAktif') !== '0';
+    if (!/^[A-Z0-9]{3,20}$/.test(kode)) return fail('Kode promo 3–20 karakter, hanya huruf dan angka.');
+    if (mode === 'add' && PM.some((p) => p.kode === kode)) return fail('Kode promo sudah dipakai.');
+    if (!nama) return fail('Nama promo wajib diisi.');
+    if (nama.length > 60) return fail('Nama promo maksimal 60 karakter.');
+    if (!/^\d+$/.test(nr)) return fail('Nilai diskon harus berupa angka.');
+    const nilai = parseInt(nr, 10);
+    if (tipe === 'persen' && (nilai < 1 || nilai > 100)) return fail('Diskon persen harus antara 1 dan 100.');
+    if (tipe === 'nominal' && (nilai < 1000 || nilai > 5000000)) return fail('Diskon nominal harus antara Rp 1.000 dan Rp 5.000.000.');
+    if (!mulai || !selesai) return fail('Tanggal mulai dan berakhir wajib diisi.');
+    if (selesai < mulai) return fail('Tanggal berakhir tidak boleh sebelum tanggal mulai.');
+    let kuota = null;
+    if (kr) {
+      if (!/^\d+$/.test(kr) || +kr < 1) return fail('Kuota harus bilangan bulat minimal 1, atau kosongkan untuk tanpa batas.');
+      kuota = +kr; if (mode === 'edit' && kuota < pmUsed(kode)) return fail('Kuota tidak boleh lebih kecil dari pemakaian saat ini (' + pmUsed(kode) + ').');
+    }
+    const rec = { kode, nama, tipe, nilai, jenjang, mulai, selesai, kuota, aktif };
+    if (mode === 'add') PM.push(rec); else PM = PM.map((p) => (p.kode === old ? rec : p));
+    savePm(); closeDetail(); drawPromo(); toast(mode === 'add' ? 'Promo ' + kode + ' ditambahkan.' : 'Promo ' + kode + ' diperbarui.');
+  }
+  async function togglePromo(kode) {
+    const p = PM.find((x) => x.kode === kode); if (!p) return;
+    if (p.aktif && !(await window.dcConfirm({ title: 'Nonaktifkan promo?', message: p.kode + ' · ' + p.nama, detail: 'Kode tidak bisa dipakai lagi. Transaksi yang sudah memakainya tidak berubah.', confirmText: 'Ya, nonaktifkan', cancelText: 'Batal', tone: 'warning' }))) return;
+    p.aktif = !p.aktif; savePm(); drawPromo(); toast(p.aktif ? 'Promo diaktifkan.' : 'Promo dinonaktifkan.');
+  }
+  async function deletePromo(kode) {
+    const p = PM.find((x) => x.kode === kode); if (!p) return;
+    const u = pmUsed(kode);
+    if (u > 0) return toast('Promo ' + kode + ' sudah dipakai ' + u + ' transaksi, jadi tidak bisa dihapus. Nonaktifkan saja.', 'error');
+    if (!(await window.dcConfirm({ title: 'Hapus promo?', message: p.kode + ' · ' + p.nama, detail: 'Promo yang dihapus tidak bisa dikembalikan.', confirmText: 'Ya, hapus', cancelText: 'Batal', tone: 'danger' }))) return;
+    PM = PM.filter((x) => x.kode !== kode); savePm(); drawPromo(); toast('Promo ' + kode + ' dihapus.');
+  }
+
   // ================= MENU DROPDOWN SIDEBAR =================
   const st = document.createElement('style');
   st.textContent = '#view-finance th,#view-finance-siswa th,#view-finance-bayar th,#view-finance th button,#view-finance-siswa th button,#view-finance-bayar th button{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}.fin-chev{transition:transform .2s}[aria-expanded="true"] .fin-chev{transform:rotate(180deg)}body.sb-collapsed [data-fin-toggle]{display:none}body.sb-collapsed .fin-sub{display:block!important;padding-left:0}'
-    + '#finTable th,#finTable td,#finPay th,#finPay td,#finInv th,#finInv td,#finPaket th,#finPaket td{text-align:center;padding-left:.75rem;padding-right:.75rem}#finTable .justify-end,#finPay .justify-end,#finInv .justify-end,#finPaket .justify-end{justify-content:center}';
+    + '#finTable th,#finTable td,#finPay th,#finPay td,#finInv th,#finInv td,#finPaket th,#finPaket td,#finPromo th,#finPromo td{text-align:center;padding-left:.75rem;padding-right:.75rem}#finTable .justify-end,#finPay .justify-end,#finInv .justify-end,#finPaket .justify-end,#finPromo .justify-end{justify-content:center}';
   document.head.appendChild(st);
-  function setOpen(open, persist) {
-    const g = $('[data-fin-group]'); if (!g) return;
-    $('.fin-sub', g).classList.toggle('hidden', !open); $('[data-fin-toggle]', g).setAttribute('aria-expanded', String(open));
-    if (persist) { try { localStorage.setItem('dc-fin-open', open ? '1' : '0'); } catch (_) {} }
+  const grpKey = (g) => 'dc-fin-open:' + g.querySelector('.fin-sub').id;
+  function setOpen(g, open, persist) {
+    g.querySelector('.fin-sub').classList.toggle('hidden', !open); g.querySelector('[data-fin-toggle]').setAttribute('aria-expanded', String(open));
+    if (persist) { try { localStorage.setItem(grpKey(g), open ? '1' : '0'); } catch (_) {} }
   }
   function syncGroup(view) {
-    const g = $('[data-fin-group]'); if (!g) return;
-    const child = !!$('[data-view="' + view + '"]', g.querySelector('.fin-sub'));
-    if (child) setOpen(true, false);
-    const b = $('[data-fin-toggle]', g); b.classList.toggle('text-sky-700', child); b.classList.toggle('font-semibold', child);
+    document.querySelectorAll('[data-fin-group]').forEach((g) => {
+      const child = !!g.querySelector('.fin-sub [data-view="' + view + '"]');
+      if (child) setOpen(g, true, false);
+      const b = g.querySelector('[data-fin-toggle]'); b.classList.toggle('text-sky-700', child); b.classList.toggle('font-semibold', child);
+    });
   }
-  try { setOpen(localStorage.getItem('dc-fin-open') === '1', false); } catch (_) {}
+  document.querySelectorAll('[data-fin-group]').forEach((g) => { try { setOpen(g, localStorage.getItem(grpKey(g)) === '1' || (g.querySelector('.fin-sub').id === 'finSubStudent' && localStorage.getItem('dc-fin-open') === '1'), false); } catch (_) {} });
+
+  window.DCFinanceKit = { $, esc, rp, toast, today, shift, iso, fmt, GRADE, head, banner, CARD, BTN, FIELD, IBTN, ib, BD, csv, download, closeDetail, openDetail, init, trxList: () => trx };
 
   function redraw() {
     if (activeView === 'finance-siswa') return drawSiswa();
@@ -625,13 +775,18 @@
   // ================= EVENT =================
   document.addEventListener('click', async (e) => {
     const t = e.target;
-    const tg = t.closest('[data-fin-toggle]'); if (tg) return setOpen(tg.getAttribute('aria-expanded') !== 'true', true);
+    const tg = t.closest('[data-fin-toggle]'); if (tg) return setOpen(tg.closest('[data-fin-group]'), tg.getAttribute('aria-expanded') !== 'true', true);
     const vf = t.closest('[data-fin-verify]'); if (vf) return decide(vf.dataset.finVerify, true);
     const rj = t.closest('[data-fin-reject]'); if (rj) return decide(rj.dataset.finReject, false);
     const ee = t.closest('[data-fin-expense-edit]'); if (ee) return openExpense(ee.dataset.finExpenseEdit);
     const ed = t.closest('[data-fin-expense-del]'); if (ed) return deleteExpense(ed.dataset.finExpenseDel);
     const en = t.closest('[data-fin-expense="new"]'); if (en) return openExpense('');
     const bp = t.closest('[data-fin-bpage]'); if (bp) { B.page += Number(bp.dataset.finBpage); return drawPay(); }
+    if (t.closest('[data-fin-promo-add]')) return openPromo('');
+    const pm1 = t.closest('[data-fin-promo-edit]'); if (pm1) return openPromo(pm1.dataset.finPromoEdit);
+    const pm2 = t.closest('[data-fin-promo-toggle]'); if (pm2) return togglePromo(pm2.dataset.finPromoToggle);
+    const pm3 = t.closest('[data-fin-promo-del]'); if (pm3) return deletePromo(pm3.dataset.finPromoDel);
+    const pm4 = t.closest('[data-fin-promo-save]'); if (pm4) return savePromo(pm4.dataset.finPromoSave, pm4.dataset.kode);
     const pk1 = t.closest('[data-fin-paket-edit]'); if (pk1) return openPaket(pk1.dataset.finPaketEdit);
     const pk2 = t.closest('[data-fin-paket-toggle]'); if (pk2) return togglePaket(pk2.dataset.finPaketToggle);
     const pk3 = t.closest('[data-fin-paket-save]'); if (pk3) return savePaket(pk3.dataset.finPaketSave);
@@ -648,8 +803,9 @@
     const a = t.closest('[data-fin]'); const act = a ? a.dataset.fin : (t.id === 'finModal' ? 'close' : '');
     if (act === 'close') return closeDetail();
     if (act === 'close-exp' || t.id === 'finExpModal') return closeExpense();
-    if (act === 'reload') { ready = null; toast('Memuat data keuangan...'); await init(); return redraw(); }
-    if (act === 'reset-demo') { if (await window.dcConfirm({ title: 'Reset status contoh?', message: 'Semua hasil verifikasi dan penolakan dikembalikan ke data contoh awal.', confirmText: 'Ya, reset', cancelText: 'Batal', tone: 'warning' })) { OV = {}; saveOv(); resolveDemo(); drawBayar(); toast('Status contoh direset.'); } return; }
+    if (act === 'reload') { ready = null; toast('Memuat data keuangan...'); await init(); refreshCo(); return redraw(); }
+    if (act === 'reset-promo') { if (await window.dcConfirm({ title: 'Reset data promo contoh?', message: 'Semua perubahan promo dikembalikan ke data contoh awal.', confirmText: 'Ya, reset', cancelText: 'Batal', tone: 'warning' })) { PM = seedPromo(); savePm(); drawPromo(); toast('Data promo direset.'); } return; }
+    if (act === 'reset-demo') { if (await window.dcConfirm({ title: 'Reset status contoh?', message: 'Semua hasil verifikasi dan penolakan dikembalikan ke data contoh awal.', confirmText: 'Ya, reset', cancelText: 'Batal', tone: 'warning' })) { OV = {}; saveOv(); resolveDemo(); refreshCo(); drawBayar(); toast('Status contoh direset.'); } return; }
     if (act === 'reset') { Object.assign(S, { q: '', status: '', jenjang: '', path: '', from: '', to: '', page: 1 }); return drawSiswa(); }
     if (act === 'export-trx') { const r = filtered(); if (!r.length) return toast('Tidak ada data untuk diexport.', 'error'); download('transaksi-siswa-' + iso(today()) + '.csv', csv(r, TRX_COLS)); return toast('Export CSV: ' + r.length + ' transaksi' + (demoMode ? ' (data contoh)' : '') + '.'); }
     if (act === 'export-overview') { const r = $('#view-finance')._rows || []; if (!r.length) return toast('Tidak ada transaksi pada periode ini.', 'error'); download('ringkasan-finance-' + iso(today()) + '.csv', csv(r, TRX_COLS)); toast('Export CSV: ' + r.length + ' transaksi' + (demoMode ? ' (data contoh)' : '') + '.'); }
@@ -666,22 +822,25 @@
     const b = e.target.closest('[data-fin-b="q"]'); if (b) { B.q = b.value; B.page = 1; drawPay(); }
     const iq = e.target.closest('[data-fin-i="q"]'); if (iq) { I.q = iq.value; I.page = 1; drawInv(); }
     const pq = e.target.closest('[data-fin-p="q"]'); if (pq) { P2.q = pq.value; drawPkBody(); }
+    const mq = e.target.closest('[data-fin-pm="q"]'); if (mq) { PMF.q = mq.value; drawPromo(); }
   });
   document.addEventListener('change', (e) => {
     const f = e.target.closest('[data-fin-f]'); if (f && f.dataset.finF !== 'q') { S[f.dataset.finF] = f.value; S.page = 1; drawTable(); }
     const bs = e.target.closest('[data-fin-b="status"]'); if (bs) { B.status = bs.value; B.page = 1; drawPay(); }
     const is = e.target.closest('[data-fin-i="status"]'); if (is) { I.status = is.value; I.page = 1; drawInv(); }
-    const pj = e.target.closest('[data-fin-p="jenjang"]'); if (pj) { P2.jenjang = pj.value; drawPaket(); }
+    const pj = e.target.closest('[data-fin-p="jenjang"]'); if (pj) { P2.jenjang = pj.value; drawPkBody(); }
+    const ms = e.target.closest('[data-fin-pm="status"]'); if (ms) { PMF.status = ms.value; drawPromo(); }
     const d = e.target.closest('[data-fin-date]'); if (d) { P[d.dataset.finDate] = d.value; drawOverview(); }
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDetail(); closeExpense(); } });
   window.addEventListener('dc:view', (e) => {
     activeView = e.detail;
     syncGroup(e.detail);
-    if (e.detail === 'finance') init().then(drawOverview);
+    if (e.detail === 'finance') init().then(() => { refreshCo(); drawOverview(); });
     else if (e.detail === 'finance-siswa') init().then(drawSiswa);
     else if (e.detail === 'finance-bayar') init().then(drawBayar);
     else if (e.detail === 'finance-invoice') init().then(drawInvoice);
     else if (e.detail === 'finance-paket') init().then(drawPaket);
+    else if (e.detail === 'finance-promo') init().then(drawPromo);
   });
 })();

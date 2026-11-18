@@ -30,6 +30,14 @@
     });
   }
 
+  transaksi.forEach((t) => { t.promo = t.diskon ? 'HEMAT10' : ''; }); // diskon 10% pada data contoh berasal dari promo ini
+  // Offset hari terhadap hari ini (negatif = lampau), supaya status promo contoh selalu relevan.
+  const promo = [
+    { kode: 'HEMAT10', nama: 'Diskon Pembelajaran 10%', tipe: 'persen', nilai: 10, jenjang: '', mulaiOff: -200, selesaiOff: 60, kuota: 50 },
+    { kode: 'SD25K', nama: 'Potongan Siswa SD', tipe: 'nominal', nilai: 25000, jenjang: 'SD', mulaiOff: -30, selesaiOff: 30, kuota: 30 },
+    { kode: 'NEWSMP', nama: 'Promo Siswa Baru SMP', tipe: 'persen', nilai: 15, jenjang: 'SMP', mulaiOff: -90, selesaiOff: -10, kuota: 20 },
+    { kode: 'LIBUR20', nama: 'Promo Libur Semester', tipe: 'persen', nilai: 20, jenjang: '', mulaiOff: 10, selesaiOff: 40, kuota: null }
+  ];
   const KAT = { 'Gaji & Honor': [1500000, 4000000], 'Server & Domain': [250000, 900000], 'Operasional': [150000, 700000], 'Pemasaran': [300000, 1200000], 'Sewa': [1500000, 1500000] };
   const pengeluaran = [];
   for (let i = 0; i < 28; i++) {
@@ -41,5 +49,5 @@
   const siswaContoh = ['Alvaro Kenzo', 'Dina Oktavia', 'Fadly Naufal', 'Ayu Lestari', 'Raditya Pratama', 'Bima Saputra', 'Citra Maharani', 'Dimas Prakoso', 'Eka Wulandari', 'Farhan Hidayat']
     .map((nama, i) => ({ id: 'contoh-' + (i + 1), nama, username: nama.toLowerCase().replace(/ /g, '.'), email: '', grades: [['SD'], ['SMP'], ['SMK']][i % 3] }));
 
-  window.DCFinanceData = { simulasi: true, paket: PAKET, transaksi, pengeluaran, siswaContoh };
+  window.DCFinanceData = { simulasi: true, paket: PAKET, transaksi, pengeluaran, siswaContoh, promo };
 })();
