@@ -1817,8 +1817,9 @@ function registerAdminApi(app, deps) {
   // ------------------------------------------------------------
   // BERLANGGANAN & CATATAN PENGIRIMAN EMAIL LAPORAN
   // Email laporan pertama ke wali jatuh tempo 1 bulan setelah tanggal mulai
-  // berlangganan. Pengirim email dan penjadwalnya belum ada; endpoint di sini
-  // hanya mengatur tanggal dan menampilkan catatan pengiriman.
+  // berlangganan. Pengiriman dijalankan `mailer.js` + `report-scheduler.js`;
+  // endpoint di sini mengatur tanggal, menjalankan antrean secara manual, dan
+  // menampilkan catatan pengiriman.
   // ------------------------------------------------------------
   function subscriptionItem(userId, startedAt) {
     return {

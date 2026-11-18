@@ -399,7 +399,7 @@
 
   // kolom Kehadiran: persen hadir Zoom mentoring (hanya lihat); klik membuka tab Kehadiran di detail siswa
   function hadirPill(u) {
-    const p = window.DCRekap ? window.DCRekap.pct(nameOf(u)) : null;
+    const p = u.attendancePct != null ? u.attendancePct : (window.DCRekap ? window.DCRekap.pct(nameOf(u)) : null);
     if (p == null) return '<span class="text-xs text-slate-400">—</span>';
     const tone = p < 60 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
     return `<button type="button" data-sw="hadir" data-id="${Number(u.id)}" title="Lihat kehadiran mentoring" class="px-2.5 py-1 rounded-full text-[11px] font-bold font-mono ${tone} hover:opacity-80 transition">${p}%</button>`;
@@ -684,7 +684,7 @@
           : '<div class="py-10 text-center text-xs text-slate-500 dark:text-slate-400"><i class="fa-solid fa-inbox text-2xl text-slate-300 dark:text-slate-600 block mb-2"></i>Belum ada riwayat pengerjaan.</div>'}`;
     } else if (D.tab === 'kehadiran') {
       // hanya lihat: rekap absen Zoom mentoring siswa ini (jadwal & absen dikelola instruktur)
-      body = window.DCRekap ? window.DCRekap.html(nameOf(u), { audience: 'admin' }) : '<div class="py-10 text-center text-xs text-slate-500 dark:text-slate-400">Modul rekap absen belum dimuat.</div>';
+      body = window.DCRekap ? window.DCRekap.html(nameOf(u), { audience: 'admin', studentId: u.id }) : '<div class="py-10 text-center text-xs text-slate-500 dark:text-slate-400">Modul rekap absen belum dimuat.</div>';
     } else {
       const del = u.status === 'deleted';
       body = `<div class="space-y-2.5">

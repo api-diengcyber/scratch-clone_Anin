@@ -4,8 +4,8 @@
 // CATATAN PENGIRIMAN EMAIL LAPORAN KE WALI
 //
 // Modul ini hanya mengurus DATA: kapan email jatuh tempo, antrean yang aman
-// dari kiriman ganda, dan status tiap pengiriman. Pengiriman email dan
-// penjadwalnya sendiri belum ada; kelak keduanya cukup memakai fungsi di sini.
+// dari kiriman ganda, dan status tiap pengiriman. Pengiriman email dilakukan
+// `mailer.js` dan penjadwalnya ada di `report-scheduler.js`.
 //
 // Siklus status:
 //   pending -> sent       (final: tidak pernah bisa dibatalkan atau dikirim ulang)

@@ -7,19 +7,20 @@
 //   Visual Time Track  jalur waktu 7 hari: tiap sesi satu balok, warnanya mengikuti persentase hadir
 //   Rekap Bulanan      rekap per siswa per bulan yang sudah ada (DCRekap.instruktur)
 //
-// MODE CONTOH (window.DC_REKAP_DEMO = true, sama seperti rekap-absen.js): tidak ada request ke server.
-// Siswa, sesi, dan kehadiran diambil dari data percobaan DCRekap (50 siswa contoh), ditambah satu sesi
-// yang sedang live hari ini dan dua sesi mendatang, jadi angkanya sama dengan tab Rekap Bulanan.
-//
-// ENDPOINT (nanti, hanya MEMBACA; server yang menghitung hadir/tidak hadir):
+// SUMBER DATA (hanya MEMBACA; server yang menghitung hadir/tidak hadir):
 //   GET /api/instruktur/sesi?dari=YYYY-MM-DD&sampai=YYYY-MM-DD
 //     -> { ok, total: <jumlah siswa>, sesi: [{ id, judul, tanggal, mulai, selesai, mentor, ruang,
+//                                              status, total, pct,
 //                                              hadir: [{ siswaId, nama, checkedInAt }],
 //                                              tidakHadir: [{ siswaId, nama, whatsapp? }] }] }
 //   GET /api/instruktur/sesi/ringkasan?bulan=YYYY-MM
-//     -> { ok, rataRata, rataRataBulanLalu, perhatian: [{ siswaId, nama, hadir, total }] }
+//     -> { ok, rataRata, rataRataBulanLalu, perhatian: [{ siswaId, nama, hadir, total, pct }] }
 // Nomor WhatsApp BELUM dipakai: tombol Follow-up membuka WhatsApp dengan pesan siap kirim lalu
 // instruktur memilih kontaknya sendiri (aman: tidak ada nomor yang tertebak/salah kirim).
+//
+// MODE CONTOH hanya aktif bila window.DC_REKAP_DEMO = true (sama seperti rekap-absen.js):
+// siswa, sesi, dan kehadiran diambil dari data percobaan DCRekap (50 siswa contoh), ditambah satu
+// sesi yang sedang live hari ini dan dua sesi mendatang.
 // ============================================================
 (function (root) {
   'use strict';
@@ -81,9 +82,23 @@
     return cache;
   }
   const statusOf = (s, now) => { now = now || Date.now(); return now < s.s0 ? 'next' : now <= s.s1 ? 'live' : 'done'; };
-  const pctOf = (d, s) => (statusOf(s) === 'next' ? null : Math.round(s.att.size * 100 / d.names.length));
+  const pctOf = (d, s) => {
+    if (statusOf(s) === 'next') return null;
+    if (s.pct != null) return Number(s.pct);
+    return d.names.length ? Math.round(s.att.size * 100 / d.names.length) : null;
+  };
+  const totalOf = (d, s) => (s.total != null ? s.total : d.names.length);
+  const absentOf = (d, s) => (s.absentNames || d.names.filter((n) => !s.att.has(n)));
 
   function monthStats(d, ym) {
+    if (d.summary) {
+      const done = d.sessions.filter((s) => s.tanggal.slice(0, 7) === ym && statusOf(s) === 'done');
+      return {
+        done: done.length,
+        avg: d.summary.rataRata,
+        low: (d.summary.perhatian || []).map((x) => ({ nama: x.nama, hadir: Number(x.hadir || 0), total: Number(x.total || 0), pct: x.pct }))
+      };
+    }
     const done = d.sessions.filter((s) => s.tanggal.slice(0, 7) === ym && statusOf(s) === 'done');
     const avg = done.length ? done.reduce((a, s) => a + s.att.size * 100 / d.names.length, 0) / done.length : null;
     const students = d.names.map((n) => {
@@ -93,8 +108,79 @@
     return { done: done.length, avg, low: students.filter((x) => x.pct != null && x.pct < LOW).sort((a, b) => a.pct - b.pct) };
   }
 
+  // ---------- akses server ----------
+  function api(path) {
+    if (root.DCAdminApi && root.DCAdminApi.request) return root.DCAdminApi.request(path);
+    let t = ''; try { t = root.localStorage.getItem('authToken') || ''; } catch (_) {}
+    return fetch(path, { headers: t ? { Authorization: 'Bearer ' + t } : {}, cache: 'no-store' }).then((res) =>
+      res.json().catch(() => null).then((body) => {
+        if (!res.ok || !body || body.ok === false) {
+          const err = new Error((body && body.message) || ('HTTP ' + res.status));
+          err.status = res.status; err.code = body && body.code;
+          throw err;
+        }
+        return body;
+      }));
+  }
+  function errText(err) {
+    if (err && (err.status === 401 || err.status === 403)) return 'Akun ini tidak punya akses ke data sesi instruktur.';
+    if (err && err.status === 429) return 'Terlalu banyak permintaan. Tunggu sebentar, lalu muat ulang.';
+    return 'Data sesi belum bisa dimuat dari server. Periksa koneksi internet lalu coba lagi.';
+  }
+  function monthFirst(ym) { return ym + '-01'; }
+  function monthLast(ym) { return new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5), 0)).toISOString().slice(0, 10); }
+  // Sama dengan bawaan server (durasi 120 menit) bila jam selesai tidak diisi.
+  function plusMin(hm, n) {
+    const [h, m] = String(hm || '00:00').split(':').map(Number);
+    const t = h * 60 + m + n;
+    return String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+  }
+  function toSession(s) {
+    const hadir = (s.hadir || []).map((x) => ({ id: x.siswaId, nama: x.nama, at: x.checkedInAt }));
+    const absent = (s.tidakHadir || []).map((x) => ({ id: x.siswaId, nama: x.nama }));
+    const selesai = s.selesai || plusMin(s.mulai, 120);
+    return {
+      id: String(s.id),
+      judul: s.judul,
+      tanggal: s.tanggal,
+      mulai: s.mulai,
+      selesai: selesai,
+      mentor: s.mentor || '',
+      ruang: s.ruang || 'Zoom',
+      s0: epoch(s.tanggal, s.mulai),
+      s1: epoch(s.tanggal, selesai),
+      status: s.status,
+      total: Number(s.total || 0),
+      pct: s.pct,
+      hadirNames: hadir.map((x) => x.nama),
+      absentNames: absent.map((x) => x.nama),
+      att: new Set(hadir.map((x) => x.nama))
+    };
+  }
+  // Satu permintaan untuk pekan yang tampil, satu untuk seluruh bulan terpilih (statistik),
+  // dan satu ringkasan bulanan. Rentang digabung agar tetap di bawah batas 63 hari server.
+  function loadModel() {
+    const days = windowDays(), ym = S.sel.slice(0, 7);
+    const dari = [days[0], monthFirst(ym)].sort()[0];
+    const sampai = [days[6], monthLast(ym)].sort().slice(-1)[0];
+    return Promise.all([
+      api('/api/instruktur/sesi?dari=' + encodeURIComponent(dari) + '&sampai=' + encodeURIComponent(sampai)),
+      api('/api/instruktur/sesi/ringkasan?bulan=' + encodeURIComponent(ym))
+    ]).then(([list, summary]) => {
+      const sessions = (list.sesi || []).map(toSession).sort((a, b) => a.s0 - b.s0);
+      const names = [];
+      const seen = new Set();
+      sessions.forEach((s) => (s.hadirNames || []).concat(s.absentNames || []).forEach((n) => {
+        if (n && !seen.has(n)) { seen.add(n); names.push(n); }
+      }));
+      names.sort((a, b) => a.localeCompare(b, 'id'));
+      return { names, sessions, summary };
+    });
+  }
+  const model = () => (demoOn() ? data() : S.model);
+
   // ---------- state ----------
-  const S = { host: null, tab: 'daftar', start: null, sel: null, filter: 'all', open: new Set(), q: {}, modal: false, init: false };
+  const S = { host: null, tab: 'daftar', start: null, sel: null, filter: 'all', open: new Set(), q: {}, modal: false, init: false, model: null, loading: false, loaded: '', failed: '', err: '', picked: false };
   const resetWeek = () => { S.sel = todayWib(); S.start = shift(S.sel, -4); };
   const windowDays = () => Array.from({ length: 7 }, (_, i) => shift(S.start, i));
   const sessionsIn = (d, days) => d.sessions.filter((s) => days.includes(s.tanggal));
@@ -222,10 +308,11 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   }
 
   function statsHtml(d, inWin) {
-    const ym = S.sel.slice(0, 7), cur = monthStats(d, ym), prev = monthStats(d, addMonth(ym, -1));
+    const ym = S.sel.slice(0, 7), cur = monthStats(d, ym);
+    const prevAvg = d.summary ? d.summary.rataRataBulanLalu : monthStats(d, addMonth(ym, -1)).avg;
     const inMonth = d.sessions.filter((s) => s.tanggal.slice(0, 7) === ym);
     const live = inMonth.filter((s) => statusOf(s) === 'live').length;
-    const delta = cur.avg != null && prev.avg != null ? cur.avg - prev.avg : null;
+    const delta = cur.avg != null && prevAvg != null ? cur.avg - prevAvg : null;
     const above = cur.avg != null && cur.avg >= TARGET;
     return `<div class="sa-stats">
       <div class="sa-stat"><div class="sa-stat-t"><div><div class="sa-lbl">Rata-rata kehadiran sesi</div><div class="sa-big">${cur.avg == null ? '–' : num(cur.avg, 1) + '%'}${delta == null ? '' : `<span class="sa-delta${delta < 0 ? ' down' : ''}"><i class="fa-solid ${delta < 0 ? 'fa-arrow-trend-down' : 'fa-arrow-trend-up'}"></i> ${delta < 0 ? '' : '+'}${num(delta, 1)}%</span>`}</div></div><div class="sa-sico"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div></div>
@@ -238,8 +325,8 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
 
   function listsHtml(d, s) {
     const q = (S.q[s.id] || '').trim().toLowerCase(), st = statusOf(s);
-    const names = d.names.filter((n) => !q || n.toLowerCase().includes(q));
-    const no = names.filter((n) => !s.att.has(n)), yes = names.filter((n) => s.att.has(n));
+    const no = absentOf(d, s).filter((n) => !q || n.toLowerCase().includes(q));
+    const yes = (s.hadirNames || d.names.filter((n) => s.att.has(n))).filter((n) => !q || n.toLowerCase().includes(q));
     const fu = (n) => waLink(`Halo ${n}, kakak lihat kamu belum hadir di sesi "${s.judul}" (${fmtDate(s.tanggal)}, ${s.mulai} WIB). Ada kendala? Kabari kakak ya, nanti kita bantu kejar materinya. Semangat! 💪`);
     return `<div class="sa-col no"><div class="sa-ch"><span><i class="fa-solid fa-user-xmark" aria-hidden="true"></i>${st === 'live' ? 'Belum Hadir' : 'Tidak Hadir'} (${no.length})</span><small>Perlu Penanganan</small></div>
         <div class="sa-rows">${no.length ? no.map((n) => `<div class="sa-row"><span class="sa-av">${esc(initials(n))}</span><span class="sa-nm" title="${esc(n)}">${esc(n)}</span><a class="sa-fu" href="${esc(fu(n))}" target="_blank" rel="noopener noreferrer" aria-label="Follow-up ${esc(n)} lewat WhatsApp"><i class="fa-brands fa-whatsapp"></i>Follow-up</a></div>`).join('') : '<div class="sa-empty">Tidak ada.</div>'}</div></div>
@@ -250,7 +337,7 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   function bodyHtml(d, s) {
     const st = statusOf(s);
     if (st === 'next') return `<div class="sa-empty">Sesi belum dimulai. Siswa bisa absen lewat halaman Jadwal Saya mulai 15 menit sebelum kelas.</div>`;
-    const absent = d.names.filter((n) => !s.att.has(n)).length;
+    const absent = absentOf(d, s).length;
     const msg = st === 'live' ? `Sesi Zoom mentoring "${s.judul}" sedang berlangsung sekarang (${s.room}). Yuk segera gabung ya!` : `Pengingat: sesi Zoom mentoring "${s.judul}" (${fmtDate(s.tanggal)}, ${s.mulai} WIB). Yang belum hadir, silakan hubungi mentor untuk mengejar materi. Terima kasih!`;
     return `<div class="sa-bt"><input type="search" class="sa-q" data-sa-q="${esc(s.id)}" value="${esc(S.q[s.id] || '')}" placeholder="Cari siswa di sesi ini..." aria-label="Cari siswa di sesi ${esc(s.judul)}" autocomplete="off">
         <div class="sa-btr">${absent ? `<a class="sa-wa" href="${esc(waLink(msg))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i>Ingatkan ${absent} Siswa Absen</a><button type="button" class="sa-cp" data-sa-copy="${esc(s.id)}" title="Salin daftar siswa yang absen" aria-label="Salin daftar siswa yang absen"><i class="fa-regular fa-copy"></i></button>` : '<span class="sa-wa ok"><i class="fa-solid fa-circle-check"></i>Semua siswa hadir</span>'}</div></div>
@@ -258,9 +345,9 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   }
 
   function cardHtml(d, s) {
-    const st = statusOf(s), open = S.open.has(s.id), total = d.names.length, h = s.att.size, p = pctOf(d, s);
+    const st = statusOf(s), open = S.open.has(s.id), total = totalOf(d, s), h = s.att.size, p = pctOf(d, s);
     const att = st === 'next' ? '<span class="sa-na">Belum dimulai</span>'
-      : `<div class="sa-attn">${st === 'live' ? 'Hadir sejauh ini:' : 'Kehadiran:'} <b>${h}</b> / ${total} Siswa <span class="sa-pct ${level(p)}">${p}%</span></div><div class="sa-prog${st === 'live' ? ' live' : ''}" role="img" aria-label="${h} dari ${total} siswa hadir"><i class="y" style="width:${h * 100 / total}%"></i><i class="n" style="width:${(total - h) * 100 / total}%"></i></div>`;
+      : `<div class="sa-attn">${st === 'live' ? 'Hadir sejauh ini:' : 'Kehadiran:'} <b>${h}</b> / ${total} Siswa <span class="sa-pct ${level(p)}">${p == null ? '–' : p + '%'}</span></div><div class="sa-prog${st === 'live' ? ' live' : ''}" role="img" aria-label="${h} dari ${total} siswa hadir"><i class="y" style="width:${total ? h * 100 / total : 0}%"></i><i class="n" style="width:${total ? (total - h) * 100 / total : 0}%"></i></div>`;
     return `<article class="sa-sess${open ? ' open' : ''}" data-sid="${esc(s.id)}">
       <div class="sa-sh" data-sa-t="${esc(s.id)}"><div class="sa-ico" aria-hidden="true"><i class="fa-solid fa-chalkboard-user"></i></div>
         <div class="sa-info"><h3>${esc(s.judul)} ${pill(st)}</h3><p class="sa-meta"><span><i class="fa-solid fa-user-tie"></i>${esc(s.mentor)}</span><span><i class="fa-regular fa-calendar"></i>${esc(fmtDate(s.tanggal))}</span><span><i class="fa-regular fa-clock"></i>${s.mulai} - ${s.selesai} WIB</span><span class="room"><i class="fa-solid fa-video"></i>${esc(s.room)}</span></p></div>
@@ -287,8 +374,8 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
       const blks = d.sessions.filter((s) => s.tanggal === day).map((s) => {
         const st = statusOf(s), p = pctOf(d, s), a = minutes(hmOf(s.s0)), b = minutes(hmOf(s.s1));
         const left = Math.max(0, (a - lo * 60) / span * 100), width = Math.max(4, Math.min(100 - left, (b - a) / span * 100));
-        const c = st === 'done' ? level(p) : st;
-        return `<button type="button" class="sa-blk ${c}" style="left:${left}%;width:${width}%" data-sa-go="${esc(s.id)}" title="${esc(s.judul)} · ${s.mulai}-${s.selesai} WIB"><b>${s.mulai} ${esc(s.judul)}</b><small>${st === 'next' ? 'Terjadwal' : s.att.size + '/' + d.names.length + ' hadir (' + p + '%)'}</small></button>`;
+        const c = st === 'done' ? (p == null ? 'mid' : level(p)) : st;
+        return `<button type="button" class="sa-blk ${c}" style="left:${left}%;width:${width}%" data-sa-go="${esc(s.id)}" title="${esc(s.judul)} · ${s.mulai}-${s.selesai} WIB"><b>${s.mulai} ${esc(s.judul)}</b><small>${st === 'next' ? 'Terjadwal' : s.att.size + '/' + totalOf(d, s) + ' hadir (' + (p == null ? '–' : p + '%') + ')'}</small></button>`;
       }).join('');
       return `<div class="sa-trow${day === S.sel ? ' sel' : ''}"><b>${HARI[dow(day)].toUpperCase()} ${parts(day)[2]}<small>${BLN3[parts(day)[1] - 1]}</small></b><div class="sa-lane" style="--hw:${hw}%">${blks}</div></div>`;
     }).join('');
@@ -303,19 +390,42 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   }
 
   // ---------- render ----------
+  function ensure() {
+    if (demoOn()) return;
+    const key = S.sel.slice(0, 7) + '|' + S.start;
+    if (S.loaded === key || S.failed === key || S.loading) return;
+    S.loading = true; S.err = '';
+    S.model = null;
+    loadModel().then((m) => {
+      S.model = m; S.loaded = key; S.loading = false;
+      if (!S.picked) {
+        S.picked = true;
+        const inWin = sessionsIn(m, windowDays());
+        const pick = inWin.find((s) => statusOf(s) === 'live') || inWin.filter((s) => statusOf(s) === 'done').pop() || null;
+        if (pick) S.open.add(pick.id);
+      }
+      render();
+    }).catch((err) => {
+      S.loading = false; S.failed = key; S.err = errText(err);
+      render();
+    });
+  }
+
   function render(afterFocus) {
     const host = S.host; if (!host) return;
     injectCss();
-    const d = demoOn() ? data() : null;
+    ensure();
+    const d = model();
     let html = '<div class="sa" data-tab="' + S.tab + '">';
     if (S.tab === 'rekap') {
       html += headerHtml(d, []) + '<div data-sa-rekap></div>';
     } else if (!d) {
-      html += headerHtml(null, windowDays()) + `<div class="sa-card sa-empty">${demoOn() ? 'Modul rekap belum termuat.' : 'Data sesi belum terhubung ke server.'}</div>`;
+      const msg = demoOn() ? 'Modul rekap belum termuat.' : (S.err || 'Memuat sesi…');
+      html += headerHtml(null, windowDays()) + `<div class="sa-card sa-empty">${esc(msg)}${!demoOn() && S.err ? ' <button type="button" class="sa-link" data-sa-reload>Muat ulang</button>' : ''}</div>`;
     } else {
       const days = windowDays(), inWin = sessionsIn(d, days);
       html += headerHtml(d, days) + (S.tab === 'track' ? trackHtml(d, days, inWin) : daftarHtml(d, inWin));
-      html += `<p class="sa-note">Mode contoh: ini data percobaan (${d.names.length} siswa contoh), belum terhubung ke server.</p>`;
+      if (demoOn()) html += `<p class="sa-note">Mode contoh: ini data percobaan (${d.names.length} siswa contoh), belum terhubung ke server.</p>`;
       if (S.modal) html += modalHtml(d);
     }
     html += '<div class="sa-live" role="status" aria-live="polite"></div></div>';
@@ -326,11 +436,11 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   }
 
   function say(msg) { const el = S.host && S.host.querySelector('.sa-live'); if (el) el.textContent = msg; }
-  function find(id) { const d = data(); return d && d.sessions.find((s) => s.id === id); }
+  function find(id) { const d = model(); return d && d.sessions.find((s) => s.id === id); }
   function cardEl(id) { return S.host && Array.from(S.host.querySelectorAll('.sa-sess')).find((a) => a.dataset.sid === id); }
 
   function setOpen(id, open) {
-    const art = cardEl(id), d = data(), s = find(id); if (!art || !d || !s) return;
+    const art = cardEl(id), d = model(), s = find(id); if (!art || !d || !s) return;
     open ? S.open.add(id) : S.open.delete(id);
     art.classList.toggle('open', open);
     const body = art.querySelector('.sa-sb'), chev = art.querySelector('.sa-chev');
@@ -339,8 +449,8 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   }
 
   function copyAbsent(id, btn) {
-    const d = data(), s = find(id); if (!d || !s) return;
-    const text = 'Siswa tidak hadir - ' + s.judul + ' (' + fmtDate(s.tanggal) + ')\n' + d.names.filter((n) => !s.att.has(n)).map((n, i) => (i + 1) + '. ' + n).join('\n');
+    const d = model(), s = find(id); if (!d || !s) return;
+    const text = 'Siswa tidak hadir - ' + s.judul + ' (' + fmtDate(s.tanggal) + ')\n' + absentOf(d, s).map((n, i) => (i + 1) + '. ' + n).join('\n');
     const ok = () => { say('Daftar siswa yang absen disalin.'); const ic = btn.querySelector('i'); ic.className = 'fa-solid fa-check'; setTimeout(() => { ic.className = 'fa-regular fa-copy'; }, 1600); };
     const fallback = () => { const t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (e) { say('Tidak bisa menyalin otomatis.'); } t.remove(); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
@@ -352,16 +462,17 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
       const t = e.target, g = (sel) => t.closest(sel);
       let b;
       if ((b = g('[data-sa-tab]'))) { S.tab = b.dataset.saTab; S.modal = false; return render(); }
+      if (g('[data-sa-reload]')) { S.loaded = ''; S.failed = ''; S.model = null; S.err = ''; return render(); }
       if ((b = g('[data-sa-wk]'))) { const n = +b.dataset.saWk * 7; S.start = shift(S.start, n); S.sel = shift(S.sel, n); return render(); }
       if (g('[data-sa-today]')) { resetWeek(); return render(); }
       if ((b = g('[data-sa-day]'))) {
-        S.sel = b.dataset.saDay; const d = data(), first = d && d.sessions.find((s) => s.tanggal === S.sel);
+        S.sel = b.dataset.saDay; const d = model(), first = d && d.sessions.find((s) => s.tanggal === S.sel);
         if (first && S.tab === 'daftar') { S.filter = 'all'; S.open.add(first.id); }
         return render(() => { const a = first && S.tab === 'daftar' && cardEl(first.id); if (a) a.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
       }
       if ((b = g('[data-sa-f]'))) { S.filter = b.dataset.saF; return render(); }
       if ((b = g('[data-sa-all]'))) {
-        const d = data(); if (!d) return;
+        const d = model(); if (!d) return;
         const open = b.dataset.saAll === 'open';
         host.querySelectorAll('.sa-sess').forEach((a) => setOpen(a.dataset.sid, open));
         return;
@@ -381,7 +492,7 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
     });
     host.addEventListener('input', (e) => {
       const el = e.target; if (!el.matches || !el.matches('[data-sa-q]')) return;
-      const id = el.dataset.saQ, d = data(), s = find(id); if (!d || !s) return;
+      const id = el.dataset.saQ, d = model(), s = find(id); if (!d || !s) return;
       S.q[id] = el.value;
       const box = Array.from(host.querySelectorAll('[data-sa-lists]')).find((x) => x.dataset.saLists === id);
       if (box) box.innerHTML = listsHtml(d, s);
@@ -395,7 +506,7 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
     S.host = host; bind(host);
     if (!S.init) {
       S.init = true; resetWeek();
-      const d = demoOn() ? data() : null;
+      const d = model();
       if (d) {
         const inWin = sessionsIn(d, windowDays());
         const pick = inWin.find((s) => statusOf(s) === 'live') || inWin.filter((s) => statusOf(s) === 'done').pop();

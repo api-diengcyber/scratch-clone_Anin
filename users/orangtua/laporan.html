@@ -42,13 +42,13 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 </style>
 </head>
 <body>
-<header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>👨‍👩‍👧 Perkembangan Anak</h1><button type="button" id="keluar" hidden>Keluar</button></header>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>👨‍👩‍👧 Perkembangan Anak</h1></header>
 <main id="main">
   <section class="card msg" id="status"><div class="big">⏳</div><h3>Memuat data…</h3></section>
   <div id="laporan" hidden style="display:grid;gap:16px">
   <div class="demo" id="demoBar" hidden>Mode contoh: data di bawah hanya contoh, bukan data anak yang sebenarnya.</div>
   <section class="card hi"><h2 id="hello">Halo, Bapak/Ibu!</h2><p>Ini perkembangan belajar <b id="anak">ananda</b> di Ruang KKA sejauh ini.</p><div class="sum" id="sum"></div></section>
-  <section class="card"><div class="rec" style="margin:0"><span>📅</span><p><b>Jadwal mentoring ananda.</b> Lihat kapan ada mentoring Zoom, supaya Bapak/Ibu bisa mendampingi ananda.</p><a href="/orangtua/jadwal.html">Buka Jadwal</a></div></section>
+  <section class="card"><div class="rec" style="margin:0"><span>📅</span><p><b>Jadwal mentoring ananda.</b> Lihat kapan ada mentoring Zoom, supaya Bapak/Ibu bisa mendampingi ananda.</p><a href="/orangtua/jadwal.html" id="jadwalLink">Buka Jadwal</a></div></section>
   <section class="card"><h3>📅 Kehadiran Mentoring</h3><div id="rekapAbsen"></div></section>
   <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
   <section class="card"><h3>⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
@@ -59,15 +59,25 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
 <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
 <script src="/shared/js/utils.js?v=20261019"></script>
-<script>window.DC_REKAP_DEMO = true;   // contoh tanpa backend; hapus kalau endpoint sudah siap</script>
-<script src="/shared/js/rekap-absen.js?v=20261112"></script>
+<script src="/shared/js/rekap-absen.js?v=20261117"></script>
 <script>
 (function () {
   var box = document.getElementById("rekapAbsen"), an = document.getElementById("anak");
   if (!window.DCRekap || !box || !an) return;
-  function draw() { window.DCRekap.mount(box, { nama: an.textContent.trim() || "ananda", audience: "ortu" }); }
+  var mounted = "";
+  function token() {
+    var h = String(location.hash || "").replace(/^#/, "").trim();
+    return /^[A-Za-z0-9_-]{43}$/.test(h) ? h : "";
+  }
+  function draw() {
+    var t = token(), nm = an.textContent.trim() || "ananda", key = t + "|" + nm;
+    if (!t || mounted === key) return;
+    mounted = key;
+    window.DCRekap.mount(box, { nama: nm, audience: "ortu", token: t });   // nama anak baru terisi setelah data server dimuat
+  }
   draw();
-  if (window.MutationObserver) new MutationObserver(draw).observe(an, { childList: true, characterData: true, subtree: true });   // nama anak diisi setelah data dimuat
+  window.addEventListener("hashchange", function () { mounted = ""; draw(); });
+  if (window.MutationObserver) new MutationObserver(draw).observe(an, { childList: true, characterData: true, subtree: true });
 })();
 </script>
 <script>
@@ -78,18 +88,29 @@ const stage = (d, t) => !d ? "🌰 Belum dicoba" : d === t ? "🌳 Hebat, selesa
 
 // ============================================================
 // SUMBER DATA — halaman ini hanya MEMBACA data anak, tidak menulis apa pun.
-// Data diambil dari satu endpoint: GET /api/parent/report  (header Authorization: Bearer <parentToken>)
-// Jawaban yang diharapkan (bentuk baris sama dengan /api/progress, /api/points, /api/attempts milik siswa):
-//   { ok: true,
-//     child:    { username, fullName },
-//     progress: [ { task_id, completed } ],
-//     attempts: [ { task_id, fails, time_spent } ] }
-// Token orangtua disimpan di localStorage "parentToken" (diisi oleh alur masuk orangtua).
+// Data diambil dari satu endpoint: GET /api/reports/:token
+// Token ada di bagian #hash URL (diberikan lewat tautan yang dikirim sekolah);
+// bagian itu tidak dikirim browser ke server, jadi tidak masuk log server.
+// Jawaban yang diharapkan (bentuk baris sama dengan /api/progress dan /api/attempts milik siswa):
+//   { ok: true, child: { fullName }, progress: [ { task_id, completed } ],
+//     attempts: [ { task_id, fails, time_spent } ], report, link }
 // Mesin LP dipakai ulang supaya perhitungannya SAMA dengan "Laporan Saya", tetapi penyimpanannya
 // dialihkan ke memori halaman ini (bukan localStorage), jadi tidak mengubah data siapa pun di browser.
 // ============================================================
-const TOKEN_KEY = "parentToken";
 const DEMO = /[?&]demo=1/.test(location.search) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);   // contoh data: hanya di komputer sendiri
+
+// Token tautan wali hanya dibaca dari #hash, mis. /orangtua/laporan.html#<43 karakter>.
+function reportToken() {
+  const raw = String(location.hash || "").replace(/^#/, "").trim();
+  return /^[A-Za-z0-9_-]{43}$/.test(raw) ? raw : "";
+}
+function jadwalUrl(token) {
+  return "/orangtua/jadwal.html" + (token ? "#" + token : "");
+}
+function pasangTautan(token) {
+  const link = $("jadwalLink");
+  if (link) link.href = jadwalUrl(token);
+}
 
 function pesan(ikon, judul, teks) {
   $("laporan").hidden = true; $("status").hidden = false;
@@ -98,17 +119,17 @@ function pesan(ikon, judul, teks) {
 
 async function ambilLaporan() {
   if (DEMO) return dataContoh();
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = reportToken();
   if (!token) throw { code: "NO_TOKEN" };
   let r;
-  try { r = await fetch("/api/parent/report", { headers: { Authorization: "Bearer " + token }, cache: "no-store" }); }
+  try { r = await fetch("/api/reports/" + encodeURIComponent(token), { cache: "no-store" }); }
   catch (e) { throw { code: "NETWORK" }; }
-  if (r.status === 401 || r.status === 403) { localStorage.removeItem(TOKEN_KEY); throw { code: "NO_TOKEN" }; }
+  if (r.status === 404) throw { code: "NO_TOKEN" };
+  if (r.status === 429) throw { code: "RATE" };
   if (!r.ok) throw { code: "SERVER", status: r.status };
   const b = await r.json();
-  const d = b.data || b;
-  if (!d || !d.child) throw { code: "SERVER" };
-  return d;
+  if (!b || b.ok === false || !b.child) throw { code: "SERVER" };
+  return b;
 }
 
 // Contoh data (hanya ?demo=1 di localhost): sebagian task tiap jalur selesai, lengkap dengan percobaan dan waktu.
@@ -118,7 +139,7 @@ function dataContoh() {
     const n = ({ g1: 5, g3: 3, g2: 4 })[pb.id] != null ? ({ g1: 5, g3: 3, g2: 4 })[pb.id] : [6, 3, 0, 2, 6][i % 5];
     pb.tasks.slice(0, n).forEach((t, k) => { progress.push({ task_id: t.id, completed: true }); attempts.push({ task_id: t.id, fails: (k + i) % 3 === 0 ? 1 : 0, time_spent: 150 + ((k * 53 + i * 37) % 260) }); });
   }));
-  return { child: { username: "budi.contoh", fullName: "Budi Contoh" }, progress, attempts };
+  return { child: { fullName: "Budi Contoh" }, progress, attempts };
 }
 
 // alihkan penyimpanan LP ke memori + isi dari data server
@@ -126,7 +147,7 @@ function pasangData(d) {
   const mem = {};
   LP._get = (n, def) => (mem[n] === undefined ? def : mem[n]);
   LP._set = (n, v) => { mem[n] = v; };
-  LP.user = () => d.child.username || "anak";
+  LP.user = () => d.child.fullName || "anak";
   const done = {}, smp = {}, att = {}, tm = {};
   (d.progress || []).forEach((r) => { if (r && r.completed) { done[r.task_id] = true; if (String(r.task_id).indexOf(":") > 0) smp[r.task_id] = 1; } });
   (d.attempts || []).forEach((r) => { if (r && r.task_id) { att[r.task_id] = Number(r.fails) || 0; tm[r.task_id] = Number(r.time_spent) || 0; } });
@@ -227,7 +248,7 @@ function renderRincian(rows) {
 
 // ---------- tampilkan ----------
 function render(d) {
-  const jalur = buildReport(), nama = d.child.fullName || d.child.username || "ananda";
+  const jalur = buildReport(), nama = d.child.fullName || (d.report && d.report.student && d.report.student.name) || "ananda";
   $("anak").textContent = nama;
   const dn = jalur.reduce((s, j) => s + j.done, 0);
   $("sum").innerHTML = "<div>✅ " + dn + " langkah selesai</div><div>🌿 " + jalur.filter((j) => j.done).length + " jalur dicoba</div><div>🌳 " + jalur.filter((j) => j.total && j.done === j.total).length + " jalur selesai</div>";
@@ -246,24 +267,25 @@ function render(d) {
 }
 
 async function mulai() {
+  pasangTautan(reportToken());
   try {
     const d = await ambilLaporan();
     pasangData(d);
-    $("status").hidden = true; $("laporan").hidden = false; $("keluar").hidden = DEMO;
+    $("status").hidden = true; $("laporan").hidden = false;
     $("demoBar").hidden = !DEMO;
     render(d);
   } catch (e) {
-    if (e && e.code === "NO_TOKEN") pesan("🔒", "Silakan masuk dulu", "Halaman ini khusus orangtua. Buka tautan masuk orangtua yang diberikan sekolah untuk melihat perkembangan ananda.");
+    if (e && e.code === "NO_TOKEN") pesan("🔒", "Tautan tidak berlaku", "Halaman ini hanya bisa dibuka lewat tautan laporan orangtua dari sekolah. Tautan mungkin sudah kedaluwarsa atau dicabut; hubungi sekolah untuk tautan baru.");
     else if (e && e.code === "NETWORK") pesan("📡", "Server tidak terjangkau", "Periksa koneksi internet, lalu muat ulang halaman ini.");
+    else if (e && e.code === "RATE") pesan("⏳", "Terlalu banyak permintaan", "Tunggu sekitar satu menit, lalu muat ulang halaman ini.");
     else pesan("⚠️", "Data belum bisa ditampilkan", "Terjadi kendala di server. Coba lagi beberapa saat lagi.");
   }
 }
-$("keluar").onclick = () => { localStorage.removeItem(TOKEN_KEY); location.reload(); };
 window.addEventListener("pageshow", (e) => { if (e.persisted) mulai(); });
 mulai();
 </script>
-<script>window.JADWAL_BADGE = { audience: "ortu", tokenKey: "parentToken", api: "/api/parent/jadwal", link: "/orangtua/jadwal.html", mount: "#laporan" };</script>
-<script src="/shared/js/jadwal-badge.js?v=20261110"></script>
+<script>window.JADWAL_BADGE = { audience: "ortu", tokenFromHash: true, api: "/api/reports/{token}/jadwal", link: "/orangtua/jadwal.html", mount: "#laporan" };</script>
+<script src="/shared/js/jadwal-badge.js?v=20261117"></script>
   <script src="/shared/js/icons.js?v=20261019"></script>
 </body>
 </html>

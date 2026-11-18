@@ -5,7 +5,7 @@
 //
 // Portal /instruktur sebelumnya bekerja dalam "Mode contoh": semua data
 // disimpan di localStorage karena endpoint di bawah ini belum ada. Modul ini
-// menyediakan sumber data server untuk tiga menu portal tersebut:
+// kini menjadi sumber data server untuk tiga menu portal tersebut:
 //
 //   GET    /api/instruktur/me
 //   GET    /api/instruktur/tugas            (daftar)

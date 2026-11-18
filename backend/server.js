@@ -1050,6 +1050,11 @@ app.put("/api/user/allowed-grades", auth.requireAuth, (req, res) => {
 // ============================================================
 // TOKO HADIAH — KOIN BELAJAR (bingkai avatar & gelar)
 // ============================================================
+// Katalog awal diisi dari `shop-catalog.js`; setelah itu tabel `shop_rewards`
+// menjadi sumber data sehingga perubahan di menu Lencana & Hadiah dipakai
+// server saat memvalidasi pembelian.
+shop.seedItems(db);
+
 // Model saldo sama dengan frontend (LP.saldo):
 //   saldo = max(0, total koin - harga item yang sudah dibeli)
 // `points.total` TIDAK dikurangi saat belanja supaya level & riwayat tetap utuh.
@@ -1083,14 +1088,14 @@ function shopColumnFor(jenis) {
 // Katalog item (id, jenis, nama, harga, frameClass, desc, orn).
 // Frontend boleh memakai ini sebagai pengganti LP.HADIAH yang di-hardcode.
 app.get("/api/shop/items", auth.requireAuth, (req, res) => {
-    sendApiSuccess(res, { items: shop.SHOP_ITEMS });
+    sendApiSuccess(res, { items: shop.listItems(db) });
 });
 
 // Status toko user: katalog + item dimiliki + yang dipakai + saldo koin.
 app.get("/api/shop", auth.requireAuth, (req, res) => {
     try {
         sendApiSuccess(res, {
-            items: shop.SHOP_ITEMS,
+            items: shop.listItems(db),
             ...getShopState(req.userId)
         });
     } catch (error) {
@@ -1104,7 +1109,7 @@ app.post("/api/shop/buy", auth.requireAuth, rateLimitMiddleware(30), (req, res) 
         const itemId = sanitizeString(req.body && req.body.itemId, 64);
         if (!itemId) return sendApiError(res, 400, "itemId wajib diisi", "VALIDATION_ERROR");
 
-        const item = shop.findItem(itemId);
+        const item = shop.findItem(db, itemId);
         if (!item) return sendApiError(res, 404, "Hadiah tidak ditemukan", "ITEM_NOT_FOUND");
 
         // Transaksi: cek kepemilikan + saldo + catat pembelian + pasang item.
@@ -1155,7 +1160,7 @@ app.post("/api/shop/equip", auth.requireAuth, (req, res) => {
         const itemId = sanitizeString(req.body && req.body.itemId, 64);
         if (!itemId) return sendApiError(res, 400, "itemId wajib diisi", "VALIDATION_ERROR");
 
-        const item = shop.findItem(itemId);
+        const item = shop.findItem(db, itemId);
         if (!item) return sendApiError(res, 404, "Hadiah tidak ditemukan", "ITEM_NOT_FOUND");
 
         const owned = db.prepare(`
@@ -1526,6 +1531,12 @@ require("./admin-api").registerAdminApi(app, {
     rateLimitMiddleware, sanitizeString, normalizeEmail, isValidEmail
 });
 require("./jadwal-api").registerJadwalApi(app, {
+    db, auth, sendApiError, sendApiSuccess
+});
+require("./finance-api").registerFinanceApi(app, {
+    db, auth, sendApiError, sendApiSuccess
+});
+require("./rewards-api").registerRewardsApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
 require("./instruktur-api").registerInstrukturApi(app, {

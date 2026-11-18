@@ -382,7 +382,10 @@ function buildChildData(db, studentId, fullName) {
   return { child: { fullName: fullName || null }, progress, attempts };
 }
 
-function resolveReportToken(db, token) {
+// Memvalidasi token tautan laporan tanpa menaikkan access_count. Dipakai
+// endpoint pelengkap halaman wali (jadwal dan rekap absen) yang boleh dipanggil
+// berulang saat halaman berpindah bulan.
+function resolveReportLink(db, token) {
   if (typeof token !== "string" || !TOKEN_RE.test(token)) return null;
   const row = db.prepare(`
     SELECT rl.id, rl.student_user_id, rl.guardian_id, rl.expires_at,
@@ -396,6 +399,11 @@ function resolveReportToken(db, token) {
       AND u.role = 'student'
       AND u.status <> 'deleted'
   `).get(hashToken(token));
+  return row || null;
+}
+
+function resolveReportToken(db, token) {
+  const row = resolveReportLink(db, token);
   if (!row) return null;
 
   const report = buildStudentReport(db, Number(row.student_user_id));
@@ -431,6 +439,7 @@ module.exports = {
   revokeReportLink,
   buildStudentReport,
   resolveReportToken,
+  resolveReportLink,
   buildChildData,
   REPORT_PAGE_PATH,
   reportPageUrl

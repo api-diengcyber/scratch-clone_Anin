@@ -110,7 +110,7 @@ Setiap perubahan progress menghitung ulang `points.total` dari seluruh task yang
 - `GET /api/instruktur/sesi/ringkasan` hanya menghitung sesi yang sudah selesai pada bulan itu. `rataRata` adalah rata-rata persentase tiap sesi (0-100, satu desimal), `rataRataBulanLalu` memakai bulan sebelumnya, dan `perhatian[]` berisi murid dengan kehadiran di bawah 60% pada bulan tersebut.
 - Tabel: `mentoring_attendance` (satu baris per murid per jadwal), `study_streak_days` (satu baris per murid per tanggal WIB), serta `instructor_stages`/`instructor_students` untuk penugasan instruktur.
 - Endpoint tulis dibatasi 60 permintaan/menit per akun (`429 RATE_LIMITED`).
-- Endpoint orang tua (`/api/parent/attendance`, `/api/parent/report`, `/api/parent/jadwal`) **belum tersedia** karena autentikasi token orang tua belum ada di backend. Modul frontend `DCRekap` juga masih berjalan dengan `window.DC_REKAP_DEMO = true`.
+- Rekap tersedia untuk semua peran lewat backend: siswa `GET /api/attendance/report`, instruktur `GET /api/instruktur/attendance`, admin `GET /api/admin/users/:id/attendance` (satu murid) dan `GET /api/admin/users` (persen kehadiran per murid). Wali memakai `GET /api/reports/:token/attendance` (lihat "Laporan Wali (publik)"). Modul `DCRekap` di Admin, Instruktur, dan halaman murid sudah memuat data dari endpoint tersebut; data contoh hanya aktif bila `window.DC_REKAP_DEMO = true` disetel manual sebelum file dimuat.
 
 ### Materi per task (portal murid)
 
@@ -309,6 +309,15 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/report-deliveries/run` | `{ today?, studentId?, limit? }` | `{ summary: { today, provider, processed, sent, failed, skipped, errors } }`; menjalankan pengiriman yang jatuh tempo sekarang. `today` (`YYYY-MM-DD`) hanya boleh hari ini atau sebelumnya (`400` bila lebih maju, supaya jadwal tidak bisa dipercepat); `studentId` membatasi ke satu siswa; `limit` maks. 200. Mengikuti kebijakan percobaan ulang yang sama dengan penjadwal |
 | POST | `/api/admin/report-deliveries/:id/retry` | - | `{ item }`; mengembalikan baris `pending`/`failed`/`skipped` menjadi `pending`, mereset `attempts`, membersihkan error, dan memajukan `dueDate` ke hari ini. Baris `sent` ditolak `409 DELIVERY_ALREADY_SENT` |
 | POST | `/api/admin/report-deliveries/:id/preview` | - | `{ item, email: { subject, text, html }, preview: true }`; pratinjau isi email memakai token placeholder, tidak membuat tautan asli dan tidak mengubah status |
+| GET | `/api/admin/finance/summary?from=&to=` | - | `{ from, to, pemasukan, pengeluaran, laba, diskon, transaksi: { total, paid, pending, failed, refunded, pemasukan, menunggu }, menunggu: { total, count }, perJenjang, pengeluaranKategori, harian }`; rentang default bulan berjalan (WIB), maksimal 401 hari |
+| GET | `/api/admin/finance/transactions?q=&status=&grade=&learningPathId=&from=&to=&sort=&dir=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; `sort` = `tanggal`/`total`/`nama`/`status`/`code`; `dir` = `asc`/`desc` |
+| POST | `/api/admin/finance/transactions` | `{ studentId, learningPathId, learningPathName?, grade?, price, discount?, method, status?, note?, paidAt? }` | `{ item }` 201; `total` dihitung server (`price - discount`); kode tampilan `TRX-1001` (1000 + id) |
+| PATCH | `/api/admin/finance/transactions/:id` | field yang diubah | `{ item }`; `paidAt` + `status: "paid"` mengisi tanggal lunas; status selain `paid` mengosongkan tanggal/verifikasi |
+| DELETE | `/api/admin/finance/transactions/:id` | - | `{ id }` |
+| GET | `/api/admin/finance/expenses?from=&to=&kategori=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; `ringkasan.total` = jumlah nominal hasil filter |
+| POST | `/api/admin/finance/expenses` | `{ kategori, nominal, tanggal?, catatan? }` | `{ item }` 201; `tanggal` default hari ini (WIB); kode tampilan `EXP-501` (500 + id) |
+| PATCH | `/api/admin/finance/expenses/:id` | field yang diubah | `{ item }` |
+| DELETE | `/api/admin/finance/expenses/:id` | - | `{ id }` |
 
 Perilaku penting:
 
@@ -349,6 +358,13 @@ Perilaku penting:
 - Mengubah tanggal berlangganan menggeser `dueDate` pengiriman `pending`; menghapus tanggal membatalkan yang `pending`/`failed` (`skipped`). Yang sudah `sent` tidak disentuh. Menghapus wali membatalkan email yang belum terkirim ke wali itu, sejalan dengan tautannya yang dicabut.
 - Pengiriman email otomatis ke wali dijalankan penjadwal (`report-scheduler.js`) lewat `mailer.js`; cara mengaktifkan dan kebijakannya ada di bagian [Pengiriman email laporan](#pengiriman-email-laporan).
 - Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`); perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`, dan perubahan tanggal berlangganan `subscription.update` (berisi `from`, `to`, `rescheduled`, `skipped`).
+- **Finance khusus admin.** `/api/admin/finance/*` memakai `auth.requireAdmin`, bukan permission matriks, sehingga akun `instruktur` ditolak `403 ADMIN_REQUIRED` walaupun punya permission lain. Tidak ada permission baru yang ditambahkan ke `admin_role_permissions`.
+- Nominal finance berupa integer rupiah (0 – 1.000.000.000); `nominal` pengeluaran wajib > 0. Diskon tidak boleh melebihi harga, dan `total` selalu dihitung ulang server (`price - discount`), termasuk saat PATCH.
+- `status` transaksi: `paid`/`pending`/`failed`/`refunded`. Saat status menjadi `paid`, server mengisi `paid_at` (UTC), `paid_on` (tanggal WIB), `verified_by`, dan `verified_at`; `paidAt` pada body mengatur tanggal WIB-nya. Status selain `paid` mengosongkan kolom verifikasi tersebut.
+- Tanggal laporan memakai `paid_on` (transaksi) dan `spent_on` (pengeluaran) berformat `YYYY-MM-DD` WIB. Transaksi yang belum lunas memakai tanggal pencatatan yang dikonversi ke WIB agar tetap muncul di filter/urut.
+- Kode tampilan stabil dibuat setelah insert: `TRX-${1000 + id}` dan `EXP-${500 + id}`. Kode tidak berubah saat data diubah.
+- Audit finance memakai `finance_transaction.create`, `finance_transaction.update`, `finance_transaction.delete`, `finance_expense.create`, `finance_expense.update`, dan `finance_expense.delete` dengan `target_type = 'finance'`.
+- Detail validasi finance dikembalikan sebagai `400 VALIDATION_ERROR` dengan `details.field` (mis. `price`, `discount`, `studentId`, `tanggal`, `nominal`). Rentang `from`/`to` yang terbalik atau lebih dari 401 hari juga ditolak.
 - Rate limit admin: 60 request/menit per admin per path.
 
 ## Laporan Wali (publik)
@@ -358,6 +374,8 @@ Wali tidak punya akun. Admin membuat tautan laporan per siswa lalu mengirim URL-
 | Method | Alamat | Hasil |
 |---|---|---|
 | GET | `/api/reports/:token` | `{ child, progress, attempts, report, link }`; tanpa login |
+| GET | `/api/reports/:token/jadwal?bulan=YYYY-MM` | `{ bulan, jadwal: [...] }`; jadwal mentoring anak, disaring menurut jenjang yang diizinkan |
+| GET | `/api/reports/:token/attendance?bulan=YYYY-MM` | `{ bulan, siswa: { nama }, ringkasan, keseluruhan, perBulan, sesi }`; rekap kehadiran anak |
 
 Isi respons ini adalah **whitelist**: apa pun yang tidak tercantum di bawah tidak pernah dikirim, karena siapa pun yang memegang tautan bisa membacanya. Tidak ada username, ID, atau email siswa; tidak ada data lencana (`achievements`, `analytics`, `summary.achievementsEarned`); dan ID internal penulis pesan mentor tidak ikut. Daftar kunci dikunci oleh test, jadi menambah field adalah keputusan sadar.
 
@@ -409,6 +427,7 @@ Admin mengirim `pageUrl` (bukan `url`) ke email wali: `https://domain/orangtua/l
 2. Panggil `GET /api/reports/<token>` tanpa header `Authorization`.
 3. Token salah/kedaluwarsa/dicabut → `404 REPORT_NOT_FOUND`; terlalu sering → `429 RATE_LIMITED` (cek `Retry-After`).
 4. Jangan menyimpan token di `localStorage`. Wali tidak punya akun maupun sesi.
+5. Halaman jadwal dan absen memakai token yang sama dari `location.hash`, lalu memanggil `GET /api/reports/<token>/jadwal` dan `GET /api/reports/<token>/attendance`; keduanya menerima `?bulan=YYYY-MM` dan tidak menaikkan `access_count`.
 
 Perubahan dari versi sebelumnya (tidak kompatibel bagi pemakai lama): `report.analytics`, `report.achievements`, dan `report.summary.achievementsEarned` dihapus; `report.student.name` bernilai `null` untuk siswa tanpa nama lengkap (dulu memakai username); `report.mentorNote` tidak lagi memuat `authorId` dan `createdAt`.
 
@@ -416,7 +435,9 @@ Perilaku penting:
 
 - Token salah, kedaluwarsa, atau dicabut → `404 REPORT_NOT_FOUND` (tidak membedakan ketiganya).
 - Response memakai `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, dan `X-Robots-Tag: noindex, nofollow`; endpoint dibatasi 60 request/menit per IP. Semua token dihitung dalam satu bucket per IP, jadi mengganti token di tiap request tidak menghindari batas. Melewati batas → `429 RATE_LIMITED` dengan header `Retry-After`.
-- Setiap akses menambah `access_count` dan `last_accessed_at` pada tautan.
+- Hanya `GET /api/reports/:token` yang menambah `access_count` dan `last_accessed_at`. Endpoint pelengkap `.../jadwal` dan `.../attendance` memvalidasi token yang sama tetapi **tidak** menaikkan hitungan, karena halaman wali dapat berpindah bulan berkali-kali.
+- `bulan` pada jadwal/absen berformat `YYYY-MM` dan default bulan berjalan (WIB). Format salah → `400 VALIDATION_ERROR` dengan `details.field = "bulan"`.
+- `jadwal` memakai bentuk yang sama dengan jadwal siswa; jadwal dengan `grades` kosong dianggap berlaku untuk semua jenjang. Sesi absen hanya memuat sesi yang sudah selesai, dan `siswa` sengaja hanya berisi `{ nama }` tanpa username atau ID internal (`nama` bisa `null`).
 - Menghapus wali (menghilangkannya dari `PUT .../guardians`) otomatis mencabut tautan milik wali tersebut. Mengedit wali lain tidak memengaruhi tautan wali yang dipertahankan. Daftar wali diurutkan menurut `id` (wali lama dulu, lalu yang baru).
 - Tautan hanya bisa dibuat/dicabut admin/instruktur dengan permission `siswa.kelola`.
 

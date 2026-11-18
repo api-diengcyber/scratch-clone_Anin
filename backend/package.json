@@ -8,12 +8,15 @@
     "seed": "node seed-tasks-smp.js && node seed-tasks-sd-smk.js && node seed-materials.js",
     "backup": "node backup.js",
     "smoke": "node smoke-test.js",
-    "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js && node test-materials.js && node test-jadwal.js && node test-attendance.js && node test-instruktur.js && node test-learning.js && node test-logging.js && node test-deliveries.js && node test-mail.js && node test-student-notifications.js",
+    "test": "node test-endpoints.js && node test-auth.js && node test-shop.js && node test-admin.js && node test-materials.js && node test-jadwal.js && node test-attendance.js && node test-instruktur.js && node test-finance.js && node test-parent.js && node test-rewards.js && node test-learning.js && node test-logging.js && node test-deliveries.js && node test-mail.js && node test-student-notifications.js",
     "test:admin": "node test-admin.js",
     "test:materials": "node test-materials.js",
     "test:jadwal": "node test-jadwal.js",
     "test:attendance": "node test-attendance.js",
     "test:instruktur": "node test-instruktur.js",
+    "test:finance": "node test-finance.js",
+    "test:parent": "node test-parent.js",
+    "test:rewards": "node test-rewards.js",
     "create-admin": "node create-admin.js",
     "promote-admin": "node promote-admin.js",
     "start:plugins": "node plugin-runtime-server.js",
@@ -44,6 +47,7 @@
     "pino-pretty": "^13.2.0"
   },
   "overrides": {
-    "@google-cloud/firestore-api": "0.7.1"
+    "@google-cloud/firestore-api": "0.7.1",
+    "fast-xml-parser": "^5.12.1"
   }
 }

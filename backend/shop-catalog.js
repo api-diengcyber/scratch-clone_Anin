@@ -73,13 +73,90 @@ const SHOP_TYPES = ["bingkai", "gelar"];
 
 const SHOP_BY_ID = new Map(SHOP_ITEMS.map((item) => [item.id, item]));
 
-function findItem(itemId) {
+// ------------------------------------------------------------
+// Katalog dari database
+//
+// Tabel `shop_rewards` adalah sumber utama setelah server start; data statis
+// di atas hanya benih awal dan cadangan bila fungsi dipanggil tanpa db.
+// Pembelian tetap memakai harga di tabel ini, bukan harga dari browser.
+// ------------------------------------------------------------
+function rowToItem(row) {
+    if (!row) return null;
+    let orn = [];
+    try {
+        const parsed = JSON.parse(row.orn || "[]");
+        if (Array.isArray(parsed)) orn = parsed;
+    } catch (_) { /* biarkan kosong */ }
+    const item = {
+        id: row.id,
+        jenis: row.jenis,
+        emoji: row.emoji || "",
+        nama: row.nama,
+        harga: Number(row.harga) || 0
+    };
+    if (row.jenis === "bingkai") {
+        item.frameClass = row.frame_class || "frame-gold";
+        item.desc = row.description || "";
+        item.orn = orn;
+    }
+    return item;
+}
+
+// Isi katalog awal. Aman dipanggil berkali-kali: baris yang sudah ada
+// (termasuk yang sudah diubah admin) tidak ditimpa.
+function seedItems(db) {
+    if (!db) return { seeded: 0 };
+    const insert = db.prepare(`
+        INSERT OR IGNORE INTO shop_rewards
+            (id, jenis, emoji, nama, harga, frame_class, description, orn)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    let seeded = 0;
+    for (const item of SHOP_ITEMS) {
+        const info = insert.run(
+            item.id,
+            item.jenis,
+            item.emoji || "",
+            item.nama,
+            item.harga,
+            item.frameClass || "",
+            item.desc || "",
+            JSON.stringify(item.orn || [])
+        );
+        seeded += Number(info.changes) || 0;
+    }
+    return { seeded };
+}
+
+function listItems(db) {
+    if (!db) return SHOP_ITEMS.map((item) => ({ ...item }));
+    const rows = db.prepare(`
+        SELECT * FROM shop_rewards
+        ORDER BY CASE jenis WHEN 'bingkai' THEN 0 ELSE 1 END, harga ASC, nama COLLATE NOCASE ASC
+    `).all();
+    return rows.map(rowToItem);
+}
+
+// findItem(db, id) memakai tabel; findItem(id) tetap didukung untuk pemanggil
+// lama yang hanya butuh katalog statis.
+function findItem(dbOrId, maybeId) {
+    const hasDb = maybeId !== undefined;
+    const db = hasDb ? dbOrId : null;
+    const itemId = hasDb ? maybeId : dbOrId;
     if (typeof itemId !== "string") return null;
+    if (db) {
+        return rowToItem(db.prepare("SELECT * FROM shop_rewards WHERE id = ?").get(itemId));
+    }
     return SHOP_BY_ID.get(itemId) || null;
 }
 
 module.exports = {
     SHOP_ITEMS,
     SHOP_TYPES,
+    SHOP_BY_ID,
+    rowToItem,
+    seedItems,
+    listItems,
     findItem
 };
+

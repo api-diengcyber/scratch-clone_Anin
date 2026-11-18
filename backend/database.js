@@ -805,6 +805,66 @@ db.exec(`
         ON student_mentor_notes(author_user_id);
 `);
 
+// ============================================================
+// KEUANGAN (FINANCE)
+//
+// Sumber data menu Finance di portal admin: transaksi pembelian learning path
+// oleh siswa dan pengeluaran operasional. Semua nominal berupa integer rupiah.
+// `code` adalah kode tampilan yang stabil (TRX-1001, EXP-501) dan dibuat dari
+// id setelah insert. Tanggal laporan memakai `paid_on`/`spent_on` (YYYY-MM-DD
+// WIB), bukan timestamp UTC, supaya pengelompokan harian tetap benar.
+// ============================================================
+db.exec(`
+    CREATE TABLE IF NOT EXISTS finance_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL DEFAULT '',
+        student_user_id INTEGER,
+        learning_path_key TEXT NOT NULL DEFAULT '',
+        learning_path_name TEXT NOT NULL DEFAULT '',
+        grade TEXT NOT NULL DEFAULT '',
+        price INTEGER NOT NULL DEFAULT 0 CHECK (price >= 0),
+        discount INTEGER NOT NULL DEFAULT 0 CHECK (discount >= 0),
+        total INTEGER NOT NULL DEFAULT 0 CHECK (total >= 0),
+        method TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pending'
+            CHECK (status IN ('paid', 'pending', 'failed', 'refunded')),
+        note TEXT NOT NULL DEFAULT '',
+        paid_at DATETIME,
+        paid_on TEXT NOT NULL DEFAULT '',
+        verified_by INTEGER,
+        verified_at DATETIME,
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY(verified_by) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_transactions_code
+        ON finance_transactions(code) WHERE code <> '';
+    CREATE INDEX IF NOT EXISTS idx_finance_transactions_status
+        ON finance_transactions(status, paid_on);
+    CREATE INDEX IF NOT EXISTS idx_finance_transactions_student
+        ON finance_transactions(student_user_id, id DESC);
+
+    CREATE TABLE IF NOT EXISTS finance_expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL DEFAULT '',
+        kategori TEXT NOT NULL DEFAULT '',
+        nominal INTEGER NOT NULL CHECK (nominal > 0),
+        spent_on TEXT NOT NULL,
+        catatan TEXT NOT NULL DEFAULT '',
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_expenses_code
+        ON finance_expenses(code) WHERE code <> '';
+    CREATE INDEX IF NOT EXISTS idx_finance_expenses_date
+        ON finance_expenses(spent_on, id DESC);
+`);
+
 // Bersihkan tabel parent_students lama. Jika masih berisi data, tabel sengaja
 // dibiarkan agar tidak ada data yang hilang; kode baru tidak memakainya lagi.
 (function cleanupLegacyParentStudents() {
@@ -892,6 +952,27 @@ db.exec(`
         UNIQUE(username, item_id),
         FOREIGN KEY(username) REFERENCES users(username)
     )
+`);
+
+// Katalog hadiah toko yang bisa diubah admin (menu Lencana & Hadiah).
+// Baris awal diisi dari `shop-catalog.js` saat server start (INSERT OR IGNORE),
+// lalu `/api/shop` membaca tabel ini agar perubahan admin langsung dipakai
+// server. Harga pembelian lama tetap tersimpan di `user_items.harga`.
+db.exec(`
+    CREATE TABLE IF NOT EXISTS shop_rewards (
+        id TEXT PRIMARY KEY,
+        jenis TEXT NOT NULL CHECK (jenis IN ('bingkai', 'gelar')),
+        emoji TEXT NOT NULL DEFAULT '',
+        nama TEXT NOT NULL,
+        harga INTEGER NOT NULL DEFAULT 0 CHECK (harga >= 0),
+        frame_class TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        orn TEXT NOT NULL DEFAULT '[]',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_shop_rewards_jenis
+        ON shop_rewards(jenis, harga, nama);
 `);
 
 

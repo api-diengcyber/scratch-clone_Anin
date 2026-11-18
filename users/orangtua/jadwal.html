@@ -39,7 +39,7 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 </style>
 </head>
 <body>
-<header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>📅 Jadwal Mentoring Ananda</h1><a href="/orangtua/laporan.html">← Perkembangan</a></header>
+<header class="eh"><img src="/Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"><h1>📅 Jadwal Mentoring Ananda</h1><a href="/orangtua/laporan.html" id="laporanLink">← Perkembangan</a></header>
 <main>
   <section class="card hi" id="next" aria-live="polite">
     <div class="ic" aria-hidden="true">🎥</div>
@@ -70,8 +70,12 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
 <script>
 (function () {
   "use strict";
-  var TOKEN_KEY = "parentToken";   // diisi oleh alur masuk orangtua (sama dengan halaman Perkembangan Anak)
-  var token = ""; try { token = localStorage.getItem(TOKEN_KEY) || ""; } catch (e) {}
+  // Token tautan wali hanya dibaca dari #hash (tidak dikirim ke server lewat URL path).
+  var hashToken = (function () {
+    var h = String(location.hash || "").replace(/^#/, "").trim();
+    return /^[A-Za-z0-9_-]{43}$/.test(h) ? h : "";
+  })();
+  var token = hashToken;
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = window.DCUtils.esc;
@@ -85,14 +89,18 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   var selected = ymd(today);
   var events = {};            // { "2026-11-09": [event, ...] }
   var cache = {};             // { "2026-11": true } bulan yang sudah dimuat
-  // GANTI ke false kalau endpoint /api/jadwal sudah siap (data contoh dimatikan).
-  var USE_DEMO = false;
-  var demo = USE_DEMO ? !/[?&]demo=0(&|$)/.test(location.search) : /[?&]demo(=1)?(&|$)/.test(location.search);
+  // Data contoh hanya kalau diminta lewat URL (?demo=1); tidak pernah aktif otomatis.
+  var demo = /[?&]demo(=1)?(&|$)/.test(location.search);
   if (demo) { var w = $("warn"); w.hidden = false; w.textContent = "🧪 Mode contoh: jadwal di bawah hanya data percobaan, bukan jadwal ananda yang sebenarnya."; }
-  function perlu(judul, teks) {   // belum masuk / sesi habis
+  function perlu(judul, teks) {   // tautan tidak berlaku / tidak lengkap
     document.querySelector("main").innerHTML = '<section class="card empty"><span>🔒</span><h3 style="margin:6px 0">' + esc(judul) + "</h3>" + esc(teks) + "</section>";
   }
-  if (!token && !demo) { perlu("Silakan masuk dulu", "Halaman ini khusus orangtua. Buka tautan masuk orangtua yang diberikan sekolah untuk melihat jadwal mentoring ananda."); return; }
+  function pasangTautan(t) {
+    var suffix = t ? "#" + t : "";
+    var lap = $("laporanLink"); if (lap) lap.href = "/orangtua/laporan.html" + suffix;
+  }
+  pasangTautan(token);
+  if (!token && !demo) { perlu("Tautan tidak lengkap", "Halaman ini hanya bisa dibuka lewat tautan laporan orangtua dari sekolah. Tautan yang tersalin tanpa bagian # di belakangnya tidak bisa dipakai."); return; }
 
   // ---------- data ----------
   function startOf(ev) { var p = ev.tanggal.split("-"), t = (ev.mulai || "00:00").split(":"); return new Date(+p[0], +p[1] - 1, +p[2], +t[0] || 0, +t[1] || 0); }
@@ -118,15 +126,16 @@ main{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:16px}
   function load(key) {
     if (cache[key]) return Promise.resolve();
     if (demo) { addEvents(demoData(key)); cache[key] = true; return Promise.resolve(); }
-    return fetch("/api/parent/jadwal?bulan=" + encodeURIComponent(key), { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
+    return fetch("/api/reports/" + encodeURIComponent(token) + "/jadwal?bulan=" + encodeURIComponent(key), { cache: "no-store" })
       .then(function (res) {
-        if (res.status === 401 || res.status === 403) { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} perlu("Silakan masuk dulu", "Sesi orangtua sudah berakhir. Buka kembali tautan masuk orangtua dari sekolah."); throw new Error("auth"); }
+        if (res.status === 404) { perlu("Tautan tidak berlaku", "Tautan laporan sudah kedaluwarsa atau dicabut. Hubungi sekolah untuk tautan baru."); throw new Error("auth"); }
+        if (res.status === 429) { $("warn").hidden = false; $("warn").textContent = "Terlalu banyak permintaan. Tunggu sekitar satu menit, lalu muat ulang halaman."; throw new Error("rate"); }
         if (!res.ok) throw new Error("http" + res.status);
         return res.json();
       })
       .then(function (data) { addEvents(normalize(data)); cache[key] = true; $("warn").hidden = true; })
       .catch(function (err) {
-        if (err.message === "auth") return;
+        if (err.message === "auth" || err.message === "rate") return;
         $("warn").hidden = false;
         $("warn").textContent = "Jadwal belum bisa dimuat dari server. Coba muat ulang halaman beberapa saat lagi.";
       });

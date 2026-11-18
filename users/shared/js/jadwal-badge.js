@@ -22,10 +22,16 @@
   var USE_DEMO = false;   // ← GANTI ke false kalau endpoint /api/jadwal sudah siap
 
   // Konfigurasi. Dashboard siswa memakai bawaan di bawah. Halaman orang tua mengisi window.JADWAL_BADGE sebelum memuat file ini:
-  //   { audience: "ortu", tokenKey: "parentToken", api: "/api/parent/jadwal", link: "/orangtua/jadwal.html", mount: "#laporan" }
+  //   { audience: "ortu", tokenFromHash: true, api: "/api/reports/{token}/jadwal", link: "/orangtua/jadwal.html", mount: "#laporan" }
+  // tokenFromHash membaca token wali dari bagian #hash URL (bukan localStorage) dan mengisi {token} pada api.
   var CFG = window.JADWAL_BADGE || {};
   var ORTU = CFG.audience === "ortu";
-  var TOKEN_KEY = CFG.tokenKey || "authToken", API = CFG.api || "/api/jadwal", LINK = CFG.link || "/jadwal/jadwal.html", MOUNT = CFG.mount || "main";
+  var TOKEN_KEY = CFG.tokenKey || "authToken";
+  var hashToken = "";
+  if (CFG.tokenFromHash) {
+    var h = String(location.hash || "").replace(/^#/, "").trim();
+    if (/^[A-Za-z0-9_-]{43}$/.test(h)) hashToken = h;
+  }
 
   var esc = (window.DCUtils && window.DCUtils.esc) || function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var pad = function (n) { return (n < 10 ? "0" : "") + n; };
@@ -35,8 +41,12 @@
   var m = location.search.match(/[?&]demo=?([a-z0-9]*)/), param = m ? (m[1] === "" ? "live" : m[1]) : null;
   var demo = USE_DEMO ? (param === "0" ? null : (param || "soon")) : (param && param !== "0" ? param : null);
 
-  var token = ""; try { token = localStorage.getItem(TOKEN_KEY) || ""; } catch (e) {}
+  var token = hashToken; try { if (!token) token = localStorage.getItem(TOKEN_KEY) || ""; } catch (e) {}
   if (!token && !demo) return;
+
+  var API = String(CFG.api || "/api/jadwal").replace("{token}", encodeURIComponent(token));
+  var LINK = (CFG.link || "/jadwal/jadwal.html") + (hashToken ? "#" + hashToken : "");
+  var MOUNT = CFG.mount || "main";
 
   function at(tanggal, jam) { var p = tanggal.split("-"), t = (jam || "00:00").split(":"); return new Date(+p[0], +p[1] - 1, +p[2], +t[0] || 0, +t[1] || 0); }
   function safeUrl(u) { try { var x = new URL(String(u)); return x.protocol === "https:" ? x.href : ""; } catch (e) { return ""; } }
@@ -51,7 +61,9 @@
   }
   function monthKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
   function fetchMonth(key) {
-    return fetch(API + "?bulan=" + key, { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
+    var headers = {};
+    if (!hashToken) headers.Authorization = "Bearer " + token;   // laporan wali tidak memakai header sesi
+    return fetch(API + "?bulan=" + key, { headers: headers, cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { var l = Array.isArray(d) ? d : (d && (d.jadwal || d.schedules || d.events)) || []; return l.filter(function (x) { return x && /^\d{4}-\d{2}-\d{2}$/.test(x.tanggal || ""); }); })
       .catch(function () { return []; });
