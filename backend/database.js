@@ -863,7 +863,98 @@ db.exec(`
         ON finance_expenses(code) WHERE code <> '';
     CREATE INDEX IF NOT EXISTS idx_finance_expenses_date
         ON finance_expenses(spent_on, id DESC);
+
+    -- Pemasukan perusahaan di luar pembayaran siswa (donasi, sponsor, dsb).
+    -- Dipisah dari finance_transactions supaya tidak dihitung ganda dengan
+    -- pembayaran siswa yang masuk otomatis saat transaksi berstatus Lunas.
+    CREATE TABLE IF NOT EXISTS finance_incomes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL DEFAULT '',
+        kategori TEXT NOT NULL DEFAULT '',
+        keterangan TEXT NOT NULL DEFAULT '',
+        nominal INTEGER NOT NULL CHECK (nominal > 0),
+        received_on TEXT NOT NULL,
+        bukti TEXT NOT NULL DEFAULT '',
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_incomes_code
+        ON finance_incomes(code) WHERE code <> '';
+    CREATE INDEX IF NOT EXISTS idx_finance_incomes_date
+        ON finance_incomes(received_on, id DESC);
+
+    -- Gaji & honor per penerima per periode. Kolom total = pokok + tunjangan
+    -- + bonus - potongan (disimpan agar laporan tidak menghitung ulang).
+    -- Penerima instruktur merujuk users.id; staf lain memakai nama bebas.
+    CREATE TABLE IF NOT EXISTS finance_payroll (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL DEFAULT '',
+        ref_user_id INTEGER,
+        nama TEXT NOT NULL DEFAULT '',
+        tipe TEXT NOT NULL DEFAULT 'Staf'
+            CHECK (tipe IN ('Instruktur', 'Staf')),
+        periode TEXT NOT NULL,
+        pokok INTEGER NOT NULL DEFAULT 0 CHECK (pokok >= 0),
+        tunjangan INTEGER NOT NULL DEFAULT 0 CHECK (tunjangan >= 0),
+        bonus INTEGER NOT NULL DEFAULT 0 CHECK (bonus >= 0),
+        potongan INTEGER NOT NULL DEFAULT 0 CHECK (potongan >= 0),
+        total INTEGER NOT NULL DEFAULT 0 CHECK (total >= 0),
+        status TEXT NOT NULL DEFAULT 'draft'
+            CHECK (status IN ('draft', 'paid')),
+        paid_on TEXT NOT NULL DEFAULT '',
+        metode TEXT NOT NULL DEFAULT '',
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(ref_user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_payroll_code
+        ON finance_payroll(code) WHERE code <> '';
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_payroll_member
+        ON finance_payroll(periode, ref_user_id) WHERE ref_user_id IS NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_payroll_staff
+        ON finance_payroll(periode, nama COLLATE NOCASE) WHERE tipe = 'Staf';
+    CREATE INDEX IF NOT EXISTS idx_finance_payroll_period
+        ON finance_payroll(periode, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_finance_payroll_paid
+        ON finance_payroll(status, paid_on);
+
+    -- Anggaran operasional per kategori per bulan.
+    CREATE TABLE IF NOT EXISTS finance_budgets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        periode TEXT NOT NULL,
+        kategori TEXT NOT NULL DEFAULT '',
+        jumlah INTEGER NOT NULL CHECK (jumlah > 0),
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_finance_budgets_unique
+        ON finance_budgets(periode, kategori);
+    CREATE INDEX IF NOT EXISTS idx_finance_budgets_period
+        ON finance_budgets(periode, kategori);
 `);
+
+// Migrasi untuk database lama: finance_expenses semula hanya mencatat
+// pengeluaran yang sudah dibayar. Kolom status/bukti ditambahkan agar alur
+// pengajuan (submitted -> approved -> paid/rejected) bisa disimpan. Baris lama
+// otomatis berstatus 'paid' supaya laporan tidak berubah.
+(function migrateFinanceExpenseStatus() {
+    const cols = db.prepare("PRAGMA table_info(finance_expenses)").all().map((c) => c.name);
+    if (!cols.includes("status")) {
+        db.exec(`ALTER TABLE finance_expenses ADD COLUMN status TEXT NOT NULL DEFAULT 'paid'
+            CHECK (status IN ('submitted', 'approved', 'paid', 'rejected'))`);
+        console.log("[MIGRASI] Kolom finance_expenses.status ditambahkan.");
+    }
+    if (!cols.includes("bukti")) {
+        db.exec("ALTER TABLE finance_expenses ADD COLUMN bukti TEXT NOT NULL DEFAULT ''");
+        console.log("[MIGRASI] Kolom finance_expenses.bukti ditambahkan.");
+    }
+})();
 
 // Bersihkan tabel parent_students lama. Jika masih berisi data, tabel sengaja
 // dibiarkan agar tidak ada data yang hilang; kode baru tidak memakainya lagi.

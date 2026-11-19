@@ -309,15 +309,29 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/report-deliveries/run` | `{ today?, studentId?, limit? }` | `{ summary: { today, provider, processed, sent, failed, skipped, errors } }`; menjalankan pengiriman yang jatuh tempo sekarang. `today` (`YYYY-MM-DD`) hanya boleh hari ini atau sebelumnya (`400` bila lebih maju, supaya jadwal tidak bisa dipercepat); `studentId` membatasi ke satu siswa; `limit` maks. 200. Mengikuti kebijakan percobaan ulang yang sama dengan penjadwal |
 | POST | `/api/admin/report-deliveries/:id/retry` | - | `{ item }`; mengembalikan baris `pending`/`failed`/`skipped` menjadi `pending`, mereset `attempts`, membersihkan error, dan memajukan `dueDate` ke hari ini. Baris `sent` ditolak `409 DELIVERY_ALREADY_SENT` |
 | POST | `/api/admin/report-deliveries/:id/preview` | - | `{ item, email: { subject, text, html }, preview: true }`; pratinjau isi email memakai token placeholder, tidak membuat tautan asli dan tidak mengubah status |
-| GET | `/api/admin/finance/summary?from=&to=` | - | `{ from, to, pemasukan, pengeluaran, laba, diskon, transaksi: { total, paid, pending, failed, refunded, pemasukan, menunggu }, menunggu: { total, count }, perJenjang, pengeluaranKategori, harian }`; rentang default bulan berjalan (WIB), maksimal 401 hari |
+| GET | `/api/admin/finance/summary?from=&to=` | - | `{ from, to, pemasukan, pemasukanLain, pengeluaran, payroll: { count, total }, laba, labaOperasional, diskon, transaksi: { total, paid, pending, failed, refunded, pemasukan, menunggu }, menunggu: { total, count }, perJenjang, pengeluaranKategori, pengeluaranStatus, harian }`; rentang default bulan berjalan (WIB), maksimal 401 hari; `pengeluaran` dan `harian[].keluar` hanya menghitung pengeluaran berstatus `paid` |
 | GET | `/api/admin/finance/transactions?q=&status=&grade=&learningPathId=&from=&to=&sort=&dir=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; `sort` = `tanggal`/`total`/`nama`/`status`/`code`; `dir` = `asc`/`desc` |
 | POST | `/api/admin/finance/transactions` | `{ studentId, learningPathId, learningPathName?, grade?, price, discount?, method, status?, note?, paidAt? }` | `{ item }` 201; `total` dihitung server (`price - discount`); kode tampilan `TRX-1001` (1000 + id) |
 | PATCH | `/api/admin/finance/transactions/:id` | field yang diubah | `{ item }`; `paidAt` + `status: "paid"` mengisi tanggal lunas; status selain `paid` mengosongkan tanggal/verifikasi |
 | DELETE | `/api/admin/finance/transactions/:id` | - | `{ id }` |
-| GET | `/api/admin/finance/expenses?from=&to=&kategori=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; `ringkasan.total` = jumlah nominal hasil filter |
-| POST | `/api/admin/finance/expenses` | `{ kategori, nominal, tanggal?, catatan? }` | `{ item }` 201; `tanggal` default hari ini (WIB); kode tampilan `EXP-501` (500 + id) |
-| PATCH | `/api/admin/finance/expenses/:id` | field yang diubah | `{ item }` |
+| GET | `/api/admin/finance/expenses?from=&to=&kategori=&status=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan: { total, dibayar } }`; `ringkasan.total` = nominal hasil filter, `dibayar` = nominal berstatus `paid` (tanpa filter status) |
+| POST | `/api/admin/finance/expenses` | `{ kategori, nominal, tanggal?, catatan?, status?, bukti? }` | `{ item }` 201; `tanggal` default hari ini (WIB); `status` default `paid`; kode tampilan `EXP-501` (500 + id) |
+| PATCH | `/api/admin/finance/expenses/:id` | field yang diubah | `{ item }`; `status` = `submitted`/`approved`/`paid`/`rejected`, `bukti` maks. 200 karakter |
 | DELETE | `/api/admin/finance/expenses/:id` | - | `{ id }` |
+| GET | `/api/admin/finance/income?from=&to=&kategori=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; pemasukan perusahaan di luar pembayaran siswa |
+| POST | `/api/admin/finance/income` | `{ kategori, nominal, keterangan?, tanggal?, bukti? }` | `{ item }` 201; kode tampilan `INC-${300 + id}` |
+| PATCH | `/api/admin/finance/income/:id` | field yang diubah | `{ item }` |
+| DELETE | `/api/admin/finance/income/:id` | - | `{ id }` |
+| GET | `/api/admin/finance/payroll?periode=&status=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan: { total, draft: { count, total }, paid: { count, total } } }`; urut periode terbaru lalu nama |
+| POST | `/api/admin/finance/payroll` | `{ refUserId?, nama?, tipe?, periode, pokok, tunjangan?, bonus?, potongan? }` | `{ item }` 201; `periode` wajib `YYYY-MM` dan tidak boleh masa depan; `refUserId` (instruktur) mengisi nama dari akun; tanpa `refUserId` wajib `nama` (tipe `Staf`); `total` = pokok + tunjangan + bonus − potongan |
+| PATCH | `/api/admin/finance/payroll/:id` | field yang diubah | `{ item }`; hanya payroll `draft` (yang sudah dibayar → `409 PAYROLL_LOCKED`) |
+| POST | `/api/admin/finance/payroll/:id/pay` | `{ tanggal?, metode? }` | `{ item }`; `tanggal` default hari ini, tidak boleh sebelum awal periode atau di masa depan; status menjadi `paid` dan data terkunci |
+| DELETE | `/api/admin/finance/payroll/:id` | - | `{ id }`; hanya payroll `draft` |
+| GET | `/api/admin/finance/budgets?periode=` | - | `{ items, total, ringkasan: { total } }`; tanpa `periode` mengembalikan semua bulan |
+| POST | `/api/admin/finance/budgets` | `{ periode, kategori, jumlah }` | `{ item }` 201; unik per periode + kategori (`409 CONFLICT`) |
+| PATCH | `/api/admin/finance/budgets/:id` | `{ jumlah }` | `{ item }`; periode/kategori bersifat tetap |
+| DELETE | `/api/admin/finance/budgets/:id` | - | `{ id }` |
+| GET | `/api/admin/finance/company?periode=YYYY-MM` | - | `{ periode, from, to, pemasukanSiswa, pemasukanLain: { count, total }, pemasukan, pengeluaran: { submitted, approved, paid, rejected }, payroll: { periode, draft, paid, dibayarBulanIni }, anggaran: { total, realisasi, komitmen, sisa, rows } }`; `rows[]` = `{ id, kategori, anggaran, realisasi, komitmen, sisa, pct, status }` dengan `status` = `ok`/`warn`/`over`/`none` |
 
 Perilaku penting:
 
@@ -359,12 +373,16 @@ Perilaku penting:
 - Pengiriman email otomatis ke wali dijalankan penjadwal (`report-scheduler.js`) lewat `mailer.js`; cara mengaktifkan dan kebijakannya ada di bagian [Pengiriman email laporan](#pengiriman-email-laporan).
 - Semua aksi admin dicatat di tabel `admin_audit` (`actor_user_id`, `actor_username`, `action`, `target_type`, `target_id`, `details`, `ip`); perubahan wali memakai `guardian.update`, pembuatan tautan `report_link.create`, pencabutan `report_link.revoke`, dan perubahan tanggal berlangganan `subscription.update` (berisi `from`, `to`, `rescheduled`, `skipped`).
 - **Finance khusus admin.** `/api/admin/finance/*` memakai `auth.requireAdmin`, bukan permission matriks, sehingga akun `instruktur` ditolak `403 ADMIN_REQUIRED` walaupun punya permission lain. Tidak ada permission baru yang ditambahkan ke `admin_role_permissions`.
-- Nominal finance berupa integer rupiah (0 – 1.000.000.000); `nominal` pengeluaran wajib > 0. Diskon tidak boleh melebihi harga, dan `total` selalu dihitung ulang server (`price - discount`), termasuk saat PATCH.
+- Nominal finance berupa integer rupiah (0 – 1.000.000.000); `nominal` pengeluaran dan pemasukan wajib > 0. Diskon tidak boleh melebihi harga, dan `total` selalu dihitung ulang server (`price - discount`), termasuk saat PATCH.
 - `status` transaksi: `paid`/`pending`/`failed`/`refunded`. Saat status menjadi `paid`, server mengisi `paid_at` (UTC), `paid_on` (tanggal WIB), `verified_by`, dan `verified_at`; `paidAt` pada body mengatur tanggal WIB-nya. Status selain `paid` mengosongkan kolom verifikasi tersebut.
-- Tanggal laporan memakai `paid_on` (transaksi) dan `spent_on` (pengeluaran) berformat `YYYY-MM-DD` WIB. Transaksi yang belum lunas memakai tanggal pencatatan yang dikonversi ke WIB agar tetap muncul di filter/urut.
-- Kode tampilan stabil dibuat setelah insert: `TRX-${1000 + id}` dan `EXP-${500 + id}`. Kode tidak berubah saat data diubah.
-- Audit finance memakai `finance_transaction.create`, `finance_transaction.update`, `finance_transaction.delete`, `finance_expense.create`, `finance_expense.update`, dan `finance_expense.delete` dengan `target_type = 'finance'`.
-- Detail validasi finance dikembalikan sebagai `400 VALIDATION_ERROR` dengan `details.field` (mis. `price`, `discount`, `studentId`, `tanggal`, `nominal`). Rentang `from`/`to` yang terbalik atau lebih dari 401 hari juga ditolak.
+- `status` pengeluaran: `submitted` → `approved` → `paid`, atau `rejected`. Baris lama otomatis bermigrasi menjadi `paid` agar laporan tidak berubah. Hanya `paid` yang dihitung sebagai kas keluar di `finance/summary` dan `finance/company`; `approved` tampil sebagai komitmen anggaran.
+- Pemasukan perusahaan (donasi, sponsor, penjualan merchandise, hibah) disimpan terpisah di `finance_incomes` supaya tidak dihitung ganda dengan pembayaran siswa yang masuk otomatis saat transaksi lunas.
+- Payroll memakai `periode` `YYYY-MM` (tidak boleh masa depan) dan unik per penerima per periode: instruktur berdasarkan `ref_user_id`, staf lain berdasarkan nama tanpa beda kapital. Hanya payroll `paid` yang dihitung sebagai pengeluaran; payroll `draft` tampil sebagai rencana. Payroll yang sudah dibayar terkunci (`409 PAYROLL_LOCKED`) dan tanggal pembayarannya tidak boleh sebelum awal periode atau di masa depan.
+- Anggaran operasional disimpan per `periode` + `kategori` (unik) di `finance_budgets`. `GET /api/admin/finance/company` menggabungkan pemasukan siswa, pemasukan lain, realisasi pengeluaran `paid`, komitmen `approved`, dan payroll yang dibayar pada bulan itu; status baris `ok` (< 80%), `warn` (80-100%), `over` (> 100%), atau `none` (belum dianggarkan).
+- Tanggal laporan memakai `paid_on` (transaksi/payroll), `received_on` (pemasukan lain), dan `spent_on` (pengeluaran) berformat `YYYY-MM-DD` WIB. Transaksi yang belum lunas memakai tanggal pencatatan yang dikonversi ke WIB agar tetap muncul di filter/urut.
+- Kode tampilan stabil dibuat setelah insert: `TRX-${1000 + id}`, `EXP-${500 + id}`, `INC-${300 + id}`, dan `PAY-${100 + id}`. Kode tidak berubah saat data diubah.
+- Audit finance memakai `finance_transaction.*`, `finance_expense.*`, `finance_income.*`, `finance_payroll.create`/`update`/`pay`/`delete`, dan `finance_budget.create`/`update`/`delete` dengan `target_type = 'finance'`.
+- Detail validasi finance dikembalikan sebagai `400 VALIDATION_ERROR` dengan `details.field` (mis. `price`, `discount`, `studentId`, `tanggal`, `nominal`, `periode`, `potongan`). Rentang `from`/`to` yang terbalik atau lebih dari 401 hari juga ditolak.
 - Rate limit admin: 60 request/menit per admin per path.
 
 ## Laporan Wali (publik)

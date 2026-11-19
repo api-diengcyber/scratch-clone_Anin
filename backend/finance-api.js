@@ -22,10 +22,32 @@
 //   POST   /api/admin/finance/expenses
 //   PATCH  /api/admin/finance/expenses/:id
 //   DELETE /api/admin/finance/expenses/:id
+//
+//   GET    /api/admin/finance/income?from=&to=&kategori=&q=&page=&limit=
+//   POST   /api/admin/finance/income
+//   PATCH  /api/admin/finance/income/:id
+//   DELETE /api/admin/finance/income/:id
+//
+//   GET    /api/admin/finance/payroll?periode=&status=&q=&page=&limit=
+//   POST   /api/admin/finance/payroll
+//   PATCH  /api/admin/finance/payroll/:id
+//   POST   /api/admin/finance/payroll/:id/pay
+//   DELETE /api/admin/finance/payroll/:id
+//
+//   GET    /api/admin/finance/budgets?periode=
+//   POST   /api/admin/finance/budgets
+//   PATCH  /api/admin/finance/budgets/:id
+//   DELETE /api/admin/finance/budgets/:id
+//
+//   GET    /api/admin/finance/company?periode=YYYY-MM
 // ============================================================
 
 const GRADES = ["SD", "SMP", "SMK"];
 const STATUSES = ["paid", "pending", "failed", "refunded"];
+const EXPENSE_STATUSES = ["submitted", "approved", "paid", "rejected"];
+const PAYROLL_STATUSES = ["draft", "paid"];
+const PAYROLL_TYPES = ["Instruktur", "Staf"];
+const MONTH_RE = /^(\d{4})-(\d{2})$/;
 const SORTS = ["tanggal", "total", "nama", "status", "code"];
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const MAX_MONEY = 1_000_000_000;
@@ -141,6 +163,64 @@ function pageFrom(query, defaultLimit = 20) {
   return { page, limit };
 }
 
+function monthOf(value, field, { required = false } = {}) {
+  if (value === undefined || value === null || value === "") {
+    if (required) invalid(`${field} wajib diisi dengan format YYYY-MM.`, field);
+    return "";
+  }
+  const raw = String(value).trim();
+  const match = MONTH_RE.exec(raw);
+  if (!match) invalid(`${field} harus bulan sah dengan format YYYY-MM.`, field);
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (year < 2000 || year > 2100 || month < 1 || month > 12) {
+    invalid(`${field} harus bulan sah dengan format YYYY-MM.`, field);
+  }
+  return raw;
+}
+
+function periodBounds(periode) {
+  const [year, month] = periode.split("-").map(Number);
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return { from: `${periode}-01`, to: `${periode}-${String(last).padStart(2, "0")}` };
+}
+
+function currentMonth() {
+  return jakartaToday().slice(0, 7);
+}
+
+function expenseStatusOf(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  const clean = String(value).trim().toLowerCase();
+  if (!EXPENSE_STATUSES.includes(clean)) {
+    invalid(`status harus salah satu dari: ${EXPENSE_STATUSES.join(", ")}.`, "status");
+  }
+  return clean;
+}
+
+function payrollStatusOf(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  const clean = String(value).trim().toLowerCase();
+  if (!PAYROLL_STATUSES.includes(clean)) {
+    invalid(`status harus salah satu dari: ${PAYROLL_STATUSES.join(", ")}.`, "status");
+  }
+  return clean;
+}
+
+function payrollTypeOf(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  const clean = String(value).trim().toLowerCase();
+  const found = PAYROLL_TYPES.find((t) => t.toLowerCase() === clean);
+  if (!found) invalid(`tipe harus salah satu dari: ${PAYROLL_TYPES.join(", ")}.`, "tipe");
+  return found;
+}
+
+function idOf(value) {
+  const num = Number(value);
+  if (!Number.isSafeInteger(num) || num < 1) return null;
+  return num;
+}
+
 // Tanggal tampilan transaksi: tanggal pembayaran bila sudah lunas, selain itu
 // tanggal pencatatan (dikonversi ke WIB karena created_at memakai UTC).
 const TX_DATE = "COALESCE(NULLIF(t.paid_on, ''), date(t.created_at, '+7 hours'))";
@@ -177,7 +257,57 @@ function expenseDto(row) {
     kategori: row.kategori || "",
     nominal: Number(row.nominal || 0),
     tanggal: row.spent_on || "",
+    status: row.status || "paid",
+    bukti: row.bukti || "",
     catatan: row.catatan || "",
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+function incomeDto(row) {
+  return {
+    id: Number(row.id),
+    code: row.code || "",
+    tanggal: row.received_on || "",
+    kategori: row.kategori || "",
+    keterangan: row.keterangan || "",
+    nominal: Number(row.nominal || 0),
+    bukti: row.bukti || "",
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+function payrollDto(row) {
+  return {
+    id: Number(row.id),
+    code: row.code || "",
+    refUserId: row.ref_user_id === null || row.ref_user_id === undefined
+      ? null
+      : Number(row.ref_user_id),
+    nama: row.nama || "",
+    tipe: row.tipe || "Staf",
+    periode: row.periode || "",
+    pokok: Number(row.pokok || 0),
+    tunjangan: Number(row.tunjangan || 0),
+    bonus: Number(row.bonus || 0),
+    potongan: Number(row.potongan || 0),
+    total: Number(row.total || 0),
+    status: row.status || "draft",
+    tanggalBayar: row.paid_on || "",
+    metode: row.metode || "",
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+function budgetDto(row) {
+  return {
+    id: Number(row.id),
+    periode: row.periode || "",
+    kategori: row.kategori || "",
+    jumlah: Number(row.jumlah || 0),
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
   };
@@ -223,6 +353,24 @@ function registerFinanceApi(app, deps) {
     return db.prepare("SELECT * FROM finance_expenses WHERE id = ?").get(num) || null;
   }
 
+  function findIncome(id) {
+    const num = idOf(id);
+    if (!num) return null;
+    return db.prepare("SELECT * FROM finance_incomes WHERE id = ?").get(num) || null;
+  }
+
+  function findPayroll(id) {
+    const num = idOf(id);
+    if (!num) return null;
+    return db.prepare("SELECT * FROM finance_payroll WHERE id = ?").get(num) || null;
+  }
+
+  function findBudget(id) {
+    const num = idOf(id);
+    if (!num) return null;
+    return db.prepare("SELECT * FROM finance_budgets WHERE id = ?").get(num) || null;
+  }
+
   function txWithStudent(id) {
     return db.prepare(`SELECT t.*, u.full_name AS student_name, u.username AS student_username
       FROM finance_transactions t
@@ -243,7 +391,17 @@ function registerFinanceApi(app, deps) {
 
     const expense = db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(nominal), 0) AS total
       FROM finance_expenses
-      WHERE spent_on BETWEEN ? AND ?`).get(from, to);
+      WHERE status = 'paid' AND spent_on BETWEEN ? AND ?`).get(from, to);
+
+    const expenseStatusRows = db.prepare(`SELECT status, COUNT(*) AS n, COALESCE(SUM(nominal), 0) AS total
+      FROM finance_expenses
+      WHERE spent_on BETWEEN ? AND ?
+      GROUP BY status`).all(from, to);
+    const expenseStatus = { submitted: { count: 0, total: 0 }, approved: { count: 0, total: 0 }, paid: { count: 0, total: 0 }, rejected: { count: 0, total: 0 } };
+    for (const row of expenseStatusRows) {
+      if (!expenseStatus[row.status]) continue;
+      expenseStatus[row.status] = { count: Number(row.n || 0), total: Number(row.total || 0) };
+    }
 
     const statusRows = db.prepare(`SELECT t.status, COUNT(*) AS n, COALESCE(SUM(t.total), 0) AS total
       FROM finance_transactions t
@@ -267,7 +425,7 @@ function registerFinanceApi(app, deps) {
 
     const pengeluaranKategori = db.prepare(`SELECT kategori, COALESCE(SUM(nominal), 0) AS total, COUNT(*) AS n
       FROM finance_expenses
-      WHERE spent_on BETWEEN ? AND ?
+      WHERE status = 'paid' AND spent_on BETWEEN ? AND ?
       GROUP BY kategori
       ORDER BY total DESC, kategori ASC`).all(from, to).map((row) => ({
       kategori: row.kategori || "",
@@ -275,13 +433,21 @@ function registerFinanceApi(app, deps) {
       count: Number(row.n || 0)
     }));
 
+    const lain = db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(nominal), 0) AS total
+      FROM finance_incomes
+      WHERE received_on BETWEEN ? AND ?`).get(from, to);
+
+    const payroll = db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS total
+      FROM finance_payroll
+      WHERE status = 'paid' AND paid_on BETWEEN ? AND ?`).get(from, to);
+
     const masukHarian = new Map(db.prepare(`SELECT paid_on AS tanggal, COALESCE(SUM(total), 0) AS total
       FROM finance_transactions
       WHERE status = 'paid' AND paid_on BETWEEN ? AND ?
       GROUP BY paid_on`).all(from, to).map((row) => [row.tanggal, Number(row.total || 0)]));
     const keluarHarian = new Map(db.prepare(`SELECT spent_on AS tanggal, COALESCE(SUM(nominal), 0) AS total
       FROM finance_expenses
-      WHERE spent_on BETWEEN ? AND ?
+      WHERE status = 'paid' AND spent_on BETWEEN ? AND ?
       GROUP BY spent_on`).all(from, to).map((row) => [row.tanggal, Number(row.total || 0)]));
 
     const harian = [];
@@ -290,13 +456,18 @@ function registerFinanceApi(app, deps) {
     }
 
     const pemasukan = Number(income.total || 0);
+    const pemasukanLain = Number(lain.total || 0);
     const pengeluaran = Number(expense.total || 0);
+    const payrollDibayar = Number(payroll.total || 0);
     return sendApiSuccess(res, {
       from,
       to,
       pemasukan,
+      pemasukanLain,
       pengeluaran,
-      laba: pemasukan - pengeluaran,
+      payroll: { count: Number(payroll.n || 0), total: payrollDibayar },
+      laba: pemasukan + pemasukanLain - pengeluaran - payrollDibayar,
+      labaOperasional: pemasukan - pengeluaran,
       diskon: Number(income.diskon || 0),
       transaksi: {
         total: Object.values(statusCount).reduce((sum, n) => sum + n, 0),
@@ -310,6 +481,7 @@ function registerFinanceApi(app, deps) {
       menunggu: { total: statusTotal.pending, count: statusCount.pending },
       perJenjang,
       pengeluaranKategori,
+      pengeluaranStatus: expenseStatus,
       harian
     });
   }));
@@ -584,6 +756,12 @@ function registerFinanceApi(app, deps) {
     }
     const kategori = text(req.query.kategori, "kategori", 80);
     if (kategori) { where.push("kategori = ?"); params.push(kategori); }
+    // Total "dibayar" dihitung tanpa filter status, jadi tetap informatif saat
+    // daftar sedang difilter ke status lain.
+    const paidWhere = where.slice();
+    const paidParams = params.slice();
+    const status = req.query.status ? expenseStatusOf(req.query.status) : "";
+    if (status) { where.push("status = ?"); params.push(status); }
     const from = dateOnly(req.query.from, "from");
     const to = dateOnly(req.query.to, "to");
     if (from && to && from > to) invalid("from harus sebelum atau sama dengan to.", "from");
@@ -601,6 +779,8 @@ function registerFinanceApi(app, deps) {
       .all(...params, limit, (safePage - 1) * limit);
     const sumRow = db.prepare(`SELECT COALESCE(SUM(nominal), 0) AS total FROM finance_expenses ${clause}`)
       .get(...params);
+    const paidRow = db.prepare(`SELECT COALESCE(SUM(nominal), 0) AS total FROM finance_expenses
+      WHERE status = 'paid' ${paidWhere.length ? "AND " + paidWhere.join(" AND ") : ""}`).get(...paidParams);
 
     return sendApiSuccess(res, {
       items: rows.map(expenseDto),
@@ -608,7 +788,10 @@ function registerFinanceApi(app, deps) {
       page: safePage,
       pages,
       limit,
-      ringkasan: { total: Number(sumRow.total || 0) }
+      ringkasan: {
+        total: Number(sumRow.total || 0),
+        dibayar: Number(paidRow.total || 0)
+      }
     });
   }));
 
@@ -621,14 +804,16 @@ function registerFinanceApi(app, deps) {
     const nominal = money(body.nominal, "nominal", { required: true, allowZero: false });
     const tanggal = dateOnly(body.tanggal, "tanggal") || jakartaToday();
     const catatan = text(body.catatan, "catatan", 500);
+    const status = expenseStatusOf(body.status, "paid");
+    const bukti = text(body.bukti, "bukti", 200);
 
     const info = db.prepare(`INSERT INTO finance_expenses
-      (kategori, nominal, spent_on, catatan, created_by)
-      VALUES (?, ?, ?, ?, ?)`).run(kategori, nominal, tanggal, catatan, req.userId);
+      (kategori, nominal, spent_on, catatan, status, bukti, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`).run(kategori, nominal, tanggal, catatan, status, bukti, req.userId);
     const id = Number(info.lastInsertRowid);
     const code = `EXP-${500 + id}`;
     db.prepare("UPDATE finance_expenses SET code = ? WHERE id = ?").run(code, id);
-    audit(req, "finance_expense.create", id, { code, kategori, nominal, tanggal });
+    audit(req, "finance_expense.create", id, { code, kategori, nominal, tanggal, status });
     return sendApiSuccess(res, { item: expenseDto(findExpense(id)) }, "Pengeluaran dibuat.", 201);
   }));
 
@@ -657,11 +842,20 @@ function registerFinanceApi(app, deps) {
       next.catatan = text(body.catatan, "catatan", 500);
       fields.push("catatan");
     }
+    if (body.status !== undefined) {
+      next.status = expenseStatusOf(body.status, next.status || "paid");
+      fields.push("status");
+    }
+    if (body.bukti !== undefined) {
+      next.bukti = text(body.bukti, "bukti", 200);
+      fields.push("bukti");
+    }
     if (!fields.length) invalid("Tidak ada perubahan yang dikirim.", "body");
 
     db.prepare(`UPDATE finance_expenses SET kategori = ?, nominal = ?, spent_on = ?, catatan = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?`).run(next.kategori, next.nominal, next.spent_on, next.catatan, current.id);
+        status = ?, bukti = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(next.kategori, next.nominal, next.spent_on, next.catatan,
+      next.status || "paid", next.bukti || "", current.id);
     audit(req, "finance_expense.update", current.id, { code: current.code, fields });
     return sendApiSuccess(res, { item: expenseDto(findExpense(current.id)) }, "Pengeluaran diperbarui.");
   }));
@@ -677,6 +871,533 @@ function registerFinanceApi(app, deps) {
     });
     return sendApiSuccess(res, { id: current.id }, "Pengeluaran dihapus.");
   });
+
+  // ----------------------------------------------------------
+  // Pemasukan perusahaan (donasi, sponsor, penjualan, dsb.)
+  // ----------------------------------------------------------
+  app.get("/api/admin/finance/income", guard, (req, res) => dataResponse(res, () => {
+    const { page, limit } = pageFrom(req.query, 20);
+    const where = [];
+    const params = [];
+
+    const q = text(req.query.q, "q", 100);
+    if (q) {
+      const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
+      where.push(`(code LIKE ? ESCAPE '\\' OR kategori LIKE ? ESCAPE '\\' OR keterangan LIKE ? ESCAPE '\\')`);
+      params.push(like, like, like);
+    }
+    const kategori = text(req.query.kategori, "kategori", 80);
+    if (kategori) { where.push("kategori = ?"); params.push(kategori); }
+    const from = dateOnly(req.query.from, "from");
+    const to = dateOnly(req.query.to, "to");
+    if (from && to && from > to) invalid("from harus sebelum atau sama dengan to.", "from");
+    if (from) { where.push("received_on >= ?"); params.push(from); }
+    if (to) { where.push("received_on <= ?"); params.push(to); }
+
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const totalRow = db.prepare(`SELECT COUNT(*) AS n FROM finance_incomes ${clause}`).get(...params);
+    const total = Number(totalRow.n || 0);
+    const pages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(page, pages);
+    const rows = db.prepare(`SELECT * FROM finance_incomes ${clause}
+      ORDER BY received_on DESC, id DESC LIMIT ? OFFSET ?`)
+      .all(...params, limit, (safePage - 1) * limit);
+    const sumRow = db.prepare(`SELECT COALESCE(SUM(nominal), 0) AS total FROM finance_incomes ${clause}`)
+      .get(...params);
+
+    return sendApiSuccess(res, {
+      items: rows.map(incomeDto),
+      total,
+      page: safePage,
+      pages,
+      limit,
+      ringkasan: { total: Number(sumRow.total || 0) }
+    });
+  }));
+
+  app.post("/api/admin/finance/income", guard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body pemasukan harus berupa objek.", "body");
+    }
+    const kategori = text(body.kategori, "kategori", 80, true);
+    const keterangan = text(body.keterangan, "keterangan", 200);
+    const nominal = money(body.nominal, "nominal", { required: true, allowZero: false });
+    const tanggal = dateOnly(body.tanggal, "tanggal") || jakartaToday();
+    const bukti = text(body.bukti, "bukti", 200);
+
+    const info = db.prepare(`INSERT INTO finance_incomes
+      (kategori, keterangan, nominal, received_on, bukti, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)`).run(kategori, keterangan, nominal, tanggal, bukti, req.userId);
+    const id = Number(info.lastInsertRowid);
+    const code = `INC-${300 + id}`;
+    db.prepare("UPDATE finance_incomes SET code = ? WHERE id = ?").run(code, id);
+    audit(req, "finance_income.create", id, { code, kategori, nominal, tanggal });
+    return sendApiSuccess(res, { item: incomeDto(findIncome(id)) }, "Pemasukan dibuat.", 201);
+  }));
+
+  app.patch("/api/admin/finance/income/:id", guard, (req, res) => dataResponse(res, () => {
+    const current = findIncome(req.params.id);
+    if (!current) return sendApiError(res, 404, "Pemasukan tidak ditemukan.", "NOT_FOUND");
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body pemasukan harus berupa objek.", "body");
+    }
+    const next = { ...current };
+    const fields = [];
+    if (body.kategori !== undefined) {
+      next.kategori = text(body.kategori, "kategori", 80, true);
+      fields.push("kategori");
+    }
+    if (body.keterangan !== undefined) {
+      next.keterangan = text(body.keterangan, "keterangan", 200);
+      fields.push("keterangan");
+    }
+    if (body.nominal !== undefined) {
+      next.nominal = money(body.nominal, "nominal", { required: true, allowZero: false });
+      fields.push("nominal");
+    }
+    if (body.tanggal !== undefined) {
+      next.received_on = dateOnly(body.tanggal, "tanggal") || jakartaToday();
+      fields.push("tanggal");
+    }
+    if (body.bukti !== undefined) {
+      next.bukti = text(body.bukti, "bukti", 200);
+      fields.push("bukti");
+    }
+    if (!fields.length) invalid("Tidak ada perubahan yang dikirim.", "body");
+
+    db.prepare(`UPDATE finance_incomes SET kategori = ?, keterangan = ?, nominal = ?,
+        received_on = ?, bukti = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(next.kategori, next.keterangan, next.nominal,
+      next.received_on, next.bukti, current.id);
+    audit(req, "finance_income.update", current.id, { code: current.code, fields });
+    return sendApiSuccess(res, { item: incomeDto(findIncome(current.id)) }, "Pemasukan diperbarui.");
+  }));
+
+  app.delete("/api/admin/finance/income/:id", guard, (req, res) => {
+    const current = findIncome(req.params.id);
+    if (!current) return sendApiError(res, 404, "Pemasukan tidak ditemukan.", "NOT_FOUND");
+    db.prepare("DELETE FROM finance_incomes WHERE id = ?").run(current.id);
+    audit(req, "finance_income.delete", current.id, {
+      code: current.code,
+      kategori: current.kategori,
+      nominal: current.nominal
+    });
+    return sendApiSuccess(res, { id: current.id }, "Pemasukan dihapus.");
+  });
+
+  // ----------------------------------------------------------
+  // Payroll (gaji & honor)
+  // ----------------------------------------------------------
+  function payrollMember(refUserId) {
+    const row = db.prepare(`SELECT id, full_name, username, role FROM users
+      WHERE id = ? AND status <> 'deleted'`).get(refUserId);
+    if (!row) invalid("Penerima tidak ditemukan.", "refUserId");
+    if (row.role !== "instruktur") invalid("Penerima harus user berstatus instruktur.", "refUserId");
+    return { id: Number(row.id), nama: row.full_name || row.username || `Instruktur #${row.id}` };
+  }
+
+  function payrollDuplicate(periode, refUserId, nama, excludeId) {
+    if (refUserId) {
+      return db.prepare(`SELECT id FROM finance_payroll
+        WHERE periode = ? AND ref_user_id = ? AND id <> ?`).get(periode, refUserId, excludeId) || null;
+    }
+    return db.prepare(`SELECT id FROM finance_payroll
+      WHERE periode = ? AND tipe = 'Staf' AND nama = ? COLLATE NOCASE AND id <> ?`)
+      .get(periode, nama, excludeId) || null;
+  }
+
+  function payrollConflict(res, periode, refUserId, nama, excludeId) {
+    if (!payrollDuplicate(periode, refUserId, nama, excludeId)) return false;
+    sendApiError(res, 409, `${nama} sudah punya payroll untuk periode ${periode}.`, "CONFLICT");
+    return true;
+  }
+
+  app.get("/api/admin/finance/payroll", guard, (req, res) => dataResponse(res, () => {
+    const { page, limit } = pageFrom(req.query, 20);
+    const where = [];
+    const params = [];
+
+    const periode = monthOf(req.query.periode, "periode");
+    if (periode) { where.push("periode = ?"); params.push(periode); }
+    const q = text(req.query.q, "q", 100);
+    if (q) {
+      const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
+      where.push(`(code LIKE ? ESCAPE '\\' OR nama LIKE ? ESCAPE '\\')`);
+      params.push(like, like);
+    }
+    // Ringkasan dihitung tanpa filter status agar kartu Draft/Dibayar tetap
+    // menampilkan total periode yang sedang difilter.
+    const summaryWhere = where.slice();
+    const summaryParams = params.slice();
+    const status = req.query.status ? payrollStatusOf(req.query.status) : "";
+    if (status) { where.push("status = ?"); params.push(status); }
+
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const totalRow = db.prepare(`SELECT COUNT(*) AS n FROM finance_payroll ${clause}`).get(...params);
+    const total = Number(totalRow.n || 0);
+    const pages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(page, pages);
+    const rows = db.prepare(`SELECT * FROM finance_payroll ${clause}
+      ORDER BY periode DESC, nama COLLATE NOCASE ASC, id ASC LIMIT ? OFFSET ?`)
+      .all(...params, limit, (safePage - 1) * limit);
+
+    const summaryClause = summaryWhere.length ? `WHERE ${summaryWhere.join(" AND ")}` : "";
+    const sumRow = db.prepare(`SELECT
+        COALESCE(SUM(total), 0) AS total,
+        COALESCE(SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END), 0) AS draft_n,
+        COALESCE(SUM(CASE WHEN status = 'draft' THEN total ELSE 0 END), 0) AS draft_total,
+        COALESCE(SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END), 0) AS paid_n,
+        COALESCE(SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END), 0) AS paid_total
+      FROM finance_payroll ${summaryClause}`).get(...summaryParams);
+
+    return sendApiSuccess(res, {
+      items: rows.map(payrollDto),
+      total,
+      page: safePage,
+      pages,
+      limit,
+      ringkasan: {
+        total: Number(sumRow.total || 0),
+        draft: { count: Number(sumRow.draft_n || 0), total: Number(sumRow.draft_total || 0) },
+        paid: { count: Number(sumRow.paid_n || 0), total: Number(sumRow.paid_total || 0) }
+      }
+    });
+  }));
+
+  app.post("/api/admin/finance/payroll", guard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body payroll harus berupa objek.", "body");
+    }
+    const periode = monthOf(body.periode, "periode", { required: true });
+    if (periode > currentMonth()) invalid("periode tidak boleh di masa depan.", "periode");
+
+    const refRaw = body.refUserId;
+    const refUserId = refRaw === undefined || refRaw === null || refRaw === ""
+      ? null
+      : idOf(refRaw);
+    if (refRaw !== undefined && refRaw !== null && refRaw !== "" && !refUserId) {
+      invalid("refUserId tidak valid.", "refUserId");
+    }
+    let tipe = "Staf";
+    let nama = "";
+    let refId = null;
+    if (refUserId) {
+      const member = payrollMember(refUserId);
+      tipe = "Instruktur";
+      nama = member.nama;
+      refId = member.id;
+    } else {
+      tipe = payrollTypeOf(body.tipe, "Staf");
+      if (tipe === "Instruktur") invalid("Pilih penerima instruktur dari refUserId.", "refUserId");
+      nama = text(body.nama, "nama", 60, true);
+      if (nama.length < 2) invalid("nama minimal 2 karakter.", "nama");
+    }
+
+    const pokok = money(body.pokok, "pokok", { required: true, allowZero: false });
+    const tunjangan = money(body.tunjangan, "tunjangan") ?? 0;
+    const bonus = money(body.bonus, "bonus") ?? 0;
+    const potongan = money(body.potongan, "potongan") ?? 0;
+    if (potongan > pokok + tunjangan + bonus) {
+      invalid("potongan tidak boleh melebihi pokok + tunjangan + bonus.", "potongan");
+    }
+    const total = pokok + tunjangan + bonus - potongan;
+
+    if (payrollConflict(res, periode, refId, nama, 0)) return;
+
+    const info = db.prepare(`INSERT INTO finance_payroll
+      (code, ref_user_id, nama, tipe, periode, pokok, tunjangan, bonus, potongan, total,
+       status, paid_on, metode, created_by)
+      VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', '', '', ?)`).run(
+      refId, nama, tipe, periode, pokok, tunjangan, bonus, potongan, total, req.userId
+    );
+    const id = Number(info.lastInsertRowid);
+    const code = `PAY-${100 + id}`;
+    db.prepare("UPDATE finance_payroll SET code = ? WHERE id = ?").run(code, id);
+    audit(req, "finance_payroll.create", id, { code, periode, nama, total });
+    return sendApiSuccess(res, { item: payrollDto(findPayroll(id)) }, "Payroll dibuat.", 201);
+  }));
+
+  app.patch("/api/admin/finance/payroll/:id", guard, (req, res) => dataResponse(res, () => {
+    const current = findPayroll(req.params.id);
+    if (!current) return sendApiError(res, 404, "Payroll tidak ditemukan.", "NOT_FOUND");
+    if (current.status !== "draft") {
+      return sendApiError(res, 409, "Payroll yang sudah dibayar tidak bisa diubah.", "PAYROLL_LOCKED");
+    }
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body payroll harus berupa objek.", "body");
+    }
+
+    const next = { ...current };
+    const fields = [];
+
+    if (body.periode !== undefined) {
+      next.periode = monthOf(body.periode, "periode", { required: true });
+      if (next.periode > currentMonth()) invalid("periode tidak boleh di masa depan.", "periode");
+      fields.push("periode");
+    }
+    if (body.refUserId !== undefined) {
+      const raw = body.refUserId;
+      if (raw === null || raw === "") {
+        next.ref_user_id = null;
+        next.tipe = "Staf";
+      } else {
+        const member = payrollMember(idOf(raw));
+        next.ref_user_id = member.id;
+        next.tipe = "Instruktur";
+        next.nama = member.nama;
+      }
+      fields.push("refUserId");
+    }
+    if (body.tipe !== undefined && !next.ref_user_id) {
+      next.tipe = payrollTypeOf(body.tipe, "Staf");
+      if (next.tipe === "Instruktur") invalid("Pilih penerima instruktur dari refUserId.", "refUserId");
+      fields.push("tipe");
+    }
+    if (body.nama !== undefined && !next.ref_user_id) {
+      next.nama = text(body.nama, "nama", 60, true);
+      if (next.nama.length < 2) invalid("nama minimal 2 karakter.", "nama");
+      fields.push("nama");
+    }
+    if (body.pokok !== undefined) {
+      next.pokok = money(body.pokok, "pokok", { required: true, allowZero: false });
+      fields.push("pokok");
+    }
+    if (body.tunjangan !== undefined) {
+      next.tunjangan = money(body.tunjangan, "tunjangan") ?? 0;
+      fields.push("tunjangan");
+    }
+    if (body.bonus !== undefined) {
+      next.bonus = money(body.bonus, "bonus") ?? 0;
+      fields.push("bonus");
+    }
+    if (body.potongan !== undefined) {
+      next.potongan = money(body.potongan, "potongan") ?? 0;
+      fields.push("potongan");
+    }
+    if (next.potongan > next.pokok + next.tunjangan + next.bonus) {
+      invalid("potongan tidak boleh melebihi pokok + tunjangan + bonus.", "potongan");
+    }
+    next.total = next.pokok + next.tunjangan + next.bonus - next.potongan;
+    if (!fields.length) invalid("Tidak ada perubahan yang dikirim.", "body");
+
+    if (payrollConflict(res, next.periode, next.ref_user_id, next.nama, current.id)) return;
+
+    db.prepare(`UPDATE finance_payroll SET ref_user_id = ?, nama = ?, tipe = ?, periode = ?,
+        pokok = ?, tunjangan = ?, bonus = ?, potongan = ?, total = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(next.ref_user_id, next.nama, next.tipe, next.periode,
+      next.pokok, next.tunjangan, next.bonus, next.potongan, next.total, current.id);
+    audit(req, "finance_payroll.update", current.id, { code: current.code, fields, total: next.total });
+    return sendApiSuccess(res, { item: payrollDto(findPayroll(current.id)) }, "Payroll diperbarui.");
+  }));
+
+  app.post("/api/admin/finance/payroll/:id/pay", guard, (req, res) => dataResponse(res, () => {
+    const current = findPayroll(req.params.id);
+    if (!current) return sendApiError(res, 404, "Payroll tidak ditemukan.", "NOT_FOUND");
+    if (current.status !== "draft") {
+      return sendApiError(res, 409, "Payroll ini sudah dibayar.", "PAYROLL_LOCKED");
+    }
+    const body = req.body || {};
+    const tanggal = dateOnly(body.tanggal, "tanggal") || jakartaToday();
+    if (tanggal < `${current.periode}-01`) {
+      invalid("tanggal pembayaran tidak boleh sebelum awal periode.", "tanggal");
+    }
+    if (tanggal > jakartaToday()) invalid("tanggal pembayaran tidak boleh di masa depan.", "tanggal");
+    const metode = text(body.metode, "metode", 60) || "Transfer Bank";
+
+    db.prepare(`UPDATE finance_payroll SET status = 'paid', paid_on = ?, metode = ?,
+        updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(tanggal, metode, current.id);
+    audit(req, "finance_payroll.pay", current.id, { code: current.code, tanggal, metode });
+    return sendApiSuccess(res, { item: payrollDto(findPayroll(current.id)) }, "Pembayaran payroll dicatat.");
+  }));
+
+  app.delete("/api/admin/finance/payroll/:id", guard, (req, res) => {
+    const current = findPayroll(req.params.id);
+    if (!current) return sendApiError(res, 404, "Payroll tidak ditemukan.", "NOT_FOUND");
+    if (current.status !== "draft") {
+      return sendApiError(res, 409, "Payroll yang sudah dibayar tidak bisa dihapus.", "PAYROLL_LOCKED");
+    }
+    db.prepare("DELETE FROM finance_payroll WHERE id = ?").run(current.id);
+    audit(req, "finance_payroll.delete", current.id, {
+      code: current.code,
+      periode: current.periode,
+      total: current.total
+    });
+    return sendApiSuccess(res, { id: current.id }, "Payroll dihapus.");
+  });
+
+  // ----------------------------------------------------------
+  // Anggaran operasional
+  // ----------------------------------------------------------
+  app.get("/api/admin/finance/budgets", guard, (req, res) => dataResponse(res, () => {
+    const periode = monthOf(req.query.periode, "periode");
+    const where = periode ? "WHERE periode = ?" : "";
+    const params = periode ? [periode] : [];
+    const rows = db.prepare(`SELECT * FROM finance_budgets ${where}
+      ORDER BY periode DESC, kategori COLLATE NOCASE ASC`).all(...params);
+    const total = rows.reduce((sum, row) => sum + Number(row.jumlah || 0), 0);
+    return sendApiSuccess(res, {
+      items: rows.map(budgetDto),
+      total: rows.length,
+      ringkasan: { total }
+    });
+  }));
+
+  app.post("/api/admin/finance/budgets", guard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body anggaran harus berupa objek.", "body");
+    }
+    const periode = monthOf(body.periode, "periode", { required: true });
+    const kategori = text(body.kategori, "kategori", 80, true);
+    const jumlah = money(body.jumlah, "jumlah", { required: true, allowZero: false });
+
+    const dup = db.prepare("SELECT id FROM finance_budgets WHERE periode = ? AND kategori = ?")
+      .get(periode, kategori);
+    if (dup) {
+      return sendApiError(res, 409, `Anggaran ${kategori} untuk ${periode} sudah ada.`, "CONFLICT");
+    }
+
+    const info = db.prepare(`INSERT INTO finance_budgets (periode, kategori, jumlah, created_by)
+      VALUES (?, ?, ?, ?)`).run(periode, kategori, jumlah, req.userId);
+    const id = Number(info.lastInsertRowid);
+    audit(req, "finance_budget.create", id, { periode, kategori, jumlah });
+    return sendApiSuccess(res, { item: budgetDto(findBudget(id)) }, "Anggaran dibuat.", 201);
+  }));
+
+  app.patch("/api/admin/finance/budgets/:id", guard, (req, res) => dataResponse(res, () => {
+    const current = findBudget(req.params.id);
+    if (!current) return sendApiError(res, 404, "Anggaran tidak ditemukan.", "NOT_FOUND");
+    const body = req.body || {};
+    if (body.jumlah === undefined) invalid("Tidak ada perubahan yang dikirim.", "body");
+    const jumlah = money(body.jumlah, "jumlah", { required: true, allowZero: false });
+    db.prepare("UPDATE finance_budgets SET jumlah = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+      .run(jumlah, current.id);
+    audit(req, "finance_budget.update", current.id, {
+      periode: current.periode,
+      kategori: current.kategori,
+      jumlah
+    });
+    return sendApiSuccess(res, { item: budgetDto(findBudget(current.id)) }, "Anggaran diperbarui.");
+  }));
+
+  app.delete("/api/admin/finance/budgets/:id", guard, (req, res) => {
+    const current = findBudget(req.params.id);
+    if (!current) return sendApiError(res, 404, "Anggaran tidak ditemukan.", "NOT_FOUND");
+    db.prepare("DELETE FROM finance_budgets WHERE id = ?").run(current.id);
+    audit(req, "finance_budget.delete", current.id, {
+      periode: current.periode,
+      kategori: current.kategori,
+      jumlah: current.jumlah
+    });
+    return sendApiSuccess(res, { id: current.id }, "Anggaran dihapus.");
+  });
+
+  // ----------------------------------------------------------
+  // Ringkasan perusahaan per bulan (pemasukan lain + realisasi anggaran)
+  // ----------------------------------------------------------
+  app.get("/api/admin/finance/company", guard, (req, res) => dataResponse(res, () => {
+    const periode = monthOf(req.query.periode, "periode") || currentMonth();
+    const { from, to } = periodBounds(periode);
+
+    const pemasukanSiswa = db.prepare(`SELECT COALESCE(SUM(total), 0) AS total
+      FROM finance_transactions
+      WHERE status = 'paid' AND paid_on BETWEEN ? AND ?`).get(from, to);
+    const pemasukanLain = db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(nominal), 0) AS total
+      FROM finance_incomes WHERE received_on BETWEEN ? AND ?`).get(from, to);
+
+    const statusRows = db.prepare(`SELECT status, COUNT(*) AS n, COALESCE(SUM(nominal), 0) AS total
+      FROM finance_expenses WHERE spent_on BETWEEN ? AND ? GROUP BY status`).all(from, to);
+    const pengeluaran = {
+      submitted: { count: 0, total: 0 },
+      approved: { count: 0, total: 0 },
+      paid: { count: 0, total: 0 },
+      rejected: { count: 0, total: 0 }
+    };
+    for (const row of statusRows) {
+      if (!pengeluaran[row.status]) continue;
+      pengeluaran[row.status] = { count: Number(row.n || 0), total: Number(row.total || 0) };
+    }
+
+    const kategoriRows = db.prepare(`SELECT kategori, status, COALESCE(SUM(nominal), 0) AS total
+      FROM finance_expenses WHERE spent_on BETWEEN ? AND ? GROUP BY kategori, status`).all(from, to);
+    const real = {}; const komit = {};
+    for (const row of kategoriRows) {
+      const key = row.kategori || "";
+      if (row.status === "paid") real[key] = (real[key] || 0) + Number(row.total || 0);
+      else if (row.status === "approved") komit[key] = (komit[key] || 0) + Number(row.total || 0);
+    }
+
+    const payrollPeriode = db.prepare(`SELECT
+        COALESCE(SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END), 0) AS draft_n,
+        COALESCE(SUM(CASE WHEN status = 'draft' THEN total ELSE 0 END), 0) AS draft_total,
+        COALESCE(SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END), 0) AS paid_n,
+        COALESCE(SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END), 0) AS paid_total
+      FROM finance_payroll WHERE periode = ?`).get(periode);
+    const payrollDibayar = db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS total
+      FROM finance_payroll WHERE status = 'paid' AND paid_on BETWEEN ? AND ?`).get(from, to);
+    if (Number(payrollDibayar.total || 0) > 0) {
+      real["Gaji & Honor"] = (real["Gaji & Honor"] || 0) + Number(payrollDibayar.total || 0);
+    }
+
+    const budgets = db.prepare(`SELECT * FROM finance_budgets WHERE periode = ?
+      ORDER BY kategori COLLATE NOCASE ASC`).all(periode);
+    const byKategori = new Map(budgets.map((b) => [b.kategori, b]));
+    const categories = [...new Set([
+      ...budgets.map((b) => b.kategori),
+      ...Object.keys(real),
+      ...Object.keys(komit)
+    ])];
+    const anggaranRows = categories.map((kategori) => {
+      const budget = byKategori.get(kategori);
+      const anggaran = budget ? Number(budget.jumlah || 0) : 0;
+      const realisasi = real[kategori] || 0;
+      const komitmen = komit[kategori] || 0;
+      const pct = anggaran ? Math.round((realisasi / anggaran) * 100) : 0;
+      return {
+        id: budget ? Number(budget.id) : null,
+        kategori,
+        anggaran,
+        realisasi,
+        komitmen,
+        sisa: anggaran - realisasi,
+        pct,
+        status: !budget ? "none" : pct > 100 ? "over" : pct >= 80 ? "warn" : "ok"
+      };
+    });
+
+    const totals = anggaranRows.reduce((acc, row) => ({
+      anggaran: acc.anggaran + row.anggaran,
+      realisasi: acc.realisasi + row.realisasi,
+      komitmen: acc.komitmen + row.komitmen
+    }), { anggaran: 0, realisasi: 0, komitmen: 0 });
+
+    return sendApiSuccess(res, {
+      periode,
+      from,
+      to,
+      pemasukanSiswa: Number(pemasukanSiswa.total || 0),
+      pemasukanLain: { count: Number(pemasukanLain.n || 0), total: Number(pemasukanLain.total || 0) },
+      pemasukan: Number(pemasukanSiswa.total || 0) + Number(pemasukanLain.total || 0),
+      pengeluaran,
+      payroll: {
+        periode,
+        draft: { count: Number(payrollPeriode.draft_n || 0), total: Number(payrollPeriode.draft_total || 0) },
+        paid: { count: Number(payrollPeriode.paid_n || 0), total: Number(payrollPeriode.paid_total || 0) },
+        dibayarBulanIni: { count: Number(payrollDibayar.n || 0), total: Number(payrollDibayar.total || 0) }
+      },
+      anggaran: {
+        total: totals.anggaran,
+        realisasi: totals.realisasi,
+        komitmen: totals.komitmen,
+        sisa: totals.anggaran - totals.realisasi,
+        rows: anggaranRows
+      }
+    });
+  }));
 }
 
 module.exports = {
