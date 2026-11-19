@@ -23,6 +23,11 @@ module.exports = [
   "finance-bayar",
   "finance-invoice",
   "finance-paket",
+  "finance-promo",
+  "finance-pemasukan",
+  "finance-pengeluaran",
+  "finance-payroll",
+  "finance-anggaran",
   // Legacy: URL lama /admin/jadwal tetap membuka SPA (tidak ada view khusus).
   "jadwal"
 ];
