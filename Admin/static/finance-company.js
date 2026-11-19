@@ -10,7 +10,7 @@
   'use strict';
   const K = window.DCFinanceKit, D = window.DCFinanceData;
   if (!K || !D) return;
-  const { $, esc, rp, toast, today, shift, iso, fmt, head, banner, CARD, BTN, FIELD, IBTN, ib, BD } = K;
+  const { $, esc, rp, toast, today, shift, iso, fmt, head, banner, CARD, BTN, FIELD, IBTN, ib, BD, actor } = K;
 
   const load = (k, seed) => { try { const v = JSON.parse(localStorage.getItem(k)); if (Array.isArray(v)) return v; } catch (_) {} return seed(); };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
@@ -58,6 +58,10 @@
   const mfoot = (saveAttr) => '<p id="coErr" class="mt-3 text-sm text-rose-600" role="alert"></p><div class="flex justify-end gap-2 mt-4"><button type="button" data-fin="close" class="' + BTN + '">Batal</button><button type="button" ' + saveAttr + ' class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700">Simpan</button></div>';
   const val = (id) => { const el = $('#' + id); return String(el && el.value != null ? el.value : '').trim(); };
   const fail = (t) => { const e = $('#coErr'); if (e) e.textContent = t; return null; };
+  // Riwayat pengeluaran: setiap perubahan status dicatat bersama admin yang sedang login (bukan dari isian form).
+  const NOADMIN = 'Sesi admin belum terbaca. Muat ulang halaman lalu coba lagi.';
+  const stamp = (aksi, a) => ({ aksi, oleh: a.nama, uid: a.id, waktu: new Date().toISOString() });
+  const jejak = (x) => (x.riwayat || []).map((h) => h.aksi + ' oleh ' + h.oleh + ' (' + h.waktu + ')').join(' | ');
   const closeM = () => K.closeDetail();
   const nextId = (arr, pre) => pre + '-' + String(1 + Math.max(0, ...arr.map((x) => parseInt(x.id.split('-')[1], 10) || 0))).padStart(3, '0');
   function readNominal(min, max) {
@@ -154,21 +158,25 @@
     const tanggal = val('coTanggal'), ket = val('coKet'); if (!tanggal) return fail('Tanggal wajib diisi.'); if (tanggal > iso(today())) return fail('Tanggal tidak boleh di masa depan.');
     const kat = val('coKategori'); if (!EKAT.includes(kat)) return fail('Pilih kategori yang tersedia. Gaji dan honor dicatat lewat Payroll.');
     if (!ket) return fail('Keterangan wajib diisi.'); const nominal = readNominal(1000, 500000000); if (nominal == null) return;
+    const a = actor(); if (!a.nama) return fail(NOADMIN);
     const old = id ? EXP.find((x) => x.id === id) : null, bukti = readFile(false, old && old.bukti); if (bukti === null) return;
-    const rec = { id: old ? old.id : nextId(EXP, 'EXP'), tanggal, kategori: kat, ket, nominal, status: 'submitted', bukti, catatan: '' };
+    const rec = { id: old ? old.id : nextId(EXP, 'EXP'), tanggal, kategori: kat, ket, nominal, status: 'submitted', bukti, catatan: '',
+      dibuatOleh: old && old.dibuatOleh ? old.dibuatOleh : a.nama, riwayat: (old && old.riwayat || []).concat(stamp(old ? 'Diajukan ulang' : 'Diajukan', a)) };
     EXP = old ? EXP.map((x) => (x.id === id ? rec : x)) : [rec].concat(EXP); save(EK, EXP); closeM(); drawExp(); toast(old ? 'Pengeluaran diajukan ulang.' : 'Pengeluaran diajukan.');
   }
-  const setExp = (id, patch) => { EXP = EXP.map((x) => (x.id === id ? { ...x, ...patch } : x)); save(EK, EXP); drawExp(); };
+  const setExp = (id, patch, aksi, a) => { EXP = EXP.map((x) => (x.id === id ? { ...x, ...patch, riwayat: (x.riwayat || []).concat(stamp(aksi, a)) } : x)); save(EK, EXP); drawExp(); };
   async function approveExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'submitted') return;
+    const a = actor(); if (!a.nama) return toast(NOADMIN, 'error');
     if (!(await window.dcConfirm({ title: 'Setujui pengeluaran?', message: x.id + ' · ' + x.ket + ' · ' + rp(x.nominal), detail: 'Belum dihitung di laporan sampai ditandai dibayar.', confirmText: 'Ya, setujui', cancelText: 'Batal', tone: 'success' }))) return;
-    setExp(id, { status: 'approved', catatan: '' }); toast('Pengeluaran disetujui.');
+    setExp(id, { status: 'approved', catatan: '' }, 'Disetujui', a); toast('Pengeluaran disetujui.');
   }
   async function rejectExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'submitted') return;
+    const a = actor(); if (!a.nama) return toast(NOADMIN, 'error');
     const r = await window.dcPrompt({ title: 'Tolak pengeluaran', message: x.id + ' · ' + x.ket + ' · ' + rp(x.nominal), placeholder: 'Alasan penolakan', confirmText: 'Tolak' });
     if (r === null) return; if (!String(r).trim()) return toast('Alasan penolakan wajib diisi.', 'error');
-    setExp(id, { status: 'rejected', catatan: 'Ditolak: ' + String(r).trim() }); toast('Pengeluaran ditolak.');
+    setExp(id, { status: 'rejected', catatan: 'Ditolak: ' + String(r).trim() }, 'Ditolak', a); toast('Pengeluaran ditolak.');
   }
   function openPay(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'approved') return;
@@ -176,9 +184,10 @@
   }
   function savePay(id) {
     const x = EXP.find((e) => e.id === id); if (!x) return; const t = val('coTanggal');
+    const a = actor(); if (!a.nama) return fail(NOADMIN);
     if (!t) return fail('Tanggal pembayaran wajib diisi.'); if (t > iso(today())) return fail('Tanggal tidak boleh di masa depan.'); if (t < x.tanggal) return fail('Tanggal pembayaran tidak boleh sebelum tanggal pengeluaran.');
     const bukti = readFile(true, x.bukti); if (bukti === null) return;
-    closeM(); setExp(id, { status: 'paid', bukti, tanggal: t }); toast('Pengeluaran ditandai sudah dibayar.');
+    closeM(); setExp(id, { status: 'paid', bukti, tanggal: t }, 'Dibayar', a); toast('Pengeluaran ditandai sudah dibayar.');
   }
   async function delExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'rejected') return;
@@ -188,7 +197,10 @@
   function detailExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x) return;
     const row = (k, v) => '<div class="flex justify-between gap-4 py-2 border-t border-slate-100 dark:border-slate-800 text-sm"><span class="text-slate-500">' + k + '</span><span class="font-semibold text-right text-slate-800 dark:text-slate-100">' + v + '</span></div>';
-    modal(mhead('Detail pengeluaran') + row('ID', x.id) + row('Tanggal', fmt(x.tanggal)) + row('Kategori', esc(x.kategori)) + row('Keterangan', esc(x.ket)) + row('Nominal', rp(x.nominal)) + row('Bukti', x.bukti ? esc(x.bukti) : '–') + row('Status', badge(x.status, ES)) + (x.catatan ? row('Catatan', esc(x.catatan)) : '') + '<p class="mt-3 text-xs text-slate-400">Data contoh.</p>');
+    modal(mhead('Detail pengeluaran') + row('ID', x.id) + row('Tanggal', fmt(x.tanggal)) + row('Kategori', esc(x.kategori)) + row('Keterangan', esc(x.ket)) + row('Nominal', rp(x.nominal)) + row('Bukti', x.bukti ? esc(x.bukti) : '–') + row('Status', badge(x.status, ES)) + (x.dibuatOleh ? row('Diajukan oleh', esc(x.dibuatOleh)) : '') + (x.catatan ? row('Catatan', esc(x.catatan)) : '') +
+      '<div class="mt-4 mb-1 text-sm font-extrabold text-slate-900 dark:text-white">Riwayat</div>' +
+      ((x.riwayat || []).map((h) => row(esc(h.aksi), esc(h.oleh) + ' · ' + new Date(h.waktu).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }))).join('') || row('Belum tercatat', '–')) +
+      '<p class="mt-3 text-xs text-slate-400">Data contoh.</p>');
   }
 
   window.DCCompany.ui = { card, badge, pager, lab, sel, modal, mhead, mfoot, val, fail, closeM, nextId, sum, load, save, EKAT };
@@ -200,7 +212,7 @@
     'inc-new': () => openInc(''), 'inc-save': saveInc, 'inc-page': (d) => { PI.page += Number(d); drawIncTable(); },
     'inc-export': () => csvOut('pemasukan-perusahaan', incRows(), [['Tanggal', (r) => r.tanggal], ['Sumber', (r) => (r.sumber === 'siswa' ? 'Pembayaran siswa (otomatis)' : 'Manual')], ['Kategori', (r) => r.kategori], ['Keterangan', (r) => r.ket], ['Nominal', (r) => r.nominal]]),
     'exp-new': () => openExp(''), 'exp-save': saveExp, 'exp-pay-save': savePay, 'exp-page': (d) => { PE.page += Number(d); drawExpTable(); },
-    'exp-export': () => csvOut('pengeluaran-perusahaan', expFiltered(), [['ID', (x) => x.id], ['Tanggal', (x) => x.tanggal], ['Kategori', (x) => x.kategori], ['Keterangan', (x) => x.ket], ['Nominal', (x) => x.nominal], ['Status', (x) => ES[x.status][0]], ['Bukti', (x) => x.bukti]])
+    'exp-export': () => csvOut('pengeluaran-perusahaan', expFiltered(), [['ID', (x) => x.id], ['Tanggal', (x) => x.tanggal], ['Kategori', (x) => x.kategori], ['Keterangan', (x) => x.ket], ['Nominal', (x) => x.nominal], ['Status', (x) => ES[x.status][0]], ['Bukti', (x) => x.bukti], ['Diajukan oleh', (x) => x.dibuatOleh || ''], ['Riwayat', jejak]])
   };
   document.addEventListener('click', (e) => {
     for (const a in ACT) { const el = e.target.closest('[data-co-' + a + ']'); if (el) return ACT[a](el.getAttribute('data-co-' + a)); }

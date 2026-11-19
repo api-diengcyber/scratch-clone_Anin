@@ -220,9 +220,26 @@
   }
 
   // ---------- util ----------
+  // CSV: pemisah titik koma (Excel/Sheets berlokal Indonesia memakai ";" sebagai pemisah daftar).
+  // Sel teks yang diawali = + - @ (atau tab/CR) dinetralkan dengan tanda kutip tunggal agar tidak
+  // dijalankan sebagai rumus. Angka asli dan string angka murni dibiarkan supaya nominal tetap angka.
+  const CSV_SEP = ';';
+  const CSV_NUM = /^[-+]?\d+(?:[.,]\d+)?$/;
+  function csvCell(v) {
+    let s = v == null ? '' : String(v);
+    if (typeof v !== 'number' && !CSV_NUM.test(s) && /^(?:[=+\-@\t\r\n]|\s+[=+\-@])/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
   function csv(rows, cols) {
-    const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-    return '\ufeff' + [cols.map((c) => q(c[0])).join(',')].concat(rows.map((r) => cols.map((c) => q(c[1](r))).join(','))).join('\r\n');
+    const line = (cells) => cells.join(CSV_SEP);
+    return '\ufeff' + [line(cols.map((c) => csvCell(c[0])))].concat(rows.map((r) => line(cols.map((c) => csvCell(c[1](r)))))).join('\r\n');
+  }
+  // Identitas admin dari sesi login dashboard (/api/admin/me, diisi admin.js ke window.DCAdminMe).
+  // Tanpa nilai cadangan: bila sesi belum terbaca, hasilnya kosong dan pemanggil harus menolak aksinya.
+  function actor() {
+    const m = window.DCAdminMe || {}, u = m.user || m;
+    const nama = u.full_name || u.fullName || u.name || u.username || (u.email ? String(u.email).split('@')[0] : '');
+    return { id: u.id != null ? String(u.id) : '', nama: String(nama || '').trim() };
   }
   function download(name, text) {
     const a = document.createElement('a');
@@ -471,7 +488,7 @@
     try {
       if (demoMode) {
         if (id) { const x = exp.find((e) => String(e.rid) === String(id)); if (x) Object.assign(x, body); }
-        else exp.push({ rid: 'local-' + Date.now(), id: 'EXP-' + (9000 + exp.length), ...body });
+        else exp.push({ rid: 'local-' + Date.now(), id: 'EXP-' + (9000 + exp.length), dibuatOleh: actor().nama, ...body });
       } else if (id) {
         await api('/api/admin/finance/expenses/' + encodeURIComponent(id), { method: 'PATCH', body });
         await reloadExpenses();
@@ -762,7 +779,7 @@
   }
   document.querySelectorAll('[data-fin-group]').forEach((g) => { try { setOpen(g, localStorage.getItem(grpKey(g)) === '1' || (g.querySelector('.fin-sub').id === 'finSubStudent' && localStorage.getItem('dc-fin-open') === '1'), false); } catch (_) {} });
 
-  window.DCFinanceKit = { $, esc, rp, toast, today, shift, iso, fmt, GRADE, head, banner, CARD, BTN, FIELD, IBTN, ib, BD, csv, download, closeDetail, openDetail, init, trxList: () => trx };
+  window.DCFinanceKit = { $, esc, rp, toast, today, shift, iso, fmt, GRADE, head, banner, CARD, BTN, FIELD, IBTN, ib, BD, csv, download, actor, closeDetail, openDetail, init, trxList: () => trx };
 
   function redraw() {
     if (activeView === 'finance-siswa') return drawSiswa();

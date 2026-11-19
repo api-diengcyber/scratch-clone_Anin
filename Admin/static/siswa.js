@@ -868,11 +868,11 @@
   // ---------- CSV ----------
   function csvCell(v, raw) {
     let s = String(v ?? '');
-    if (!raw && /^[=+\-@\t\r]/.test(s)) s = "'" + s; // cegah injeksi rumus di Excel/Sheets
+    if (!raw && typeof v !== 'number' && /^(?:[=+\-@\t\r\n]|\s+[=+\-@])/.test(s)) s = "'" + s; // cegah injeksi rumus di Excel/Sheets
     return /[",\n\r;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }
   function downloadCsv(filename, rows, rawCols) {
-    const text = '\uFEFF' + rows.map((r) => r.map((c, i) => csvCell(c, rawCols && rawCols.includes(i))).join(',')).join('\r\n');
+    const text = '\uFEFF' + rows.map((r) => r.map((c, i) => csvCell(c, rawCols && rawCols.includes(i))).join(';')).join('\r\n'); // ';' agar terbuka rapi di Excel lokal Indonesia
     const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a'); a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
