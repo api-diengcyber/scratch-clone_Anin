@@ -4,7 +4,7 @@
  * - Gaji berstatus "Dibayar" masuk laporan sebagai pengeluaran kategori "Gaji & Honor" lewat DCCompany.addExpenseSource,
  *   satu-satunya jalur, jadi tidak terhitung dua kali dengan menu Pengeluaran (yang tidak menyediakan kategori itu).
  * - Kas keluar = total bersih. Potongan (pajak/BPJS) yang disetor terpisah belum dimodelkan.
- * Data contoh disimpan di localStorage.
+ * Data diambil dari API finance; bila API gagal, data contoh di localStorage dipakai sebagai fallback.
  */
 (function () {
   'use strict';
@@ -23,6 +23,41 @@
     const n = parseInt(raw.replace(/[.\s]/g, ''), 10);
     if (!Number.isFinite(n) || n < min) return fail(label + ' minimal ' + rp(min) + '.'); if (n > max) return fail(label + ' maksimal ' + rp(max) + '.'); return n;
   };
+
+  // API finance; bila tidak tersedia, modul tetap memakai data localStorage.
+  const api = (p, o) => (window.DCAdminApi && window.DCAdminApi.request)
+    ? window.DCAdminApi.request(p, o)
+    : Promise.reject(new Error('API Admin tidak tersedia.'));
+  async function fetchAll(pathname, params = {}) {
+    const out = [];
+    for (let page = 1; page <= 50; page++) {
+      const qs = new URLSearchParams({ ...params, page: String(page), limit: '100' });
+      const r = await api(pathname + '?' + qs.toString());
+      const items = r.items || [];
+      out.push(...items);
+      if (!items.length || page >= (r.pages || 1)) break;
+    }
+    return out;
+  }
+  const audit = (module, action, entityType, entityId, summary, before, after) => {
+    try {
+      const A = window.DCFinanceAudit;
+      if (A && typeof A.log === 'function') A.log({ module, action, entityType, entityId, summary, before, after });
+    } catch (_) {}
+  };
+  const mapPay = (x) => ({
+    id: x.code || ('PAY-' + x.id), sid: x.id,
+    ref: x.refUserId != null ? String(x.refUserId) : '',
+    nama: x.nama || '', tipe: x.tipe || 'Staf', periode: x.periode || '',
+    pokok: Number(x.pokok || 0), tunjangan: Number(x.tunjangan || 0),
+    bonus: Number(x.bonus || 0), potongan: Number(x.potongan || 0),
+    status: x.status || 'draft', tanggalBayar: x.tanggalBayar || '',
+    metode: x.metode || 'Transfer Bank'
+  });
+  const mapBud = (x) => ({
+    id: 'BUD-' + x.id, sid: x.id, periode: x.periode || '',
+    kategori: x.kategori || '', jumlah: Number(x.jumlah || 0)
+  });
 
   // ---------- penerima: rujuk data Instruktur ----------
   let people = null, demo = false;
@@ -50,10 +85,8 @@
     });
     return out;
   }
-  async function ensure() { await loadPeople(); if (!PAY) { PAY = seedPay(people); save(PK, PAY); } }
   // pengeluaran gaji untuk laporan: hanya yang Dibayar, sebesar total bersih
   C.addExpenseSource(() => (PAY || []).filter((r) => r.status === 'paid').map((r) => ({ tanggal: r.tanggalBayar, kategori: 'Gaji & Honor', nominal: bersih(r) })));
-  loadPeople().then(() => { if (!PAY) { PAY = seedPay(people); save(PK, PAY); } });
 
   // ================= PAYROLL =================
   const PP = { q: '', status: '', periode: CUR, page: 1, size: 10 };
@@ -98,30 +131,80 @@
     const bonus = money('pyBonus', 0, 100000000, 'Bonus', false); if (bonus == null) return;
     const potongan = money('pyPot', 0, 100000000, 'Potongan', false); if (potongan == null) return;
     if (potongan > pokok + tunjangan + bonus) return fail('Potongan tidak boleh melebihi gaji pokok + tunjangan + bonus.');
-    const ref = staf ? '' : rid; if (PAY.some((r) => r.id !== id && r.periode === periode && (staf ? r.nama.toLowerCase() === nama.toLowerCase() && r.tipe === 'Staf' : r.ref === ref))) return fail(nama + ' sudah punya payroll untuk ' + ymLabel(periode) + '.');
+    const ref = staf ? '' : rid;
+    if (!serverMode && PAY.some((r) => r.id !== id && r.periode === periode && (staf ? r.nama.toLowerCase() === nama.toLowerCase() && r.tipe === 'Staf' : r.ref === ref))) return fail(nama + ' sudah punya payroll untuk ' + ymLabel(periode) + '.');
     const old = id ? PAY.find((r) => r.id === id) : null;
+    const body = {
+      refUserId: staf ? null : Number(rid), nama: staf ? nama : undefined,
+      tipe: staf ? 'Staf' : 'Instruktur', periode, pokok, tunjangan, bonus, potongan
+    };
+    if (serverMode) {
+      try {
+        const r = old && old.sid
+          ? await api('/api/admin/finance/payroll/' + encodeURIComponent(old.sid), { method: 'PATCH', body })
+          : await api('/api/admin/finance/payroll', { method: 'POST', body });
+        const rec = mapPay(r.item);
+        PAY = old ? PAY.map((x) => (x.id === id ? rec : x)) : [rec].concat(PAY);
+        save(PK, PAY); closeM(); drawPay();
+        audit('payroll', old ? 'update' : 'create', 'Payroll', rec.id,
+          (old ? 'Ubah payroll ' : 'Tambah payroll ') + rec.id, old, rec);
+        toast(old ? 'Payroll diperbarui.' : 'Payroll ditambahkan.');
+        return;
+      } catch (err) {
+        toast('Gagal menyimpan ke server: ' + err.message, 'error');
+        return;
+      }
+    }
     const rec = { id: old ? old.id : nextId(PAY, 'PAY'), ref, nama, tipe: staf ? 'Staf' : 'Instruktur', periode, pokok, tunjangan, bonus, potongan, status: 'draft', tanggalBayar: '', metode: 'Transfer Bank' };
-    PAY = old ? PAY.map((r) => (r.id === id ? rec : r)) : [rec].concat(PAY); save(PK, PAY); closeM(); drawPay(); toast(old ? 'Payroll diperbarui.' : 'Payroll ditambahkan.');
+    PAY = old ? PAY.map((r) => (r.id === id ? rec : r)) : [rec].concat(PAY);
+    save(PK, PAY); closeM(); drawPay();
+    audit('payroll', old ? 'update' : 'create', 'Payroll', rec.id,
+      (old ? 'Ubah payroll ' : 'Tambah payroll ') + rec.id, old, rec);
+    toast(old ? 'Payroll diperbarui.' : 'Payroll ditambahkan.');
   }
   function openPayDlg(id) {
     const r = PAY.find((x) => x.id === id); if (!r || r.status !== 'draft') return;
     modal(mhead('Catat pembayaran') + '<p class="text-sm text-slate-600 dark:text-slate-300 mb-3">' + esc(r.nama) + ' · ' + ymLabel(r.periode) + ' · <b>' + rp(bersih(r)) + '</b></p><div class="grid sm:grid-cols-2 gap-3"><div>' + lab('pyTgl', 'Tanggal pembayaran') + '<input id="pyTgl" type="date" max="' + iso(today()) + '" value="' + iso(today()) + '" class="' + FIELD + ' w-full"></div><div>' + lab('pyMetode', 'Metode') + sel('pyMetode', ['Transfer Bank', 'Tunai'], 'Transfer Bank') + '</div></div><p class="mt-3 text-xs text-slate-400">Setelah dibayar, data terkunci dan tercatat sebagai pengeluaran Gaji &amp; Honor.</p>' + mfoot('data-py="pay-save" data-id="' + esc(r.id) + '"'));
   }
-  function savePayDlg(id) {
+  async function savePayDlg(id) {
     const r = PAY.find((x) => x.id === id); if (!r) return; const t = val('pyTgl');
     if (!t) return fail('Tanggal pembayaran wajib diisi.'); if (t > iso(today())) return fail('Tanggal tidak boleh di masa depan.'); if (t < r.periode + '-01') return fail('Tanggal pembayaran tidak boleh sebelum awal periode.');
-    PAY = PAY.map((x) => (x.id === id ? { ...x, status: 'paid', tanggalBayar: t, metode: val('pyMetode') || 'Transfer Bank' } : x)); save(PK, PAY); closeM(); drawPay(); toast('Pembayaran dicatat.');
+    const metode = val('pyMetode') || 'Transfer Bank';
+    if (serverMode && r.sid) {
+      try {
+        const res = await api('/api/admin/finance/payroll/' + encodeURIComponent(r.sid) + '/pay', { method: 'POST', body: { tanggal: t, metode } });
+        const rec = mapPay(res.item);
+        PAY = PAY.map((x) => (x.id === id ? rec : x));
+        save(PK, PAY); closeM(); drawPay();
+        audit('payroll', 'pay', 'Payroll', rec.id, 'Bayar payroll ' + rec.id, r, rec);
+        toast('Pembayaran dicatat.');
+        return;
+      } catch (err) {
+        toast('Gagal mencatat pembayaran di server: ' + err.message, 'error');
+        return;
+      }
+    }
+    PAY = PAY.map((x) => (x.id === id ? { ...x, status: 'paid', tanggalBayar: t, metode } : x));
+    save(PK, PAY); closeM(); drawPay();
+    audit('payroll', 'pay', 'Payroll', r.id, 'Bayar payroll ' + r.id, r, { ...r, status: 'paid', tanggalBayar: t, metode });
+    toast('Pembayaran dicatat.');
   }
   async function delPay(id) {
     const r = PAY.find((x) => x.id === id); if (!r || r.status !== 'draft') return;
     if (!(await window.dcConfirm({ title: 'Hapus payroll?', message: r.nama + ' · ' + ymLabel(r.periode), detail: 'Hanya payroll Draft yang bisa dihapus.', confirmText: 'Ya, hapus', cancelText: 'Batal', tone: 'danger' }))) return;
-    PAY = PAY.filter((x) => x.id !== id); save(PK, PAY); drawPay(); toast('Payroll dihapus.');
+    if (serverMode && r.sid) {
+      try { await api('/api/admin/finance/payroll/' + encodeURIComponent(r.sid), { method: 'DELETE' }); }
+      catch (err) { toast('Gagal menghapus di server: ' + err.message, 'error'); return; }
+    }
+    PAY = PAY.filter((x) => x.id !== id); save(PK, PAY); drawPay();
+    audit('payroll', 'delete', 'Payroll', r.id, 'Hapus payroll ' + r.id, r, null);
+    toast('Payroll dihapus.');
   }
   const komp = (r) => [['Gaji pokok', rp(r.pokok)], ['Tunjangan', rp(r.tunjangan)], ['Bonus', rp(r.bonus)], ['Potongan', r.potongan ? '− ' + rp(r.potongan) : '–']];
   function detailPay(id) {
     const r = PAY.find((x) => x.id === id); if (!r) return;
     const row = (k, v, b) => '<div class="flex justify-between gap-4 py-2 border-t border-slate-100 dark:border-slate-800 text-sm"><span class="text-slate-500">' + k + '</span><span class="text-right ' + (b ? 'font-extrabold text-slate-900 dark:text-white' : 'font-semibold text-slate-800 dark:text-slate-100') + '">' + v + '</span></div>';
-    modal(mhead('Detail payroll') + row('ID', r.id) + row('Penerima', esc(r.nama)) + row('Tipe', r.tipe) + row('Periode', ymLabel(r.periode)) + komp(r).map((k) => row(k[0], k[1])).join('') + row('Total bersih', rp(bersih(r)), true) + row('Status', badge(r.status, PS)) + (r.status === 'paid' ? row('Dibayar', fmt(r.tanggalBayar) + ' · ' + esc(r.metode)) : '') + '<div class="flex items-center justify-between mt-3"><p class="text-xs text-slate-400">Data contoh.</p>' + (r.status === 'paid' ? '<button type="button" data-py-slip="' + r.id + '" class="' + BTN + '"><i class="fa-solid fa-print mr-1.5"></i>Cetak slip</button>' : '') + '</div>');
+    modal(mhead('Detail payroll') + row('ID', r.id) + row('Penerima', esc(r.nama)) + row('Tipe', r.tipe) + row('Periode', ymLabel(r.periode)) + komp(r).map((k) => row(k[0], k[1])).join('') + row('Total bersih', rp(bersih(r)), true) + row('Status', badge(r.status, PS)) + (r.status === 'paid' ? row('Dibayar', fmt(r.tanggalBayar) + ' · ' + esc(r.metode)) : '') + '<div class="flex items-center justify-between mt-3"><p class="text-xs text-slate-400">' + (serverMode ? 'Data tersimpan di server.' : 'Data contoh.') + '</p>' + (r.status === 'paid' ? '<button type="button" data-py-slip="' + r.id + '" class="' + BTN + '"><i class="fa-solid fa-print mr-1.5"></i>Cetak slip</button>' : '') + '</div>');
   }
   function slip(id) {
     const r = PAY.find((x) => x.id === id); if (!r || r.status !== 'paid') return;
@@ -136,6 +219,37 @@
   const KATG = ['Gaji & Honor'].concat(U.EKAT), PA = { periode: CUR };
   const seedBud = () => { const b = { 'Gaji & Honor': 9000000, 'Server & Domain': 800000, 'Operasional': 1000000, 'Pemasaran': 1500000, 'Sewa': 1500000, 'Peralatan': 700000 }; let n = 0; const o = []; [CUR, prevYM(CUR)].forEach((p) => Object.keys(b).forEach((k) => o.push({ id: 'BUD-' + String(++n).padStart(3, '0'), periode: p, kategori: k, jumlah: b[k] }))); return o; };
   let BUD = load(AKEY, seedBud);
+
+  // Hidrasi dari server sekali per halaman. Bila API gagal, data localStorage
+  // (mode contoh) tetap dipakai supaya halaman tidak kosong.
+  let serverMode = false, readyP = null;
+  async function hydrate() {
+    await loadPeople();
+    if (!window.DCAdminApi) {
+      if (!PAY) { PAY = seedPay(people); save(PK, PAY); }
+      return false;
+    }
+    try {
+      const [pay, bud] = await Promise.all([
+        fetchAll('/api/admin/finance/payroll'),
+        fetchAll('/api/admin/finance/budgets')
+      ]);
+      PAY = pay.map(mapPay);
+      BUD = bud.map(mapBud);
+      serverMode = true;
+      save(PK, PAY); save(AKEY, BUD);
+      return true;
+    } catch (_) {
+      serverMode = false;
+      if (!PAY) { PAY = seedPay(people); save(PK, PAY); }
+      return false;
+    }
+  }
+  function ready() {
+    if (!readyP) readyP = hydrate();
+    return readyP;
+  }
+  window.DCPayroll = { ready, refresh: hydrate };
   const AS = { ok: ['Aman', 'paid'], warn: ['Hampir Habis', 'verif'], over: ['Melebihi', 'failed'], none: ['Belum Dianggarkan', 'refunded'] };
   function budRows(periode) {
     const exp = C.expenses(), real = {}, kom = {};
@@ -159,22 +273,50 @@
     modal(mhead(o ? 'Ubah anggaran' : 'Tambah anggaran') + '<div class="grid sm:grid-cols-2 gap-3"><div>' + lab('agPer', 'Periode') + '<input id="agPer" type="month" value="' + esc(p.periode) + '"' + (o ? ' disabled' : '') + ' class="' + FIELD + ' w-full"></div><div>' + lab('agKat', 'Kategori') + (o ? '<input id="agKat" value="' + esc(p.kategori) + '" disabled class="' + FIELD + ' w-full">' : sel('agKat', KATG, p.kategori)) + '</div>' +
       '<div class="sm:col-span-2">' + lab('agJumlah', 'Jumlah anggaran (Rp)') + '<input id="agJumlah" type="text" inputmode="numeric" autocomplete="off" value="' + esc(p.jumlah) + '" class="' + FIELD + ' w-full"></div></div>' + mfoot('data-ag="save" data-id="' + (o ? esc(o.id) : '') + '"'));
   }
-  function saveBud(id) {
+  async function saveBud(id) {
     const old = id ? BUD.find((b) => b.id === id) : null, periode = old ? old.periode : val('agPer'), kategori = old ? old.kategori : val('agKat');
     if (!periode) return fail('Periode wajib diisi.'); if (!KATG.includes(kategori)) return fail('Pilih kategori yang tersedia.');
     const jumlah = money('agJumlah', 1000, 1000000000, 'Jumlah anggaran', true); if (jumlah == null) return;
-    if (!old && BUD.some((b) => b.periode === periode && b.kategori === kategori)) return fail('Anggaran ' + kategori + ' untuk ' + ymLabel(periode) + ' sudah ada. Ubah yang sudah ada.');
-    BUD = old ? BUD.map((b) => (b.id === id ? { ...b, jumlah } : b)) : [{ id: nextId(BUD, 'BUD'), periode, kategori, jumlah }].concat(BUD); save(AKEY, BUD); closeM(); PA.periode = periode; drawBud(); toast(old ? 'Anggaran diperbarui.' : 'Anggaran ditambahkan.');
+    if (!serverMode && !old && BUD.some((b) => b.periode === periode && b.kategori === kategori)) return fail('Anggaran ' + kategori + ' untuk ' + ymLabel(periode) + ' sudah ada. Ubah yang sudah ada.');
+    if (serverMode) {
+      try {
+        const r = old && old.sid
+          ? await api('/api/admin/finance/budgets/' + encodeURIComponent(old.sid), { method: 'PATCH', body: { jumlah } })
+          : await api('/api/admin/finance/budgets', { method: 'POST', body: { periode, kategori, jumlah } });
+        const rec = mapBud(r.item);
+        BUD = old ? BUD.map((b) => (b.id === id ? rec : b)) : [rec].concat(BUD);
+        save(AKEY, BUD); closeM(); PA.periode = periode; drawBud();
+        audit('anggaran', old ? 'update' : 'create', 'Anggaran', rec.id,
+          (old ? 'Ubah anggaran ' : 'Tambah anggaran ') + rec.kategori + ' ' + rec.periode, old, rec);
+        toast(old ? 'Anggaran diperbarui.' : 'Anggaran ditambahkan.');
+        return;
+      } catch (err) {
+        toast('Gagal menyimpan ke server: ' + err.message, 'error');
+        return;
+      }
+    }
+    const rec = old ? { ...old, jumlah } : { id: nextId(BUD, 'BUD'), periode, kategori, jumlah };
+    BUD = old ? BUD.map((b) => (b.id === id ? rec : b)) : [rec].concat(BUD);
+    save(AKEY, BUD); closeM(); PA.periode = periode; drawBud();
+    audit('anggaran', old ? 'update' : 'create', 'Anggaran', rec.id,
+      (old ? 'Ubah anggaran ' : 'Tambah anggaran ') + rec.kategori + ' ' + rec.periode, old, rec);
+    toast(old ? 'Anggaran diperbarui.' : 'Anggaran ditambahkan.');
   }
   async function delBud(id) {
     const b = BUD.find((x) => x.id === id); if (!b) return;
     if (!(await window.dcConfirm({ title: 'Hapus anggaran?', message: b.kategori + ' · ' + ymLabel(b.periode) + ' · ' + rp(b.jumlah), detail: 'Realisasi pengeluaran tidak ikut terhapus.', confirmText: 'Ya, hapus', cancelText: 'Batal', tone: 'danger' }))) return;
-    BUD = BUD.filter((x) => x.id !== id); save(AKEY, BUD); drawBud(); toast('Anggaran dihapus.');
+    if (serverMode && b.sid) {
+      try { await api('/api/admin/finance/budgets/' + encodeURIComponent(b.sid), { method: 'DELETE' }); }
+      catch (err) { toast('Gagal menghapus di server: ' + err.message, 'error'); return; }
+    }
+    BUD = BUD.filter((x) => x.id !== id); save(AKEY, BUD); drawBud();
+    audit('anggaran', 'delete', 'Anggaran', b.id, 'Hapus anggaran ' + b.kategori + ' ' + b.periode, b, null);
+    toast('Anggaran dihapus.');
   }
 
   // ================= EVENT =================
   const ACT = { 'py-detail': detailPay, 'py-edit': openForm, 'py-pay': openPayDlg, 'py-slip': slip, 'py-del': delPay, 'ag-edit': (i) => openBud(i), 'ag-del': delBud, 'ag-add': (k) => openBud('', k) };
-  const csvPay = () => { const r = payFiltered(); if (!r.length) return toast('Tidak ada data untuk diexport.', 'error'); K.download('payroll-' + iso(today()) + '.csv', K.csv(r, [['ID', (x) => x.id], ['Penerima', (x) => x.nama], ['Tipe', (x) => x.tipe], ['Periode', (x) => x.periode], ['Gaji Pokok', (x) => x.pokok], ['Tunjangan', (x) => x.tunjangan], ['Bonus', (x) => x.bonus], ['Potongan', (x) => x.potongan], ['Total Bersih', bersih], ['Status', (x) => PS[x.status][0]], ['Tanggal Bayar', (x) => x.tanggalBayar]])); toast('Export CSV: ' + r.length + ' baris (data contoh).'); };
+  const csvPay = () => { const r = payFiltered(); if (!r.length) return toast('Tidak ada data untuk diexport.', 'error'); K.download('payroll-' + iso(today()) + '.csv', K.csv(r, [['ID', (x) => x.id], ['Penerima', (x) => x.nama], ['Tipe', (x) => x.tipe], ['Periode', (x) => x.periode], ['Gaji Pokok', (x) => x.pokok], ['Tunjangan', (x) => x.tunjangan], ['Bonus', (x) => x.bonus], ['Potongan', (x) => x.potongan], ['Total Bersih', bersih], ['Status', (x) => PS[x.status][0]], ['Tanggal Bayar', (x) => x.tanggalBayar]])); toast('Export CSV: ' + r.length + ' baris' + (serverMode ? '' : ' (data contoh)') + '.'); };
   const BTNS = { 'py:new': () => openForm(''), 'py:save': saveForm, 'py:pay-save': savePayDlg, 'py:export': csvPay, 'py:py-page': (d) => { PP.page += Number(d); drawPayTable(); }, 'ag:new': () => openBud(''), 'ag:save': saveBud };
   document.addEventListener('click', (e) => {
     for (const a in ACT) { const el = e.target.closest('[data-' + a + ']'); if (el) return ACT[a](el.getAttribute('data-' + a)); }
@@ -193,7 +335,7 @@
   st.textContent = '#pyTable th,#pyTable td,#agTable th,#agTable td{text-align:center;padding-left:.75rem;padding-right:.75rem}#pyTable .justify-end,#agTable .justify-end{justify-content:center}#pyTable th,#agTable th{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}';
   document.head.appendChild(st);
   window.addEventListener('dc:view', (e) => {
-    if (e.detail === 'finance-payroll') K.init().then(ensure).then(drawPay);
-    else if (e.detail === 'finance-anggaran') K.init().then(ensure).then(drawBud);
+    if (e.detail === 'finance-payroll') Promise.all([K.init(), ready()]).then(drawPay);
+    else if (e.detail === 'finance-anggaran') Promise.all([K.init(), ready()]).then(drawBud);
   });
 })();

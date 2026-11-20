@@ -1,6 +1,7 @@
 /*
  * Company Finance: Pemasukan Perusahaan + Pengeluaran Perusahaan.
- * Memakai helper dari finance.js lewat window.DCFinanceKit. Data contoh disimpan di localStorage.
+ * Memakai helper dari finance.js lewat window.DCFinanceKit. Data diambil dari API finance;
+ * bila API gagal, data contoh di localStorage tetap dipakai sebagai fallback.
  * Aturan agar tidak terhitung ganda:
  *  - Pembayaran siswa berstatus Lunas masuk ke pemasukan OTOMATIS (dibaca dari Student Finance, tidak disimpan ulang).
  *  - Hanya pengeluaran berstatus "Dibayar" yang dihitung sebagai kas keluar.
@@ -17,6 +18,31 @@
   const IK = 'dc-finance-income', EK = 'dc-finance-expense';
   const ago = (n) => iso(shift(today(), -n));
 
+  // Akses API finance. Bila server tidak bisa dipakai, modul tetap berjalan dengan
+  // data localStorage seperti sebelumnya (mode contoh).
+  const api = (p, o) => (window.DCAdminApi && window.DCAdminApi.request)
+    ? window.DCAdminApi.request(p, o)
+    : Promise.reject(new Error('API Admin tidak tersedia.'));
+  async function fetchAll(pathname, params = {}) {
+    const out = [];
+    for (let page = 1; page <= 50; page++) {
+      const qs = new URLSearchParams({ ...params, page: String(page), limit: '100' });
+      const r = await api(pathname + '?' + qs.toString());
+      const items = r.items || [];
+      out.push(...items);
+      if (!items.length || page >= (r.pages || 1)) break;
+    }
+    return out;
+  }
+  // Log lokal untuk tampilan aktivitas. Audit tepercaya tetap dicatat server saat
+  // mutasi lewat API, jadi ini tidak menulis ulang ke admin_audit.
+  const audit = (module, action, entityType, entityId, summary, before, after) => {
+    try {
+      const A = window.DCFinanceAudit;
+      if (A && typeof A.log === 'function') A.log({ module, action, entityType, entityId, summary, before, after });
+    } catch (_) {}
+  };
+
   const seedInc = () => [
     { id: 'INC-001', tanggal: ago(5), kategori: 'Donasi', ket: 'Donasi komunitas orang tua', nominal: 1500000, bukti: '' },
     { id: 'INC-002', tanggal: ago(20), kategori: 'Sponsor', ket: 'Sponsor kegiatan lomba coding', nominal: 2500000, bukti: 'sponsor-lomba.pdf' },
@@ -30,10 +56,47 @@
   });
   let INC = load(IK, seedInc), EXP = load(EK, seedExp);
 
+  // Bentuk data server -> bentuk yang dipakai UI. `id` tetap kode tampilan
+  // (INC-001 / EXP-501), sedangkan `sid` adalah id numerik untuk memanggil API.
+  const mapInc = (x) => ({
+    id: x.code || ('INC-' + x.id), sid: x.id, tanggal: x.tanggal || '',
+    kategori: x.kategori || 'Lainnya', ket: x.keterangan || '',
+    nominal: Number(x.nominal || 0), bukti: x.bukti || ''
+  });
+  const mapExp = (x) => ({
+    id: x.code || ('EXP-' + x.id), sid: x.id, tanggal: x.tanggal || '',
+    kategori: x.kategori || '', ket: x.keterangan || x.catatan || '',
+    nominal: Number(x.nominal || 0), status: x.status || 'paid',
+    bukti: x.bukti || '', catatan: x.catatan || ''
+  });
+
+  let serverMode = false;
+  async function hydrate() {
+    if (!window.DCAdminApi) return false;
+    try {
+      const [inc, exp] = await Promise.all([
+        fetchAll('/api/admin/finance/income'),
+        fetchAll('/api/admin/finance/expenses')
+      ]);
+      INC = inc.map(mapInc);
+      EXP = exp.map(mapExp);
+      serverMode = true;
+      save(IK, INC); save(EK, EXP);
+      return true;
+    } catch (_) {
+      serverMode = false;
+      return false;
+    }
+  }
+  const readyP = hydrate();
+
   // dibaca oleh Ringkasan Finance (finance.js)
   // Modul lain (Payroll) mendaftarkan sumber pengeluaran lewat addExpenseSource, jadi hanya ada SATU jalur ke laporan.
   const EXTRA = [];
   window.DCCompany = {
+    ready: () => readyP,
+    refresh: hydrate,
+    serverMode: () => serverMode,
     otherIncome: () => INC.map((x) => ({ tanggal: x.tanggal, kategori: x.kategori, nominal: x.nominal })),
     realizedExpenses: () => EXP.filter((x) => x.status === 'paid').map((x) => ({ tanggal: x.tanggal, kategori: x.kategori, nominal: x.nominal })).concat(...EXTRA.map((f) => f())),
     addExpenseSource: (fn) => { EXTRA.push(fn); },
@@ -109,17 +172,46 @@
     modal(mhead(o ? 'Ubah pemasukan' : 'Tambah pemasukan') + '<div class="grid sm:grid-cols-2 gap-3"><div>' + lab('coTanggal', 'Tanggal') + '<input id="coTanggal" type="date" max="' + iso(today()) + '" value="' + esc(p.tanggal) + '" class="' + FIELD + ' w-full"></div><div>' + lab('coKategori', 'Kategori') + sel('coKategori', IKAT, p.kategori) + '</div>' +
       '<div class="sm:col-span-2">' + lab('coKet', 'Keterangan') + '<input id="coKet" type="text" maxlength="120" autocomplete="off" value="' + esc(p.ket) + '" class="' + FIELD + ' w-full"></div><div class="sm:col-span-2">' + lab('coNominal', 'Nominal (Rp)') + '<input id="coNominal" type="text" inputmode="numeric" autocomplete="off" value="' + esc(p.nominal) + '" class="' + FIELD + ' w-full"></div>' + fileField(p.bukti, false) + '</div>' + mfoot('data-co="inc-save" data-id="' + (o ? esc(o.id) : '') + '"'));
   }
-  function saveInc(id) {
+  async function saveInc(id) {
     const tanggal = val('coTanggal'), ket = val('coKet'); if (!tanggal) return fail('Tanggal wajib diisi.'); if (tanggal > iso(today())) return fail('Tanggal tidak boleh di masa depan.');
     if (!ket) return fail('Keterangan wajib diisi.'); const nominal = readNominal(1000, 1000000000); if (nominal == null) return;
     const old = id ? INC.find((x) => x.id === id) : null, bukti = readFile(false, old && old.bukti); if (bukti === null) return;
-    const rec = { id: old ? old.id : nextId(INC, 'INC'), tanggal, kategori: val('coKategori') || IKAT[0], ket, nominal, bukti };
-    INC = old ? INC.map((x) => (x.id === id ? rec : x)) : [rec].concat(INC); save(IK, INC); closeM(); drawInc(); toast(old ? 'Pemasukan diperbarui.' : 'Pemasukan ditambahkan.');
+    const kategori = val('coKategori') || IKAT[0];
+    const body = { tanggal, kategori, nominal, keterangan: ket, bukti };
+    if (serverMode) {
+      try {
+        const r = old && old.sid
+          ? await api('/api/admin/finance/income/' + encodeURIComponent(old.sid), { method: 'PATCH', body })
+          : await api('/api/admin/finance/income', { method: 'POST', body });
+        const rec = mapInc(r.item);
+        INC = old ? INC.map((x) => (x.id === id ? rec : x)) : [rec].concat(INC);
+        save(IK, INC); closeM(); drawInc();
+        audit('pemasukan', old ? 'update' : 'create', 'Pemasukan', rec.id,
+          (old ? 'Ubah pemasukan ' : 'Tambah pemasukan ') + rec.id, old, rec);
+        toast(old ? 'Pemasukan diperbarui.' : 'Pemasukan ditambahkan.');
+        return;
+      } catch (err) {
+        toast('Gagal menyimpan ke server: ' + err.message, 'error');
+        return;
+      }
+    }
+    const rec = { id: old ? old.id : nextId(INC, 'INC'), tanggal, kategori, ket, nominal, bukti };
+    INC = old ? INC.map((x) => (x.id === id ? rec : x)) : [rec].concat(INC);
+    save(IK, INC); closeM(); drawInc();
+    audit('pemasukan', old ? 'update' : 'create', 'Pemasukan', rec.id,
+      (old ? 'Ubah pemasukan ' : 'Tambah pemasukan ') + rec.id, old, rec);
+    toast(old ? 'Pemasukan diperbarui.' : 'Pemasukan ditambahkan.');
   }
   async function delInc(id) {
     const o = INC.find((x) => x.id === id); if (!o) return;
     if (!(await window.dcConfirm({ title: 'Hapus pemasukan?', message: o.id + ' · ' + o.ket + ' · ' + rp(o.nominal), detail: 'Data yang dihapus tidak bisa dikembalikan.', confirmText: 'Ya, hapus', cancelText: 'Batal', tone: 'danger' }))) return;
-    INC = INC.filter((x) => x.id !== id); save(IK, INC); drawInc(); toast('Pemasukan dihapus.');
+    if (serverMode && o.sid) {
+      try { await api('/api/admin/finance/income/' + encodeURIComponent(o.sid), { method: 'DELETE' }); }
+      catch (err) { toast('Gagal menghapus di server: ' + err.message, 'error'); return; }
+    }
+    INC = INC.filter((x) => x.id !== id); save(IK, INC); drawInc();
+    audit('pemasukan', 'delete', 'Pemasukan', o.id, 'Hapus pemasukan ' + o.id, o, null);
+    toast('Pemasukan dihapus.');
   }
 
   // ================= PENGELUARAN PERUSAHAAN =================
@@ -154,59 +246,107 @@
       '<div class="sm:col-span-2">' + lab('coKet', 'Keterangan') + '<input id="coKet" type="text" maxlength="120" autocomplete="off" value="' + esc(p.ket) + '" class="' + FIELD + ' w-full"></div><div class="sm:col-span-2">' + lab('coNominal', 'Nominal (Rp)') + '<input id="coNominal" type="text" inputmode="numeric" autocomplete="off" value="' + esc(p.nominal) + '" class="' + FIELD + ' w-full"></div>' + fileField(p.bukti, false) + '</div>' +
       '<p class="mt-3 text-xs text-slate-400">' + (o && o.status === 'rejected' ? 'Menyimpan akan mengajukan ulang pengeluaran ini.' : 'Pengeluaran baru berstatus Diajukan sampai disetujui.') + ' Bukti wajib saat ditandai dibayar.</p>' + mfoot('data-co="exp-save" data-id="' + (o ? esc(o.id) : '') + '"'));
   }
-  function saveExp(id) {
+  async function saveExp(id) {
     const tanggal = val('coTanggal'), ket = val('coKet'); if (!tanggal) return fail('Tanggal wajib diisi.'); if (tanggal > iso(today())) return fail('Tanggal tidak boleh di masa depan.');
     const kat = val('coKategori'); if (!EKAT.includes(kat)) return fail('Pilih kategori yang tersedia. Gaji dan honor dicatat lewat Payroll.');
     if (!ket) return fail('Keterangan wajib diisi.'); const nominal = readNominal(1000, 500000000); if (nominal == null) return;
-    const a = actor(); if (!a.nama) return fail(NOADMIN);
     const old = id ? EXP.find((x) => x.id === id) : null, bukti = readFile(false, old && old.bukti); if (bukti === null) return;
+    const body = { kategori: kat, nominal, tanggal, keterangan: ket, catatan: '', status: 'submitted', bukti };
+    if (serverMode) {
+      try {
+        const r = old && old.sid
+          ? await api('/api/admin/finance/expenses/' + encodeURIComponent(old.sid), { method: 'PATCH', body })
+          : await api('/api/admin/finance/expenses', { method: 'POST', body });
+        const rec = mapExp(r.item);
+        EXP = old ? EXP.map((x) => (x.id === id ? rec : x)) : [rec].concat(EXP);
+        save(EK, EXP); closeM(); drawExp();
+        audit('pengeluaran', old ? 'update' : 'create', 'Pengeluaran', rec.id,
+          (old ? 'Ajukan ulang ' : 'Tambah ') + rec.id, old, rec);
+        toast(old ? 'Pengeluaran diajukan ulang.' : 'Pengeluaran diajukan.');
+        return;
+      } catch (err) {
+        toast('Gagal menyimpan ke server: ' + err.message, 'error');
+        return;
+      }
+    }
+    const a = actor(); if (!a.nama) return fail(NOADMIN);
     const rec = { id: old ? old.id : nextId(EXP, 'EXP'), tanggal, kategori: kat, ket, nominal, status: 'submitted', bukti, catatan: '',
       dibuatOleh: old && old.dibuatOleh ? old.dibuatOleh : a.nama, riwayat: (old && old.riwayat || []).concat(stamp(old ? 'Diajukan ulang' : 'Diajukan', a)) };
-    EXP = old ? EXP.map((x) => (x.id === id ? rec : x)) : [rec].concat(EXP); save(EK, EXP); closeM(); drawExp(); toast(old ? 'Pengeluaran diajukan ulang.' : 'Pengeluaran diajukan.');
+    EXP = old ? EXP.map((x) => (x.id === id ? rec : x)) : [rec].concat(EXP);
+    save(EK, EXP); closeM(); drawExp();
+    audit('pengeluaran', old ? 'update' : 'create', 'Pengeluaran', rec.id,
+      (old ? 'Ajukan ulang ' : 'Tambah ') + rec.id, old, rec);
+    toast(old ? 'Pengeluaran diajukan ulang.' : 'Pengeluaran diajukan.');
   }
-  const setExp = (id, patch, aksi, a) => { EXP = EXP.map((x) => (x.id === id ? { ...x, ...patch, riwayat: (x.riwayat || []).concat(stamp(aksi, a)) } : x)); save(EK, EXP); drawExp(); };
+  async function patchExp(id, patch, aksi) {
+    const x = EXP.find((e) => e.id === id); if (!x) return false;
+    if (serverMode && x.sid) {
+      try {
+        const r = await api('/api/admin/finance/expenses/' + encodeURIComponent(x.sid), { method: 'PATCH', body: patch });
+        const rec = mapExp(r.item);
+        EXP = EXP.map((e) => (e.id === id ? rec : e));
+        save(EK, EXP); drawExp();
+        audit('pengeluaran', patch.status === 'paid' ? 'pay' : 'update', 'Pengeluaran', rec.id, aksi + ' ' + rec.id, x, rec);
+        return true;
+      } catch (err) {
+        toast('Gagal memperbarui di server: ' + err.message, 'error');
+        return false;
+      }
+    }
+    const a = actor(); if (!a.nama) { toast(NOADMIN, 'error'); return false; }
+    EXP = EXP.map((e) => (e.id === id ? { ...e, ...patch, riwayat: (e.riwayat || []).concat(stamp(aksi, a)) } : e));
+    save(EK, EXP); drawExp();
+    audit('pengeluaran', patch.status === 'paid' ? 'pay' : 'update', 'Pengeluaran', x.id, aksi + ' ' + x.id, x, { ...x, ...patch });
+    return true;
+  }
   async function approveExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'submitted') return;
-    const a = actor(); if (!a.nama) return toast(NOADMIN, 'error');
+    if (!serverMode && !actor().nama) return toast(NOADMIN, 'error');
     if (!(await window.dcConfirm({ title: 'Setujui pengeluaran?', message: x.id + ' · ' + x.ket + ' · ' + rp(x.nominal), detail: 'Belum dihitung di laporan sampai ditandai dibayar.', confirmText: 'Ya, setujui', cancelText: 'Batal', tone: 'success' }))) return;
-    setExp(id, { status: 'approved', catatan: '' }, 'Disetujui', a); toast('Pengeluaran disetujui.');
+    if (await patchExp(id, { status: 'approved', catatan: '' }, 'Disetujui')) toast('Pengeluaran disetujui.');
   }
   async function rejectExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'submitted') return;
-    const a = actor(); if (!a.nama) return toast(NOADMIN, 'error');
+    if (!serverMode && !actor().nama) return toast(NOADMIN, 'error');
     const r = await window.dcPrompt({ title: 'Tolak pengeluaran', message: x.id + ' · ' + x.ket + ' · ' + rp(x.nominal), placeholder: 'Alasan penolakan', confirmText: 'Tolak' });
     if (r === null) return; if (!String(r).trim()) return toast('Alasan penolakan wajib diisi.', 'error');
-    setExp(id, { status: 'rejected', catatan: 'Ditolak: ' + String(r).trim() }, 'Ditolak', a); toast('Pengeluaran ditolak.');
+    if (await patchExp(id, { status: 'rejected', catatan: 'Ditolak: ' + String(r).trim() }, 'Ditolak')) toast('Pengeluaran ditolak.');
   }
   function openPay(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'approved') return;
     modal(mhead('Tandai sudah dibayar') + '<p class="text-sm text-slate-600 dark:text-slate-300 mb-3">' + esc(x.id) + ' · ' + esc(x.ket) + ' · <b>' + rp(x.nominal) + '</b></p><div class="grid gap-3"><div>' + lab('coTanggal', 'Tanggal pembayaran') + '<input id="coTanggal" type="date" max="' + iso(today()) + '" value="' + iso(today()) + '" class="' + FIELD + ' w-full"></div>' + fileField(x.bukti, true) + '</div><p class="mt-3 text-xs text-slate-400">Setelah dibayar, pengeluaran dihitung di Ringkasan Finance dan laporan, dan tidak bisa diubah lagi.</p>' + mfoot('data-co="exp-pay-save" data-id="' + esc(x.id) + '"'));
   }
-  function savePay(id) {
+  async function savePay(id) {
     const x = EXP.find((e) => e.id === id); if (!x) return; const t = val('coTanggal');
-    const a = actor(); if (!a.nama) return fail(NOADMIN);
     if (!t) return fail('Tanggal pembayaran wajib diisi.'); if (t > iso(today())) return fail('Tanggal tidak boleh di masa depan.'); if (t < x.tanggal) return fail('Tanggal pembayaran tidak boleh sebelum tanggal pengeluaran.');
     const bukti = readFile(true, x.bukti); if (bukti === null) return;
-    closeM(); setExp(id, { status: 'paid', bukti, tanggal: t }, 'Dibayar', a); toast('Pengeluaran ditandai sudah dibayar.');
+    closeM();
+    if (await patchExp(id, { status: 'paid', bukti, tanggal: t }, 'Dibayar')) toast('Pengeluaran ditandai sudah dibayar.');
   }
   async function delExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x || x.status !== 'rejected') return;
     if (!(await window.dcConfirm({ title: 'Hapus pengeluaran?', message: x.id + ' · ' + x.ket, detail: 'Hanya pengeluaran yang ditolak yang bisa dihapus.', confirmText: 'Ya, hapus', cancelText: 'Batal', tone: 'danger' }))) return;
-    EXP = EXP.filter((e) => e.id !== id); save(EK, EXP); drawExp(); toast('Pengeluaran dihapus.');
+    if (serverMode && x.sid) {
+      try { await api('/api/admin/finance/expenses/' + encodeURIComponent(x.sid), { method: 'DELETE' }); }
+      catch (err) { toast('Gagal menghapus di server: ' + err.message, 'error'); return; }
+    }
+    EXP = EXP.filter((e) => e.id !== id); save(EK, EXP); drawExp();
+    audit('pengeluaran', 'delete', 'Pengeluaran', x.id, 'Hapus pengeluaran ' + x.id, x, null);
+    toast('Pengeluaran dihapus.');
   }
   function detailExp(id) {
     const x = EXP.find((e) => e.id === id); if (!x) return;
     const row = (k, v) => '<div class="flex justify-between gap-4 py-2 border-t border-slate-100 dark:border-slate-800 text-sm"><span class="text-slate-500">' + k + '</span><span class="font-semibold text-right text-slate-800 dark:text-slate-100">' + v + '</span></div>';
     modal(mhead('Detail pengeluaran') + row('ID', x.id) + row('Tanggal', fmt(x.tanggal)) + row('Kategori', esc(x.kategori)) + row('Keterangan', esc(x.ket)) + row('Nominal', rp(x.nominal)) + row('Bukti', x.bukti ? esc(x.bukti) : '–') + row('Status', badge(x.status, ES)) + (x.dibuatOleh ? row('Diajukan oleh', esc(x.dibuatOleh)) : '') + (x.catatan ? row('Catatan', esc(x.catatan)) : '') +
       '<div class="mt-4 mb-1 text-sm font-extrabold text-slate-900 dark:text-white">Riwayat</div>' +
-      ((x.riwayat || []).map((h) => row(esc(h.aksi), esc(h.oleh) + ' · ' + new Date(h.waktu).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }))).join('') || row('Belum tercatat', '–')) +
-      '<p class="mt-3 text-xs text-slate-400">Data contoh.</p>');
+      ((x.riwayat || []).map((h) => row(esc(h.aksi), esc(h.oleh) + ' · ' + new Date(h.waktu).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }))).join('') || row('Belum tercatat', serverMode ? 'Lihat Audit Finance' : '–')) +
+      '<p class="mt-3 text-xs text-slate-400">' + (serverMode ? 'Data tersimpan di server.' : 'Data contoh.') + '</p>');
   }
 
   window.DCCompany.ui = { card, badge, pager, lab, sel, modal, mhead, mfoot, val, fail, closeM, nextId, sum, load, save, EKAT };
 
   // ================= EVENT =================
-  const csvOut = (name, rows, cols) => { if (!rows.length) return toast('Tidak ada data untuk diexport.', 'error'); K.download(name + '-' + iso(today()) + '.csv', K.csv(rows, cols)); toast('Export CSV: ' + rows.length + ' baris (data contoh).'); };
+  const csvOut = (name, rows, cols) => { if (!rows.length) return toast('Tidak ada data untuk diexport.', 'error'); K.download(name + '-' + iso(today()) + '.csv', K.csv(rows, cols)); toast('Export CSV: ' + rows.length + ' baris' + (serverMode ? '' : ' (data contoh)') + '.'); };
   const ACT = { 'inc-detail': (id) => K.openDetail(id), 'inc-edit': openInc, 'inc-del': delInc, 'exp-detail': detailExp, 'exp-edit': openExp, 'exp-del': delExp, 'exp-approve': approveExp, 'exp-reject': rejectExp, 'exp-pay': openPay };
   const BTNS = {
     'inc-new': () => openInc(''), 'inc-save': saveInc, 'inc-page': (d) => { PI.page += Number(d); drawIncTable(); },
@@ -231,7 +371,7 @@
   st.textContent = '#coInc th,#coInc td,#coExp th,#coExp td{text-align:center;padding-left:.75rem;padding-right:.75rem}#coInc .justify-end,#coExp .justify-end{justify-content:center}#coInc th,#coExp th{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}';
   document.head.appendChild(st);
   window.addEventListener('dc:view', (e) => {
-    if (e.detail === 'finance-pemasukan') K.init().then(drawInc);
-    else if (e.detail === 'finance-pengeluaran') K.init().then(drawExp);
+    if (e.detail === 'finance-pemasukan') Promise.all([K.init(), readyP]).then(drawInc);
+    else if (e.detail === 'finance-pengeluaran') Promise.all([K.init(), readyP]).then(drawExp);
   });
 })();

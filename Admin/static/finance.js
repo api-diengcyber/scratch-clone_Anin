@@ -65,6 +65,14 @@
   const saveOv = () => { try { localStorage.setItem(OV_KEY, JSON.stringify(OV)); } catch (_) {} };
   const api = (p, o) => window.DCAdminApi.request(p, o);
   const sum = (a, f) => a.reduce((s, x) => s + f(x), 0);
+  // Log lokal untuk tampilan aktivitas. Mutasi lewat API sudah dicatat server,
+  // jadi ini hanya salinan UI dan tidak menulis ke admin_audit.
+  const audit = (module, action, entityType, entityId, summary, before, after) => {
+    try {
+      const A = window.DCFinanceAudit;
+      if (A && typeof A.log === 'function') A.log({ module, action, entityType, entityId, summary, before, after });
+    } catch (_) {}
+  };
 
   async function loadUsers() {
     let list = [];
@@ -100,7 +108,8 @@
       total: Number(x.total || 0),
       metode: x.method || '',
       status: x.status || 'pending',
-      catatan: x.note || ''
+      catatan: x.note || '',
+      promo: x.promo || ''
     };
   }
 
@@ -181,6 +190,15 @@
   }
 
   async function loadData() {
+    // Pemasukan/pengeluaran perusahaan dan payroll dimuat modul masing-masing.
+    // Tunggu sebentar supaya ringkasan memakai angka server, bukan data contoh.
+    try {
+      const waits = [];
+      if (window.DCCompany && typeof window.DCCompany.ready === 'function') waits.push(window.DCCompany.ready());
+      if (window.DCPayroll && typeof window.DCPayroll.ready === 'function') waits.push(window.DCPayroll.ready());
+      waits.push(pkReady, pmReady);
+      if (waits.length) await Promise.all(waits);
+    } catch (_) {}
     if (!window.DCAdminApi) {
       demoMode = true;
       demoReason = 'Klien API Admin tidak termuat.';
@@ -450,7 +468,7 @@
     const row = (k, v) => '<div class="flex justify-between gap-4 py-2 border-t border-slate-100 dark:border-slate-800 text-sm"><span class="text-slate-500">' + k + '</span><span class="font-semibold text-right text-slate-800 dark:text-slate-100">' + v + '</span></div>';
     m.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50';
     m.innerHTML = '<div role="dialog" aria-modal="true" aria-label="Detail transaksi" class="' + CARD + ' w-full max-w-md max-h-[90vh] overflow-y-auto p-5"><div class="flex items-start justify-between mb-3"><div><div class="font-mono text-xs text-slate-500">' + esc(x.id) + '</div><h2 class="text-lg font-extrabold text-slate-900 dark:text-white">Detail transaksi</h2></div><button type="button" data-fin="close" aria-label="Tutup" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fa-solid fa-xmark"></i></button></div>' +
-      row('Nama siswa', esc(x.siswa.nama)) + row('Username', esc(x.siswa.username || '–')) + row('Email', esc(x.siswa.email || '–')) + row('Jenjang', GRADE[x.jenjang]) + row('Learning Path', esc(x.jalur)) + row('Tanggal', fmt(x.tanggal)) + row('Harga awal', rp(x.harga)) + row('Diskon', x.diskon ? '− ' + rp(x.diskon) : '–') + row('Total pembayaran', rp(x.total)) + row('Metode', esc(x.metode)) + row('Status', badge(x)) + (x.catatan ? row('Catatan', esc(x.catatan)) : '') +
+      row('Nama siswa', esc(x.siswa.nama)) + row('Username', esc(x.siswa.username || '–')) + row('Email', esc(x.siswa.email || '–')) + row('Jenjang', GRADE[x.jenjang]) + row('Learning Path', esc(x.jalur)) + row('Tanggal', fmt(x.tanggal)) + row('Harga awal', rp(x.harga)) + row('Diskon', x.diskon ? '− ' + rp(x.diskon) : '–') + row('Total pembayaran', rp(x.total)) + row('Metode', esc(x.metode)) + row('Status', badge(x)) + (x.promo ? row('Kode promo', esc(x.promo)) : '') + (x.catatan ? row('Catatan', esc(x.catatan)) : '') +
       '<p class="mt-3 text-xs text-slate-400">' + (demoMode ? 'Data contoh; perubahan status hanya tersimpan di browser ini.' : 'Status pembayaran diubah lewat menu Pembayaran.') + '</p></div>';
     const c = $('[data-fin="close"]', m); if (c) c.focus();
   }
@@ -485,6 +503,7 @@
     if (!body.kategori) return toast('Kategori wajib diisi.', 'error');
     if (!Number.isInteger(body.nominal) || body.nominal < 1) return toast('Nominal harus angka bulat lebih dari 0.', 'error');
     const id = form.dataset.id;
+    const before = id ? exp.find((e) => String(e.rid) === String(id)) : null;
     try {
       if (demoMode) {
         if (id) { const x = exp.find((e) => String(e.rid) === String(id)); if (x) Object.assign(x, body); }
@@ -496,6 +515,8 @@
         await api('/api/admin/finance/expenses', { method: 'POST', body });
         await reloadExpenses();
       }
+      audit('pengeluaran', id ? 'update' : 'create', 'Pengeluaran', before ? before.id : 'baru',
+        (id ? 'Ubah pengeluaran ' : 'Tambah pengeluaran ') + (before ? before.id : ''), before, body);
       closeExpense();
       await drawOverview();
       toast(id ? 'Pengeluaran diperbarui.' : 'Pengeluaran ditambahkan.');
@@ -510,6 +531,7 @@
     try {
       if (demoMode) exp = exp.filter((e) => String(e.rid) !== String(id));
       else { await api('/api/admin/finance/expenses/' + encodeURIComponent(id), { method: 'DELETE' }); await reloadExpenses(); }
+      audit('pengeluaran', 'delete', 'Pengeluaran', x.id, 'Hapus pengeluaran ' + x.id, x, null);
       await drawOverview();
       toast('Pengeluaran dihapus.');
     } catch (err) {
@@ -554,6 +576,7 @@
         const res = await api('/api/admin/finance/transactions/' + encodeURIComponent(x.rid), { method: 'PATCH', body: ok ? { status: 'paid' } : { status: 'failed', note } });
         Object.assign(x, mapTrx(res.item));
       }
+      audit('siswa', 'update', 'Transaksi', x.id, (ok ? 'Verifikasi ' : 'Tolak ') + x.id, null, { status: ok ? 'paid' : 'failed', note });
       drawBayar();
       if ($('#finInv')) drawInv();
       toast(ok ? 'Pembayaran ' + id + ' diverifikasi.' : 'Pembayaran ' + id + ' ditolak.');
@@ -626,6 +649,27 @@
   let PK = (function () { try { return JSON.parse(localStorage.getItem(PK_KEY)) || {}; } catch (_) { return {}; } })();
   const savePk = () => { try { localStorage.setItem(PK_KEY, JSON.stringify(PK)); } catch (_) {} };
   const PK_DEF = (D && D.paket) || {};
+
+  // Harga/status dari server menimpa cache lokal. Bila API gagal, cache lokal
+  // (atau harga kurikulum) tetap dipakai seperti sebelumnya.
+  let pkServer = false;
+  async function refreshPaket() {
+    if (!window.DCAdminApi) return false;
+    try {
+      const r = await api('/api/admin/finance/packages');
+      const map = {};
+      (r.items || []).forEach((x) => {
+        map[x.key] = { id: x.id, harga: Number(x.harga || 0), aktif: x.aktif !== false,
+          at: x.updatedAt ? String(x.updatedAt).slice(0, 10) : '' };
+      });
+      PK = map; pkServer = true; savePk();
+      return true;
+    } catch (_) {
+      pkServer = false;
+      return false;
+    }
+  }
+  const pkReady = refreshPaket();
   const pkBadge = (on) => { const d = BD[on ? 'paid' : 'refunded']; return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ' + d[1] + '"><span class="w-1.5 h-1.5 rounded-full ' + d[2] + '"></span>' + (on ? 'Aktif' : 'Nonaktif') + '</span>'; };
   const trxCount = (key) => trx.filter((x) => x.jalur === key.split('|')[1] && (!x.jenjang || !key.split('|')[0] || x.jenjang === key.split('|')[0])).length;
   function paketList() {
@@ -662,7 +706,7 @@
       '<div class="flex justify-end gap-2 mt-4"><button type="button" data-fin="close" class="' + BTN + '">Batal</button><button type="button" data-fin-paket-save="' + esc(key) + '" class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700">Simpan</button></div></div>';
     const i = $('#finPaketHarga', m); if (i && i.focus) i.focus();
   }
-  function savePaket(key) {
+  async function savePaket(key) {
     const el = $('#finPaketHarga'), err = $('#finPaketErr'), raw = String(el.value == null ? '' : el.value).trim();
     const fail = (t) => { err.textContent = t; };
     if (!raw) return fail('Harga wajib diisi.');
@@ -671,15 +715,55 @@
     if (!Number.isFinite(n) || n < 10000) return fail('Harga minimal Rp 10.000.');
     if (n > 50000000) return fail('Harga maksimal Rp 50.000.000.');
     const aktif = $('#finPaketStatus').value === '1', def = PK_DEF[key];
+    if (pkServer) {
+      try {
+        if (n === def && aktif) {
+          const o = PK[key] || {};
+          if (o.id) await api('/api/admin/finance/packages/' + encodeURIComponent(o.id), { method: 'DELETE' });
+          delete PK[key];
+        } else {
+          const r = await api('/api/admin/finance/packages', { method: 'POST', body: { key, harga: n, aktif } });
+          PK[key] = { id: r.item.id, harga: Number(r.item.harga), aktif: r.item.aktif !== false, at: iso(today()) };
+        }
+        savePk(); closeDetail(); drawPaket();
+        audit('paket', 'update', 'Paket', key, 'Ubah paket ' + key, null, { harga: n, aktif });
+        toast('Paket diperbarui.');
+        return;
+      } catch (e) {
+        return fail('Gagal menyimpan ke server: ' + e.message);
+      }
+    }
     if (n === def && aktif) delete PK[key]; else PK[key] = { harga: n, aktif, at: iso(today()) };
-    savePk(); closeDetail(); drawPaket(); toast('Paket diperbarui.');
+    savePk(); closeDetail(); drawPaket();
+    audit('paket', 'update', 'Paket', key, 'Ubah paket ' + key, null, { harga: n, aktif });
+    toast('Paket diperbarui.');
   }
   async function togglePaket(key) {
     const x = paketList().find((p) => p.key === key); if (!x) return;
     if (x.aktif && !(await window.dcConfirm({ title: 'Nonaktifkan paket?', message: GRADE[x.jenjang] + ' · ' + x.jalur, detail: 'Paket tidak ditawarkan lagi ke siswa. Transaksi lama tetap aman.', confirmText: 'Ya, nonaktifkan', cancelText: 'Batal', tone: 'warning' }))) return;
     const o = PK[key] || {}, aktif = !x.aktif;
+    if (pkServer) {
+      try {
+        if (aktif && x.harga === PK_DEF[key]) {
+          if (o.id) await api('/api/admin/finance/packages/' + encodeURIComponent(o.id), { method: 'DELETE' });
+          delete PK[key];
+        } else {
+          const r = await api('/api/admin/finance/packages', { method: 'POST', body: { key, harga: x.harga, aktif } });
+          PK[key] = { id: r.item.id, harga: Number(r.item.harga), aktif: r.item.aktif !== false, at: iso(today()) };
+        }
+        savePk(); drawPaket();
+        audit('paket', 'update', 'Paket', key, (aktif ? 'Aktifkan paket ' : 'Nonaktifkan paket ') + key, null, { aktif });
+        toast(aktif ? 'Paket diaktifkan.' : 'Paket dinonaktifkan.');
+        return;
+      } catch (e) {
+        toast('Gagal memperbarui di server: ' + e.message, 'error');
+        return;
+      }
+    }
     if (aktif && (o.harga == null || o.harga === PK_DEF[key])) delete PK[key]; else PK[key] = { harga: x.harga, aktif, at: iso(today()) };
-    savePk(); drawPaket(); toast(aktif ? 'Paket diaktifkan.' : 'Paket dinonaktifkan.');
+    savePk(); drawPaket();
+    audit('paket', 'update', 'Paket', key, (aktif ? 'Aktifkan paket ' : 'Nonaktifkan paket ') + key, null, { aktif });
+    toast(aktif ? 'Paket diaktifkan.' : 'Paket dinonaktifkan.');
   }
 
 
@@ -688,6 +772,21 @@
   const seedPromo = () => D.promo.map((x) => ({ kode: x.kode, nama: x.nama, tipe: x.tipe, nilai: x.nilai, jenjang: x.jenjang, mulai: iso(shift(today(), x.mulaiOff)), selesai: iso(shift(today(), x.selesaiOff)), kuota: x.kuota, aktif: true }));
   let PM = (function () { try { return JSON.parse(localStorage.getItem(PM_KEY)); } catch (_) { return null; } })() || seedPromo();
   const savePm = () => { try { localStorage.setItem(PM_KEY, JSON.stringify(PM)); } catch (_) {} };
+  const mapPromo = (x) => ({
+    id: x.id, kode: x.kode, nama: x.nama, tipe: x.tipe, nilai: Number(x.nilai || 0),
+    jenjang: x.jenjang || '', mulai: x.mulai || '', selesai: x.selesai || '',
+    kuota: x.kuota == null ? null : Number(x.kuota), aktif: !!x.aktif
+  });
+  let pmServer = false;
+  async function refreshPromo() {
+    const r = await api('/api/admin/finance/promos?limit=100');
+    PM = (r.items || []).map(mapPromo);
+    pmServer = true; savePm();
+  }
+  const pmReady = (async () => {
+    if (!window.DCAdminApi) return;
+    try { await refreshPromo(); } catch (_) { pmServer = false; }
+  })();
   // pemakaian = transaksi yang masih berlaku (lunas atau menunggu) dengan kode promo tersebut
   const pmUsed = (k) => trx.filter((x) => x.promo === k && (x.status === 'paid' || x.status === 'pending')).length;
   const PMS = { on: ['Aktif', 'paid'], off: ['Nonaktif', 'refunded'], expired: ['Kedaluwarsa', 'failed'], soon: ['Belum Mulai', 'gateway'], full: ['Kuota Habis', 'verif'] };
@@ -701,7 +800,7 @@
     const card = (l, v, sub2) => '<div class="' + CARD + ' p-4"><div class="text-sm text-slate-500 dark:text-slate-400">' + l + '</div><div class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">' + v + '</div><div class="text-xs text-slate-400 mt-0.5">' + sub2 + '</div></div>';
     const opt = (v, l) => '<option value="' + v + '"' + (PMF.status === v ? ' selected' : '') + '>' + l + '</option>';
     $('#view-finance-promo').innerHTML = head('Diskon & Promo', 'Kode promo untuk pembelian Learning Path. Status mengikuti periode, kuota, dan pemakaian di transaksi.',
-      '<div class="flex gap-2"><button type="button" data-fin="reset-promo" class="' + BTN + '">Reset data contoh</button><button type="button" data-fin-promo-add class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700"><i class="fa-solid fa-plus mr-1.5"></i>Tambah promo</button></div>') + banner() +
+      '<div class="flex gap-2">' + (pmServer ? '' : '<button type="button" data-fin="reset-promo" class="' + BTN + '">Reset data contoh</button>') + '<button type="button" data-fin-promo-add class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700"><i class="fa-solid fa-plus mr-1.5"></i>Tambah promo</button></div>') + banner() +
       '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' + card('Promo aktif', all.filter((p) => p.st === 'on').length, 'Dari ' + all.length + ' promo') + card('Total pemakaian', all.reduce((n, p) => n + p.used, 0), 'Transaksi lunas atau menunggu') + card('Perlu perhatian', all.filter((p) => p.st === 'expired' || p.st === 'full').length, 'Kedaluwarsa atau kuota habis') + '</div>' +
       '<div class="' + CARD + ' p-4 space-y-3"><div class="grid sm:grid-cols-3 gap-2"><input type="search" data-fin-pm="q" value="' + esc(PMF.q) + '" placeholder="Cari kode atau nama promo" aria-label="Cari promo" class="' + FIELD + ' sm:col-span-2"><select data-fin-pm="status" aria-label="Status promo" class="' + FIELD + '">' + opt('', 'Semua status') + Object.keys(PMS).map((k) => opt(k, PMS[k][0])).join('') + '</select></div>' +
       '<div class="overflow-x-auto"><table id="finPromo" class="w-full text-sm min-w-[1000px]"><thead><tr class="text-slate-500">' + ['Kode', 'Nama Promo', 'Diskon', 'Berlaku', 'Periode', 'Pemakaian', 'Status', 'Aksi'].map((h) => '<th class="py-2 font-semibold whitespace-nowrap">' + h + '</th>').join('') + '</tr></thead><tbody>' +
@@ -725,7 +824,7 @@
       '<p id="finPmErr" class="mt-3 text-sm text-rose-600" role="alert"></p><div class="flex justify-end gap-2 mt-3"><button type="button" data-fin="close" class="' + BTN + '">Batal</button><button type="button" data-fin-promo-save="' + (e ? 'edit' : 'add') + '" data-kode="' + esc(p.kode) + '" class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-jade-600 text-white hover:bg-jade-700">Simpan</button></div></div>';
     const f = $(e ? '#finPmNama' : '#finPmKode', m); if (f && f.focus) f.focus();
   }
-  function savePromo(mode, old) {
+  async function savePromo(mode, old) {
     const g = (id) => String(($('#' + id) || {}).value == null ? '' : $('#' + id).value).trim(), err = $('#finPmErr'), fail = (t) => { err.textContent = t; };
     const kode = (mode === 'edit' ? old : g('finPmKode')).toUpperCase(), nama = g('finPmNama'), tipe = g('finPmTipe'), nr = g('finPmNilai').replace(/\./g, ''), jenjang = g('finPmJenjang'), mulai = g('finPmMulai'), selesai = g('finPmSelesai'), kr = g('finPmKuota'), aktif = g('finPmAktif') !== '0';
     if (!/^[A-Z0-9]{3,20}$/.test(kode)) return fail('Kode promo 3–20 karakter, hanya huruf dan angka.');
@@ -744,20 +843,67 @@
       kuota = +kr; if (mode === 'edit' && kuota < pmUsed(kode)) return fail('Kuota tidak boleh lebih kecil dari pemakaian saat ini (' + pmUsed(kode) + ').');
     }
     const rec = { kode, nama, tipe, nilai, jenjang, mulai, selesai, kuota, aktif };
+    if (pmServer) {
+      try {
+        let item;
+        if (mode === 'add') {
+          const r = await api('/api/admin/finance/promos', { method: 'POST', body: rec });
+          item = mapPromo(r.item); PM.push(item);
+        } else {
+          const cur = PM.find((p) => p.kode === old);
+          if (!cur || !cur.id) throw new Error('Promo tidak ditemukan.');
+          const r = await api('/api/admin/finance/promos/' + encodeURIComponent(cur.id), { method: 'PATCH', body: rec });
+          item = mapPromo(r.item);
+          PM = PM.map((p) => (p.kode === old ? item : p));
+        }
+        savePm(); closeDetail(); drawPromo();
+        audit('promo', mode === 'add' ? 'create' : 'update', 'Promo', kode,
+          (mode === 'add' ? 'Tambah promo ' : 'Ubah promo ') + kode, null, item);
+        toast(mode === 'add' ? 'Promo ' + kode + ' ditambahkan.' : 'Promo ' + kode + ' diperbarui.');
+        return;
+      } catch (e) {
+        return fail('Gagal menyimpan ke server: ' + e.message);
+      }
+    }
     if (mode === 'add') PM.push(rec); else PM = PM.map((p) => (p.kode === old ? rec : p));
-    savePm(); closeDetail(); drawPromo(); toast(mode === 'add' ? 'Promo ' + kode + ' ditambahkan.' : 'Promo ' + kode + ' diperbarui.');
+    savePm(); closeDetail(); drawPromo();
+    audit('promo', mode === 'add' ? 'create' : 'update', 'Promo', kode,
+      (mode === 'add' ? 'Tambah promo ' : 'Ubah promo ') + kode, null, rec);
+    toast(mode === 'add' ? 'Promo ' + kode + ' ditambahkan.' : 'Promo ' + kode + ' diperbarui.');
   }
   async function togglePromo(kode) {
     const p = PM.find((x) => x.kode === kode); if (!p) return;
     if (p.aktif && !(await window.dcConfirm({ title: 'Nonaktifkan promo?', message: p.kode + ' · ' + p.nama, detail: 'Kode tidak bisa dipakai lagi. Transaksi yang sudah memakainya tidak berubah.', confirmText: 'Ya, nonaktifkan', cancelText: 'Batal', tone: 'warning' }))) return;
-    p.aktif = !p.aktif; savePm(); drawPromo(); toast(p.aktif ? 'Promo diaktifkan.' : 'Promo dinonaktifkan.');
+    if (pmServer && p.id) {
+      try {
+        const r = await api('/api/admin/finance/promos/' + encodeURIComponent(p.id), { method: 'PATCH', body: { aktif: !p.aktif } });
+        const item = mapPromo(r.item);
+        PM = PM.map((x) => (x.kode === kode ? item : x));
+        savePm(); drawPromo();
+        audit('promo', 'update', 'Promo', kode, (item.aktif ? 'Aktifkan promo ' : 'Nonaktifkan promo ') + kode, null, item);
+        toast(item.aktif ? 'Promo diaktifkan.' : 'Promo dinonaktifkan.');
+        return;
+      } catch (err) {
+        toast('Gagal memperbarui di server: ' + err.message, 'error');
+        return;
+      }
+    }
+    p.aktif = !p.aktif; savePm(); drawPromo();
+    audit('promo', 'update', 'Promo', kode, (p.aktif ? 'Aktifkan promo ' : 'Nonaktifkan promo ') + kode, null, p);
+    toast(p.aktif ? 'Promo diaktifkan.' : 'Promo dinonaktifkan.');
   }
   async function deletePromo(kode) {
     const p = PM.find((x) => x.kode === kode); if (!p) return;
     const u = pmUsed(kode);
     if (u > 0) return toast('Promo ' + kode + ' sudah dipakai ' + u + ' transaksi, jadi tidak bisa dihapus. Nonaktifkan saja.', 'error');
     if (!(await window.dcConfirm({ title: 'Hapus promo?', message: p.kode + ' · ' + p.nama, detail: 'Promo yang dihapus tidak bisa dikembalikan.', confirmText: 'Ya, hapus', cancelText: 'Batal', tone: 'danger' }))) return;
-    PM = PM.filter((x) => x.kode !== kode); savePm(); drawPromo(); toast('Promo ' + kode + ' dihapus.');
+    if (pmServer && p.id) {
+      try { await api('/api/admin/finance/promos/' + encodeURIComponent(p.id), { method: 'DELETE' }); }
+      catch (err) { toast('Gagal menghapus di server: ' + err.message, 'error'); return; }
+    }
+    PM = PM.filter((x) => x.kode !== kode); savePm(); drawPromo();
+    audit('promo', 'delete', 'Promo', kode, 'Hapus promo ' + kode, p, null);
+    toast('Promo ' + kode + ' dihapus.');
   }
 
   // ================= MENU DROPDOWN SIDEBAR =================
@@ -820,8 +966,25 @@
     const a = t.closest('[data-fin]'); const act = a ? a.dataset.fin : (t.id === 'finModal' ? 'close' : '');
     if (act === 'close') return closeDetail();
     if (act === 'close-exp' || t.id === 'finExpModal') return closeExpense();
-    if (act === 'reload') { ready = null; toast('Memuat data keuangan...'); await init(); refreshCo(); return redraw(); }
-    if (act === 'reset-promo') { if (await window.dcConfirm({ title: 'Reset data promo contoh?', message: 'Semua perubahan promo dikembalikan ke data contoh awal.', confirmText: 'Ya, reset', cancelText: 'Batal', tone: 'warning' })) { PM = seedPromo(); savePm(); drawPromo(); toast('Data promo direset.'); } return; }
+    if (act === 'reload') {
+      ready = null;
+      toast('Memuat data keuangan...');
+      const jobs = [];
+      if (window.DCCompany && typeof window.DCCompany.refresh === 'function') jobs.push(window.DCCompany.refresh());
+      if (window.DCPayroll && typeof window.DCPayroll.refresh === 'function') jobs.push(window.DCPayroll.refresh());
+      jobs.push(refreshPaket(), refreshPromo());
+      await Promise.allSettled(jobs);
+      await init(); refreshCo(); return redraw();
+    }
+    if (act === 'reset-promo') {
+      if (pmServer) {
+        try { await refreshPromo(); drawPromo(); toast('Data promo dimuat ulang dari server.'); }
+        catch (err) { toast('Gagal memuat promo: ' + err.message, 'error'); }
+        return;
+      }
+      if (await window.dcConfirm({ title: 'Reset data promo contoh?', message: 'Semua perubahan promo dikembalikan ke data contoh awal.', confirmText: 'Ya, reset', cancelText: 'Batal', tone: 'warning' })) { PM = seedPromo(); savePm(); drawPromo(); toast('Data promo direset.'); }
+      return;
+    }
     if (act === 'reset-demo') { if (await window.dcConfirm({ title: 'Reset status contoh?', message: 'Semua hasil verifikasi dan penolakan dikembalikan ke data contoh awal.', confirmText: 'Ya, reset', cancelText: 'Batal', tone: 'warning' })) { OV = {}; saveOv(); resolveDemo(); refreshCo(); drawBayar(); toast('Status contoh direset.'); } return; }
     if (act === 'reset') { Object.assign(S, { q: '', status: '', jenjang: '', path: '', from: '', to: '', page: 1 }); return drawSiswa(); }
     if (act === 'export-trx') { const r = filtered(); if (!r.length) return toast('Tidak ada data untuk diexport.', 'error'); download('transaksi-siswa-' + iso(today()) + '.csv', csv(r, TRX_COLS)); return toast('Export CSV: ' + r.length + ' transaksi' + (demoMode ? ' (data contoh)' : '') + '.'); }
