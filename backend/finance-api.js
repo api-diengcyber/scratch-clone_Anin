@@ -47,6 +47,8 @@ const STATUSES = ["paid", "pending", "failed", "refunded"];
 const EXPENSE_STATUSES = ["submitted", "approved", "paid", "rejected"];
 const PAYROLL_STATUSES = ["draft", "paid"];
 const PAYROLL_TYPES = ["Instruktur", "Staf"];
+const PROMO_TIPES = ["persen", "nominal"];
+const PROMO_RE = /^[A-Z0-9]{3,20}$/;
 const MONTH_RE = /^(\d{4})-(\d{2})$/;
 const SORTS = ["tanggal", "total", "nama", "status", "code"];
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -215,6 +217,26 @@ function payrollTypeOf(value, fallback) {
   return found;
 }
 
+function promoTypeOf(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  const clean = String(value).trim().toLowerCase();
+  if (!PROMO_TIPES.includes(clean)) {
+    invalid(`tipe harus salah satu dari: ${PROMO_TIPES.join(", ")}.`, "tipe");
+  }
+  return clean;
+}
+
+// Kode promo disimpan huruf besar tanpa spasi. String kosong berarti transaksi
+// tidak memakai promo.
+function promoCodeOf(value) {
+  if (value === undefined || value === null || value === "") return "";
+  const clean = String(value).trim().toUpperCase();
+  if (!PROMO_RE.test(clean)) {
+    invalid("promo harus 3-20 karakter huruf/angka.", "promo");
+  }
+  return clean;
+}
+
 function idOf(value) {
   const num = Number(value);
   if (!Number.isSafeInteger(num) || num < 1) return null;
@@ -243,6 +265,7 @@ function txDto(row) {
     method: row.method || "",
     status: row.status,
     note: row.note || "",
+    promo: row.promo_code || "",
     paidAt: row.paid_at || null,
     paidOn: row.paid_on || "",
     createdAt: row.created_at || null,
@@ -259,6 +282,7 @@ function expenseDto(row) {
     tanggal: row.spent_on || "",
     status: row.status || "paid",
     bukti: row.bukti || "",
+    keterangan: row.keterangan || "",
     catatan: row.catatan || "",
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
@@ -309,6 +333,34 @@ function budgetDto(row) {
     kategori: row.kategori || "",
     jumlah: Number(row.jumlah || 0),
     createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+function promoDto(row, dipakai) {
+  return {
+    id: Number(row.id),
+    kode: row.kode || "",
+    nama: row.nama || "",
+    tipe: row.tipe || "persen",
+    nilai: Number(row.nilai || 0),
+    jenjang: row.jenjang || "",
+    mulai: row.mulai || "",
+    selesai: row.selesai || "",
+    kuota: row.kuota === null || row.kuota === undefined ? null : Number(row.kuota),
+    aktif: !!row.aktif,
+    dipakai: dipakai === undefined ? 0 : Number(dipakai),
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+function packageDto(row) {
+  return {
+    id: Number(row.id),
+    key: row.path_key || "",
+    harga: Number(row.harga || 0),
+    aktif: !!row.aktif,
     updatedAt: row.updated_at || null
   };
 }
@@ -369,6 +421,31 @@ function registerFinanceApi(app, deps) {
     const num = idOf(id);
     if (!num) return null;
     return db.prepare("SELECT * FROM finance_budgets WHERE id = ?").get(num) || null;
+  }
+
+  function findPromo(id) {
+    const num = idOf(id);
+    if (!num) return null;
+    return db.prepare("SELECT * FROM finance_promos WHERE id = ?").get(num) || null;
+  }
+
+  function findPackage(key) {
+    const clean = String(key === undefined || key === null ? "" : key).trim();
+    if (!clean) return null;
+    return db.prepare("SELECT * FROM finance_packages WHERE path_key = ?").get(clean) || null;
+  }
+
+  // Pemakaian promo dihitung dari transaksi yang masih berlaku (lunas atau
+  // menunggu). Dipakai untuk kuota dan untuk mencegah hapus promo terpakai.
+  function promoUsage(kode) {
+    const row = db.prepare(`SELECT COUNT(*) AS n FROM finance_transactions
+      WHERE promo_code = ? COLLATE NOCASE AND status IN ('paid', 'pending')`).get(kode);
+    return Number(row.n || 0);
+  }
+
+  function validPromoCode(code) {
+    if (!code) return true;
+    return !!db.prepare("SELECT 1 FROM finance_promos WHERE kode = ? COLLATE NOCASE").get(code);
   }
 
   function txWithStudent(id) {
@@ -611,13 +688,15 @@ function registerFinanceApi(app, deps) {
     const method = text(body.method, "method", 60, true);
     const status = statusOf(body.status, "pending");
     const note = text(body.note, "note", 500);
+    const promo = promoCodeOf(body.promo);
+    if (promo && !validPromoCode(promo)) invalid("Kode promo tidak ditemukan.", "promo");
     const paidAt = dateOnly(body.paidAt, "paidAt");
     const isPaid = status === "paid";
 
     const info = db.prepare(`INSERT INTO finance_transactions
       (student_user_id, learning_path_key, learning_path_name, grade, price, discount, total,
-       method, status, note, paid_at, paid_on, verified_by, verified_at, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+       method, status, note, promo_code, paid_at, paid_on, verified_by, verified_at, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
       studentId,
       learningPathId,
       learningPathName,
@@ -628,6 +707,7 @@ function registerFinanceApi(app, deps) {
       method,
       status,
       note,
+      promo,
       isPaid ? new Date().toISOString() : null,
       isPaid ? (paidAt || jakartaToday()) : "",
       isPaid ? req.userId : null,
@@ -677,6 +757,11 @@ function registerFinanceApi(app, deps) {
       next.note = text(body.note, "note", 500);
       fields.push("note");
     }
+    if (body.promo !== undefined) {
+      next.promo_code = promoCodeOf(body.promo);
+      if (next.promo_code && !validPromoCode(next.promo_code)) invalid("Kode promo tidak ditemukan.", "promo");
+      fields.push("promo");
+    }
 
     if (body.status !== undefined) {
       next.status = statusOf(body.status, current.status);
@@ -704,7 +789,7 @@ function registerFinanceApi(app, deps) {
     if (!fields.length) invalid("Tidak ada perubahan yang dikirim.", "body");
 
     db.prepare(`UPDATE finance_transactions SET price = ?, discount = ?, total = ?, method = ?,
-        status = ?, note = ?, paid_at = ?, paid_on = ?, verified_by = ?, verified_at = ?,
+        status = ?, note = ?, promo_code = ?, paid_at = ?, paid_on = ?, verified_by = ?, verified_at = ?,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?`).run(
       next.price,
@@ -713,6 +798,7 @@ function registerFinanceApi(app, deps) {
       next.method,
       next.status,
       next.note,
+      next.promo_code || "",
       next.paid_at || null,
       next.paid_on || "",
       next.verified_by || null,
@@ -751,8 +837,8 @@ function registerFinanceApi(app, deps) {
     const q = text(req.query.q, "q", 100);
     if (q) {
       const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
-      where.push("(kategori LIKE ? ESCAPE '\\' OR catatan LIKE ? ESCAPE '\\')");
-      params.push(like, like);
+      where.push("(kategori LIKE ? ESCAPE '\\' OR keterangan LIKE ? ESCAPE '\\' OR catatan LIKE ? ESCAPE '\\')");
+      params.push(like, like, like);
     }
     const kategori = text(req.query.kategori, "kategori", 80);
     if (kategori) { where.push("kategori = ?"); params.push(kategori); }
@@ -803,13 +889,16 @@ function registerFinanceApi(app, deps) {
     const kategori = text(body.kategori, "kategori", 80, true);
     const nominal = money(body.nominal, "nominal", { required: true, allowZero: false });
     const tanggal = dateOnly(body.tanggal, "tanggal") || jakartaToday();
+    const keterangan = text(body.keterangan, "keterangan", 200);
     const catatan = text(body.catatan, "catatan", 500);
     const status = expenseStatusOf(body.status, "paid");
     const bukti = text(body.bukti, "bukti", 200);
 
     const info = db.prepare(`INSERT INTO finance_expenses
-      (kategori, nominal, spent_on, catatan, status, bukti, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`).run(kategori, nominal, tanggal, catatan, status, bukti, req.userId);
+      (kategori, nominal, spent_on, keterangan, catatan, status, bukti, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      kategori, nominal, tanggal, keterangan, catatan, status, bukti, req.userId
+    );
     const id = Number(info.lastInsertRowid);
     const code = `EXP-${500 + id}`;
     db.prepare("UPDATE finance_expenses SET code = ? WHERE id = ?").run(code, id);
@@ -838,6 +927,10 @@ function registerFinanceApi(app, deps) {
       next.spent_on = dateOnly(body.tanggal, "tanggal") || jakartaToday();
       fields.push("tanggal");
     }
+    if (body.keterangan !== undefined) {
+      next.keterangan = text(body.keterangan, "keterangan", 200);
+      fields.push("keterangan");
+    }
     if (body.catatan !== undefined) {
       next.catatan = text(body.catatan, "catatan", 500);
       fields.push("catatan");
@@ -852,10 +945,10 @@ function registerFinanceApi(app, deps) {
     }
     if (!fields.length) invalid("Tidak ada perubahan yang dikirim.", "body");
 
-    db.prepare(`UPDATE finance_expenses SET kategori = ?, nominal = ?, spent_on = ?, catatan = ?,
-        status = ?, bukti = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?`).run(next.kategori, next.nominal, next.spent_on, next.catatan,
-      next.status || "paid", next.bukti || "", current.id);
+    db.prepare(`UPDATE finance_expenses SET kategori = ?, nominal = ?, spent_on = ?,
+        keterangan = ?, catatan = ?, status = ?, bukti = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(next.kategori, next.nominal, next.spent_on, next.keterangan || "",
+      next.catatan, next.status || "paid", next.bukti || "", current.id);
     audit(req, "finance_expense.update", current.id, { code: current.code, fields });
     return sendApiSuccess(res, { item: expenseDto(findExpense(current.id)) }, "Pengeluaran diperbarui.");
   }));
@@ -1397,6 +1490,314 @@ function registerFinanceApi(app, deps) {
         rows: anggaranRows
       }
     });
+  }));
+
+  // ----------------------------------------------------------
+  // Diskon & promo
+  // ----------------------------------------------------------
+  function activeFlag(value, fallback) {
+    if (value === undefined || value === null || value === "") return fallback;
+    if (typeof value === "boolean") return value;
+    const clean = String(value).trim().toLowerCase();
+    if (["1", "true", "ya", "aktif", "on"].includes(clean)) return true;
+    if (["0", "false", "tidak", "nonaktif", "off"].includes(clean)) return false;
+    invalid("aktif harus bernilai true atau false.", "aktif");
+  }
+
+  function promoFields(body, current) {
+    const next = current ? { ...current } : {
+      kode: "",
+      nama: "",
+      tipe: "persen",
+      nilai: 0,
+      jenjang: "",
+      mulai: "",
+      selesai: "",
+      kuota: null,
+      aktif: 1
+    };
+    const fields = [];
+
+    if (!current || body.kode !== undefined) {
+      const kode = String(body.kode === undefined || body.kode === null ? "" : body.kode)
+        .trim().toUpperCase();
+      if (!PROMO_RE.test(kode)) invalid("kode promo 3-20 karakter huruf/angka.", "kode");
+      next.kode = kode;
+      if (!current) fields.push("kode");
+    }
+    if (!current || body.nama !== undefined) {
+      next.nama = text(body.nama, "nama", 60, true);
+      fields.push("nama");
+    }
+    if (!current || body.tipe !== undefined) {
+      next.tipe = promoTypeOf(body.tipe, current ? next.tipe : "persen");
+      fields.push("tipe");
+    }
+    if (!current || body.nilai !== undefined) {
+      const nilai = money(body.nilai, "nilai", { required: true, allowZero: false });
+      if (next.tipe === "persen" && nilai > 100) invalid("diskon persen maksimal 100.", "nilai");
+      if (next.tipe === "nominal" && nilai > 5_000_000) invalid("diskon nominal maksimal 5000000.", "nilai");
+      next.nilai = nilai;
+      fields.push("nilai");
+    }
+    if (!current || body.jenjang !== undefined) {
+      const jenjang = String(body.jenjang === undefined || body.jenjang === null ? "" : body.jenjang)
+        .trim().toUpperCase();
+      if (jenjang && !GRADES.includes(jenjang)) invalid("jenjang harus SD, SMP, atau SMK.", "jenjang");
+      next.jenjang = jenjang;
+      fields.push("jenjang");
+    }
+    if (!current || body.mulai !== undefined) {
+      const mulai = dateOnly(body.mulai, "mulai");
+      if (!mulai) invalid("mulai wajib diisi.", "mulai");
+      next.mulai = mulai;
+      fields.push("mulai");
+    }
+    if (!current || body.selesai !== undefined) {
+      const selesai = dateOnly(body.selesai, "selesai");
+      if (!selesai) invalid("selesai wajib diisi.", "selesai");
+      next.selesai = selesai;
+      fields.push("selesai");
+    }
+    if (next.mulai && next.selesai && next.selesai < next.mulai) {
+      invalid("selesai tidak boleh sebelum mulai.", "selesai");
+    }
+    if (!current || body.kuota !== undefined) {
+      if (body.kuota === undefined || body.kuota === null || body.kuota === "") {
+        next.kuota = null;
+      } else {
+        const kuota = Number(body.kuota);
+        if (!Number.isSafeInteger(kuota) || kuota < 1) {
+          invalid("kuota harus bilangan bulat minimal 1 atau kosong.", "kuota");
+        }
+        next.kuota = kuota;
+      }
+      fields.push("kuota");
+    }
+    if (!current || body.aktif !== undefined) {
+      next.aktif = activeFlag(body.aktif, true) ? 1 : 0;
+      fields.push("aktif");
+    }
+    return { next, fields };
+  }
+
+  app.get("/api/admin/finance/promos", guard, (req, res) => dataResponse(res, () => {
+    const { page, limit } = pageFrom(req.query, 50);
+    const where = [];
+    const params = [];
+    const q = text(req.query.q, "q", 100);
+    if (q) {
+      const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
+      where.push("(kode LIKE ? ESCAPE '\\' OR nama LIKE ? ESCAPE '\\')");
+      params.push(like, like);
+    }
+    if (req.query.aktif !== undefined && req.query.aktif !== "") {
+      where.push("aktif = ?");
+      params.push(activeFlag(req.query.aktif, true) ? 1 : 0);
+    }
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const totalRow = db.prepare(`SELECT COUNT(*) AS n FROM finance_promos ${clause}`).get(...params);
+    const total = Number(totalRow.n || 0);
+    const pages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(page, pages);
+    const rows = db.prepare(`SELECT p.*,
+        (SELECT COUNT(*) FROM finance_transactions t
+          WHERE t.promo_code = p.kode COLLATE NOCASE AND t.status IN ('paid', 'pending')) AS dipakai
+      FROM finance_promos p ${clause}
+      ORDER BY p.mulai DESC, p.id DESC LIMIT ? OFFSET ?`)
+      .all(...params, limit, (safePage - 1) * limit);
+    return sendApiSuccess(res, {
+      items: rows.map((row) => promoDto(row, row.dipakai)),
+      total,
+      page: safePage,
+      pages,
+      limit
+    });
+  }));
+
+  app.post("/api/admin/finance/promos", guard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body promo harus berupa objek.", "body");
+    }
+    const { next } = promoFields(body, null);
+    const dup = db.prepare("SELECT id FROM finance_promos WHERE kode = ? COLLATE NOCASE").get(next.kode);
+    if (dup) return sendApiError(res, 409, `Kode promo ${next.kode} sudah dipakai.`, "CONFLICT");
+
+    const info = db.prepare(`INSERT INTO finance_promos
+      (kode, nama, tipe, nilai, jenjang, mulai, selesai, kuota, aktif, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      next.kode, next.nama, next.tipe, next.nilai, next.jenjang, next.mulai, next.selesai,
+      next.kuota, next.aktif, req.userId
+    );
+    const id = Number(info.lastInsertRowid);
+    audit(req, "finance_promo.create", id, { kode: next.kode, nilai: next.nilai });
+    return sendApiSuccess(res, { item: promoDto(findPromo(id), 0) }, "Promo dibuat.", 201);
+  }));
+
+  app.patch("/api/admin/finance/promos/:id", guard, (req, res) => dataResponse(res, () => {
+    const current = findPromo(req.params.id);
+    if (!current) return sendApiError(res, 404, "Promo tidak ditemukan.", "NOT_FOUND");
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body promo harus berupa objek.", "body");
+    }
+    const { next, fields } = promoFields(body, current);
+    if (!fields.length) invalid("Tidak ada perubahan yang dikirim.", "body");
+    const used = promoUsage(current.kode);
+    if (next.kuota !== null && next.kuota < used) {
+      invalid(`kuota tidak boleh lebih kecil dari pemakaian saat ini (${used}).`, "kuota");
+    }
+    db.prepare(`UPDATE finance_promos SET nama = ?, tipe = ?, nilai = ?, jenjang = ?,
+        mulai = ?, selesai = ?, kuota = ?, aktif = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(
+      next.nama, next.tipe, next.nilai, next.jenjang, next.mulai, next.selesai,
+      next.kuota, next.aktif, current.id
+    );
+    audit(req, "finance_promo.update", current.id, { kode: current.kode, fields });
+    return sendApiSuccess(res, { item: promoDto(findPromo(current.id), used) }, "Promo diperbarui.");
+  }));
+
+  app.delete("/api/admin/finance/promos/:id", guard, (req, res) => {
+    const current = findPromo(req.params.id);
+    if (!current) return sendApiError(res, 404, "Promo tidak ditemukan.", "NOT_FOUND");
+    const used = promoUsage(current.kode);
+    if (used > 0) {
+      return sendApiError(res, 409,
+        `Promo sudah dipakai ${used} transaksi. Nonaktifkan saja.`, "PROMO_DIPAKAI");
+    }
+    db.prepare("DELETE FROM finance_promos WHERE id = ?").run(current.id);
+    audit(req, "finance_promo.delete", current.id, { kode: current.kode });
+    return sendApiSuccess(res, { id: current.id }, "Promo dihapus.");
+  });
+
+  // ----------------------------------------------------------
+  // Paket & harga program
+  // ----------------------------------------------------------
+  app.get("/api/admin/finance/packages", guard, (req, res) => dataResponse(res, () => {
+    const q = text(req.query.q, "q", 160);
+    const clause = q ? "WHERE path_key LIKE ? ESCAPE '\\'" : "";
+    const params = q ? [`%${q.replace(/[%_]/g, (m) => "\\" + m)}%`] : [];
+    const rows = db.prepare(`SELECT * FROM finance_packages ${clause}
+      ORDER BY path_key COLLATE NOCASE ASC`).all(...params);
+    return sendApiSuccess(res, { items: rows.map(packageDto), total: rows.length });
+  }));
+
+  // Upsert: satu baris per Learning Path. Frontend cukup mengirim keinginan
+  // akhir (harga + aktif) tanpa perlu tahu id barisnya.
+  app.post("/api/admin/finance/packages", guard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      invalid("Body paket harus berupa objek.", "body");
+    }
+    const key = text(body.key, "key", 160, true);
+    if (!key.includes("|")) invalid("key harus berformat 'Jenjang|Nama jalur'.", "key");
+    const harga = money(body.harga, "harga", { required: true });
+    const aktif = activeFlag(body.aktif, true) ? 1 : 0;
+    const current = findPackage(key);
+    if (current) {
+      db.prepare(`UPDATE finance_packages SET harga = ?, aktif = ?, updated_by = ?,
+          updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(harga, aktif, req.userId, current.id);
+    } else {
+      db.prepare(`INSERT INTO finance_packages (path_key, harga, aktif, updated_by)
+        VALUES (?, ?, ?, ?)`).run(key, harga, aktif, req.userId);
+    }
+    const row = findPackage(key);
+    audit(req, current ? "finance_package.update" : "finance_package.create", row.id, {
+      key, harga, aktif: !!aktif
+    });
+    return sendApiSuccess(res, { item: packageDto(row) }, current ? "Paket diperbarui." : "Paket disimpan.",
+      current ? 200 : 201);
+  }));
+
+  app.delete("/api/admin/finance/packages/:id", guard, (req, res) => {
+    const row = db.prepare("SELECT * FROM finance_packages WHERE id = ?").get(idOf(req.params.id) || 0);
+    if (!row) return sendApiError(res, 404, "Paket tidak ditemukan.", "NOT_FOUND");
+    db.prepare("DELETE FROM finance_packages WHERE id = ?").run(row.id);
+    audit(req, "finance_package.delete", row.id, { key: row.path_key, harga: row.harga });
+    return sendApiSuccess(res, { id: row.id }, "Paket dikembalikan ke harga kurikulum.");
+  });
+
+  // ----------------------------------------------------------
+  // Aktivitas finance (audit trail server)
+  // ----------------------------------------------------------
+  // Dipetakan ke bentuk entri DCFinanceAudit agar UI bisa menampilkan log lokal
+  // dan log server dengan bentuk yang sama.
+  const AUDIT_MODULES = {
+    finance_transaction: { module: "siswa", entity: "Transaksi" },
+    finance_expense: { module: "pengeluaran", entity: "Pengeluaran" },
+    finance_income: { module: "pemasukan", entity: "Pemasukan" },
+    finance_payroll: { module: "payroll", entity: "Payroll" },
+    finance_budget: { module: "anggaran", entity: "Anggaran" },
+    finance_promo: { module: "promo", entity: "Promo" },
+    finance_package: { module: "paket", entity: "Paket" }
+  };
+  const AUDIT_VERBS = {
+    create: "Tambah", update: "Ubah", delete: "Hapus", pay: "Bayar"
+  };
+
+  app.get("/api/admin/finance/audit", guard, (req, res) => dataResponse(res, () => {
+    const { page, limit } = pageFrom(req.query, 50);
+    const where = ["target_type = 'finance'"];
+    const params = [];
+
+    const moduleName = text(req.query.module, "module", 40);
+    if (moduleName) {
+      const prefix = Object.keys(AUDIT_MODULES)
+        .find((key) => AUDIT_MODULES[key].module === moduleName);
+      if (!prefix) invalid("module tidak dikenal.", "module");
+      where.push("action LIKE ?");
+      params.push(`${prefix}.%`);
+    }
+    const action = text(req.query.action, "action", 20);
+    if (action) { where.push("action LIKE ?"); params.push(`%.${action}`); }
+    const actor = text(req.query.actor, "actor", 64);
+    if (actor) { where.push("actor_username LIKE ?"); params.push(`%${actor}%`); }
+    const q = text(req.query.q, "q", 100);
+    if (q) {
+      const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
+      where.push("(action LIKE ? ESCAPE '\\' OR details LIKE ? ESCAPE '\\' OR actor_username LIKE ? ESCAPE '\\')");
+      params.push(like, like, like);
+    }
+    const from = dateOnly(req.query.from, "from");
+    const to = dateOnly(req.query.to, "to");
+    if (from && to && from > to) invalid("from harus sebelum atau sama dengan to.", "from");
+    if (from) { where.push("date(created_at) >= ?"); params.push(from); }
+    if (to) { where.push("date(created_at) <= ?"); params.push(to); }
+
+    const clause = `WHERE ${where.join(" AND ")}`;
+    const totalRow = db.prepare(`SELECT COUNT(*) AS n FROM admin_audit ${clause}`).get(...params);
+    const total = Number(totalRow.n || 0);
+    const pages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(page, pages);
+    const rows = db.prepare(`SELECT * FROM admin_audit ${clause}
+      ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, limit, (safePage - 1) * limit);
+
+    const items = rows.map((row) => {
+      const [prefix, verb] = String(row.action || "").split(".");
+      const meta = AUDIT_MODULES[prefix] || { module: "sistem", entity: "Finance" };
+      let details = {};
+      try { details = JSON.parse(row.details || "{}"); } catch { details = {}; }
+      const label = details.code || details.kode || details.key || row.target_id || "";
+      return {
+        id: "SRV-" + row.id,
+        ts: row.created_at ? String(row.created_at).replace(" ", "T") + "Z" : "",
+        actorId: row.actor_user_id == null ? "" : String(row.actor_user_id),
+        actorName: row.actor_username || "",
+        actorKnown: !!(row.actor_username || row.actor_user_id),
+        action: verb || row.action,
+        module: meta.module,
+        entityType: meta.entity,
+        entityId: row.target_id == null ? "" : String(row.target_id),
+        summary: (AUDIT_VERBS[verb] || verb || "Aktivitas") + " " + meta.entity + (label ? " " + label : ""),
+        before: null,
+        after: null,
+        changes: Object.keys(details).filter((k) => k !== "code" && k !== "kode" && k !== "key"),
+        _src: "server"
+      };
+    });
+
+    return sendApiSuccess(res, { items, entries: items, total, page: safePage, pages, limit });
   }));
 }
 

@@ -311,12 +311,12 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | POST | `/api/admin/report-deliveries/:id/preview` | - | `{ item, email: { subject, text, html }, preview: true }`; pratinjau isi email memakai token placeholder, tidak membuat tautan asli dan tidak mengubah status |
 | GET | `/api/admin/finance/summary?from=&to=` | - | `{ from, to, pemasukan, pemasukanLain, pengeluaran, payroll: { count, total }, laba, labaOperasional, diskon, transaksi: { total, paid, pending, failed, refunded, pemasukan, menunggu }, menunggu: { total, count }, perJenjang, pengeluaranKategori, pengeluaranStatus, harian }`; rentang default bulan berjalan (WIB), maksimal 401 hari; `pengeluaran` dan `harian[].keluar` hanya menghitung pengeluaran berstatus `paid` |
 | GET | `/api/admin/finance/transactions?q=&status=&grade=&learningPathId=&from=&to=&sort=&dir=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; `sort` = `tanggal`/`total`/`nama`/`status`/`code`; `dir` = `asc`/`desc` |
-| POST | `/api/admin/finance/transactions` | `{ studentId, learningPathId, learningPathName?, grade?, price, discount?, method, status?, note?, paidAt? }` | `{ item }` 201; `total` dihitung server (`price - discount`); kode tampilan `TRX-1001` (1000 + id) |
-| PATCH | `/api/admin/finance/transactions/:id` | field yang diubah | `{ item }`; `paidAt` + `status: "paid"` mengisi tanggal lunas; status selain `paid` mengosongkan tanggal/verifikasi |
+| POST | `/api/admin/finance/transactions` | `{ studentId, learningPathId, learningPathName?, grade?, price, discount?, method, status?, note?, promo?, paidAt? }` | `{ item }` 201; `total` dihitung server (`price - discount`); kode tampilan `TRX-1001` (1000 + id); `promo` opsional, harus kode promo yang terdaftar |
+| PATCH | `/api/admin/finance/transactions/:id` | field yang diubah | `{ item }`; `paidAt` + `status: "paid"` mengisi tanggal lunas; status selain `paid` mengosongkan tanggal/verifikasi; `promo: ""` melepas promo |
 | DELETE | `/api/admin/finance/transactions/:id` | - | `{ id }` |
 | GET | `/api/admin/finance/expenses?from=&to=&kategori=&status=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan: { total, dibayar } }`; `ringkasan.total` = nominal hasil filter, `dibayar` = nominal berstatus `paid` (tanpa filter status) |
-| POST | `/api/admin/finance/expenses` | `{ kategori, nominal, tanggal?, catatan?, status?, bukti? }` | `{ item }` 201; `tanggal` default hari ini (WIB); `status` default `paid`; kode tampilan `EXP-501` (500 + id) |
-| PATCH | `/api/admin/finance/expenses/:id` | field yang diubah | `{ item }`; `status` = `submitted`/`approved`/`paid`/`rejected`, `bukti` maks. 200 karakter |
+| POST | `/api/admin/finance/expenses` | `{ kategori, nominal, tanggal?, keterangan?, catatan?, status?, bukti? }` | `{ item }` 201; `tanggal` default hari ini (WIB); `status` default `paid`; kode tampilan `EXP-501` (500 + id); `keterangan` = ringkasan singkat, `catatan` = detail/alasan terpisah |
+| PATCH | `/api/admin/finance/expenses/:id` | field yang diubah | `{ item }`; `status` = `submitted`/`approved`/`paid`/`rejected`, `bukti` maks. 200 karakter, `keterangan` maks. 200 karakter |
 | DELETE | `/api/admin/finance/expenses/:id` | - | `{ id }` |
 | GET | `/api/admin/finance/income?from=&to=&kategori=&q=&page=&limit=` | - | `{ items, total, page, pages, limit, ringkasan }`; pemasukan perusahaan di luar pembayaran siswa |
 | POST | `/api/admin/finance/income` | `{ kategori, nominal, keterangan?, tanggal?, bukti? }` | `{ item }` 201; kode tampilan `INC-${300 + id}` |
@@ -332,6 +332,14 @@ Semua endpoint di bawah wajib role `admin` atau `instruktur` (dibatasi permissio
 | PATCH | `/api/admin/finance/budgets/:id` | `{ jumlah }` | `{ item }`; periode/kategori bersifat tetap |
 | DELETE | `/api/admin/finance/budgets/:id` | - | `{ id }` |
 | GET | `/api/admin/finance/company?periode=YYYY-MM` | - | `{ periode, from, to, pemasukanSiswa, pemasukanLain: { count, total }, pemasukan, pengeluaran: { submitted, approved, paid, rejected }, payroll: { periode, draft, paid, dibayarBulanIni }, anggaran: { total, realisasi, komitmen, sisa, rows } }`; `rows[]` = `{ id, kategori, anggaran, realisasi, komitmen, sisa, pct, status }` dengan `status` = `ok`/`warn`/`over`/`none` |
+| GET | `/api/admin/finance/promos?q=&aktif=&page=&limit=` | - | `{ items, total, page, pages, limit }`; item `{ id, kode, nama, tipe, nilai, jenjang, mulai, selesai, kuota, aktif, dipakai }`; `dipakai` dihitung dari transaksi `paid`/`pending` |
+| POST | `/api/admin/finance/promos` | `{ kode, nama, tipe, nilai, jenjang?, mulai, selesai, kuota?, aktif? }` | `{ item }` 201; `kode` 3-20 huruf/angka (otomatis huruf besar), duplikat → `409 CONFLICT`; `tipe` = `persen` (≤ 100) / `nominal` (≤ 5.000.000); `kuota` kosong = tanpa batas |
+| PATCH | `/api/admin/finance/promos/:id` | field yang diubah | `{ item }`; `kode` tetap; `kuota` tidak boleh lebih kecil dari `dipakai` |
+| DELETE | `/api/admin/finance/promos/:id` | - | `{ id }`; promo yang sudah dipakai → `409 PROMO_DIPAKAI` (nonaktifkan saja) |
+| GET | `/api/admin/finance/packages?q=` | - | `{ items, total }`; item `{ id, key, harga, aktif, updatedAt }`; hanya jalur yang harganya diubah dari harga kurikulum |
+| POST | `/api/admin/finance/packages` | `{ key, harga, aktif? }` | `{ item }` 201/200; **upsert** per `key` berformat `Jenjang|Nama jalur` |
+| DELETE | `/api/admin/finance/packages/:id` | - | `{ id }`; menghapus override sehingga jalur kembali ke harga kurikulum |
+| GET | `/api/admin/finance/audit?q=&module=&action=&actor=&from=&to=&page=&limit=` | - | `{ items, entries, total, page, pages, limit }`; entri berbentuk `DCFinanceAudit` (`action`, `module`, `entityType`, `entityId`, `summary`, `_src: "server"`); `module` = `siswa`/`pengeluaran`/`pemasukan`/`payroll`/`anggaran`/`promo`/`paket` |
 
 Perilaku penting:
 
@@ -381,7 +389,9 @@ Perilaku penting:
 - Anggaran operasional disimpan per `periode` + `kategori` (unik) di `finance_budgets`. `GET /api/admin/finance/company` menggabungkan pemasukan siswa, pemasukan lain, realisasi pengeluaran `paid`, komitmen `approved`, dan payroll yang dibayar pada bulan itu; status baris `ok` (< 80%), `warn` (80-100%), `over` (> 100%), atau `none` (belum dianggarkan).
 - Tanggal laporan memakai `paid_on` (transaksi/payroll), `received_on` (pemasukan lain), dan `spent_on` (pengeluaran) berformat `YYYY-MM-DD` WIB. Transaksi yang belum lunas memakai tanggal pencatatan yang dikonversi ke WIB agar tetap muncul di filter/urut.
 - Kode tampilan stabil dibuat setelah insert: `TRX-${1000 + id}`, `EXP-${500 + id}`, `INC-${300 + id}`, dan `PAY-${100 + id}`. Kode tidak berubah saat data diubah.
-- Audit finance memakai `finance_transaction.*`, `finance_expense.*`, `finance_income.*`, `finance_payroll.create`/`update`/`pay`/`delete`, dan `finance_budget.create`/`update`/`delete` dengan `target_type = 'finance'`.
+- Audit finance memakai `finance_transaction.*`, `finance_expense.*`, `finance_income.*`, `finance_payroll.create`/`update`/`pay`/`delete`, `finance_budget.create`/`update`/`delete`, `finance_promo.create`/`update`/`delete`, dan `finance_package.create`/`update`/`delete` dengan `target_type = 'finance'`. `GET /api/admin/finance/audit` membacanya kembali dan memetakannya ke bentuk entri `DCFinanceAudit` agar UI bisa menampilkan log lokal dan server dengan tampilan yang sama.
+- Promo memakai kode unik tanpa beda huruf besar/kecil; pemakaian dihitung dari `finance_transactions.promo_code` berstatus `paid`/`pending`, bukan counter, sehingga tidak melenceng saat transaksi diubah atau dihapus. Hapus promo yang sudah dipakai ditolak (`409 PROMO_DIPAKAI`).
+- Harga paket (`finance_packages`) hanya menyimpan jalur yang berbeda dari harga kurikulum; `POST` bersifat upsert per `path_key` sehingga UI tidak perlu tahu id baris. Tanpa baris, harga mengikuti kurikulum.
 - Detail validasi finance dikembalikan sebagai `400 VALIDATION_ERROR` dengan `details.field` (mis. `price`, `discount`, `studentId`, `tanggal`, `nominal`, `periode`, `potongan`). Rentang `from`/`to` yang terbalik atau lebih dari 401 hari juga ditolak.
 - Rate limit admin: 60 request/menit per admin per path.
 

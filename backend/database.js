@@ -937,6 +937,44 @@ db.exec(`
         ON finance_budgets(periode, kategori);
     CREATE INDEX IF NOT EXISTS idx_finance_budgets_period
         ON finance_budgets(periode, kategori);
+
+    -- Kode promo/diskon Learning Path. Pemakaian dihitung dari
+    -- finance_transactions.promo_code, bukan disimpan sebagai counter, supaya
+    -- tidak bisa melenceng saat transaksi diubah atau dihapus.
+    CREATE TABLE IF NOT EXISTS finance_promos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kode TEXT NOT NULL COLLATE NOCASE UNIQUE,
+        nama TEXT NOT NULL DEFAULT '',
+        tipe TEXT NOT NULL DEFAULT 'persen'
+            CHECK (tipe IN ('persen', 'nominal')),
+        nilai INTEGER NOT NULL CHECK (nilai > 0),
+        jenjang TEXT NOT NULL DEFAULT ''
+            CHECK (jenjang IN ('', 'SD', 'SMP', 'SMK')),
+        mulai TEXT NOT NULL,
+        selesai TEXT NOT NULL,
+        kuota INTEGER CHECK (kuota IS NULL OR kuota > 0),
+        aktif INTEGER NOT NULL DEFAULT 1 CHECK (aktif IN (0, 1)),
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_finance_promos_period
+        ON finance_promos(mulai, selesai);
+
+    -- Harga dan status tawaran per Learning Path. Hanya jalur yang diubah dari
+    -- harga kurikulum yang punya baris di sini; kunci memakai format
+    -- "Jenjang|Nama jalur" seperti finance_transactions.learning_path_key.
+    CREATE TABLE IF NOT EXISTS finance_packages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        path_key TEXT NOT NULL UNIQUE,
+        harga INTEGER NOT NULL CHECK (harga >= 0),
+        aktif INTEGER NOT NULL DEFAULT 1 CHECK (aktif IN (0, 1)),
+        updated_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(updated_by) REFERENCES users(id) ON DELETE SET NULL
+    );
 `);
 
 // Migrasi untuk database lama: finance_expenses semula hanya mencatat
@@ -953,6 +991,22 @@ db.exec(`
     if (!cols.includes("bukti")) {
         db.exec("ALTER TABLE finance_expenses ADD COLUMN bukti TEXT NOT NULL DEFAULT ''");
         console.log("[MIGRASI] Kolom finance_expenses.bukti ditambahkan.");
+    }
+    // Keterangan singkat dipisah dari catatan supaya alasan penolakan tidak
+    // menimpa deskripsi pengeluaran. Baris lama dibiarkan kosong.
+    if (!cols.includes("keterangan")) {
+        db.exec("ALTER TABLE finance_expenses ADD COLUMN keterangan TEXT NOT NULL DEFAULT ''");
+        console.log("[MIGRASI] Kolom finance_expenses.keterangan ditambahkan.");
+    }
+})();
+
+// Kode promo pada transaksi dipakai untuk menghitung pemakaian promo.
+// Baris lama tidak punya kode promo, jadi dibiarkan kosong.
+(function migrateFinanceTransactionPromo() {
+    const cols = db.prepare("PRAGMA table_info(finance_transactions)").all().map((c) => c.name);
+    if (!cols.includes("promo_code")) {
+        db.exec("ALTER TABLE finance_transactions ADD COLUMN promo_code TEXT NOT NULL DEFAULT ''");
+        console.log("[MIGRASI] Kolom finance_transactions.promo_code ditambahkan.");
     }
 })();
 
