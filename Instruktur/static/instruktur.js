@@ -98,6 +98,11 @@
     ujian: makeStore('/api/instruktur/ujian', 'dci-ujian', () => [
       { id: 1, title: 'Projek Akhir: Game 2D', description: 'Kumpulkan game 2D buatan sendiri. Dinilai dari kreativitas, fungsi, dan kerapian kode.', grade: 'SMP', format: 'proyek', kkm: 75, durasi: '', buka: inDays(0), tutup: inDays(30), status: 'terbit', hasil: [] }
     ]),
+    bank: makeStore('/api/instruktur/bank-tugas', 'dci-bank-tugas', () => [
+      { id: 1, title: 'Pola Bintang dengan Perulangan', category: 'Dasar Pemrograman', difficulty: 'mudah', grade: 'SMP', type: 'kode', points: 30, description: 'Cetak pola bintang bertingkat memakai perulangan for.', instructions: 'Buat program yang mencetak segitiga bintang setinggi 5 baris. Gunakan for dan range().' },
+      { id: 2, title: 'Kalkulator Sederhana', category: 'Logika dan Algoritma', difficulty: 'sedang', grade: '', type: 'kode', points: 40, description: 'Kalkulator yang bisa menjumlah, mengurang, mengali, dan membagi.', instructions: 'Minta dua angka dan satu operator dari pengguna, lalu tampilkan hasilnya. Tangani pembagian dengan nol.' },
+      { id: 3, title: 'Game Tebak Angka', category: 'Game dan Animasi', difficulty: 'sedang', grade: 'SMK', type: 'proyek', points: 60, description: 'Game tebak angka acak dengan petunjuk lebih besar atau lebih kecil.', instructions: 'Komputer memilih angka 1 sampai 100. Pemain menebak sampai benar, hitung jumlah tebakannya.' }
+    ]),
     jadwal: makeStore('/api/instruktur/jadwal', 'dci-jadwal', () => [])
   };
 
@@ -176,8 +181,8 @@
       try { items = await store.list(); } catch (e) { items = []; toast(e.message || 'Gagal memuat data.', 'error'); }
       loaded = true; draw();
     }
-    function openForm(item) {
-      const pre = item ? (cfg.pre ? cfg.pre(item) : item) : (cfg.blank ? cfg.blank() : {});
+    function openForm(item, preset) {
+      const pre = item ? (cfg.pre ? cfg.pre(item) : item) : Object.assign({}, cfg.blank ? cfg.blank() : {}, preset || {});
       const dialog = modal((item ? 'Ubah ' : 'Tambah ') + cfg.noun, `<div class="grid sm:grid-cols-2 gap-3">${cfg.fields.map((f) => fieldHtml(f, pre[f.n])).join('')}</div>`, async (f) => {
         const msg = cfg.validate(f); if (msg) return msg;
         const data = cfg.norm(f);
@@ -206,7 +211,7 @@
       if (cfg.onClick) cfg.onClick(e, { find, reload: load, redraw: draw });
     });
     window.addEventListener('dc:view', (ev) => { if (ev.detail === cfg.view && !loaded) load(); });
-    return { load, items: () => items };
+    return { load, items: () => items, openForm };
   }
 
   const gradeOpts = Object.entries(GRADES);
@@ -278,7 +283,7 @@
 
   // ---------- Tugas Tambahan ----------
   const TYPES = { kode: 'Kode', blok: 'Block Coding', kuis: 'Kuis', proyek: 'Proyek' };
-  crud({
+  const tugasPage = crud({
     view: 'tugas', crumb: 'Tugas Tambahan', title: 'Tugas Tambahan', noun: 'Tugas', addLabel: 'Tambah Tugas', icon: 'fa-regular fa-clipboard',
     sub: 'Beri siswa latihan ekstra di luar materi utama. Tugas terbit akan tampil di halaman siswa.', empty: 'Belum ada tugas tambahan.',
     delMsg: 'Tugas ini akan hilang dari daftar tugas siswa.',
@@ -302,12 +307,23 @@
       ${t.description ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${esc(t.description)}</p>` : ''}
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-star mr-1"></i>${esc(t.points)} poin${t.due ? ` &middot; <i class="fa-regular fa-calendar mr-1"></i>Tenggat ${esc(fmtDate(t.due))}` : ''}</p>
       ${t.submissionCount != null ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1"><i class="fa-solid fa-inbox mr-1"></i><b>${esc(t.submissionCount)}</b> terkumpul &middot; <b>${esc(t.gradedCount || 0)}</b> sudah dinilai</p>` : ''}</div>`,
-    actions: (t) => `<button type="button" data-jawaban="${esc(t.id)}" class="dc-ib dc-ib-view" aria-label="Jawaban siswa ${esc(t.title)}" title="Lihat jawaban & beri nilai"><i class="fa-solid fa-clipboard-check"></i></button>`,
+    actions: (t) => `<button type="button" data-jawaban="${esc(t.id)}" class="dc-ib dc-ib-view" aria-label="Jawaban siswa ${esc(t.title)}" title="Lihat jawaban & beri nilai"><i class="fa-solid fa-clipboard-check"></i></button>${window.DCBankTugas ? `<button type="button" data-simpanbank="${esc(t.id)}" class="dc-ib dc-ib-view" aria-label="Simpan ${esc(t.title)} ke Bank Tugas" title="Simpan ke Bank Tugas"><i class="fa-regular fa-bookmark"></i></button>` : ''}`,
+    afterDraw: (view) => { if (window.DCBankTugas) window.DCBankTugas.enhance(view, bankCtx()); },
     onClick: (e, ctx) => {
+      const sb = e.target.closest('[data-simpanbank]');
+      if (sb) { const t0 = ctx.find(sb.dataset.simpanbank); if (t0 && window.DCBankTugas) window.DCBankTugas.saveFromTugas(bankCtx(), t0); return; }
       const b = e.target.closest('[data-jawaban]'); if (!b) return;
       const t = ctx.find(b.dataset.jawaban); if (t) openJawaban(t, ctx.reload);
     }
   });
+  // Bahan untuk tab Pengumpulan Siswa dan Bank Tugas (static/bank-tugas.js)
+  function bankCtx() {
+    return {
+      store: stores.bank, subs, tugas: () => tugasPage.items(), openJawaban: (t) => openJawaban(t, tugasPage.load),
+      useTemplate: (tpl) => tugasPage.openForm(null, { title: tpl.title, grade: tpl.grade || 'SMP', type: tpl.type || 'kode', points: tpl.points, status: 'draft', description: [tpl.description, tpl.instructions].filter(Boolean).join('\n\n') }),
+      h: { modal, fieldHtml, toast, confirm: (o) => window.dcConfirm(o), GRADES, TYPES }
+    };
+  }
 
   // ---------- Jawaban siswa pada Tugas Tambahan ----------
   const subs = (() => {
@@ -321,7 +337,8 @@
     const sample = () => [
       { id: 1, nama: 'Contoh Siswa A', text: 'Ini jawaban contoh. Program mencetak bintang dengan for dan range.', link: '', submittedAt: new Date().toISOString(), status: 'dikumpulkan' },
       { id: 2, nama: 'Contoh Siswa B', text: 'Hasil kerjaku ada di link ya.', link: 'https://example.com/hasil-b', submittedAt: new Date(Date.now() - 36e5).toISOString(), status: 'dikumpulkan' },
-      { id: 3, nama: 'Contoh Siswa C', text: 'Sudah selesai.', link: '', submittedAt: new Date(Date.now() - 864e5).toISOString(), status: 'dinilai', nilai: 25, feedback: 'Bagus, tinggal rapikan nama variabel.', gradedAt: new Date().toISOString() }
+      { id: 3, nama: 'Contoh Siswa C', text: 'Sudah selesai.', link: '', submittedAt: new Date(Date.now() - 864e5).toISOString(), status: 'dinilai', nilai: 25, feedback: 'Bagus, tinggal rapikan nama variabel.', gradedAt: new Date().toISOString() },
+      { id: 4, nama: 'Contoh Siswa D', text: 'for i in range(3):\n    print("*")', link: '', submittedAt: new Date(Date.now() - 2 * 864e5).toISOString(), status: 'revisi', nilai: 10, feedback: 'Polanya belum berbentuk segitiga. Coba tambahkan variabel di dalam range().', gradedAt: new Date(Date.now() - 864e5).toISOString(), feedbackReadAt: null }
     ];
     return {
       isLocal: () => useLocal,
@@ -336,7 +353,10 @@
         }
         const d = loadLocal(), l = d[tid] || [], i = l.findIndex((x) => String(x.id) === String(sid));
         if (i < 0) return null;
-        l[i] = { ...l[i], nilai: body.nilai, feedback: body.feedback, status: 'dinilai', gradedAt: new Date().toISOString() };
+        const prev = l[i], st = body.status || 'dinilai', at = new Date().toISOString(), hasN = body.nilai != null && body.nilai !== '';
+        const rw = window.DCPenilaian ? window.DCPenilaian.history(prev) : [];
+        if (window.DCPenilaian && (body.feedback || hasN)) rw.push({ tipe: 'feedback', at, teks: body.feedback, nilai: hasN ? body.nilai : undefined, status: st === 'dinilai' ? 'selesai' : st });
+        l[i] = { ...prev, nilai: hasN ? body.nilai : prev.nilai, feedback: body.feedback || prev.feedback, status: st, gradedAt: at, riwayat: rw };
         d[tid] = l; saveLocal(d); return l[i];
       }
     };
@@ -345,6 +365,7 @@
   async function openJawaban(t, reload) {
     const max = Number(t.points) > 0 ? Number(t.points) : 100;
     const isScored = (s) => s.nilai != null && s.nilai !== '';
+    const needs = (s) => (window.DCPenilaian ? window.DCPenilaian.needsAction(s) : !isScored(s));
     const waktu = (iso) => { try { return new Date(iso).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; } };
     const el = document.createElement('div');
     el.className = 'fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/50';
@@ -364,8 +385,8 @@
 
     const rowHtml = (s) => `<article class="${CARD} p-4 space-y-3" data-sid="${esc(s.id)}">
         <div class="flex items-center gap-2 flex-wrap"><h4 class="font-bold text-slate-900 dark:text-white">${esc(s.nama || s.username || 'Siswa')}</h4>
-          ${isScored(s) ? pill('Dinilai', STATUS.terbit[1]) : pill('Perlu dinilai', STATUS.draft[1])}
-          ${s.submittedAt ? `<span class="text-[11px] text-slate-400">${esc(waktu(s.submittedAt))}</span>` : ''}</div>
+          ${window.DCPenilaian ? pill(...window.DCPenilaian.meta(s)) : (isScored(s) ? pill('Dinilai', STATUS.terbit[1]) : pill('Perlu dinilai', STATUS.draft[1]))}
+          ${s.submittedAt ? `<span class="text-[11px] text-slate-400">${esc(waktu(s.submittedAt))}</span>` : ''}${window.DCPenilaian ? '<button type="button" data-detail class="dc-btn dc-btn-ghost dc-btn-sm ml-auto"><i class="fa-regular fa-rectangle-list"></i>Detail</button>' : ''}</div>
         ${s.text ? `<p class="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">${esc(s.text)}</p>` : ''}
         ${/^https?:\/\//i.test(s.link || '') ? `<a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline break-all"><i class="fa-solid fa-arrow-up-right-from-square"></i>${esc(s.link)}</a>` : (s.link ? `<p class="text-xs text-slate-500 break-all">${esc(s.link)}</p>` : '')}
         <div class="grid sm:grid-cols-[110px_1fr_auto] gap-2 items-end">
@@ -375,12 +396,12 @@
         <p data-msg class="hidden text-xs font-medium text-rose-600 dark:text-rose-400" role="alert"></p></article>`;
     const chip = (key, label, n) => `<button type="button" data-f="${key}" class="dc-btn ${only === key ? 'dc-btn-sec' : 'dc-btn-ghost'} dc-btn-sm">${label} (${n})</button>`;
     const bar = () => {
-      const todo = list.filter((s) => !isScored(s)).length;
+      const todo = list.filter(needs).length;
       $('[data-bar]', body).innerHTML = chip('all', 'Semua', list.length) + chip('todo', 'Perlu dinilai', todo);
     };
     const applyFilter = () => body.querySelectorAll('[data-sid]').forEach((r) => {
       const s = list.find((x) => String(x.id) === r.dataset.sid);
-      r.classList.toggle('hidden', only === 'todo' && s && isScored(s) && r.dataset.keep !== '1');
+      r.classList.toggle('hidden', only === 'todo' && s && !needs(s) && r.dataset.keep !== '1');
     });
     function draw() {
       const note = subs.isLocal() ? `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh:</b> endpoint <code>/api/instruktur/tugas/:id/submissions</code> belum tersedia. Yang tampil adalah data contoh yang disimpan di browser ini saja, bukan jawaban siswa sungguhan.</span></div>` : '';
@@ -396,6 +417,16 @@
       if (e.target.closest('[data-x]')) return close();
       const f = e.target.closest('[data-f]');
       if (f) { only = f.dataset.f; body.querySelectorAll('[data-sid]').forEach((r) => delete r.dataset.keep); bar(); applyFilter(); return; }
+      const det = e.target.closest('[data-detail]');
+      if (det && window.DCPenilaian) {
+        const s0 = list.find((x) => String(x.id) === det.closest('[data-sid]').dataset.sid); if (!s0) return;
+        window.DCPenilaian.open({ tugas: t, sub: s0, max, toast, save: (b) => subs.grade(t.id, s0.id, b), onSaved: () => {
+          changed = true; const r0 = [...body.querySelectorAll('[data-sid]')].find((x) => x.dataset.sid === String(s0.id));
+          if (r0) { r0.outerHTML = rowHtml(s0); const f0 = [...body.querySelectorAll('[data-sid]')].find((x) => x.dataset.sid === String(s0.id)); if (f0) f0.dataset.keep = '1'; }
+          bar();
+        } });
+        return;
+      }
       const btn = e.target.closest('[data-save]'); if (!btn) return;
       const row = btn.closest('[data-sid]'), s = list.find((x) => String(x.id) === row.dataset.sid), msg = $('[data-msg]', row);
       const raw = row.querySelector('[name=nilai]').value.trim(), n = Number(raw);
@@ -669,7 +700,7 @@
   }
 
   // ---------- navigasi ----------
-  const VIEWS = ['dashboard', 'tugas', 'ujian', 'jadwal', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
+  const VIEWS = ['dashboard', 'siswa', 'tugas', 'ujian', 'jadwal', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
   const ON = ['is-active', 'text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   function showView(name) {
@@ -682,6 +713,7 @@
     document.body.classList.remove('sb-open');
     if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
     if (name === 'dashboard') drawDashboard();
+    if (name === 'siswa' && window.DCSiswa) window.DCSiswa.mount($('#view-siswa'));
     if (name === 'rekap') {   // tampilan per sesi (Daftar Sesi / Time Track); rekap bulanan lama jadi tab ketiganya
       if (window.DCSesi) window.DCSesi.mount($('#view-rekap'));
       else if (window.DCRekap) window.DCRekap.instruktur($('#view-rekap'));

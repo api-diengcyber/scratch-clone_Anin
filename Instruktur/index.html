@@ -46,6 +46,7 @@
     <nav id="sidebarNav" class="px-4 pt-2 pb-4 flex-1 space-y-1 overflow-y-auto">
       <div class="nav-title">Menu</div>
       <a href="#" data-view="dashboard" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-chart-pie w-4 text-center text-sm"></i><span>Ringkasan</span></a>
+      <a href="#" data-view="siswa" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-users w-4 text-center text-sm"></i><span>Pantau Siswa</span></a>
       <a href="#" data-view="tugas" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-list-check w-4 text-center text-sm"></i><span>Tugas Tambahan</span></a>
       <a href="#" data-view="ujian" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-graduation-cap w-4 text-center text-sm"></i><span>Ujian Kelulusan</span></a>
       <a href="#" data-view="jadwal" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-video w-4 text-center text-sm"></i><span>Jadwal Zoom Mentoring</span></a>
@@ -109,6 +110,7 @@
       </div>
     </header>
     <div id="view-dashboard" class="dc-dashboard px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-siswa" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-tugas" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-ujian" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-jadwal" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
@@ -128,6 +130,10 @@
   <script src="static/sesi-absen.js?v=2"></script>
   <script src="static/profil-instruktur.js?v=1"></script>
   <script src="static/jadwal-ui.js?v=1"></script>
+  <script src="static/siswa-monitor-mock.js?v=2"></script>
+  <script src="static/siswa-monitor.js?v=3"></script>
+  <script src="static/penilaian-detail.js?v=1"></script>
+  <script src="static/bank-tugas.js?v=1"></script>
   <script>
     // Data kurikulum (untuk pilihan Learning Path & Task): coba beberapa lokasi karena folder "users" bisa disajikan
     // sebagai root (/kurikulum/...) atau sebagai /users/... Urutan dijaga: data dulu, baru instruktur.js.
@@ -144,7 +150,7 @@
           add(BASES[b] + f[0] + '?v=20261113', function () { tryBase(b + 1); });
         })(0);
       }
-      loadFile(0, function () { add('static/instruktur.js?v=9', function () {}); });
+      loadFile(0, function () { add('static/instruktur.js?v=12', function () {}); });
     })();
   </script>
 </body>
