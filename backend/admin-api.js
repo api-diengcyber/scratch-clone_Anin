@@ -85,7 +85,7 @@ function registerAdminApi(app, deps) {
     const num = Number(id);
     if (!Number.isSafeInteger(num) || num < 1) return null;
     const user = db.prepare(`SELECT id, username, email, full_name, bio, avatar_url, allowed_grades, role, status,
-        must_change_password, last_login_at, created_at, subscription_started_at FROM users WHERE id = ?`).get(num);
+        must_change_password, last_login_at, created_at, subscription_started_at, subscription_months FROM users WHERE id = ?`).get(num);
     return user && user.role === "student" ? user : null;
   }
   function jsonAllowedGrades(value) {
@@ -1516,7 +1516,7 @@ function registerAdminApi(app, deps) {
     const clause = where.join(" AND ");
     const total = db.prepare(`SELECT COUNT(*) AS n FROM users u WHERE ${clause}`).get(...params).n;
     const aggregate = db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status='suspended' THEN 1 ELSE 0 END) AS suspended, (SELECT COUNT(*) FROM tasks) AS tasks_total FROM users WHERE role='student'").get();
-    const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.status, u.allowed_grades, u.last_login_at, u.created_at, u.subscription_started_at,
+    const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.status, u.allowed_grades, u.last_login_at, u.created_at, u.subscription_started_at, u.subscription_months,
         COALESCE(p.total,0) AS points_total,
         (SELECT COUNT(*) FROM progress pr WHERE pr.user_id=u.id AND pr.completed=1) AS completed_tasks,
         (SELECT COUNT(*) FROM user_items ui WHERE ui.user_id=u.id) AS item_count
@@ -1526,12 +1526,16 @@ function registerAdminApi(app, deps) {
     return sendApiSuccess(res, {
       users: rows.map(r => {
         const attendance = attendanceSummary.get(Number(r.id)) || { hadir: 0, total: 0, pct: null };
+        const subscription = subscriptionItem(Number(r.id), r.subscription_started_at || null, r.subscription_months);
         return {
           ...r,
           allowedGrades: jsonAllowedGrades(r.allowed_grades),
           allowed_grades: undefined,
-          subscriptionStartedAt: r.subscription_started_at || null,
+          subscriptionStartedAt: subscription.subscriptionStartedAt,
+          subscriptionMonths: subscription.subscriptionMonths,
+          subscriptionEndsAt: subscription.subscriptionEndsAt,
           subscription_started_at: undefined,
+          subscription_months: undefined,
           attendance,
           attendancePct: attendance.pct
         };
@@ -1555,8 +1559,14 @@ function registerAdminApi(app, deps) {
     const sessions = db.prepare("SELECT created_at, expires_at FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 20").all(u.id);
     const progressRows = db.prepare("SELECT task_id, completed, completed_at, bonus_awarded FROM progress WHERE user_id = ? ORDER BY id DESC LIMIT 100").all(u.id);
     const safe = { ...u, allowedGrades: jsonAllowedGrades(u.allowed_grades) }; delete safe.allowed_grades;
-    safe.subscriptionStartedAt = u.subscription_started_at || null; delete safe.subscription_started_at;
-    safe.firstReportDueDate = reportDeliveries.firstReportDueDate(safe.subscriptionStartedAt);
+    const subscription = subscriptionItem(u.id, u.subscription_started_at || null, u.subscription_months);
+    safe.subscriptionStartedAt = subscription.subscriptionStartedAt;
+    safe.subscriptionMonths = subscription.subscriptionMonths;
+    safe.subscriptionEndsAt = subscription.subscriptionEndsAt;
+    safe.firstReportDueDate = subscription.firstReportDueDate;
+    safe.lastReportDueDate = subscription.lastReportDueDate;
+    delete safe.subscription_started_at;
+    delete safe.subscription_months;
     return sendApiSuccess(res, { user: safe, points, progress, progressRows, items, sessions, activeSessions: sessionCount.active });
   });
 
@@ -1740,12 +1750,15 @@ function registerAdminApi(app, deps) {
     const guardians = guardianPayload(req.body || {});
     const items = reports.replaceGuardians(db, u.id, guardians, req.userId);
     // Wali baru/berubah langsung masuk antrean bila siswa sudah berlangganan.
-    const queued = reports.queueGuardianDeliveries(db, u.id, u.subscription_started_at || null);
+    const queued = reports.queueGuardianDeliveries(
+      db, u.id, u.subscription_started_at || null,
+      u.subscription_months || reportDeliveries.DEFAULT_MONTHS
+    );
     audit(req, "guardian.update", "user", u.id, { total: items.length, queued });
     return sendApiSuccess(res, {
       items,
       total: items.length,
-      queued: { created: queued.created, revived: queued.revived, total: queued.queued }
+      queued: { created: queued.created, revived: queued.revived, total: queued.queued, months: queued.months }
     }, "Data wali diperbarui.");
   }));
 
@@ -1821,11 +1834,15 @@ function registerAdminApi(app, deps) {
   // endpoint di sini mengatur tanggal, menjalankan antrean secara manual, dan
   // menampilkan catatan pengiriman.
   // ------------------------------------------------------------
-  function subscriptionItem(userId, startedAt) {
+  function subscriptionItem(userId, startedAt, months) {
+    const count = startedAt ? (Number(months) || reportDeliveries.DEFAULT_MONTHS) : null;
     return {
       userId,
       subscriptionStartedAt: startedAt || null,
-      firstReportDueDate: reportDeliveries.firstReportDueDate(startedAt || null)
+      subscriptionMonths: count,
+      subscriptionEndsAt: count ? reportDeliveries.subscriptionEndDate(startedAt, count) : null,
+      firstReportDueDate: count ? reportDeliveries.reportDueDate(startedAt, 1) : null,
+      lastReportDueDate: count ? reportDeliveries.reportDueDate(startedAt, count) : null
     };
   }
 
@@ -1853,16 +1870,38 @@ function registerAdminApi(app, deps) {
       startedAt = startedAt.trim();
     }
 
+    // Durasi (jumlah laporan bulanan). Bila tidak dikirim, pertahankan durasi
+    // sebelumnya supaya mengubah tanggal tidak diam-diam memotong langganan.
+    let months = null;
+    if (startedAt !== null) {
+      const raw = body.months === undefined
+        ? (u.subscription_months || reportDeliveries.DEFAULT_MONTHS)
+        : body.months;
+      try {
+        months = reportDeliveries.normalizeMonths(raw);
+      } catch (_) {
+        adminDataError(`months harus bilangan bulat 1-${reportDeliveries.MAX_MONTHS}.`, "months");
+      }
+    }
+
     const previous = u.subscription_started_at || null;
+    const previousMonths = u.subscription_months || null;
     const sync = db.transaction(() => {
-      db.prepare("UPDATE users SET subscription_started_at = ? WHERE id = ? AND role = 'student'").run(startedAt, u.id);
-      const result = reportDeliveries.syncPendingForSubscription(db, u.id, startedAt);
-      // Email laporan untuk tiap wali ikut diantrekan saat tanggal diisi.
-      // Idempoten: baris yang sudah ada (termasuk 'sent') tidak diduplikasi.
-      const queued = reports.queueGuardianDeliveries(db, u.id, startedAt);
+      db.prepare("UPDATE users SET subscription_started_at = ?, subscription_months = ? WHERE id = ? AND role = 'student'")
+        .run(startedAt, months, u.id);
+      const result = reportDeliveries.syncPendingForSubscription(
+        db, u.id, startedAt, months || reportDeliveries.DEFAULT_MONTHS
+      );
+      // Email laporan setiap bulan untuk tiap wali ikut diantrekan saat tanggal
+      // diisi. Idempoten: baris yang sudah ada (termasuk 'sent') tidak diduplikasi.
+      const queued = reports.queueGuardianDeliveries(
+        db, u.id, startedAt, months || reportDeliveries.DEFAULT_MONTHS
+      );
       audit(req, "subscription.update", "user", u.id, {
         from: previous,
         to: startedAt,
+        fromMonths: previousMonths,
+        toMonths: months,
         rescheduled: result.rescheduled,
         skipped: result.skipped,
         queued
@@ -1871,10 +1910,15 @@ function registerAdminApi(app, deps) {
     })();
 
     return sendApiSuccess(res, {
-      item: subscriptionItem(u.id, startedAt),
+      item: subscriptionItem(u.id, startedAt, months),
       deliveries: { rescheduled: sync.rescheduled, skipped: sync.skipped },
-      queued: { created: sync.queued.created, revived: sync.queued.revived, total: sync.queued.queued }
-    }, startedAt ? "Tanggal mulai berlangganan disimpan." : "Tanggal mulai berlangganan dihapus.");
+      queued: {
+        created: sync.queued.created,
+        revived: sync.queued.revived,
+        total: sync.queued.queued,
+        months: sync.queued.months
+      }
+    }, startedAt ? "Tanggal dan durasi langganan disimpan." : "Tanggal mulai berlangganan dihapus.");
   }));
 
   app.get("/api/admin/users/:id/report-deliveries", (req, res) => adminDataResponse(res, () => {
@@ -1883,7 +1927,7 @@ function registerAdminApi(app, deps) {
     const result = reportDeliveries.listDeliveries(db, { ...deliveryQuery(req), studentId: u.id });
     return sendApiSuccess(res, {
       ...result,
-      subscription: subscriptionItem(u.id, u.subscription_started_at)
+      subscription: subscriptionItem(u.id, u.subscription_started_at || null, u.subscription_months)
     });
   }));
 
@@ -1980,6 +2024,7 @@ function registerAdminApi(app, deps) {
       studentName: report.student.name,
       guardianName: item.recipientName,
       institutionName: report.institution.name,
+      monthNumber: item.month,
       pageUrl: reports.reportPageUrl(reportBaseUrl(req), "x".repeat(43)),
       expiresAt: null
     });

@@ -195,6 +195,7 @@ async function processDueDeliveries(db, options = {}) {
           studentName: report.student.name,
           guardianName: row.guardian_name || row.recipient_name,
           institutionName: report.institution.name,
+          monthNumber: reportDeliveries.monthOfKind(row.kind),
           pageUrl: reports.reportPageUrl(baseUrl, link.token),
           expiresAt: link.expiresAt
         });

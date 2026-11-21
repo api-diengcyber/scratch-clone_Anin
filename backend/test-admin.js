@@ -1969,14 +1969,20 @@ async function cleanup() {
     eq(res.r.status, 200, "simpan tanggal");
     eq(res.d.item.subscriptionStartedAt, "2026-11-04", "tanggal tersimpan");
     eq(res.d.item.firstReportDueDate, "2026-12-04", "jatuh tempo 1 bulan kemudian");
+    eq(res.d.item.subscriptionMonths, 1, "durasi bawaan 1 bulan");
+    eq(res.d.item.subscriptionEndsAt, "2026-12-03", "hari terakhir bulan pertama");
+    eq(res.d.item.lastReportDueDate, "2026-12-04", "laporan terakhir sama dengan laporan pertama");
 
     res = await api("GET", `/api/admin/users/${sid}`, { token: adminToken });
     eq(res.d.user.subscriptionStartedAt, "2026-11-04", "detail user memuat tanggal");
     eq(res.d.user.firstReportDueDate, "2026-12-04", "detail user memuat jatuh tempo");
+    eq(res.d.user.subscriptionMonths, 1, "detail user memuat durasi");
+    eq(res.d.user.subscriptionEndsAt, "2026-12-03", "detail user memuat akhir langganan");
     ok(!("subscription_started_at" in res.d.user), "tidak ada duplikat snake_case");
 
     res = await api("GET", "/api/admin/users?search=siswa-langganan", { token: adminToken });
     eq(res.d.users[0].subscriptionStartedAt, "2026-11-04", "daftar user memuat tanggal");
+    eq(res.d.users[0].subscriptionMonths, 1, "daftar user memuat durasi");
 
     res = await put({ startedAt: "2026-01-31" });
     eq(res.d.item.firstReportDueDate, "2026-02-28", "31 Jan + 1 bulan = 28 Feb");
@@ -2009,6 +2015,73 @@ async function cleanup() {
     eq(audits.length, 3, "tiga perubahan sukses tercatat di audit");
     eqJson([audits[0].from, audits[0].to], [null, "2026-11-04"], "audit: dari kosong ke tanggal");
     eqJson([audits[2].from, audits[2].to], ["2026-01-31", null], "audit: penghapusan tercatat");
+  });
+
+  await t("Berlangganan: durasi bulanan mengantrekan laporan bulan 1-3 dan bisa dipersingkat", async () => {
+    const sid = addUser("siswa-bulanan", "siswa-bulanan@example.com", STUDENT_PASS, "student");
+    const putBody = (body) => api("PUT", `/api/admin/users/${sid}/subscription`, { token: adminToken, body });
+
+    // Wali disimpan dulu, baru durasi diisi.
+    let res = await api("PUT", `/api/admin/users/${sid}/guardians`, {
+      token: adminToken,
+      body: { guardians: [{ name: "Ibu Bulanan", email: "ibu-bulanan-admin@example.com", relation: "ibu" }] }
+    });
+    eq(res.d.queued.total, 0, "belum ada antrean tanpa tanggal");
+
+    res = await putBody({ startedAt: "2026-11-04", months: 3 });
+    eq(res.r.status, 200, "simpan tanggal + durasi");
+    eqJson(
+      [res.d.item.subscriptionMonths, res.d.item.subscriptionEndsAt, res.d.item.lastReportDueDate],
+      [3, "2027-02-03", "2027-02-04"],
+      "akhir langganan dan laporan terakhir"
+    );
+    eqJson([res.d.queued.created, res.d.queued.total, res.d.queued.months], [3, 3, 3], "tiga email diantrekan");
+
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    eqJson(
+      res.d.items.map((x) => [x.kind, x.month, x.dueDate]).sort(),
+      [["month1", 1, "2026-12-04"], ["month2", 2, "2027-01-04"], ["month3", 3, "2027-02-04"]],
+      "isi antrean bulanan"
+    );
+    eq(res.d.subscription.subscriptionMonths, 3, "catatan pengiriman memuat durasi");
+
+    res = await putBody({ startedAt: "2026-11-04", months: 3 });
+    eqJson([res.d.queued.created, res.d.queued.revived], [0, 0], "antrean bulanan idempoten");
+
+    // Durasi diperpendek: bulan ke-3 dibatalkan.
+    res = await putBody({ startedAt: "2026-11-04", months: 2 });
+    eqJson(res.d.deliveries, { rescheduled: 2, skipped: 1 }, "bulan di luar durasi dibatalkan");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const byKind = Object.fromEntries(res.d.items.map((x) => [x.kind, x]));
+    eqJson([byKind.month3.status, byKind.month1.status, byKind.month2.status], ["skipped", "pending", "pending"], "status setelah dipersingkat");
+
+    // Durasi diperpanjang: bulan ke-3 hidup lagi dan bulan ke-4 dibuat.
+    res = await putBody({ startedAt: "2026-11-04", months: 4 });
+    eqJson([res.d.queued.revived, res.d.queued.created, res.d.queued.total], [1, 1, 4], "bulan 3 hidup lagi dan bulan 4 dibuat");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    const after = Object.fromEntries(res.d.items.map((x) => [x.kind, x]));
+    eqJson([after.month3.status, after.month4.dueDate], ["pending", "2027-03-04"], "bulan 4 jatuh tempo 4 Mar");
+
+    // Tanpa bulan: durasi sebelumnya dipertahankan (tidak diam-diam jadi 1).
+    res = await putBody({ startedAt: "2026-12-01" });
+    eq(res.d.item.subscriptionMonths, 4, "durasi lama dipertahankan saat tanggal berubah");
+    eq(res.d.item.subscriptionEndsAt, "2027-03-31", "akhir langganan ikut bergeser");
+
+    for (const bad of [0, 37, -1, 2.5, "abc", true, {}, []]) {
+      res = await putBody({ startedAt: "2026-12-01", months: bad });
+      eq(res.r.status, 400, `durasi ditolak: ${JSON.stringify(bad)}`);
+      eq(res.d.code, "ADMIN_DATA_INVALID", `code durasi ${JSON.stringify(bad)}`);
+    }
+    res = await api("GET", `/api/admin/users/${sid}`, { token: adminToken });
+    eq(res.d.user.subscriptionMonths, 4, "input durasi salah tidak mengubah data");
+
+    // Hapus tanggal: durasi ikut kosong dan semua antrean belum terkirim dibatalkan.
+    res = await putBody({ startedAt: null });
+    eqJson([res.d.item.subscriptionStartedAt, res.d.item.subscriptionMonths, res.d.item.lastReportDueDate], [null, null, null], "tanggal dan durasi kosong");
+    res = await api("GET", `/api/admin/users/${sid}/report-deliveries`, { token: adminToken });
+    eq(res.d.subscription.subscriptionMonths, null, "catatan pengiriman ikut kosong");
+    ok(res.d.items.filter((x) => x.status === "pending").length === 0, "tidak ada antrean pending tersisa");
+    ok(!/token_hash|KIND_RE/.test(JSON.stringify(res.d)), "tidak ada detail internal di respons");
   });
 
   await t("Berlangganan: mengubah tanggal menyesuaikan pengiriman yang belum terkirim", async () => {

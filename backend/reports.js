@@ -136,30 +136,35 @@ function replaceGuardians(db, studentId, guardians, createdBy) {
   return listGuardians(db, studentId);
 }
 
-// Masukkan email laporan ke antrean untuk SEMUA wali siswa. Aman dipanggil
-// berkali-kali: queueDelivery tidak membuat baris ganda dan tidak menyentuh
-// kiriman yang sudah 'sent'. Tanpa tanggal berlangganan, tidak ada yang diantrekan.
-function queueGuardianDeliveries(db, studentId, startedAt) {
-  if (!startedAt) return { queued: 0, created: 0, revived: 0 };
-  const dueDate = reportDeliveries.firstReportDueDate(startedAt);
-  if (!dueDate) return { queued: 0, created: 0, revived: 0 };
+// Masukkan email laporan bulanan ke antrean untuk SEMUA wali siswa: bulan ke-1
+// sampai bulan ke-`months`. Aman dipanggil berkali-kali: queueDelivery tidak
+// membuat baris ganda dan tidak menyentuh kiriman yang sudah 'sent'.
+// Tanpa tanggal berlangganan, tidak ada yang diantrekan.
+function queueGuardianDeliveries(db, studentId, startedAt, months = reportDeliveries.DEFAULT_MONTHS) {
+  const count = reportDeliveries.normalizeMonths(months);
+  if (!startedAt) return { queued: 0, created: 0, revived: 0, months: count };
 
   let created = 0;
   let revived = 0;
   const guardians = listGuardians(db, studentId);
-  for (const guardian of guardians) {
-    const result = reportDeliveries.queueDelivery(db, {
-      studentId,
-      guardianId: guardian.id,
-      recipientEmail: guardian.email,
-      recipientName: guardian.name,
-      kind: reportDeliveries.DEFAULT_KIND,
-      dueDate
-    });
-    if (result.created) created += 1;
-    if (result.revived) revived += 1;
+  for (let month = 1; month <= count; month += 1) {
+    const dueDate = reportDeliveries.addMonths(startedAt, month);
+    if (!dueDate) return { queued: 0, created, revived, months: count };
+    const kind = reportDeliveries.kindForMonth(month);
+    for (const guardian of guardians) {
+      const result = reportDeliveries.queueDelivery(db, {
+        studentId,
+        guardianId: guardian.id,
+        recipientEmail: guardian.email,
+        recipientName: guardian.name,
+        kind,
+        dueDate
+      });
+      if (result.created) created += 1;
+      if (result.revived) revived += 1;
+    }
   }
-  return { queued: guardians.length, created, revived };
+  return { queued: guardians.length * count, created, revived, months: count };
 }
 
 function createReportLink(db, studentId, { guardianId = null, expiresInDays = DEFAULT_EXPIRY_DAYS, createdBy = null } = {}) {

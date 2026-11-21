@@ -45,6 +45,16 @@ function main() {
   eq("addMonths: 31 Mar + 1 = 30 Apr", D.addMonths("2026-03-31", 1), "2026-04-30");
   eq("firstReportDueDate: 4 Nov -> 4 Des", D.firstReportDueDate("2026-11-04"), "2026-12-04");
   eq("firstReportDueDate: null -> null", D.firstReportDueDate(null), null);
+  eq("reportDueDate: laporan bulan ke-3", D.reportDueDate("2026-11-04", 3), "2027-02-04");
+  eq("subscriptionEndDate: 3 bulan berakhir 3 Feb", D.subscriptionEndDate("2026-11-04", 3), "2027-02-03");
+  eq("addDays: 1 Mar - 1 hari = 28 Feb", D.addDays("2026-03-01", -1), "2026-02-28");
+  eq("kindForMonth / monthOfKind", [D.kindForMonth(2), D.monthOfKind("month2"), D.monthOfKind("month37")], ["month2", 2, null]);
+  eq("normalizeMonths: nilai kosong = 1 bulan",
+    [D.normalizeMonths(undefined), D.normalizeMonths(null), D.normalizeMonths(""), D.normalizeMonths("3")], [1, 1, 1, 3]);
+  throws("normalizeMonths: 0 ditolak", () => D.normalizeMonths(0));
+  throws("normalizeMonths: 37 ditolak", () => D.normalizeMonths(37));
+  throws("normalizeMonths: pecahan ditolak", () => D.normalizeMonths(2.5));
+  throws("normalizeMonths: boolean ditolak", () => D.normalizeMonths(true));
   eq("addMonths: tanggal tidak valid -> null", D.addMonths("2026-02-30", 1), null);
 
   const valid = ["2028-02-29", "2026-11-04", "2000-01-01", "2100-12-31"];
@@ -61,6 +71,14 @@ function main() {
   eq("DB menerima tanggal sah", db.prepare("SELECT subscription_started_at s FROM users WHERE id = ?").get(sid0).s, "2026-11-04");
   db.prepare("UPDATE users SET subscription_started_at = NULL WHERE id = ?").run(sid0);
   eq("DB menerima NULL", db.prepare("SELECT subscription_started_at s FROM users WHERE id = ?").get(sid0).s, null);
+  throws("DB menolak subscription_months 0",
+    () => db.prepare("UPDATE users SET subscription_months = ? WHERE id = ?").run(0, sid0));
+  throws("DB menolak subscription_months 37",
+    () => db.prepare("UPDATE users SET subscription_months = ? WHERE id = ?").run(37, sid0));
+  db.prepare("UPDATE users SET subscription_months = ? WHERE id = ?").run(3, sid0);
+  eq("DB menerima durasi 3 bulan",
+    db.prepare("SELECT subscription_months m FROM users WHERE id = ?").get(sid0).m, 3);
+  db.prepare("UPDATE users SET subscription_months = NULL WHERE id = ?").run(sid0);
 
   // ---------- antrean idempoten ----------
   const sid = addStudent();
@@ -77,6 +95,7 @@ function main() {
   ok("queue: email lain dibuat sebagai baris baru", other.created && other.id !== first.id);
   eq("queue: email disimpan huruf kecil", row(caseVariant.id).recipient_email, "ibu@example.com");
   throws("queue: kind tidak dikenal ditolak", () => D.queueDelivery(db, { ...base, kind: "weekly" }));
+  throws("queue: bulan di luar durasi maksimum ditolak", () => D.queueDelivery(db, { ...base, kind: "month37" }));
   throws("queue: email kosong ditolak", () => D.queueDelivery(db, { ...base, recipientEmail: "  " }));
   throws("queue: dueDate tidak valid ditolak", () => D.queueDelivery(db, { ...base, recipientEmail: "x@example.com", dueDate: "2026-02-30" }));
 
@@ -125,6 +144,45 @@ function main() {
   eq("sync: tanggal diisi lagi, queue menghidupkan kembali yang dibatalkan", [back.revived, back.status], [true, "pending"]);
   eq("sync: siswa tanpa pengiriman aman",
     D.syncPendingForSubscription(db, addStudent(), "2026-11-04"), { rescheduled: 0, skipped: 0 });
+  throws("sync: tanggal mulai tidak sah ditolak",
+    () => D.syncPendingForSubscription(db, sid2, "2026-02-30"));
+  throws("sync: durasi tidak sah ditolak",
+    () => D.syncPendingForSubscription(db, sid2, "2026-11-04", 0));
+
+  // ---------- sinkron durasi bulanan ----------
+  const sidM = addStudent();
+  const m1 = D.queueDelivery(db, { studentId: sidM, recipientEmail: "m1@example.com", kind: "month1", dueDate: "2026-12-04" });
+  const m2 = D.queueDelivery(db, { studentId: sidM, recipientEmail: "m2@example.com", kind: "month2", dueDate: "2027-01-04" });
+  const m3 = D.queueDelivery(db, { studentId: sidM, recipientEmail: "m3@example.com", kind: "month3", dueDate: "2027-02-04" });
+  eq("sync durasi: tanggal baru menggeser semua bulan sesuai urutannya",
+    D.syncPendingForSubscription(db, sidM, "2027-01-31", 3), { rescheduled: 3, skipped: 0 });
+  eq("sync durasi: bulan 1-3 memakai tanggal 31 Jan",
+    [row(m1.id).due_date, row(m2.id).due_date, row(m3.id).due_date], ["2027-02-28", "2027-03-31", "2027-04-30"]);
+  eq("sync durasi: 3 -> 2 membatalkan bulan ke-3 saja",
+    D.syncPendingForSubscription(db, sidM, "2027-01-31", 2), { rescheduled: 2, skipped: 1 });
+  eq("sync durasi: bulan 3 dibatalkan, bulan 1-2 tetap pending",
+    [row(m3.id).status, row(m3.id).last_error, row(m1.id).status, row(m2.id).status],
+    ["skipped", "Melebihi durasi langganan", "pending", "pending"]);
+  eq("sync durasi: tanggal dihapus membatalkan semua bulan yang belum terkirim",
+    D.syncPendingForSubscription(db, sidM, null, 3), { rescheduled: 0, skipped: 2 });
+  eq("sync durasi: semua pending jadi skipped", [row(m1.id).status, row(m2.id).status], ["skipped", "skipped"]);
+
+  // ---------- antrean bulanan untuk wali ----------
+  const sidQ = addStudent();
+  reports.replaceGuardians(db, sidQ, [{ name: "Ibu Bulanan", email: "ibu-bulanan@example.com", relation: "ibu" }], null);
+  const queued3 = reports.queueGuardianDeliveries(db, sidQ, "2026-11-04", 3);
+  eq("queue wali: 3 bulan diantrekan", [queued3.queued, queued3.months, queued3.created], [3, 3, 3]);
+  const monthlyRows = db.prepare(`
+    SELECT kind, due_date, status FROM report_deliveries
+    WHERE student_user_id = ? ORDER BY kind ASC
+  `).all(sidQ);
+  eq("queue wali: jenis dan jatuh tempo tiap bulan",
+    monthlyRows.map((r) => [r.kind, r.due_date, r.status]),
+    [["month1", "2026-12-04", "pending"], ["month2", "2027-01-04", "pending"], ["month3", "2027-02-04", "pending"]]);
+  const queuedAgain = reports.queueGuardianDeliveries(db, sidQ, "2026-11-04", 3);
+  eq("queue wali: aman dipanggil ulang", [queuedAgain.created, queuedAgain.revived], [0, 0]);
+  const queuedLess = reports.queueGuardianDeliveries(db, sidQ, "2026-11-04", 1);
+  eq("queue wali: durasi lebih kecil tidak menghapus baris lama", [queuedLess.created, queuedLess.months], [0, 1]);
 
   // ---------- wali dihapus ----------
   const sid3 = addStudent();
@@ -171,8 +229,8 @@ function main() {
   const script = `
     const db = require("./database");
     const cols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
-    db.prepare("UPDATE users SET subscription_started_at = '2026-11-04' WHERE username = 'anak-lama'").run();
-    const row = db.prepare("SELECT username, role, subscription_started_at AS s FROM users").get();
+    db.prepare("UPDATE users SET subscription_started_at = '2026-11-04', subscription_months = 3 WHERE username = 'anak-lama'").run();
+    const row = db.prepare("SELECT username, role, subscription_started_at AS s, subscription_months AS m FROM users").get();
     console.log("RESULT:" + JSON.stringify({ cols, row, rebuilt: db.prepare("SELECT sql FROM sqlite_master WHERE name='users'").get().sql.includes("'instruktur'") }));
   `;
   const child = spawnSync(process.execPath, ["-e", script], {
@@ -186,8 +244,9 @@ function main() {
   if (legacyResult) {
     ok("migrasi DB lama: rebuild role benar-benar terjadi", legacyResult.rebuilt);
     ok("migrasi DB lama: kolom subscription_started_at ada setelah rebuild", legacyResult.cols.includes("subscription_started_at"));
-    eq("migrasi DB lama: data lama utuh dan tanggal bisa disimpan",
-      [legacyResult.row.username, legacyResult.row.role, legacyResult.row.s], ["anak-lama", "student", "2026-11-04"]);
+    ok("migrasi DB lama: kolom subscription_months ada setelah rebuild", legacyResult.cols.includes("subscription_months"));
+    eq("migrasi DB lama: data lama utuh dan tanggal/durasi bisa disimpan",
+      [legacyResult.row.username, legacyResult.row.role, legacyResult.row.s, legacyResult.row.m], ["anak-lama", "student", "2026-11-04", 3]);
   }
 }
 

@@ -13,8 +13,12 @@
 //   pending/failed -> skipped (dibatalkan; boleh dihidupkan lagi lewat queueDelivery)
 // ------------------------------------------------------------
 
-const KINDS = ["month1"];
+// Setiap laporan bulanan memakai kind 'monthN' (N = bulan ke-1, ke-2, ...).
+// Durasi langganan menentukan N terakhir yang diantrekan.
+const MAX_MONTHS = 36;
+const DEFAULT_MONTHS = 1;
 const DEFAULT_KIND = "month1";
+const KIND_RE = /^month([1-9]|[12][0-9]|3[0-6])$/;
 const STATUSES = ["pending", "sent", "failed", "skipped"];
 const MAX_ERROR_LENGTH = 500;
 
@@ -60,9 +64,61 @@ function addMonths(value, months) {
   return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
 }
 
+// Tambah/kurangi hari pada tanggal saja. Dipakai untuk menghitung hari terakhir
+// langganan (tanggal mulai + durasi - 1 hari).
+function addDays(value, days) {
+  const parsed = parseDateOnly(value);
+  if (!parsed || !Number.isInteger(days)) return null;
+  const date = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day + days));
+  const year = date.getUTCFullYear();
+  if (year < 2000 || year > 2100) return null;
+  return `${pad(year, 4)}-${pad(date.getUTCMonth() + 1, 2)}-${pad(date.getUTCDate(), 2)}`;
+}
+
 // Email laporan pertama jatuh tempo 1 bulan setelah mulai berlangganan.
 function firstReportDueDate(startedAt) {
   return addMonths(startedAt, 1);
+}
+
+// Jatuh tempo laporan bulan ke-`month` (1..MAX_MONTHS).
+function reportDueDate(startedAt, month) {
+  const n = normalizeMonths(month);
+  return addMonths(startedAt, n);
+}
+
+// Durasi langganan dalam bulan. Nilai kosong memakai 1 bulan supaya data lama
+// (hanya punya subscription_started_at) tetap berperilaku seperti dulu.
+function normalizeMonths(value, fallback = DEFAULT_MONTHS) {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value !== "number" && typeof value !== "string") {
+    throw new TypeError(`months harus bilangan bulat 1-${MAX_MONTHS}`);
+  }
+  const months = typeof value === "string" ? Number(value.trim()) : value;
+  if (!Number.isInteger(months) || months < 1 || months > MAX_MONTHS) {
+    throw new TypeError(`months harus bilangan bulat 1-${MAX_MONTHS}`);
+  }
+  return months;
+}
+
+function monthOfKind(kind) {
+  const match = KIND_RE.exec(String(kind === undefined || kind === null ? "" : kind));
+  return match ? Number(match[1]) : null;
+}
+
+function isKind(kind) {
+  return monthOfKind(kind) !== null;
+}
+
+function kindForMonth(month) {
+  return `month${normalizeMonths(month)}`;
+}
+
+// Hari terakhir langganan (inklusif). Laporan bulan ke-N tetap jatuh tempo pada
+// tanggal ulang bulan ke-N, yaitu sehari setelah masa langganan bulan itu habis.
+function subscriptionEndDate(startedAt, months) {
+  const count = normalizeMonths(months);
+  const due = addMonths(startedAt, count);
+  return due ? addDays(due, -1) : null;
 }
 
 // ------------------------------------------------------------
@@ -83,7 +139,7 @@ function cleanError(error) {
 //   - ada, status lain      -> tidak diubah (termasuk 'sent')    { created: false, revived: false }
 function queueDelivery(db, input = {}) {
   const kind = input.kind || DEFAULT_KIND;
-  if (!KINDS.includes(kind)) throw new TypeError(`kind tidak dikenal: ${kind}`);
+  if (!isKind(kind)) throw new TypeError(`kind tidak dikenal: ${kind}`);
   const studentId = Number(input.studentId);
   if (!Number.isSafeInteger(studentId) || studentId < 1) throw new TypeError("studentId tidak valid");
   const email = String(input.recipientEmail || "").trim().toLowerCase();
@@ -163,28 +219,45 @@ function skipPendingForGuardian(db, guardianId, reason) {
   `).run(cleanError(reason || "Wali dihapus"), guardianId).changes;
 }
 
-// Tanggal mulai berlangganan berubah: sesuaikan pengiriman 'month1' yang belum terkirim.
-//   tanggal baru  -> jatuh tempo pengiriman 'pending' ikut digeser
-//   tanggal dihapus -> pengiriman 'pending'/'failed' dibatalkan (bisa dihidupkan lagi
+// Tanggal mulai/durasi langganan berubah: sesuaikan pengiriman bulanan yang
+// belum terkirim.
+//   tanggal baru  -> jatuh tempo 'pending' digeser ke tanggal mulai + N bulan
+//   durasi mengecil -> bulan di luar durasi dibatalkan
+//   tanggal dihapus -> semua 'pending'/'failed' dibatalkan (bisa dihidupkan lagi
 //                      lewat queueDelivery kalau tanggal diisi kembali)
 // Pengiriman yang sudah 'sent' tidak pernah disentuh.
-function syncPendingForSubscription(db, studentId, startedAt) {
-  if (startedAt === null || startedAt === undefined) {
-    const skipped = db.prepare(`
-      UPDATE report_deliveries
-      SET status = 'skipped', last_error = 'Tanggal berlangganan dihapus', updated_at = CURRENT_TIMESTAMP
-      WHERE student_user_id = ? AND kind = 'month1' AND status IN ('pending', 'failed')
-    `).run(studentId).changes;
-    return { rescheduled: 0, skipped };
+function syncPendingForSubscription(db, studentId, startedAt, months = DEFAULT_MONTHS) {
+  if (startedAt && !isValidDateOnly(startedAt)) throw new TypeError("startedAt harus YYYY-MM-DD");
+  const count = startedAt ? normalizeMonths(months) : DEFAULT_MONTHS;
+  const rows = db.prepare(`
+    SELECT id, kind, status FROM report_deliveries
+    WHERE student_user_id = ? AND status IN ('pending', 'failed')
+  `).all(studentId);
+
+  let rescheduled = 0;
+  let skipped = 0;
+  for (const row of rows) {
+    const month = monthOfKind(row.kind);
+    if (month === null) continue;
+
+    if (!startedAt || month > count) {
+      const reason = startedAt ? "Melebihi durasi langganan" : "Tanggal berlangganan dihapus";
+      if (markSkipped(db, row.id, reason)) skipped += 1;
+      continue;
+    }
+
+    if (row.status === "pending") {
+      const dueDate = addMonths(startedAt, month);
+      if (dueDate && db.prepare(`
+        UPDATE report_deliveries
+        SET due_date = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND status = 'pending'
+      `).run(dueDate, row.id).changes === 1) {
+        rescheduled += 1;
+      }
+    }
   }
-  const dueDate = firstReportDueDate(startedAt);
-  if (!dueDate) throw new TypeError("startedAt harus YYYY-MM-DD");
-  const rescheduled = db.prepare(`
-    UPDATE report_deliveries
-    SET due_date = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE student_user_id = ? AND kind = 'month1' AND status = 'pending'
-  `).run(dueDate, studentId).changes;
-  return { rescheduled, skipped: 0 };
+  return { rescheduled, skipped };
 }
 
 function toItem(row) {
@@ -196,6 +269,7 @@ function toItem(row) {
     recipientName: row.recipient_name || null,
     recipientEmail: row.recipient_email,
     kind: row.kind,
+    month: monthOfKind(row.kind),
     period: row.period || "",
     status: row.status,
     attempts: Number(row.attempts),
@@ -275,12 +349,20 @@ function listDeliveries(db, options = {}) {
 }
 
 module.exports = {
-  KINDS,
+  MAX_MONTHS,
+  DEFAULT_MONTHS,
   DEFAULT_KIND,
   STATUSES,
   isValidDateOnly,
   addMonths,
+  addDays,
   firstReportDueDate,
+  reportDueDate,
+  subscriptionEndDate,
+  normalizeMonths,
+  monthOfKind,
+  kindForMonth,
+  isKind,
   dateOnlyToday,
   queueDelivery,
   markSent,

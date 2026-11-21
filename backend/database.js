@@ -176,10 +176,13 @@ if (!existingUserColumns.includes("last_login_at")) {
 })();
 
 // ============================================================
-// TANGGAL MULAI BERLANGGANAN
+// TANGGAL MULAI BERLANGGANAN & DURASI
 // ============================================================
 // Format 'YYYY-MM-DD' (tanggal saja, tanpa jam). Dipakai untuk menentukan kapan
-// email laporan pertama ke wali jatuh tempo (1 bulan setelah mulai).
+// email laporan bulanan ke wali jatuh tempo (bulan ke-1, ke-2, ... setelah mulai).
+// `subscription_months` adalah jumlah laporan bulanan yang dijanjikan. NULL
+// berarti belum diatur; pemanggil memperlakukannya sebagai 1 bulan agar data
+// lama (yang hanya punya tanggal mulai) tetap berperilaku seperti sebelumnya.
 // PENTING: kolom ini sengaja ditambahkan SETELAH migrateUserRoles(). Rebuild
 // tabel users di atas menyalin kolom dengan daftar eksplisit, jadi kolom yang
 // ditambahkan sebelum rebuild akan hilang diam-diam pada database lama.
@@ -188,6 +191,11 @@ if (!db.prepare("PRAGMA table_info(users)").all().some((c) => c.name === "subscr
     db.exec(`ALTER TABLE users ADD COLUMN subscription_started_at TEXT
         CHECK (subscription_started_at IS NULL
                OR subscription_started_at GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')`);
+}
+if (!db.prepare("PRAGMA table_info(users)").all().some((c) => c.name === "subscription_months")) {
+    db.exec(`ALTER TABLE users ADD COLUMN subscription_months INTEGER
+        CHECK (subscription_months IS NULL
+               OR (subscription_months BETWEEN 1 AND 36))`);
 }
 
 // ============================================================
@@ -756,8 +764,8 @@ db.exec(`
 // email dobel. Email penerima disimpan sebagai salinan (snapshot) karena baris
 // wali bisa dibuat ulang atau dihapus. Token mentah TIDAK disimpan di sini;
 // hanya referensi ke report_links (yang menyimpan hash).
-//   kind   : jenis kiriman, saat ini 'month1' (laporan 1 bulan setelah berlangganan)
-//   period : kosong untuk kiriman sekali; diisi (mis. '2027-01') bila kelak berulang
+//   kind   : 'month1'..'month36' (laporan bulan ke-N sejak mulai berlangganan)
+//   period : kosong (setiap bulan dibedakan lewat `kind`)
 //   status : pending -> sent | failed | skipped ('sent' bersifat final)
 db.exec(`
     CREATE TABLE IF NOT EXISTS report_deliveries (

@@ -131,7 +131,8 @@ async function main() {
     report: sampleReport(),
     guardianName: 'Ibu <b>"Wali"</b>',
     pageUrl: "https://dcc.test/orangtua/laporan.html#token-rahasia",
-    expiresAt: "2026-12-06T00:00:00.000Z"
+    expiresAt: "2026-12-06T00:00:00.000Z",
+    monthNumber: 2
   });
   ok("email: subjek memuat nama siswa", email.subject.includes('Budi <script>alert("x")</script>'));
   ok("email: teks memuat tautan", email.text.includes("https://dcc.test/orangtua/laporan.html#token-rahasia"));
@@ -140,6 +141,8 @@ async function main() {
   ok("email: HTML di-escape", email.html.includes("&lt;script&gt;") && !email.html.includes("<script>"));
   ok("email: kutip nama wali di-escape", email.html.includes("&lt;b&gt;") && !email.html.includes("<b>\"Wali\"</b>"));
   ok("email: batas berlaku disebut", email.text.includes("2026-12-06"));
+  ok("email: bulan ke-N disebut di subjek, teks, dan HTML",
+    email.subject.includes("bulan ke-2") && email.text.includes("bulan ke-2") && email.html.includes("bulan ke-2"));
   record("email: pageUrl wajib", (() => {
     try { buildReportEmail({ report: sampleReport() }); return false; } catch (_) { return true; }
   })());

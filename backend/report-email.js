@@ -82,6 +82,9 @@ function buildReportEmail(input = {}) {
 
   if (!pageUrl) throw new Error("pageUrl laporan wajib diisi.");
 
+  const month = Number(input.monthNumber);
+  const monthLabel = Number.isInteger(month) && month > 0 ? ` bulan ke-${month}` : "";
+
   const greeting = guardianName
     ? `Halo Bapak/Ibu ${guardianName},`
     : "Halo Bapak/Ibu wali murid,";
@@ -89,11 +92,11 @@ function buildReportEmail(input = {}) {
   const grades = gradeLines(report);
   const generated = plainDate(report.generatedAt) || plainDate(new Date().toISOString());
 
-  const subject = `Laporan belajar ${studentName} - ${institutionName}`.replace(/\s+/g, " ");
+  const subject = `Laporan belajar ${studentName}${monthLabel} - ${institutionName}`.replace(/\s+/g, " ");
   const textSections = [
     greeting,
     "",
-    `Berikut laporan belajar ${studentName} dari ${institutionName}${generated ? ` per ${generated}` : ""}.`,
+    `Berikut laporan belajar ${studentName}${monthLabel} dari ${institutionName}${generated ? ` per ${generated}` : ""}.`,
     "",
     "Ringkasan:",
     ...lines.map((line) => `- ${line}`),
@@ -129,7 +132,7 @@ function buildReportEmail(input = {}) {
     <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
       <p style="margin:0 0 12px;font-size:15px">${escapeHtml(greeting)}</p>
       <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#334155">
-        Berikut laporan belajar <strong>${escapeHtml(studentName)}</strong> dari
+        Berikut laporan belajar <strong>${escapeHtml(studentName)}</strong>${escapeHtml(monthLabel)} dari
         <strong>${escapeHtml(institutionName)}</strong>${generated ? ` per ${escapeHtml(generated)}` : ""}.
       </p>
       <h3 style="margin:20px 0 6px;font-size:15px;color:#0f172a">Ringkasan</h3>

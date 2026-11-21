@@ -39,6 +39,8 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
 .eh button{border:0;background:#eef1ff;color:#5a6bd8;padding:9px 14px;border-radius:14px;font:inherit;font-weight:bold;font-size:14px;cursor:pointer}
 .msg{text-align:center;padding:28px 18px}.msg .big{font-size:44px;line-height:1}.msg h3{margin:10px 0 6px}.msg p{margin:0;color:#6b7494;line-height:1.5}
 .demo{background:#fff4d6;color:#a86a00;border-radius:14px;padding:8px 14px;font-weight:bold;font-size:13px;text-align:center}
+.mods{display:grid;gap:6px;margin-top:10px}.mod{display:flex;justify-content:space-between;gap:10px;background:#f7f8ff;border-radius:12px;padding:7px 10px;font-size:13px;line-height:1.35}.mod b{white-space:nowrap;color:#5a6bd8}
+.sub-h{margin:18px 0 8px;font-size:14px;color:#6b7494;font-weight:bold}.sub-h:first-child{margin-top:0}
 </style>
 </head>
 <body>
@@ -50,14 +52,16 @@ textarea{width:100%;min-height:80px;margin-top:8px;border:2px solid #e3e9ff;bord
   <section class="card hi"><h2 id="hello">Halo, Bapak/Ibu!</h2><p>Ini perkembangan belajar <b id="anak">ananda</b> di Ruang KKA sejauh ini.</p><div class="sum" id="sum"></div></section>
   <section class="card"><div class="rec" style="margin:0"><span>📅</span><p><b>Jadwal mentoring ananda.</b> Lihat kapan ada mentoring Zoom, supaya Bapak/Ibu bisa mendampingi ananda.</p><a href="/orangtua/jadwal.html" id="jadwalLink">Buka Jadwal</a></div></section>
   <section class="card"><h3>📅 Kehadiran Mentoring</h3><div id="rekapAbsen"></div></section>
-  <section class="card"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
-  <section class="card"><h3>⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
+  <section class="card" id="minatCard"><h3>🧭 Kecenderungan minat</h3><p style="margin:0 0 12px;color:#6b7494;font-size:14px">Dinilai dari seberapa lancar anak mengerjakan task di Tahap 2: berhasil dalam 1 percobaan dan selesai lebih cepat = nilai lebih tinggi. Bukan dari nama jalurnya.</p><div class="mc" id="minatCols"></div><div class="rec" id="arah" style="margin:14px 0 0"></div></section>
+  <section class="card" id="rincianCard"><h3 id="rincianTitle">⏱️ Rincian nilai per task</h3><div id="rincian"></div></section>
   <section class="card"><h3>💡 Saran untuk Bapak/Ibu</h3><div id="recs"></div></section>
   <section class="card"><h3>🌱 Perkembangan di setiap jalur</h3><div id="tahap"></div></section>
   </div>
 </main>
 <script src="/kurikulum/data/jalur-data.js?v=20261019"></script>
 <script src="/kurikulum/core/jalur-belajar.js?v=20261019"></script>
+<script src="/kurikulum/data/jalur-data-smp.js?v=20261019"></script>
+<script src="/kurikulum/data/jalur-data-smak.js?v=20261019"></script>
 <script src="/shared/js/utils.js?v=20261019"></script>
 <script src="/shared/js/rekap-absen.js?v=20261117"></script>
 <script>
@@ -148,10 +152,58 @@ function pasangData(d) {
   LP._get = (n, def) => (mem[n] === undefined ? def : mem[n]);
   LP._set = (n, v) => { mem[n] = v; };
   LP.user = () => d.child.fullName || "anak";
+
+  // Jenjang anak menurut server (SD/SMP/SMK). Halaman ini hanya menampilkan
+  // jenjang yang benar-benar diikuti anak; data contoh di komputer sendiri = SD.
+  const kode = d.report && d.report.student && Array.isArray(d.report.student.grades)
+    ? d.report.student.grades.map((g) => LP.GRADE_SERVER[String(g).toUpperCase()]).filter(Boolean)
+    : [];
+  mem.allowedGrades = kode.length ? kode : ["sd"];
+
   const done = {}, smp = {}, att = {}, tm = {};
   (d.progress || []).forEach((r) => { if (r && r.completed) { done[r.task_id] = true; if (String(r.task_id).indexOf(":") > 0) smp[r.task_id] = 1; } });
   (d.attempts || []).forEach((r) => { if (r && r.task_id) { att[r.task_id] = Number(r.fails) || 0; tm[r.task_id] = Number(r.time_spent) || 0; } });
   mem.codingCompleted = done; mem.smpTasks = smp; mem.codingAttempts = att; mem.codingTime = tm;
+}
+
+// ---------- jalur SMP & SMA/SMK ----------
+// Kurikulum SMP/SMK memakai bentuk berbeda dari SD: satu jalur berisi modul
+// (nodes), dan tiap modul berisi task dengan id "modul:nomor". Progresnya sudah
+// ikut di mem.codingCompleted dari server, jadi LP.isDone() bisa dipakai langsung.
+const GRADE_NAMA = { sd: "SD", smp: "SMP", smak: "SMA/SMK" };
+const GRADE_ICON = { sd: "🎒", smp: "🎒", smak: "🎓" };
+
+function buildTracks(grades) {
+  const out = [];
+  const tambah = (grade, list) => (list || []).forEach((tr) => out.push(Object.assign({ grade: grade }, tr)));
+  if (grades.indexOf("smp") > -1) tambah("smp", window.LP_SMP);
+  if (grades.indexOf("smak") > -1) tambah("smak", window.LP_SMAK);
+  return out;
+}
+
+function trackStats(tr) {
+  let done = 0, total = 0;
+  (tr.nodes || []).forEach((n) => (n.tasks || []).forEach((t, i) => {
+    total += 1;
+    if (LP.isDone(n.id + ":" + i)) done += 1;
+  }));
+  return { done: done, total: total };
+}
+
+function nextTrackTask(tr) {
+  const nodes = tr.nodes || [];
+  for (let n = 0; n < nodes.length; n += 1) {
+    const tasks = nodes[n].tasks || [];
+    for (let i = 0; i < tasks.length; i += 1) {
+      if (!LP.isDone(nodes[n].id + ":" + i)) return { node: nodes[n], index: i, task: tasks[i] };
+    }
+  }
+  return null;
+}
+
+function trackEmoji(tr) {
+  const m = /^(\S+)/.exec(String(tr.lencana || "").trim());
+  return m && m[1].length <= 4 ? m[1] : "📘";
 }
 
 // ---------- kumpulkan data ----------
@@ -170,14 +222,27 @@ function buildReport() {
   return jalur;
 }
 // saran untuk orangtua (tanpa tombol: orangtua hanya memantau)
-function saran(jalur) {
+function saran(jalur, tracks) {
   const r = [], aktif = jalur.filter((j) => j.done > 0 && j.done < j.total);
   const fokus = [...aktif].sort((a, b) => b.done / b.total - a.done / a.total)[0];
   if (fokus && fokus.next) r.push({ e: "🚀", t: "Ananda sedang mengerjakan " + fokus.pb.judul + ", berikutnya " + (fokus.next.type === "project" ? "Project Akhir" : "Task " + fokus.next.no) + " — " + fokus.next.title + ". Beri semangat agar terus lanjut." });
+  const trackAktif = (tracks || []).map((t) => ({ t: t, s: trackStats(t) }))
+    .filter((x) => x.s.done > 0 && x.s.done < x.s.total)
+    .sort((a, b) => b.s.done / b.s.total - a.s.done / a.s.total)[0];
+  if (trackAktif) {
+    const next = nextTrackTask(trackAktif.t);
+    if (next) r.push({ e: "🚀", t: "Ananda sedang mengerjakan " + trackAktif.t.nama + ", berikutnya " + (next.task.judul || ("Task " + (next.index + 1))) + " (" + next.node.title + "). Beri semangat agar terus lanjut." });
+  }
   const baru = jalur.find((j) => j.th.id === "explore" && !j.done && j.next && LP.isUnlocked(j.next.id) && (!fokus || fokus.pb.id !== j.pb.id));
   if (baru) r.push({ e: "🔍", t: "Ananda belum mencoba " + baru.pb.judul + ". Ajak mencoba satu task dulu, cuma beberapa menit!" });
+  if (!trackAktif) {
+    const trackBaru = (tracks || []).map((t) => ({ t: t, s: trackStats(t) })).find((x) => x.s.total > 0 && x.s.done === 0);
+    if (trackBaru) r.push({ e: "🔍", t: "Ananda belum mencoba jalur " + trackBaru.t.nama + ". Ajak mencoba satu aktivitas dulu, cuma beberapa menit!" });
+  }
   const tamat = jalur.find((j) => j.done === j.total && j.total);
   if (tamat) r.push({ e: "🎉", t: "Hebat! Ananda sudah menyelesaikan jalur " + tamat.pb.judul + ". Ajak ananda menjelajah jalur lain." });
+  const trackTamat = (tracks || []).map((t) => ({ t: t, s: trackStats(t) })).find((x) => x.s.total > 0 && x.s.done === x.s.total);
+  if (trackTamat) r.push({ e: "🎉", t: "Hebat! Ananda sudah menyelesaikan jalur " + trackTamat.t.nama + ". Ajak ananda menjelajah jalur lain." });
   if (!r.length) r.push({ e: "🌟", t: "Ananda belum memulai petualangan belajarnya. Ajak ananda mencoba salah satu jalur dulu." });
   return r.slice(0, 3);
 }
@@ -234,36 +299,108 @@ function renderMinat(jalur) {
   const box = $("arah"), cat = "";
   if (!top) { box.innerHTML = "<span>🔎</span><p>" + (ada.length < 2 ? "Belum cukup data. Anak perlu menyelesaikan lebih banyak task Tahap 2 di beberapa bidang." : "Belum ada bidang yang menonjol.") + cat + "</p>"; }
   else box.innerHTML = "<span>" + top.e + "</span><p>Condong ke <b>" + top.k + "</b>. Rekomendasi: jalur <b>" + top.k + "</b> di tahap selanjutnya. Dukung ananda mendalami bidang ini dan tanyakan bagian mana yang paling seru.</p>";
-  renderRincian(rows);
+  return rows;
 }
 // rincian per task: transparan untuk mentor / orang tua
-function renderRincian(rows) {
-  const box = $("rincian");
-  if (!rows.length) { box.innerHTML = '<p style="margin:0;color:#6b7494;font-size:14px">Belum ada task Tahap 2 (Game, Web, atau 3D &amp; Roblox) yang selesai.</p>'; return; }
+function renderRincian(rows, subHead) {
+  const box = $("rincian"), head = subHead ? '<div class="sub-h">' + esc(subHead) + "</div>" : "";
+  if (!rows.length) { box.innerHTML = head + '<p style="margin:0;color:#6b7494;font-size:14px">Belum ada task Tahap 2 (Game, Web, atau 3D &amp; Roblox) yang selesai.</p>'; return; }
   const tr = rows.map((r) => "<tr><td>" + esc(r.t.title) + "</td><td>" + (r.waktuSaja ? "–" : r.gagal === 0 ? "✅ 1x" : (r.gagal + 1) + "x") + "</td><td>" +
     (r.detik > 0 ? fmtWaktu(r.detik) + ' <small>(target ' + fmtWaktu(r.target) + ")</small>" : "–") + "</td><td><b>" + (r.nilai === null ? "–" : Math.round(r.nilai * 100) + "%") + "</b></td></tr>").join("");
-  box.innerHTML = '<div class="tw"><table class="tb"><thead><tr><th>Task</th><th>Percobaan</th><th>Waktu aktif</th><th>Nilai</th></tr></thead><tbody>' + tr + "</tbody></table></div>" +
+  box.innerHTML = head + '<div class="tw"><table class="tb"><thead><tr><th>Task</th><th>Percobaan</th><th>Waktu aktif</th><th>Nilai</th></tr></thead><tbody>' + tr + "</tbody></table></div>" +
     '<p style="margin:10px 0 0;color:#6b7494;font-size:13px">Nilai = ' + Math.round(W_COBA * 100) + "% percobaan + " + Math.round(W_CEPAT * 100) + "% kecepatan. Tanda – berarti waktu belum tercatat (task selesai sebelum pencatatan waktu ada), nilainya dari percobaan saja. Task 3D dicek otomatis (tidak ada kata gagal), jadi dinilai dari waktu saja dan baru dihitung kalau waktunya tercatat.</p>";
+}
+
+// SMP/SMA-SMK tidak punya nilai minat. Yang ditampilkan: aktivitas yang sudah
+// dikerjakan beserta jumlah percobaan dan waktu aktifnya.
+function renderTrackRincian(tracks) {
+  const box = $("rincian");
+  if (!tracks.length) return;
+  const grades = [];
+  tracks.forEach((tr) => { if (grades.indexOf(tr.grade) < 0) grades.push(tr.grade); });
+  grades.forEach((g) => {
+    box.appendChild(el("div", "sub-h", GRADE_NAMA[g] + " · rincian aktivitas"));
+    const rows = [];
+    tracks.filter((tr) => tr.grade === g).forEach((tr) => (tr.nodes || []).forEach((n) => (n.tasks || []).forEach((t, i) => {
+      const id = n.id + ":" + i, done = LP.isDone(id), gagal = LP.attempts(id), detik = LP.waktu(id);
+      if (!done && !gagal && !detik) return;
+      rows.push({ modul: n.title, judul: t.judul || ("Task " + (i + 1)), done: done, gagal: gagal, detik: detik });
+    })));
+    if (!rows.length) {
+      box.appendChild(el("p", "", '<span style="color:#6b7494;font-size:14px">Belum ada aktivitas ' + esc(GRADE_NAMA[g]) + " yang tercatat.</span>")).style.margin = "0 0 4px";
+      return;
+    }
+    const tr = rows.map((r) => "<tr><td>" + esc(r.judul) + " <small>" + esc(r.modul || "") + "</small></td><td>" + (r.done ? "✅ Selesai" : "✏️ Dikerjakan") + "</td><td>" +
+      (r.gagal === 0 ? (r.done ? "✅ 1x" : "–") : (r.gagal + 1) + "x") + "</td><td>" + (r.detik > 0 ? fmtWaktu(r.detik) : "–") + "</td></tr>").join("");
+    box.appendChild(el("div", "", '<div class="tw"><table class="tb"><thead><tr><th>Aktivitas</th><th>Status</th><th>Percobaan</th><th>Waktu aktif</th></tr></thead><tbody>' + tr + "</tbody></table></div>" +
+      '<p style="margin:10px 0 0;color:#6b7494;font-size:13px">Percobaan = berapa kali cek misi dilakukan sampai berhasil. Waktu aktif dihitung saat anak benar-benar mengerjakan, bukan saat tab ditinggal.</p>'));
+  });
+}
+
+// kartu jalur SMP/SMA-SMK: progres keseluruhan + progres tiap modul
+function renderTracks(tracks) {
+  const tb = $("tahap");
+  ["smp", "smak"].forEach((g) => {
+    const list = tracks.filter((tr) => tr.grade === g);
+    if (!list.length) return;
+    tb.appendChild(el("h4", "", GRADE_ICON[g] + " " + esc(GRADE_NAMA[g]))).style.margin = "14px 0 8px";
+    const grid = el("div", "grid"); tb.appendChild(grid);
+    list.forEach((tr) => {
+      const s = trackStats(tr), pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+      const mods = (tr.nodes || []).map((n) => {
+        const total = (n.tasks || []).length;
+        let done = 0;
+        (n.tasks || []).forEach((t, i) => { if (LP.isDone(n.id + ":" + i)) done += 1; });
+        return '<div class="mod"><span>' + esc(n.title) + "</span><b>" + done + "/" + total + "</b></div>";
+      }).join("");
+      const c = el("div", "j", '<div class="top"><div class="em">' + esc(trackEmoji(tr)) + '</div><div><h4>' + esc(tr.nama) +
+        (s.total && s.done === s.total ? '<span class="tag">🏅 Lencana</span>' : "") + "</h4><small>" + s.done + " dari " + s.total +
+        ' aktivitas</small></div></div>' + (tr.ringkas ? '<div style="margin:8px 0 0;color:#6b7494;font-size:13px;line-height:1.4">' + esc(tr.ringkas) + "</div>" : "") +
+        '<div class="track"><i style="width:' + pct + '%"></i></div><div class="stage">' + stage(s.done, s.total) + '</div><div class="mods">' + mods + "</div>");
+      c.style.setProperty("--c", tr.c);
+      grid.appendChild(c);
+    });
+  });
 }
 
 // ---------- tampilkan ----------
 function render(d) {
-  const jalur = buildReport(), nama = d.child.fullName || (d.report && d.report.student && d.report.student.name) || "ananda";
+  const grades = LP.allowedGrades(), showSd = grades.indexOf("sd") > -1;
+  const jalur = showSd ? buildReport() : [], tracks = buildTracks(grades);
+  const nama = d.child.fullName || (d.report && d.report.student && d.report.student.name) || "ananda";
   $("anak").textContent = nama;
-  const dn = jalur.reduce((s, j) => s + j.done, 0);
-  $("sum").innerHTML = "<div>✅ " + dn + " langkah selesai</div><div>🌿 " + jalur.filter((j) => j.done).length + " jalur dicoba</div><div>🌳 " + jalur.filter((j) => j.total && j.done === j.total).length + " jalur selesai</div>";
+
+  const stats = tracks.map(trackStats);
+  const dn = jalur.reduce((s, j) => s + j.done, 0) + stats.reduce((s, x) => s + x.done, 0);
+  const dicoba = jalur.filter((j) => j.done).length + stats.filter((x) => x.done > 0).length;
+  const selesai = jalur.filter((j) => j.total && j.done === j.total).length + stats.filter((x) => x.total && x.done === x.total).length;
+  $("sum").innerHTML = "<div>✅ " + dn + " langkah selesai</div><div>🌿 " + dicoba + " jalur dicoba</div><div>🌳 " + selesai + " jalur selesai</div>";
+
   ["minatCols", "recs", "tahap", "rincian"].forEach((id) => { $(id).innerHTML = ""; });
-  renderMinat(jalur);
-  const rc = $("recs"); saran(jalur).forEach((s) => rc.appendChild(el("div", "rec", "<span>" + s.e + "</span><p>" + esc(s.t) + "</p>")));
+  $("minatCard").hidden = !showSd;
+
+  let rows = [];
+  if (showSd) rows = renderMinat(jalur);
+  $("rincianTitle").textContent = showSd && rows.length && tracks.length
+    ? "⏱️ Rincian per task"
+    : (showSd && (rows.length || !tracks.length) ? "⏱️ Rincian nilai per task" : "⏱️ Rincian aktivitas per task");
+  if (showSd && (rows.length || !tracks.length)) renderRincian(rows, tracks.length ? "SD · rincian nilai per task" : "");
+  renderTrackRincian(tracks);
+
+  const rc = $("recs"); saran(jalur, tracks).forEach((s) => rc.appendChild(el("div", "rec", "<span>" + s.e + "</span><p>" + esc(s.t) + "</p>")));
+
   const tb = $("tahap");
-  LP_DATA.tahap.forEach((th) => {
-    tb.appendChild(el("h4", "", esc(th.emoji) + " " + esc(th.nama))).style.margin = "14px 0 8px";
-    const g = el("div", "grid"); tb.appendChild(g);
-    jalur.filter((j) => j.th === th).forEach((j) => {
-      const c = el("div", "j" + (j.mine ? " mine" : ""), '<div class="top"><div class="em">' + esc(j.pb.emoji) + '</div><div><h4>' + esc(j.pb.judul) + (j.mine ? '<span class="tag">⭐ pilihanmu</span>' : "") + "</h4><small>" + j.done + " dari " + j.total + ' langkah</small></div></div><div class="track"><i style="width:' + (j.total ? Math.round(j.done / j.total * 100) : 0) + '%"></i></div><div class="stage">' + stage(j.done, j.total) + "</div>");
-      c.style.setProperty("--c", j.pb.warna); g.appendChild(c);
+  if (showSd) {
+    LP_DATA.tahap.forEach((th) => {
+      tb.appendChild(el("h4", "", esc(th.emoji) + " " + esc(th.nama))).style.margin = "14px 0 8px";
+      const g = el("div", "grid"); tb.appendChild(g);
+      jalur.filter((j) => j.th === th).forEach((j) => {
+        const c = el("div", "j" + (j.mine ? " mine" : ""), '<div class="top"><div class="em">' + esc(j.pb.emoji) + '</div><div><h4>' + esc(j.pb.judul) + (j.mine ? '<span class="tag">⭐ pilihanmu</span>' : "") + "</h4><small>" + j.done + " dari " + j.total + ' langkah</small></div></div><div class="track"><i style="width:' + (j.total ? Math.round(j.done / j.total * 100) : 0) + '%"></i></div><div class="stage">' + stage(j.done, j.total) + "</div>");
+        c.style.setProperty("--c", j.pb.warna); g.appendChild(c);
+      });
     });
-  });
+  }
+  renderTracks(tracks);
 }
 
 async function mulai() {
