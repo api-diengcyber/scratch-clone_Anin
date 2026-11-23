@@ -216,8 +216,8 @@ Notifikasi siswa disimpan di tabel `student_notifications` (terpisah dari `admin
 
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
-| GET | `/api/profile` | - | `{ profile: { username, email, fullName, bio, avatarUrl, equippedFrame, equippedTitle, ... } }` |
-| PUT | `/api/profile` | `{ fullName?, email?, bio?, avatarUrl? }` | `{ profile: { ... } }` |
+| GET | `/api/profile` | - | `{ profile: { username, email, fullName, bio, avatarUrl, equippedFrame, equippedTitle, ..., subscription } }`; `subscription` hanya untuk role `student` (null untuk admin/instruktur) |
+| PUT | `/api/profile` | `{ fullName?, email?, bio?, avatarUrl? }` | `{ profile: { ... } }`; `subscription` ikut dikembalikan untuk siswa |
 | GET | `/api/user/allowed-grades` | - | `{ grades: ["SD","SMP","SMK"] }` |
 | PUT | `/api/user/allowed-grades` | `{ grades: ["SD","SMP"] }` | `{ grades }` |
 
@@ -405,10 +405,11 @@ Paket harga disimpan per `path_key` (`Jenjang|Nama jalur`, atau `|Semua jalur` u
 
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
-| GET | `/api/subscription` | - | `{ subscription, pendingPayment, payments }`; `subscription` = `{ startedAt, months, endsAt, active, daysLeft, firstReportDueDate, lastReportDueDate }` |
+| GET | `/api/subscription` | - | `{ subscription, pendingPayment, instructions, payments }`; `subscription` = `{ startedAt, months, endsAt, active, daysLeft, firstReportDueDate, lastReportDueDate }`; `instructions` = instruksi transfer untuk invoice `pending` (null bila tidak ada) |
 | GET | `/api/subscription/packages?grade=` | - | `{ items, total }`; hanya paket aktif, item `{ id, key, pathName, grade, months, price, active, createdAt, updatedAt }`; `grade` menyertakan paket `\|Semua jalur` |
-| POST | `/api/subscription/checkout` | `{ packageId }` atau `{ key, months }` | `{ item, instructions, reused }`; `201` invoice baru, `200` bila invoice pending untuk paket yang sama masih berlaku; `instructions` = `{ method, code, total, expiresOn, bankName, accountNumber, accountHolder, note, paymentUrl }` |
+| POST | `/api/subscription/checkout` | `{ packageId }` atau `{ key, months }` | `{ item, instructions, reused }`; `201` invoice baru, `200` bila invoice pending untuk paket yang sama masih berlaku; `instructions` = `{ provider, method, code, total, expiresOn, bankName, accountNumber, accountHolder, note, paymentUrl, redirectUrl }` |
 | GET | `/api/subscription/payments/:id` | - | `{ item }`; hanya invoice milik siswa itu (`404` bila bukan) |
+| POST | `/api/subscription/payments/:id/proof` | `{ image, name? }` | `{ item }`; `image` = data URL base64 PNG/JPEG/WEBP/PDF maks. 600 KB; hanya invoice `pending` milik siswa; `409` bila status lain |
 | POST | `/api/subscription/payments/:id/cancel` | `{ reason? }` | `{ item }`; hanya status `pending` |
 
 ### Endpoint admin
@@ -418,8 +419,9 @@ Paket harga disimpan per `path_key` (`Jenjang|Nama jalur`, atau `|Semua jalur` u
 | GET | `/api/admin/subscription/packages?grade=` | - | `{ items, total }`; termasuk paket nonaktif |
 | PUT | `/api/admin/subscription/packages` | `{ key, months, price, aktif? }` | `{ item }` 201/200; **upsert** per `key` + `months` |
 | DELETE | `/api/admin/subscription/packages/:id` | - | `{ id }`; invoice lama menyimpan salinan nama/harga, jadi riwayat tetap utuh |
-| GET | `/api/admin/subscription/payments?status=&studentId=&page=&limit=` | - | `{ items, total, page, limit, pages }`; item memuat `studentId`, `studentName`, `studentUsername`, `financeTransactionId`, `confirmedBy` |
-| GET | `/api/admin/subscription/payments/:id` | - | `{ item }`; invoice kedaluwarsa ditandai `expired` saat dibaca |
+| GET | `/api/admin/subscription/payments?status=&studentId=&q=&page=&limit=` | - | `{ items, total, page, limit, pages }`; item memuat `studentId`, `studentName`, `studentUsername`, `financeTransactionId`, `confirmedBy`, `hasProof`, `proof: { name, mime, size, uploadedAt }`; `q` mencari kode invoice, nama, atau username siswa |
+| GET | `/api/admin/subscription/payments/:id` | - | `{ item }`; invoice kedaluwarsa ditandai `expired` saat dibaca; bila ada bukti, `proofDataUrl` berisi data URL lengkap |
+| POST | `/api/admin/subscription/payments` | `{ studentId, packageId \| key+months, method?, paidAt?, note? }` | `{ item, subscription, activation }` 201; mencatat pembayaran tunai/transfer yang diterima langsung, invoice langsung `paid`, transaksi Finance ikut lunas, langganan aktif |
 | POST | `/api/admin/subscription/payments/:id/confirm` | `{ paidAt?, note? }` | `{ item, subscription, activation, alreadyPaid }`; `paidAt` (`YYYY-MM-DD`) default hari ini; invoice yang sudah `paid` mengembalikan `alreadyPaid: true` tanpa menambah durasi |
 | POST | `/api/admin/subscription/payments/:id/reject` | `{ reason? }` | `{ item }`; status menjadi `failed`, transaksi Finance tertaut ikut `failed` |
 
@@ -433,8 +435,14 @@ Perilaku penting:
 - Total durasi dibatasi 36 bulan; checkout yang akan melewati batas ditolak `400 VALIDATION_ERROR` dengan `details.field = "packageId"`.
 - Konfirmasi mengantrekan email laporan bulan 1..durasi total untuk semua wali (idempoten, tidak menggandakan email). Aktivasi tidak memindai ulang seluruh antrean karena tanggal mulai tidak berubah saat perpanjangan.
 - Instruksi transfer dibaca dari `SUBSCRIPTION_BANK_NAME`, `SUBSCRIPTION_BANK_ACCOUNT`, `SUBSCRIPTION_BANK_HOLDER`, dan `SUBSCRIPTION_PAYMENT_NOTE`. Bila bank kosong, `note` meminta siswa menghubungi admin dan `paymentUrl` bernilai `null` (nanti diisi gateway).
-- Audit: `subscription_package.create`/`update`/`delete`, `subscription_payment.create`/`confirm`/`reject`/`cancel`, dan `subscription.activate` dengan `target_type` `subscription_package`, `subscription_payment`, atau `user`.
-- Rate limit checkout: 20 request/menit per siswa per path.
+- Audit: `subscription_package.create`/`update`/`delete`, `subscription_payment.create`/`manual`/`proof`/`confirm`/`reject`/`cancel`, dan `subscription.activate` dengan `target_type` `subscription_package`, `subscription_payment`, atau `user`.
+- Rate limit checkout: 20 request/menit per siswa per path; unggah bukti transfer juga 20 request/menit per siswa.
+- Bukti transfer disimpan sebagai base64 di `subscription_payments` (maks. 600 KB; PNG/JPEG/WEBP/PDF). Tipe file diperiksa dari magic bytes, bukan hanya label MIME. Daftar invoice hanya membawa metadata `proof`; isi file (`proofDataUrl`) hanya dikirim di detail admin agar respons daftar tetap ringan.
+- Notifikasi otomatis: siswa menerima `subscription.invoice` (checkout), `subscription.active` (konfirmasi/pembayaran manual), `subscription.rejected`, `subscription.expired`, dan `subscription.expiring`; admin menerima `subscription.checkout` dan `subscription.proof`. Semua memakai `dedupeKey` berbasis id invoice (atau tanggal berakhir untuk pengingat) supaya tidak berulang. Notifikasi bersifat pelengkap dan tidak pernah menggagalkan pembayaran.
+- Invoice kedaluwarsa diperiksa saat endpoint dibaca dan lewat sapuan tiap jam di server (`expirePending`), sehingga status tetap benar walau tidak ada akses. Invoice yang sudah `expired`/`failed` masih bisa dikonfirmasi admin bila uangnya benar-benar diterima.
+- Sapuan yang sama mengirim pengingat `subscription.expiring` sekali per siklus bila langganan berakhir dalam `SUBSCRIPTION_REMINDER_DAYS` hari (default 7, maks. 30). `dedupeKey` memakai tanggal berakhir, jadi pengingat tidak berulang setiap jam tetapi muncul lagi pada siklus berikutnya.
+- `GET /api/profile` dan `PUT /api/profile` menyertakan `subscription` untuk siswa agar frontend bisa menampilkan status tanpa panggilan tambahan.
+- Gateway dipilih lewat `SUBSCRIPTION_GATEWAY` (default `manual`). Nilai provider yang belum dikenal otomatis kembali ke `manual`. Titik sambungnya ada di `payment-gateway.js`: provider baru cukup mengisi `paymentUrl`/`redirectUrl` dan memanggil konfirmasi yang sama dari webhook.
 
 ## Laporan Wali (publik)
 

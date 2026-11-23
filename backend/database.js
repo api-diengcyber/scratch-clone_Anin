@@ -1058,6 +1058,30 @@ db.exec(`
         ON subscription_payments(finance_transaction_id);
 `);
 
+// Migrasi untuk database lama: bukti transfer diunggah siswa setelah checkout
+// manual. File disimpan sebagai base64 di kolom proof_data (maks. 600 KB) agar
+// tidak perlu storage tambahan; kolom mime/nama/ukuran dipakai untuk menampilkan
+// tanpa harus membaca seluruh isi file.
+(function migrateSubscriptionPaymentProof() {
+    const cols = db.prepare("PRAGMA table_info(subscription_payments)").all().map((c) => c.name);
+    if (!cols.includes("proof_data")) {
+        db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_data TEXT NOT NULL DEFAULT ''");
+        console.log("[MIGRASI] Kolom subscription_payments.proof_data ditambahkan.");
+    }
+    if (!cols.includes("proof_mime")) {
+        db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_mime TEXT NOT NULL DEFAULT ''");
+    }
+    if (!cols.includes("proof_name")) {
+        db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_name TEXT NOT NULL DEFAULT ''");
+    }
+    if (!cols.includes("proof_size")) {
+        db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_size INTEGER NOT NULL DEFAULT 0");
+    }
+    if (!cols.includes("proof_at")) {
+        db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_at DATETIME");
+    }
+})();
+
 // Migrasi untuk database lama: finance_expenses semula hanya mencatat
 // pengeluaran yang sudah dibayar. Kolom status/bukti ditambahkan agar alur
 // pengajuan (submitted -> approved -> paid/rejected) bisa disimpan. Baris lama

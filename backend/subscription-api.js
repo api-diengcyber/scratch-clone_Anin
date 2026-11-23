@@ -60,13 +60,16 @@ function registerSubscriptionApi(app, deps) {
   const checkoutLimit = typeof rateLimitMiddleware === "function"
     ? rateLimitMiddleware(20)
     : (req, res, next) => next();
+  const uploadLimit = typeof rateLimitMiddleware === "function"
+    ? rateLimitMiddleware(20)
+    : (req, res, next) => next();
 
   // ----------------------------------------------------------
   // Siswa
   // ----------------------------------------------------------
 
   app.get("/api/subscription", ...studentGuard, (req, res) => dataResponse(res, () => {
-    return sendApiSuccess(res, service.getStudentOverview(db, req.userId));
+    return sendApiSuccess(res, service.getStudentOverview(db, req.userId, { env: process.env }));
   }));
 
   app.get("/api/subscription/packages", ...studentGuard, (req, res) => dataResponse(res, () => {
@@ -106,6 +109,17 @@ function registerSubscriptionApi(app, deps) {
     return sendApiSuccess(res, { item: result.item }, "Pembayaran dibatalkan.");
   }));
 
+  // Bukti transfer diunggah sebagai data URL base64 (PNG/JPEG/WEBP/PDF,
+  // maks. 600 KB). Hanya untuk invoice milik siswa dan status pending.
+  app.post("/api/subscription/payments/:id/proof", ...studentGuard, uploadLimit, (req, res) => dataResponse(res, () => {
+    const result = service.attachProof(db, req.params.id, req.userId, req.body || {}, {
+      actorUsername: req.user,
+      ip: req.ip || null
+    });
+    if (!result.found) return sendApiError(res, 404, "Pembayaran tidak ditemukan.", "NOT_FOUND");
+    return sendApiSuccess(res, { item: result.item }, "Bukti transfer diunggah.");
+  }));
+
   // ----------------------------------------------------------
   // Admin: paket harga
   // ----------------------------------------------------------
@@ -137,6 +151,21 @@ function registerSubscriptionApi(app, deps) {
 
   app.get("/api/admin/subscription/payments", ...adminGuard, (req, res) => dataResponse(res, () => {
     return sendApiSuccess(res, service.listPayments(db, req.query));
+  }));
+
+  // Catat pembayaran yang diterima langsung (tunai/transfer di kantor).
+  // Invoice langsung lunas dan langganan aktif tanpa menunggu checkout siswa.
+  app.post("/api/admin/subscription/payments", ...adminGuard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    const result = service.createManualPayment(db, body, {
+      ...actor(req),
+      paidOn: body.paidAt
+    });
+    return sendApiSuccess(res, {
+      item: result.item,
+      subscription: result.subscription,
+      activation: result.activation
+    }, "Pembayaran manual dicatat dan langganan diperbarui.", 201);
   }));
 
   app.get("/api/admin/subscription/payments/:id", ...adminGuard, (req, res) => dataResponse(res, () => {

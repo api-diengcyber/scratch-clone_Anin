@@ -34,6 +34,7 @@ const db = require("./database");
 const auth = require("./auth");
 const D = require("./report-deliveries");
 const service = require("./subscription-service");
+const gateway = require("./payment-gateway");
 
 function addUser(username, role, { grades = null, fullName = "" } = {}) {
   const info = db.prepare(`INSERT INTO users (username, email, role, allowed_grades, full_name, status, must_change_password)
@@ -56,9 +57,11 @@ const adminId = addUser("sub-admin", "admin", { fullName: "Admin Langganan" });
 const studentId = addUser("sub-siswa", "student", { grades: ["SMP"], fullName: "Siswa Langganan" });
 const otherId = addUser("sub-lain", "student", { grades: ["SD"], fullName: "Siswa Lain" });
 const renewId = addUser("sub-perpanjang", "student", { grades: ["SMK"], fullName: "Siswa Perpanjang" });
+const remindId = addUser("sub-pengingat", "student", { grades: ["SD"], fullName: "Siswa Pengingat" });
 
 addGuardian(studentId, "Ibu Langganan", "wali-langganan@example.com");
 addGuardian(renewId, "Ibu Perpanjang", "wali-perpanjang@example.com");
+addGuardian(otherId, "Ibu Lain", "wali-lain@example.com");
 
 const adminToken = auth.createSession(adminId);
 const studentToken = auth.createSession(studentId);
@@ -397,6 +400,203 @@ async function main() {
     eq(res.r.status, 400, "tanpa paket");
     res = await api("POST", "/api/subscription/checkout", { token: adminToken, body: { packageId: 1 } });
     eq(res.r.status, 403, "admin tidak bisa checkout");
+  });
+
+  // ----------------------------------------------------------
+  // Bukti transfer, notifikasi, pembayaran manual admin
+  // ----------------------------------------------------------
+
+  const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  let proofPayment;
+
+  await t("langganan: siswa mengunggah bukti transfer", async () => {
+    // Invoice pending dari tes kedaluwarsa dipakai ulang (paket sama).
+    const inv = await checkout(studentToken, { key: "SMP|Python Start", months: 1 });
+    eq(inv.d.item.status, "pending", "invoice pending");
+    proofPayment = inv.d.item;
+    eq(proofPayment.hasProof, false, "belum ada bukti");
+
+    let res = await api("POST", `/api/subscription/payments/${proofPayment.id}/proof`, {
+      token: studentToken,
+      body: { image: PNG, name: "struk-transfer.png" }
+    });
+    eq(res.r.status, 200, "unggah");
+    eq(res.d.item.hasProof, true, "hasProof");
+    eq(res.d.item.proof.name, "struk-transfer.png", "nama file");
+    eq(res.d.item.proof.mime, "image/png", "mime");
+    ok(res.d.item.proof.size > 0, "ukuran");
+    ok(res.d.item.proof.uploadedAt, "waktu unggah");
+
+    res = await api("GET", `/api/subscription/payments/${proofPayment.id}`, { token: studentToken });
+    eq(res.d.item.hasProof, true, "detail siswa");
+    ok(!res.d.item.proofDataUrl, "isi file tidak ikut di detail siswa");
+
+    res = await api("GET", `/api/admin/subscription/payments/${proofPayment.id}`, { token: adminToken });
+    eq(res.d.item.hasProof, true, "detail admin");
+    ok(res.d.item.proofDataUrl.startsWith("data:image/png;base64,"), "admin bisa membuka isi file");
+
+    const list = await api("GET", `/api/admin/subscription/payments?studentId=${studentId}`, { token: adminToken });
+    ok(list.d.items.every((x) => !("proofDataUrl" in x)), "daftar tidak membawa isi file");
+  });
+
+  await t("langganan: bukti transfer divalidasi", async () => {
+    const url = `/api/subscription/payments/${proofPayment.id}/proof`;
+    let res = await api("POST", url, { token: studentToken, body: { image: "data:text/plain;base64,aGVsbG8=" } });
+    eq(res.r.status, 400, "mime tidak didukung");
+
+    res = await api("POST", url, { token: studentToken, body: { image: "data:image/png;base64,aGVsbG8=" } });
+    eq(res.r.status, 400, "isi tidak cocok dengan mime");
+
+    res = await api("POST", url, { token: studentToken, body: { image: "bukan-data-url" } });
+    eq(res.r.status, 400, "bukan data URL");
+
+    const big = "data:image/png;base64," + Buffer.alloc(service.MAX_PROOF_BYTES + 1).toString("base64");
+    res = await api("POST", url, { token: studentToken, body: { image: big } });
+    eq(res.r.status, 400, "melebihi batas ukuran");
+
+    res = await api("POST", url, { token: otherToken, body: { image: PNG } });
+    eq(res.r.status, 404, "invoice siswa lain tidak bisa diunggah");
+  });
+
+  await t("langganan: ringkasan siswa memuat instruksi transfer", async () => {
+    const res = await api("GET", "/api/subscription", { token: studentToken });
+    eq(res.r.status, 200, "status");
+    eq(res.d.pendingPayment.id, proofPayment.id, "invoice pending");
+    eq(res.d.instructions.provider, "manual", "provider");
+    eq(res.d.instructions.bankName, "Bank Uji", "bank");
+    eq(res.d.instructions.accountNumber, "1234567890", "rekening");
+    eq(res.d.instructions.total, proofPayment.total, "total");
+    ok(res.d.instructions.paymentUrl === null, "tanpa gateway");
+  });
+
+  await t("langganan: admin mencari invoice", async () => {
+    let res = await api("GET", `/api/admin/subscription/payments?q=${encodeURIComponent(proofPayment.code)}`, { token: adminToken });
+    eq(res.r.status, 200, "cari kode");
+    ok(res.d.items.some((x) => x.id === proofPayment.id), "kode ketemu");
+
+    res = await api("GET", `/api/admin/subscription/payments?q=${encodeURIComponent("Siswa Langganan")}`, { token: adminToken });
+    ok(res.d.items.length > 0, "cari nama");
+    ok(res.d.items.every((x) => x.studentId === studentId), "hanya siswa itu");
+
+    res = await api("GET", `/api/admin/subscription/payments?q=${encodeURIComponent("tidak-ada-xyz")}`, { token: adminToken });
+    eq(res.d.total, 0, "tidak ada hasil");
+  });
+
+  await t("langganan: notifikasi alur pembayaran dibuat", async () => {
+    let res = await api("POST", `/api/admin/subscription/payments/${proofPayment.id}/reject`, {
+      token: adminToken,
+      body: { reason: "Bukti tidak terbaca" }
+    });
+    eq(res.r.status, 200, "tolak");
+
+    res = await api("POST", `/api/subscription/payments/${proofPayment.id}/proof`, { token: studentToken, body: { image: PNG } });
+    eq(res.r.status, 409, "bukti tidak bisa diunggah setelah ditolak");
+
+    const kinds = db.prepare("SELECT kind FROM student_notifications WHERE user_id = ?").all(studentId).map((x) => x.kind);
+    ok(kinds.includes("subscription.invoice"), "notifikasi invoice");
+    ok(kinds.includes("subscription.active"), "notifikasi aktif");
+    ok(kinds.includes("subscription.expired"), "notifikasi kedaluwarsa");
+    ok(kinds.includes("subscription.rejected"), "notifikasi ditolak");
+
+    const adminKinds = db.prepare("SELECT kind FROM admin_notifications").all().map((x) => x.kind);
+    ok(adminKinds.includes("subscription.checkout"), "notifikasi admin checkout");
+    ok(adminKinds.includes("subscription.proof"), "notifikasi admin bukti");
+  });
+
+  await t("langganan: admin mencatat pembayaran manual", async () => {
+    const res = await api("POST", "/api/admin/subscription/payments", {
+      token: adminToken,
+      body: {
+        studentId: otherId,
+        key: "SD|Game Development",
+        months: 2,
+        method: "Tunai",
+        paidAt: today,
+        note: "Diterima di kantor"
+      }
+    });
+    eq(res.r.status, 201, "status");
+    eq(res.d.item.status, "paid", "invoice lunas");
+    eq(res.d.item.method, "Tunai", "metode");
+    eq(res.d.item.note, "Diterima di kantor", "catatan");
+    eq(res.d.subscription.startedAt, today, "mulai hari ini");
+    eq(res.d.subscription.months, 2, "durasi");
+    eq(res.d.activation.extended, false, "siklus pertama");
+
+    const finance = financeFor(otherId, res.d.item.code);
+    eq(finance.status, "paid", "finance lunas");
+    eq(finance.method, "Tunai", "finance metode");
+    eq(finance.paid_on, today, "finance tanggal lunas");
+    eq(userRow(otherId).subscription_months, 2, "users diperbarui");
+
+    const deliveries = db.prepare("SELECT kind FROM report_deliveries WHERE student_user_id = ? ORDER BY id").all(otherId);
+    eq(deliveries.map((x) => x.kind), ["month1", "month2"], "email bulanan diantrekan");
+  });
+
+  await t("langganan: validasi pembayaran manual", async () => {
+    let res = await api("POST", "/api/admin/subscription/payments", {
+      token: adminToken,
+      body: { studentId: otherId, packageId: 999999 }
+    });
+    eq(res.r.status, 404, "paket tidak ada");
+
+    res = await api("POST", "/api/admin/subscription/payments", {
+      token: adminToken,
+      body: { studentId: 999999, packageId: pkg3.id }
+    });
+    eq(res.r.status, 404, "murid tidak ada");
+
+    res = await api("POST", "/api/admin/subscription/payments", {
+      token: adminToken,
+      body: { studentId: otherId, packageId: pkg3.id, paidAt: D.addDays(today, 1) }
+    });
+    eq(res.r.status, 400, "tanggal masa depan");
+
+    res = await api("POST", "/api/admin/subscription/payments", {
+      token: studentToken,
+      body: { studentId: otherId, packageId: pkg3.id }
+    });
+    eq(res.r.status, 403, "siswa tidak boleh mencatat pembayaran");
+  });
+
+  await t("langganan: profil siswa memuat status langganan", async () => {
+    let res = await api("GET", "/api/profile", { token: studentToken });
+    eq(res.r.status, 200, "status");
+    eq(res.d.profile.subscription.months, 5, "durasi");
+    eq(res.d.profile.subscription.active, true, "aktif");
+
+    res = await api("GET", "/api/profile", { token: adminToken });
+    eq(res.d.profile.subscription, null, "admin tanpa langganan");
+  });
+
+  await t("langganan: sapuan kedaluwarsa idempoten", async () => {
+    const before = db.prepare("SELECT COUNT(*) AS n FROM subscription_payments WHERE status = 'expired'").get().n;
+    const changed = service.expirePending(db);
+    const after = db.prepare("SELECT COUNT(*) AS n FROM subscription_payments WHERE status = 'expired'").get().n;
+    eq(changed, 0, "tidak ada invoice baru yang kedaluwarsa");
+    eq(after, before, "jumlah tetap");
+  });
+
+  await t("langganan: pengingat langganan berakhir", async () => {
+    const start = D.addDays(today, -27);
+    db.prepare("UPDATE users SET subscription_started_at = ?, subscription_months = 1 WHERE id = ?")
+      .run(start, remindId);
+
+    eq(service.remindExpiring(db, { days: 7 }), 1, "satu pengingat");
+    eq(service.remindExpiring(db, { days: 7 }), 0, "tidak berulang");
+
+    const row = db.prepare("SELECT kind, body FROM student_notifications WHERE user_id = ? ORDER BY id DESC LIMIT 1").get(remindId);
+    eq(row.kind, "subscription.expiring", "jenis notifikasi");
+    ok(row.body.includes("berakhir"), "isi pengingat");
+    const endsAt = D.subscriptionEndDate(start, 1);
+    ok(endsAt >= today && endsAt <= D.addDays(today, 7), "berakhir dalam 7 hari");
+  });
+
+  await t("langganan: gateway default manual", async () => {
+    eq(gateway.providerName({}), "manual", "default");
+    eq(gateway.providerName({ SUBSCRIPTION_GATEWAY: "midtrans" }), "manual", "provider asing fallback ke manual");
+    const caps = gateway.capabilities({});
+    eq([caps.provider, caps.manual, caps.webhook], ["manual", true, false], "kemampuan gateway");
   });
 
   const passed = results.filter((r) => r[0] === "PASS").length;

@@ -35,6 +35,7 @@ const { notifyAdmins } = require("./notifications");
 const { releaseDeletedEmail } = require("./user-identity");
 const learningService = require("./learning-service");
 const reportScheduler = require("./report-scheduler");
+const subscriptionService = require("./subscription-service");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -933,6 +934,9 @@ app.get("/api/profile", auth.requireAuth, (req, res) => {
                 equippedTitle: user.equipped_title,
                 firebaseUid: user.firebase_uid,
                 createdAt: user.created_at,
+                subscription: req.role === "student"
+                    ? subscriptionService.subscriptionState(db, req.userId)
+                    : null,
             }
         });
     } catch (error) {
@@ -992,6 +996,9 @@ app.put("/api/profile", auth.requireAuth, (req, res) => {
                 equippedTitle: updated.equipped_title,
                 firebaseUid: updated.firebase_uid,
                 createdAt: updated.created_at,
+                subscription: req.role === "student"
+                    ? subscriptionService.subscriptionState(db, req.userId)
+                    : null,
             }
         }, "Profil diperbarui");
     } catch (error) {
@@ -1589,6 +1596,19 @@ setInterval(() => {
         const r = db.prepare("DELETE FROM sessions WHERE expires_at <= datetime('now')").run();
         if (r.changes) console.log(`Sesi kedaluwarsa dibersihkan: ${r.changes}`);
     } catch (e) { console.error("Gagal membersihkan sesi:", e.message); }
+}, 60 * 60 * 1000).unref();
+
+// Tandai invoice langganan yang lewat masa berlaku. Endpoint juga memeriksa
+// saat dibaca; sapuan ini menjaga status tetap benar walau tidak ada akses.
+setInterval(() => {
+    try {
+        const expired = subscriptionService.expirePending(db);
+        if (expired) console.log(`Invoice langganan kedaluwarsa: ${expired}`);
+        const reminded = subscriptionService.remindExpiring(db, {
+            days: Number(process.env.SUBSCRIPTION_REMINDER_DAYS)
+        });
+        if (reminded) console.log(`Pengingat langganan berakhir terkirim: ${reminded}`);
+    } catch (e) { console.error("Gagal memeriksa invoice langganan:", e.message); }
 }, 60 * 60 * 1000).unref();
 
 // Pangkas tabel rate-limit AI agar tidak tumbuh tanpa batas.

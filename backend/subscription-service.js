@@ -17,6 +17,9 @@
 
 const reportDeliveries = require("./report-deliveries");
 const reports = require("./reports");
+const paymentGateway = require("./payment-gateway");
+const { notifyAdmins } = require("./notifications");
+const { notifyStudent } = require("./student-notifications");
 
 const MAX_MONTHS = reportDeliveries.MAX_MONTHS;
 const MAX_MONEY = 1_000_000_000;
@@ -24,6 +27,16 @@ const GRADES = ["SD", "SMP", "SMK"];
 const PAYMENT_STATUSES = ["pending", "paid", "failed", "cancelled", "expired", "refunded"];
 const DEFAULT_INVOICE_DAYS = 3;
 const MAX_INVOICE_DAYS = 30;
+
+// Bukti transfer disimpan base64 di database. Batas 600 KB cukup untuk foto
+// struk/PDF dan tetap di bawah limit body JSON 1 MB.
+const MAX_PROOF_BYTES = 600 * 1024;
+const PROOF_MIMES = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "application/pdf": "pdf"
+};
 
 const JAKARTA_DATE = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Jakarta",
@@ -57,6 +70,25 @@ function notFound(message) {
   const error = new Error(message);
   error.code = "SUBSCRIPTION_NOT_FOUND";
   return error;
+}
+
+// Notifikasi bersifat pelengkap: kegagalan menulis notifikasi tidak boleh
+// membatalkan invoice atau aktivasi langganan.
+function safeNotify(fn) {
+  try {
+    return fn();
+  } catch (error) {
+    console.error("[LANGGANAN] Gagal membuat notifikasi:", error && error.message ? error.message : error);
+    return 0;
+  }
+}
+
+function rupiah(value) {
+  return Number(value || 0).toLocaleString("id-ID");
+}
+
+function studentLabel(row) {
+  return row.student_name || row.student_username || `Siswa #${row.student_user_id || row.id || ""}`;
 }
 
 function text(value, field, max, required = false) {
@@ -271,6 +303,9 @@ function subscriptionState(db, studentId, options = {}) {
 // ------------------------------------------------------------
 
 function paymentDto(row, options = {}) {
+  const hasProof = row.has_proof === undefined
+    ? Boolean(row.proof_data)
+    : Boolean(Number(row.has_proof));
   const dto = {
     id: Number(row.id),
     code: row.code,
@@ -286,6 +321,13 @@ function paymentDto(row, options = {}) {
     note: row.note,
     paidOn: row.paid_on || null,
     expiresOn: row.expires_on || null,
+    hasProof,
+    proof: hasProof ? {
+      name: row.proof_name || "",
+      mime: row.proof_mime || "",
+      size: Number(row.proof_size) || 0,
+      uploadedAt: row.proof_at || null
+    } : null,
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
   };
@@ -299,11 +341,26 @@ function paymentDto(row, options = {}) {
   return dto;
 }
 
+// proof_data tidak pernah ikut di daftar agar respons tetap ringan; detail
+// admin membacanya terpisah lewat proofDataUrl().
+const PAYMENT_COLUMNS = `p.id, p.code, p.student_user_id, p.package_id, p.path_key, p.path_name,
+  p.grade, p.months, p.price, p.discount, p.total, p.method, p.status, p.note, p.paid_on,
+  p.paid_at, p.confirmed_by, p.finance_transaction_id, p.expires_on, p.created_at, p.updated_at,
+  p.proof_name, p.proof_mime, p.proof_size, p.proof_at,
+  CASE WHEN p.proof_data <> '' THEN 1 ELSE 0 END AS has_proof`;
+
 const PAYMENT_SELECT = `
-  SELECT p.*, COALESCE(NULLIF(u.full_name, ''), u.username) AS student_name, u.username AS student_username
+  SELECT ${PAYMENT_COLUMNS},
+         COALESCE(NULLIF(u.full_name, ''), u.username) AS student_name, u.username AS student_username
   FROM subscription_payments p
   LEFT JOIN users u ON u.id = p.student_user_id
 `;
+
+function proofDataUrl(db, paymentId) {
+  const row = db.prepare("SELECT proof_mime, proof_data FROM subscription_payments WHERE id = ?").get(Number(paymentId) || 0);
+  if (!row || !row.proof_data) return null;
+  return `data:${row.proof_mime || "application/octet-stream"};base64,${row.proof_data}`;
+}
 
 function findPayment(db, id) {
   const num = idOf(id);
@@ -323,8 +380,8 @@ function expirePending(db, options = {}) {
     where.push("id = ?");
     params.push(Number(options.paymentId));
   }
-  const rows = db.prepare(`SELECT id, finance_transaction_id FROM subscription_payments
-    WHERE ${where.join(" AND ")}`).all(...params);
+  const rows = db.prepare(`SELECT id, code, student_user_id, finance_transaction_id, expires_on
+    FROM subscription_payments WHERE ${where.join(" AND ")}`).all(...params);
   for (const row of rows) {
     db.prepare(`UPDATE subscription_payments SET status = 'expired', updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND status = 'pending'`).run(row.id);
@@ -332,8 +389,54 @@ function expirePending(db, options = {}) {
       db.prepare(`UPDATE finance_transactions SET status = 'failed', updated_at = CURRENT_TIMESTAMP
         WHERE id = ? AND status = 'pending'`).run(row.finance_transaction_id);
     }
+    safeNotify(() => notifyStudent(db, row.student_user_id, {
+      kind: "subscription.expired",
+      title: "Invoice langganan kedaluwarsa",
+      body: `${row.code || "Invoice"} kedaluwarsa pada ${row.expires_on}. Silakan buat invoice baru bila masih ingin berlangganan.`,
+      view: "langganan",
+      icon: "fa-solid fa-hourglass-end",
+      tone: "amber",
+      dedupeKey: `subscription.expired:${row.id}`
+    }));
   }
   return rows.length;
+}
+
+// Pengingat sekali per siklus untuk siswa yang langganannya hampir habis.
+// Dijalankan sapuan tiap jam; dedupeKey memakai tanggal berakhir agar tidak
+// berulang setiap jam dan tetap terkirim lagi pada siklus berikutnya.
+function remindExpiring(db, options = {}) {
+  const today = options.today || todayWib();
+  const rawDays = Number(options.days);
+  const days = Number.isSafeInteger(rawDays) && rawDays > 0 ? Math.min(30, rawDays) : 7;
+
+  const rows = db.prepare(`SELECT id, subscription_started_at, subscription_months
+    FROM users
+    WHERE role = 'student' AND status = 'active'
+      AND subscription_started_at IS NOT NULL AND subscription_started_at <> ''
+      AND COALESCE(subscription_months, 1) > 0`).all();
+
+  let sent = 0;
+  for (const row of rows) {
+    const months = Number(row.subscription_months) || 1;
+    const endsAt = reportDeliveries.subscriptionEndDate(row.subscription_started_at, months);
+    if (!endsAt || endsAt < today) continue;
+    const left = daysBetween(today, endsAt);
+    if (left > days) continue;
+
+    sent += safeNotify(() => notifyStudent(db, row.id, {
+      kind: "subscription.expiring",
+      title: "Langganan akan berakhir",
+      body: left === 0
+        ? `Langganan berakhir hari ini (${endsAt}). Perpanjang agar laporan bulanan tetap berjalan.`
+        : `Langganan berakhir ${endsAt} (${left + 1} hari lagi). Perpanjang agar laporan bulanan tetap berjalan.`,
+      view: "langganan",
+      icon: "fa-solid fa-hourglass-half",
+      tone: "amber",
+      dedupeKey: `subscription.expiring:${row.id}:${endsAt}`
+    }));
+  }
+  return sent;
 }
 
 function resolvePackage(db, input) {
@@ -346,23 +449,93 @@ function resolvePackage(db, input) {
 }
 
 function instructionsFor(payment, env) {
-  const bankName = String(env.SUBSCRIPTION_BANK_NAME || "").trim();
-  const accountNumber = String(env.SUBSCRIPTION_BANK_ACCOUNT || "").trim();
-  const accountHolder = String(env.SUBSCRIPTION_BANK_HOLDER || "").trim();
-  const custom = String(env.SUBSCRIPTION_PAYMENT_NOTE || "").trim();
-  return {
-    method: payment.method,
-    code: payment.code,
-    total: Number(payment.total),
-    expiresOn: payment.expires_on,
-    bankName: bankName || null,
-    accountNumber: accountNumber || null,
-    accountHolder: accountHolder || null,
-    note: custom || (bankName
-      ? `Transfer tepat Rp${Number(payment.total).toLocaleString("id-ID")} dan cantumkan kode ${payment.code} pada berita transfer.`
-      : "Hubungi admin untuk instruksi pembayaran."),
-    paymentUrl: null
-  };
+  return paymentGateway.instructionsFor(payment, env);
+}
+
+// ------------------------------------------------------------
+// Bukti transfer
+// ------------------------------------------------------------
+
+function matchesMagic(buffer, mime) {
+  if (mime === "image/png") {
+    return buffer.length > 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+  }
+  if (mime === "image/jpeg") {
+    return buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+  if (mime === "image/webp") {
+    return buffer.length > 12
+      && buffer.toString("ascii", 0, 4) === "RIFF"
+      && buffer.toString("ascii", 8, 12) === "WEBP";
+  }
+  if (mime === "application/pdf") {
+    return buffer.toString("ascii", 0, 4) === "%PDF";
+  }
+  return false;
+}
+
+function parseProofImage(value) {
+  if (typeof value !== "string") {
+    throw invalid("Bukti transfer wajib berupa data URL base64.", "image");
+  }
+  const match = /^data:([a-z0-9.+/-]+);base64,([A-Za-z0-9+/=\s]+)$/i.exec(value.trim());
+  if (!match) throw invalid("Format bukti transfer harus data URL base64.", "image");
+
+  const mime = match[1].toLowerCase();
+  const ext = PROOF_MIMES[mime];
+  if (!ext) throw invalid("Bukti transfer harus PNG, JPEG, WEBP, atau PDF.", "image");
+
+  const base64 = match[2].replace(/\s+/g, "");
+  const buffer = Buffer.from(base64, "base64");
+  if (!buffer.length) throw invalid("Bukti transfer kosong.", "image");
+  if (buffer.length > MAX_PROOF_BYTES) {
+    throw invalid(`Bukti transfer maksimal ${Math.round(MAX_PROOF_BYTES / 1024)} KB.`, "image");
+  }
+  if (!matchesMagic(buffer, mime)) {
+    throw invalid("Isi file tidak cocok dengan tipe bukti transfer.", "image");
+  }
+  return { mime, ext, base64, size: buffer.length };
+}
+
+function attachProof(db, paymentId, studentId, input = {}, options = {}) {
+  return db.transaction(() => {
+    const payment = findPayment(db, paymentId);
+    if (!payment || Number(payment.student_user_id) !== Number(studentId)) return { found: false };
+    if (payment.status !== "pending") {
+      throw conflict("Bukti transfer hanya bisa diunggah untuk invoice yang masih menunggu pembayaran.");
+    }
+
+    const parsed = parseProofImage(input.image);
+    const name = text(input.name, "name", 120) || `bukti-transfer.${parsed.ext}`;
+    const uploadedAt = new Date().toISOString();
+
+    db.prepare(`UPDATE subscription_payments
+      SET proof_data = ?, proof_mime = ?, proof_name = ?, proof_size = ?, proof_at = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(parsed.base64, parsed.mime, name, parsed.size, uploadedAt, payment.id);
+
+    writeAudit(db, {
+      actorId: studentId,
+      actorUsername: options.actorUsername || "student",
+      ip: options.ip || null,
+      action: "subscription_payment.proof",
+      targetType: "subscription_payment",
+      targetId: payment.id,
+      details: { code: payment.code, mime: parsed.mime, size: parsed.size, name }
+    });
+
+    safeNotify(() => notifyAdmins(db, {
+      kind: "subscription.proof",
+      title: `Bukti transfer langganan: ${studentLabel(payment)}`,
+      body: `${payment.code} - ${payment.path_name} ${payment.months} bulan - Rp${rupiah(payment.total)}`,
+      view: "langganan",
+      icon: "fa-solid fa-receipt",
+      tone: "sky",
+      dedupeKey: `subscription.proof:${payment.id}`
+    }));
+
+    return { found: true, item: paymentDto(findPayment(db, payment.id)) };
+  })();
 }
 
 function createCheckout(db, studentId, input = {}, options = {}) {
@@ -427,6 +600,26 @@ function createCheckout(db, studentId, input = {}, options = {}) {
       targetId: id,
       details: { code, packageId: pkg.id, months: Number(pkg.months), total: Number(pkg.price) }
     });
+
+    safeNotify(() => notifyStudent(db, studentId, {
+      kind: "subscription.invoice",
+      title: `Invoice langganan: ${pkg.path_name}`,
+      body: `${code} - ${pkg.months} bulan - Rp${rupiah(pkg.price)}. Bayar sebelum ${expiresOn}.`,
+      view: "langganan",
+      icon: "fa-solid fa-file-invoice-dollar",
+      tone: "sky",
+      dedupeKey: `subscription.invoice:${id}`
+    }));
+    safeNotify(() => notifyAdmins(db, {
+      kind: "subscription.checkout",
+      title: `Pembayaran langganan baru: ${studentLabel({ student_name: student.full_name, student_username: student.username, student_user_id: studentId })}`,
+      body: `${code} - ${pkg.path_name} ${pkg.months} bulan - Rp${rupiah(pkg.price)}`,
+      view: "langganan",
+      icon: "fa-solid fa-money-check-dollar",
+      tone: "amber",
+      dedupeKey: `subscription.checkout:${id}`
+    }));
+
     return { item: paymentDto(row), reused: false, instructions: instructionsFor(row, env) };
   })();
 }
@@ -557,6 +750,16 @@ function settlePayment(db, paymentId, options = {}) {
     }
   });
 
+  safeNotify(() => notifyStudent(db, payment.student_user_id, {
+    kind: "subscription.active",
+    title: `Langganan aktif: ${payment.path_name}`,
+    body: `${payment.code} lunas. Berlaku sampai ${activation.endsAt} (total ${activation.months} bulan).`,
+    view: "langganan",
+    icon: "fa-solid fa-circle-check",
+    tone: "emerald",
+    dedupeKey: `subscription.active:${payment.id}`
+  }));
+
   return {
     found: true,
     alreadyPaid: false,
@@ -568,6 +771,107 @@ function settlePayment(db, paymentId, options = {}) {
 
 function confirmPayment(db, id, options = {}) {
   return db.transaction(() => settlePayment(db, id, options))();
+}
+
+// Pembayaran yang diterima langsung oleh admin (tunai/transfer di kantor).
+// Invoice langsung lunas, transaksi Finance ikut tercatat, dan langganan aktif
+// tanpa harus menunggu siswa checkout.
+function createManualPayment(db, input = {}, options = {}) {
+  const studentId = idOf(input.studentId);
+  if (!studentId) throw invalid("studentId wajib diisi.", "studentId");
+  const student = findStudent(db, studentId);
+  if (!student) throw notFound("Murid tidak ditemukan.");
+  if (student.status !== "active") throw conflict("Akun murid tidak aktif.");
+
+  const today = options.today || todayWib();
+  const pkg = resolvePackage(db, input);
+  if (!pkg) throw notFound("Paket langganan tidak ditemukan.");
+  if (!pkg.aktif) throw invalid("Paket langganan sedang tidak aktif.", "packageId");
+
+  const state = subscriptionState(db, studentId, { today });
+  if (state.active && state.months + Number(pkg.months) > MAX_MONTHS) {
+    throw invalid(`Total langganan tidak boleh melebihi ${MAX_MONTHS} bulan.`, "packageId");
+  }
+
+  const paidOn = options.paidOn || input.paidAt || today;
+  if (!reportDeliveries.isValidDateOnly(paidOn)) throw invalid("paidAt harus tanggal YYYY-MM-DD.", "paidAt");
+  if (paidOn > today) throw invalid("paidAt tidak boleh di masa depan.", "paidAt");
+
+  const method = text(input.method, "method", 40) || "Tunai";
+  const note = text(input.note, "note", 300) || "Pembayaran manual oleh admin";
+  const nowIso = new Date().toISOString();
+
+  return db.transaction(() => {
+    expirePending(db, { studentId, today });
+
+    const info = db.prepare(`INSERT INTO subscription_payments
+      (student_user_id, package_id, path_key, path_name, grade, months, price, discount, total,
+       method, status, note, paid_on, paid_at, confirmed_by, expires_on)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'paid', ?, ?, ?, ?, '')`).run(
+      studentId, pkg.id, pkg.path_key, pkg.path_name, pkg.grade,
+      Number(pkg.months), Number(pkg.price), Number(pkg.price), method, note,
+      paidOn, nowIso, options.actorId || null
+    );
+    const id = Number(info.lastInsertRowid);
+    const code = `SUB-${1000 + id}`;
+    db.prepare("UPDATE subscription_payments SET code = ? WHERE id = ?").run(code, id);
+
+    const finance = db.prepare(`INSERT INTO finance_transactions
+      (student_user_id, learning_path_key, learning_path_name, grade, price, discount, total,
+       method, status, note, created_by, paid_on, paid_at, verified_by, verified_at)
+      VALUES (?, ?, ?, ?, ?, 0, ?, ?, 'paid', ?, ?, ?, ?, ?, ?)`).run(
+      studentId, pkg.path_key, pkg.path_name, pkg.grade,
+      Number(pkg.price), Number(pkg.price), method,
+      `Langganan ${pkg.months} bulan (${code})`, options.actorId || null,
+      paidOn, nowIso, options.actorId || null, nowIso
+    );
+    const financeId = Number(finance.lastInsertRowid);
+    db.prepare("UPDATE finance_transactions SET code = ? WHERE id = ?").run(`TRX-${1000 + financeId}`, financeId);
+    db.prepare("UPDATE subscription_payments SET finance_transaction_id = ? WHERE id = ?").run(financeId, id);
+
+    const activation = activateSubscription(db, studentId, pkg.months, {
+      today: paidOn,
+      actorId: options.actorId || null,
+      actorUsername: options.actorUsername || "system",
+      ip: options.ip || null,
+      source: "manual"
+    });
+
+    writeAudit(db, {
+      actorId: options.actorId || null,
+      actorUsername: options.actorUsername || "system",
+      ip: options.ip || null,
+      action: "subscription_payment.manual",
+      targetType: "subscription_payment",
+      targetId: id,
+      details: {
+        code,
+        studentId,
+        packageId: pkg.id,
+        months: Number(pkg.months),
+        total: Number(pkg.price),
+        method,
+        paidOn,
+        extended: activation.extended
+      }
+    });
+
+    safeNotify(() => notifyStudent(db, studentId, {
+      kind: "subscription.active",
+      title: `Langganan aktif: ${pkg.path_name}`,
+      body: `${code} lunas. Berlaku sampai ${activation.endsAt} (total ${activation.months} bulan).`,
+      view: "langganan",
+      icon: "fa-solid fa-circle-check",
+      tone: "emerald",
+      dedupeKey: `subscription.active:${id}`
+    }));
+
+    return {
+      item: paymentDto(findPayment(db, id), { admin: true }),
+      subscription: subscriptionState(db, studentId),
+      activation
+    };
+  })();
 }
 
 // Dipanggil finance-api saat transaksi berubah menjadi lunas. Aman kalau
@@ -614,6 +918,15 @@ function rejectPayment(db, id, options = {}) {
       targetId: payment.id,
       details: { code: payment.code, reason: options.reason || "" }
     });
+    safeNotify(() => notifyStudent(db, payment.student_user_id, {
+      kind: "subscription.rejected",
+      title: `Pembayaran langganan ditolak: ${payment.path_name}`,
+      body: `${payment.code}${options.reason ? ` - ${options.reason}` : ""}. Silakan hubungi admin atau buat invoice baru.`,
+      view: "langganan",
+      icon: "fa-solid fa-circle-xmark",
+      tone: "rose",
+      dedupeKey: `subscription.rejected:${payment.id}`
+    }));
     return { found: true, item: paymentDto(findPayment(db, payment.id), { admin: true }) };
   })();
 }
@@ -661,12 +974,13 @@ function listStudentPayments(db, studentId, limit = 20) {
   })();
 }
 
-function getStudentOverview(db, studentId) {
+function getStudentOverview(db, studentId, options = {}) {
   const payments = listStudentPayments(db, studentId, 20);
   const pending = payments.find((item) => item.status === "pending") || null;
   return {
-    subscription: subscriptionState(db, studentId),
+    subscription: subscriptionState(db, studentId, options),
     pendingPayment: pending,
+    instructions: pending ? instructionsFor(pending, options.env || process.env) : null,
     payments
   };
 }
@@ -688,10 +1002,18 @@ function listPayments(db, query = {}) {
     where.push("p.student_user_id = ?");
     params.push(studentId);
   }
+  const q = query.q === undefined || query.q === null ? "" : String(query.q).trim();
+  if (q) {
+    if (q.length > 160) throw invalid("q maksimal 160 karakter.", "q");
+    const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
+    where.push("(p.code LIKE ? ESCAPE '\\' OR u.full_name LIKE ? ESCAPE '\\' OR u.username LIKE ? ESCAPE '\\')");
+    params.push(like, like, like);
+  }
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
   const limit = Math.max(1, Math.min(100, Number.parseInt(query.limit, 10) || 20));
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  const total = db.prepare(`SELECT COUNT(*) AS n FROM subscription_payments p ${clause}`).get(...params).n;
+  const total = db.prepare(`SELECT COUNT(*) AS n FROM subscription_payments p
+    LEFT JOIN users u ON u.id = p.student_user_id ${clause}`).get(...params).n;
   const rows = db.prepare(`${PAYMENT_SELECT} ${clause}
     ORDER BY p.id DESC LIMIT ? OFFSET ?`).all(...params, limit, (page - 1) * limit);
   return {
@@ -707,7 +1029,10 @@ function getAdminPayment(db, id) {
   return db.transaction(() => {
     expirePending(db, { paymentId: id });
     const payment = findPayment(db, id);
-    return payment ? paymentDto(payment, { admin: true }) : null;
+    if (!payment) return null;
+    const dto = paymentDto(payment, { admin: true });
+    if (dto.hasProof) dto.proofDataUrl = proofDataUrl(db, payment.id);
+    return dto;
   })();
 }
 
@@ -731,6 +1056,7 @@ function writeAudit(db, entry) {
 
 module.exports = {
   MAX_MONTHS,
+  MAX_PROOF_BYTES,
   PAYMENT_STATUSES,
   todayWib,
   normalizePackageKey,
@@ -743,10 +1069,13 @@ module.exports = {
   subscriptionState,
   paymentDto,
   findPayment,
+  proofDataUrl,
   createCheckout,
+  createManualPayment,
   confirmPayment,
   rejectPayment,
   cancelPayment,
+  attachProof,
   activateForFinanceTransaction,
   activateSubscription,
   getStudentPayment,
@@ -755,5 +1084,6 @@ module.exports = {
   listPayments,
   getAdminPayment,
   expirePending,
+  remindExpiring,
   instructionsFor
 };
