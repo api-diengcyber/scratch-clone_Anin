@@ -50,6 +50,8 @@
       <a href="#" data-view="tugas" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-list-check w-4 text-center text-sm"></i><span>Tugas Tambahan</span></a>
       <a href="#" data-view="ujian" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-graduation-cap w-4 text-center text-sm"></i><span>Ujian Kelulusan</span></a>
       <a href="#" data-view="jadwal" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-video w-4 text-center text-sm"></i><span>Jadwal Zoom Mentoring</span></a>
+      <a href="#" data-view="pengumuman" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-bullhorn w-4 text-center text-sm"></i><span>Pengumuman</span></a>
+      <a href="#" data-view="pertanyaan" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-comments w-4 text-center text-sm"></i><span>Pertanyaan Siswa</span></a>
       <a href="#" data-view="rekap" class="nav-link group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm"><i class="fa-solid fa-user-check w-4 text-center text-sm"></i><span>Rekap Absen</span></a>
     </nav>
     <div id="sidebarFoot" class="px-4 pb-4 pt-2 space-y-3">
@@ -111,6 +113,8 @@
     </header>
     <div id="view-dashboard" class="dc-dashboard px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-siswa" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-pengumuman" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
+    <div id="view-pertanyaan" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-tugas" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-ujian" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
     <div id="view-jadwal" class="hidden px-4 pb-8 pt-2 md:px-8 space-y-6"></div>
@@ -134,6 +138,8 @@
   <script src="static/siswa-monitor.js?v=3"></script>
   <script src="static/penilaian-detail.js?v=1"></script>
   <script src="static/bank-tugas.js?v=1"></script>
+  <script src="static/pengumuman.js?v=1"></script>
+  <script src="static/pertanyaan.js?v=1"></script>
   <script>
     // Data kurikulum (untuk pilihan Learning Path & Task): coba beberapa lokasi karena folder "users" bisa disajikan
     // sebagai root (/kurikulum/...) atau sebagai /users/... Urutan dijaga: data dulu, baru instruktur.js.
@@ -150,7 +156,7 @@
           add(BASES[b] + f[0] + '?v=20261113', function () { tryBase(b + 1); });
         })(0);
       }
-      loadFile(0, function () { add('static/instruktur.js?v=12', function () {}); });
+      loadFile(0, function () { add('static/instruktur.js?v=14', function () {}); });
     })();
   </script>
 </body>

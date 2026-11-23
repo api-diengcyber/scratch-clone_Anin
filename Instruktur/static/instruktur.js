@@ -98,6 +98,17 @@
     ujian: makeStore('/api/instruktur/ujian', 'dci-ujian', () => [
       { id: 1, title: 'Projek Akhir: Game 2D', description: 'Kumpulkan game 2D buatan sendiri. Dinilai dari kreativitas, fungsi, dan kerapian kode.', grade: 'SMP', format: 'proyek', kkm: 75, durasi: '', buka: inDays(0), tutup: inDays(30), status: 'terbit', hasil: [] }
     ]),
+    pertanyaan: makeStore('/api/instruktur/pertanyaan', 'dci-pertanyaan', () => [
+      { id: 1, judul: 'Kenapa perulangan saya tidak berhenti?', isi: 'Kak, kodenya jalan terus dan tidak berhenti. Aku pakai while tapi nilai i tidak berubah. Bagian mana yang salah?', siswaNama: 'Contoh Siswa A', grade: 'SMP', learningPathName: 'Python Start', tahap: 'Perulangan', taskName: 'Task 3: Perulangan while', createdAt: new Date(Date.now() - 3 * 36e5).toISOString(), status: 'belum', balasan: [] },
+      { id: 2, judul: 'Bingung beda list dan tuple', isi: 'Apa bedanya list dan tuple? Kapan aku harus pakai yang mana?', siswaNama: 'Contoh Siswa B', grade: 'SMK', learningPathName: 'Python Lanjutan dan Algoritma', tahap: 'Struktur Data', taskName: 'Task 2: List dan Tuple', createdAt: new Date(Date.now() - 26 * 36e5).toISOString(), status: 'belum', balasan: [] },
+      { id: 3, judul: 'Sprite tidak mau bergerak', isi: 'Aku sudah pasang blok gerak tapi sprite-nya diam saja.', siswaNama: 'Contoh Siswa C', grade: 'SD', learningPathName: 'Animasi Sederhana', tahap: 'Bergerak', taskName: 'Task 1: Gerakkan Sprite', createdAt: new Date(Date.now() - 3 * 864e5).toISOString(), status: 'dijawab', balasan: [{ by: 'instruktur', teks: 'Coba klik bendera hijau dulu, lalu cek apakah blok gerak ada di bawah blok "ketika bendera diklik".', at: new Date(Date.now() - 3 * 864e5 + 36e5).toISOString() }] },
+      { id: 4, judul: 'Cara menyimpan proyek', isi: 'Bagaimana cara menyimpan proyek Scratch-ku?', siswaNama: 'Contoh Siswa D', grade: 'SD', learningPathName: 'Animasi Sederhana', tahap: '', taskName: '', createdAt: new Date(Date.now() - 6 * 864e5).toISOString(), status: 'selesai', balasan: [{ by: 'instruktur', teks: 'Klik menu File lalu pilih Simpan ke komputer.', at: new Date(Date.now() - 6 * 864e5 + 36e5).toISOString() }, { by: 'siswa', teks: 'Sudah bisa, terima kasih Kak!', at: new Date(Date.now() - 5 * 864e5).toISOString() }] }
+    ]),
+    pengumuman: makeStore('/api/instruktur/pengumuman', 'dci-pengumuman', () => [
+      { id: 1, title: 'Jadwal mentoring minggu ini', body: 'Mentoring Zoom dimulai pukul 16.00. Siapkan laptop dan tugas yang belum selesai.', status: 'terbit', targetScope: 'semua', grade: '', learningPathId: '', learningPathName: '', publishAt: null, publishedAt: new Date(Date.now() - 2 * 864e5).toISOString(), createdAt: new Date(Date.now() - 2 * 864e5).toISOString(), updatedAt: new Date(Date.now() - 2 * 864e5).toISOString() },
+      { id: 2, title: 'Pengumpulan tugas perulangan diperpanjang', body: 'Tenggat tugas perulangan diperpanjang sampai akhir pekan.', status: 'terjadwal', targetScope: 'jenjang', grade: 'SMP', learningPathId: '', learningPathName: '', publishAt: new Date(Date.now() + 2 * 864e5).toISOString(), publishedAt: null, createdAt: new Date(Date.now() - 864e5).toISOString(), updatedAt: new Date(Date.now() - 864e5).toISOString() },
+      { id: 3, title: 'Catatan materi pekan depan', body: '', status: 'draft', targetScope: 'semua', grade: '', learningPathId: '', learningPathName: '', publishAt: null, publishedAt: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    ]),
     bank: makeStore('/api/instruktur/bank-tugas', 'dci-bank-tugas', () => [
       { id: 1, title: 'Pola Bintang dengan Perulangan', category: 'Dasar Pemrograman', difficulty: 'mudah', grade: 'SMP', type: 'kode', points: 30, description: 'Cetak pola bintang bertingkat memakai perulangan for.', instructions: 'Buat program yang mencetak segitiga bintang setinggi 5 baris. Gunakan for dan range().' },
       { id: 2, title: 'Kalkulator Sederhana', category: 'Logika dan Algoritma', difficulty: 'sedang', grade: '', type: 'kode', points: 40, description: 'Kalkulator yang bisa menjumlah, mengurang, mengali, dan membagi.', instructions: 'Minta dua angka dan satu operator dari pengguna, lalu tampilkan hasilnya. Tangani pembagian dengan nol.' },
@@ -316,6 +327,10 @@
       const t = ctx.find(b.dataset.jawaban); if (t) openJawaban(t, ctx.reload);
     }
   });
+  // Bahan untuk halaman Pengumuman Kelas (static/pengumuman.js)
+  function pengumumanCtx() {
+    return { store: stores.pengumuman, h: { modal, fieldHtml, toast, confirm: (o) => window.dcConfirm(o), GRADES, catalogPaths, refreshTargetFields } };
+  }
   // Bahan untuk tab Pengumpulan Siswa dan Bank Tugas (static/bank-tugas.js)
   function bankCtx() {
     return {
@@ -700,7 +715,7 @@
   }
 
   // ---------- navigasi ----------
-  const VIEWS = ['dashboard', 'siswa', 'tugas', 'ujian', 'jadwal', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
+  const VIEWS = ['dashboard', 'siswa', 'tugas', 'ujian', 'jadwal', 'pengumuman', 'pertanyaan', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
   const ON = ['is-active', 'text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   function showView(name) {
@@ -714,6 +729,8 @@
     if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
     if (name === 'dashboard') drawDashboard();
     if (name === 'siswa' && window.DCSiswa) window.DCSiswa.mount($('#view-siswa'));
+    if (name === 'pertanyaan' && window.DCPertanyaan) window.DCPertanyaan.mount($('#view-pertanyaan'), { store: stores.pertanyaan, h: { toast } });
+    if (name === 'pengumuman' && window.DCPengumuman) window.DCPengumuman.mount($('#view-pengumuman'), pengumumanCtx());
     if (name === 'rekap') {   // tampilan per sesi (Daftar Sesi / Time Track); rekap bulanan lama jadi tab ketiganya
       if (window.DCSesi) window.DCSesi.mount($('#view-rekap'));
       else if (window.DCRekap) window.DCRekap.instruktur($('#view-rekap'));
