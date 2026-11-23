@@ -1,5 +1,7 @@
 "use strict";
 
+const subscriptionService = require("./subscription-service");
+
 // ============================================================
 // KEUANGAN (FINANCE) — portal admin
 //
@@ -811,6 +813,20 @@ function registerFinanceApi(app, deps) {
       status: next.status,
       total: next.total
     });
+
+    // Kalau transaksi ini tertaut ke invoice langganan, menandai lunas di sini
+    // (mis. lewat UI Finance) langsung mengaktifkan/memperpanjang langganan.
+    if (next.status === "paid" && current.status !== "paid") {
+      const activation = subscriptionService.activateForFinanceTransaction(db, current.id, {
+        actorId: req.userId,
+        actorUsername: req.user,
+        ip: req.ip || null
+      });
+      if (!activation.activated && activation.reason === "activation_failed") {
+        console.error("[LANGGANAN] Gagal mengaktifkan langganan dari transaksi finance:", activation.error);
+      }
+    }
+
     return sendApiSuccess(res, { item: txDto(txWithStudent(current.id)) }, "Transaksi diperbarui.");
   }));
 

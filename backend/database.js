@@ -985,6 +985,79 @@ db.exec(`
     );
 `);
 
+// ============================================================
+// LANGGANAN & PEMBAYARAN
+// ============================================================
+// Alur manual (tanpa gateway): siswa membuat invoice, transfer, lalu admin
+// mengonfirmasi. Konfirmasi langsung mengaktifkan/memperpanjang langganan dan
+// mengantrekan email laporan bulanan. Gateway nanti cukup memanggil konfirmasi
+// yang sama dari webhook, jadi kontrak API untuk frontend tidak berubah.
+db.exec(`
+    -- Daftar harga yang bisa dipilih siswa. Satu baris = satu kombinasi
+    -- jalur + durasi. path_key berformat "SD|Game Development" (atau
+    -- "|Semua jalur" untuk paket yang berlaku di semua jenjang).
+    CREATE TABLE IF NOT EXISTS subscription_packages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        path_key TEXT NOT NULL,
+        path_name TEXT NOT NULL DEFAULT '',
+        grade TEXT NOT NULL DEFAULT ''
+            CHECK (grade IN ('', 'SD', 'SMP', 'SMK')),
+        months INTEGER NOT NULL CHECK (months BETWEEN 1 AND 36),
+        price INTEGER NOT NULL CHECK (price > 0),
+        aktif INTEGER NOT NULL DEFAULT 1 CHECK (aktif IN (0, 1)),
+        created_by INTEGER,
+        updated_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(path_key, months),
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY(updated_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_subscription_packages_aktif
+        ON subscription_packages(aktif, grade, path_name, months);
+
+    -- Invoice langganan. Harga disalin dari paket saat checkout supaya riwayat
+    -- tidak berubah kalau admin mengubah harga paket di kemudian hari.
+    -- finance_transaction_id menautkan invoice ke pemasukan di modul Finance;
+    -- saat transaksi itu ditandai lunas, langganan ikut aktif otomatis.
+    CREATE TABLE IF NOT EXISTS subscription_payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL DEFAULT '',
+        student_user_id INTEGER NOT NULL,
+        package_id INTEGER,
+        path_key TEXT NOT NULL DEFAULT '',
+        path_name TEXT NOT NULL DEFAULT '',
+        grade TEXT NOT NULL DEFAULT '',
+        months INTEGER NOT NULL CHECK (months BETWEEN 1 AND 36),
+        price INTEGER NOT NULL CHECK (price >= 0),
+        discount INTEGER NOT NULL DEFAULT 0 CHECK (discount >= 0),
+        total INTEGER NOT NULL CHECK (total >= 0),
+        method TEXT NOT NULL DEFAULT 'Transfer Bank',
+        status TEXT NOT NULL DEFAULT 'pending'
+            CHECK (status IN ('pending', 'paid', 'failed', 'cancelled', 'expired', 'refunded')),
+        note TEXT NOT NULL DEFAULT '',
+        paid_on TEXT NOT NULL DEFAULT '',
+        paid_at DATETIME,
+        confirmed_by INTEGER,
+        finance_transaction_id INTEGER,
+        expires_on TEXT NOT NULL DEFAULT '',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(package_id) REFERENCES subscription_packages(id) ON DELETE SET NULL,
+        FOREIGN KEY(confirmed_by) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY(finance_transaction_id) REFERENCES finance_transactions(id) ON DELETE SET NULL
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_subscription_payments_code
+        ON subscription_payments(code) WHERE code <> '';
+    CREATE INDEX IF NOT EXISTS idx_subscription_payments_student
+        ON subscription_payments(student_user_id, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_subscription_payments_status
+        ON subscription_payments(status, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_subscription_payments_finance
+        ON subscription_payments(finance_transaction_id);
+`);
+
 // Migrasi untuk database lama: finance_expenses semula hanya mencatat
 // pengeluaran yang sudah dibayar. Kolom status/bukti ditambahkan agar alur
 // pengajuan (submitted -> approved -> paid/rejected) bisa disimpan. Baris lama

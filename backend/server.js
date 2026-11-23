@@ -1534,6 +1534,9 @@ require("./jadwal-api").registerJadwalApi(app, {
 require("./finance-api").registerFinanceApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
+require("./subscription-api").registerSubscriptionApi(app, {
+    db, auth, sendApiError, sendApiSuccess, rateLimitMiddleware
+});
 require("./rewards-api").registerRewardsApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });

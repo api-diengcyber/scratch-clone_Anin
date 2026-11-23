@@ -395,6 +395,47 @@ Perilaku penting:
 - Detail validasi finance dikembalikan sebagai `400 VALIDATION_ERROR` dengan `details.field` (mis. `price`, `discount`, `studentId`, `tanggal`, `nominal`, `periode`, `potongan`). Rentang `from`/`to` yang terbalik atau lebih dari 401 hari juga ditolak.
 - Rate limit admin: 60 request/menit per admin per path.
 
+## Langganan & Pembayaran
+
+Alur manual (belum ada gateway): siswa memilih paket → checkout membuat invoice + transaksi Finance `pending` → siswa transfer → admin mengonfirmasi → langganan aktif dan email laporan bulanan diantrekan. Konfirmasi admin dan pelunasan transaksi Finance memakai fungsi yang sama, sehingga gateway nanti cukup memanggil konfirmasi itu dari webhook tanpa mengubah kontrak API frontend.
+
+Paket harga disimpan per `path_key` (`Jenjang|Nama jalur`, atau `|Semua jalur` untuk semua jenjang) × `months` (1–36). Harga disalin ke invoice saat checkout agar riwayat tidak berubah saat paket diubah.
+
+### Endpoint siswa
+
+| Method | Alamat | Isi (body) | Hasil |
+|---|---|---|---|
+| GET | `/api/subscription` | - | `{ subscription, pendingPayment, payments }`; `subscription` = `{ startedAt, months, endsAt, active, daysLeft, firstReportDueDate, lastReportDueDate }` |
+| GET | `/api/subscription/packages?grade=` | - | `{ items, total }`; hanya paket aktif, item `{ id, key, pathName, grade, months, price, active, createdAt, updatedAt }`; `grade` menyertakan paket `\|Semua jalur` |
+| POST | `/api/subscription/checkout` | `{ packageId }` atau `{ key, months }` | `{ item, instructions, reused }`; `201` invoice baru, `200` bila invoice pending untuk paket yang sama masih berlaku; `instructions` = `{ method, code, total, expiresOn, bankName, accountNumber, accountHolder, note, paymentUrl }` |
+| GET | `/api/subscription/payments/:id` | - | `{ item }`; hanya invoice milik siswa itu (`404` bila bukan) |
+| POST | `/api/subscription/payments/:id/cancel` | `{ reason? }` | `{ item }`; hanya status `pending` |
+
+### Endpoint admin
+
+| Method | Alamat | Isi (body) | Hasil |
+|---|---|---|---|
+| GET | `/api/admin/subscription/packages?grade=` | - | `{ items, total }`; termasuk paket nonaktif |
+| PUT | `/api/admin/subscription/packages` | `{ key, months, price, aktif? }` | `{ item }` 201/200; **upsert** per `key` + `months` |
+| DELETE | `/api/admin/subscription/packages/:id` | - | `{ id }`; invoice lama menyimpan salinan nama/harga, jadi riwayat tetap utuh |
+| GET | `/api/admin/subscription/payments?status=&studentId=&page=&limit=` | - | `{ items, total, page, limit, pages }`; item memuat `studentId`, `studentName`, `studentUsername`, `financeTransactionId`, `confirmedBy` |
+| GET | `/api/admin/subscription/payments/:id` | - | `{ item }`; invoice kedaluwarsa ditandai `expired` saat dibaca |
+| POST | `/api/admin/subscription/payments/:id/confirm` | `{ paidAt?, note? }` | `{ item, subscription, activation, alreadyPaid }`; `paidAt` (`YYYY-MM-DD`) default hari ini; invoice yang sudah `paid` mengembalikan `alreadyPaid: true` tanpa menambah durasi |
+| POST | `/api/admin/subscription/payments/:id/reject` | `{ reason? }` | `{ item }`; status menjadi `failed`, transaksi Finance tertaut ikut `failed` |
+
+Perilaku penting:
+
+- **Endpoint admin langganan khusus `admin`.** Semua `/api/admin/subscription/*` memakai `auth.requireAdmin` (bukan matriks permission), sehingga akun `instruktur` ditolak `403 ADMIN_REQUIRED` seperti modul Finance.
+- Status invoice: `pending` → `paid` | `failed` | `cancelled` | `expired` | `refunded`. Hanya `pending` yang bisa dibatalkan siswa; admin boleh mengonfirmasi/menolak `pending`, `expired`, atau `failed`. Invoice `paid` bersifat final.
+- Invoice kedaluwarsa setelah `SUBSCRIPTION_INVOICE_DAYS` hari (default 3, maks. 30) dan otomatis menjadi `expired` saat dibaca; transaksi Finance tertaut menjadi `failed`. Checkout ulang membuat invoice baru.
+- Checkout membuat baris `finance_transactions` `pending` dengan catatan `Langganan <N> bulan (<kode>)`. Menandai transaksi itu `paid` lewat `PATCH /api/admin/finance/transactions/:id` juga mengaktifkan langganan (hook `activateForFinanceTransaction`), jadi UI Finance dan endpoint langganan konsisten.
+- Konfirmasi saat langganan masih aktif **menambah** durasi (`subscription_months` bertambah, tanggal mulai tetap). Konfirmasi setelah habis atau saat belum pernah berlangganan memulai siklus baru pada hari pembayaran; baris `report_deliveries` siklus lama diberi `period = "cycle:<tanggal mulai lama>"` agar tidak bentrok dengan siklus baru.
+- Total durasi dibatasi 36 bulan; checkout yang akan melewati batas ditolak `400 VALIDATION_ERROR` dengan `details.field = "packageId"`.
+- Konfirmasi mengantrekan email laporan bulan 1..durasi total untuk semua wali (idempoten, tidak menggandakan email). Aktivasi tidak memindai ulang seluruh antrean karena tanggal mulai tidak berubah saat perpanjangan.
+- Instruksi transfer dibaca dari `SUBSCRIPTION_BANK_NAME`, `SUBSCRIPTION_BANK_ACCOUNT`, `SUBSCRIPTION_BANK_HOLDER`, dan `SUBSCRIPTION_PAYMENT_NOTE`. Bila bank kosong, `note` meminta siswa menghubungi admin dan `paymentUrl` bernilai `null` (nanti diisi gateway).
+- Audit: `subscription_package.create`/`update`/`delete`, `subscription_payment.create`/`confirm`/`reject`/`cancel`, dan `subscription.activate` dengan `target_type` `subscription_package`, `subscription_payment`, atau `user`.
+- Rate limit checkout: 20 request/menit per siswa per path.
+
 ## Laporan Wali (publik)
 
 Wali tidak punya akun. Admin membuat tautan laporan per siswa lalu mengirim URL-nya ke email wali; selain itu, email berisi tautan dikirim otomatis satu bulan setelah siswa mulai berlangganan (lihat [Pengiriman email laporan](#pengiriman-email-laporan)). Siapa pun yang memegang tautan dapat membaca laporan sampai tautan kedaluwarsa atau dicabut.
