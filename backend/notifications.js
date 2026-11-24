@@ -2,6 +2,8 @@
 
 // Notifikasi admin disimpan per akun admin. Helper ini dipakai route admin
 // dan route murid (misalnya saat task selesai) tanpa harus menduplikasi SQL.
+const sseHub = require("./sse-hub");
+
 function safeText(value, max) {
   return String(value == null ? "" : value)
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
@@ -35,6 +37,19 @@ function notifyAdmins(db, payload = {}) {
       }
     });
     tx();
+    if (inserted > 0) {
+      for (const admin of admins) {
+        sseHub.broadcastToUser(admin.id, "notification", {
+          kind,
+          title,
+          body,
+          view,
+          icon,
+          tone,
+          unreadCount: Number(db.prepare("SELECT COUNT(*) AS n FROM admin_notifications WHERE user_id = ? AND read_at IS NULL").get(admin.id)?.n || 0)
+        });
+      }
+    }
     return inserted;
   } catch (error) {
     // Notifikasi bersifat non-kritis: jangan gagalkan aksi utama hanya karena ini.

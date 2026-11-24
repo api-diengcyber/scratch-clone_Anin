@@ -13,7 +13,8 @@ try { fs.unlinkSync(TMPDB); } catch (e) {}
 
 const child = spawn("node", ["server.js"], {
   cwd: BACKEND,
-  env: { ...process.env, DB_PATH: TMPDB, PORT: String(PORT), NODE_ENV: "test" }
+  // Batas login dinaikkan khusus tes supaya rangkaian tes tidak kena 429.
+  env: { ...process.env, DB_PATH: TMPDB, PORT: String(PORT), NODE_ENV: "test", LOGIN_RATE_LIMIT: "500" }
 });
 let out = "";
 child.stdout.on("data", (d) => { out += d; });
@@ -35,6 +36,7 @@ async function t(name, fn) {
   catch (e) { results.push(["FAIL", name + " — " + e.message]); }
 }
 function eq(a, b, msg) { if (a !== b) throw new Error(`${msg}: dapat ${JSON.stringify(a)}, harap ${JSON.stringify(b)}`); }
+function ok(v, msg) { if (!v) throw new Error(msg); }
 async function j(res) {
   const txt = await res.text();
   try { return JSON.parse(txt); }
@@ -66,6 +68,9 @@ const PASS2 = "barubaru1";
   await waitReady();
 
   let emailToken = null;
+  let tokenA = null;
+  let tokenB = null;
+  let currentKey = null;
 
   await t("register email -> 201, username otomatis, email lowercase", async () => {
     const { r, d } = await register({ email: EMAIL, password: PASS });
@@ -221,6 +226,94 @@ const PASS2 = "barubaru1";
       eq(local.prepare("SELECT COUNT(*) AS n FROM users WHERE email = ? COLLATE NOCASE").get("siti@example.com").n, 1, "hanya satu pemilik email");
     } finally {
       local.close();
+    }
+  });
+
+  // ----------------------------------------------------------
+  // Header keamanan, cache, dan manajemen sesi
+  // ----------------------------------------------------------
+
+  await t("header keamanan dasar ada", async () => {
+    const r = await fetch(`${B}/api/health`);
+    eq(r.headers.get("x-content-type-options"), "nosniff", "nosniff");
+    eq(r.headers.get("x-frame-options"), "DENY", "frame options");
+    eq(r.headers.get("referrer-policy"), "no-referrer", "referrer policy");
+    eq(r.headers.get("cross-origin-opener-policy"), "same-origin", "coop");
+    eq(r.headers.get("cross-origin-resource-policy"), "same-origin", "corp");
+    eq(r.headers.get("x-permitted-cross-domain-policies"), "none", "cross domain");
+    ok(r.headers.get("permissions-policy"), "permissions policy");
+  });
+
+  await t("respons login tidak di-cache", async () => {
+    const { r } = await login({ email: "budi.baru@example.com", password: PASS2 });
+    eq(r.status, 200, "status");
+    eq(r.headers.get("cache-control"), "no-store", "cache-control");
+    eq(r.headers.get("pragma"), "no-cache", "pragma");
+  });
+
+  await t("sesi: daftar sesi tanpa membocorkan token", async () => {
+    const a = await login({ email: "budi.baru@example.com", password: PASS2 });
+    const b = await login({ email: "budi.baru@example.com", password: PASS2 });
+    eq(a.r.status, 200, "login A");
+    eq(b.r.status, 200, "login B");
+    tokenA = a.d.token;
+    tokenB = b.d.token;
+
+    const r = await fetch(`${B}/api/auth/sessions`, { headers: { Authorization: "Bearer " + tokenA } });
+    const d = await j(r);
+    eq(r.status, 200, "status");
+    ok(Array.isArray(d.sessions) && d.sessions.length >= 2, "minimal dua sesi");
+    eq(d.sessions.filter((s) => s.current).length, 1, "tepat satu sesi current");
+    for (const session of d.sessions) {
+      ok(/^[a-f0-9]{16}$/.test(session.key), "key 16 hex");
+      ok(!("token" in session) && !("tokenHash" in session), "token tidak bocor");
+    }
+    currentKey = d.sessions.find((s) => s.current).key;
+  });
+
+  await t("sesi: revoke-others mencabut sesi lain", async () => {
+    const r = await fetch(`${B}/api/auth/sessions/revoke-others`, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tokenA }
+    });
+    const d = await j(r);
+    eq(r.status, 200, "status");
+    ok(d.revoked >= 1, "ada sesi dicabut");
+    eq((await me(tokenB)).r.status, 401, "token B mati");
+    eq((await me(tokenA)).r.status, 200, "token A tetap hidup");
+  });
+
+  await t("sesi: sesi yang sedang dipakai tidak bisa dicabut dari daftar", async () => {
+    const r = await fetch(`${B}/api/auth/sessions/${currentKey}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer " + tokenA }
+    });
+    const d = await j(r);
+    eq(r.status, 409, "status");
+    eq(d.code, "CANNOT_REVOKE_CURRENT", "code");
+  });
+
+  await t("sesi: logout-all mencabut semua sesi", async () => {
+    const r = await fetch(`${B}/api/auth/logout-all`, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tokenA }
+    });
+    const d = await j(r);
+    eq(r.status, 200, "status");
+    ok(d.revoked >= 1, "ada sesi dicabut");
+    eq((await me(tokenA)).r.status, 401, "token A mati");
+  });
+
+  await t("static: folder internal tidak bisa diakses (case-insensitive)", async () => {
+    const urls = [
+      "/backend/server.js",
+      "/Backend/server.js",
+      "/node_modules/tailwindcss/package.json",
+      "/Node_Modules/tailwindcss/package.json"
+    ];
+    for (const url of urls) {
+      const r = await fetch(B + url);
+      eq(r.status, 404, url + " harus 404");
     }
   });
 

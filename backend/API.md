@@ -19,6 +19,10 @@ Envelope error: `{ ok: false, code, message, details? }`.
 | GET  | `/api/auth/me` | - | `{ id, username, email, fullName, role, status, mustChangePassword, lastLoginAt, hasPassword }` |
 | POST | `/api/auth/change-password` | `{ currentPassword?, newPassword }` | `{ id, username }` |
 | POST | `/api/auth/logout` | - | `{ message }` |
+| GET  | `/api/auth/sessions` | - | `{ sessions: [{ key, current, createdAt, lastSeenAt, expiresAt, userAgent, ip }] }` |
+| POST | `/api/auth/sessions/revoke-others` | - | `{ revoked }` |
+| DELETE | `/api/auth/sessions/:key` | - | `{ key }` (sesi lain dicabut) |
+| POST | `/api/auth/logout-all` | - | `{ revoked }` (semua sesi dicabut) |
 
 Catatan auth:
 
@@ -27,8 +31,12 @@ Catatan auth:
 - `status` pada login hanya menandai cara login: `claimed` (akun legacy yang baru mengklaim password) atau `login` (login biasa).
 - Akun Firebase (punya `email`/`firebase_uid` tetapi belum punya password) **tidak bisa diklaim lewat login biasa**. Pemilik harus login lewat Firebase dulu, lalu memanggil `POST /api/auth/change-password` untuk mengatur password DB.
 - `POST /api/auth/change-password` mewajibkan `currentPassword` bila akun sudah punya password. Sesi di perangkat lain otomatis dicabut; sesi yang sedang dipakai tetap aktif.
+- `GET /api/auth/sessions` menampilkan perangkat yang sedang login. `key` hanya 16 karakter pertama hash token — **bukan token** — jadi aman ditampilkan di UI. Tepat satu baris memiliki `current: true`.
+- `DELETE /api/auth/sessions/:key` mencabut sesi lain. Sesi yang sedang dipakai tidak bisa dicabut dari sini (`409 CANNOT_REVOKE_CURRENT`); gunakan `POST /api/auth/logout`. `POST /api/auth/logout-all` mencabut semua sesi termasuk yang sedang dipakai.
 - Profil (`PUT /api/profile`) juga menerima `email`; email yang sudah dipakai akun lain ditolak `409 EMAIL_EXISTS`.
 - Masa sesi login (`sessionHours`) dan password minimum (`minPassword`) diambil dari pengaturan instansi yang disimpan lewat `PUT /api/admin/settings`; default backend: sesi 12 jam, password minimal 8 karakter. Login/register/firebase-register membuat sesi dengan TTL sesuai pengaturan; `POST /api/auth/change-password` memakai batas password minimum yang sama.
+- `MAX_SESSIONS_PER_USER` (default 20, `0` = tanpa batas) membatasi sesi aktif per akun; sesi terlama otomatis dibuang saat login baru. `SESSION_IDLE_HOURS` (default `0` = nonaktif) mengakhiri sesi yang tidak aktif selama N jam dengan `401 SESSION_IDLE_TIMEOUT`.
+- Respons endpoint `/api/auth/*` selalu `Cache-Control: no-store` agar token tidak tersimpan di cache browser/proxy.
 
 Kode error auth: `400` input salah, `401` kredensial salah/belum login/sesi habis, `403` akun suspended/deleted atau membuka data user lain, `409` email/username sudah terdaftar, `429` terlalu banyak percobaan.
 
@@ -206,6 +214,7 @@ Pesan mentor maksimal 400 karakter. Hanya admin/instruktur yang lolos permission
 
 | Method | Alamat | Isi (body) | Hasil |
 |---|---|---|---|
+| GET | `/api/notifications/stream` | - | **SSE Stream**: `event: connected` dan `event: notification` real-time tanpa polling (wajib Bearer Token) |
 | GET | `/api/notifications?limit=20` | - | `{ notifications, unreadCount }`; hanya notifikasi milik siswa yang login |
 | POST | `/api/notifications/:id/read` | - | `{ id, read: true, unreadCount }` |
 | POST | `/api/notifications/read-all` | - | `{ updated, unreadCount: 0 }` |

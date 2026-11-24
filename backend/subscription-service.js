@@ -15,6 +15,8 @@
 // jadi kontrak API untuk frontend tidak perlu berubah.
 // ------------------------------------------------------------
 
+const fs = require("fs");
+const path = require("path");
 const reportDeliveries = require("./report-deliveries");
 const reports = require("./reports");
 const paymentGateway = require("./payment-gateway");
@@ -302,9 +304,17 @@ function subscriptionState(db, studentId, options = {}) {
 // Invoice / pembayaran
 // ------------------------------------------------------------
 
+function getUploadDir() {
+  const dir = process.env.UPLOAD_DIR || path.join(__dirname, "uploads", "proofs");
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch (_) {}
+  return dir;
+}
+
 function paymentDto(row, options = {}) {
   const hasProof = row.has_proof === undefined
-    ? Boolean(row.proof_data)
+    ? Boolean((row.proof_data && row.proof_data !== "") || (row.proof_path && row.proof_path !== ""))
     : Boolean(Number(row.has_proof));
   const dto = {
     id: Number(row.id),
@@ -341,13 +351,13 @@ function paymentDto(row, options = {}) {
   return dto;
 }
 
-// proof_data tidak pernah ikut di daftar agar respons tetap ringan; detail
+// proof_data/proof_path tidak pernah ikut di daftar agar respons tetap ringan; detail
 // admin membacanya terpisah lewat proofDataUrl().
 const PAYMENT_COLUMNS = `p.id, p.code, p.student_user_id, p.package_id, p.path_key, p.path_name,
   p.grade, p.months, p.price, p.discount, p.total, p.method, p.status, p.note, p.paid_on,
   p.paid_at, p.confirmed_by, p.finance_transaction_id, p.expires_on, p.created_at, p.updated_at,
-  p.proof_name, p.proof_mime, p.proof_size, p.proof_at,
-  CASE WHEN p.proof_data <> '' THEN 1 ELSE 0 END AS has_proof`;
+  p.proof_name, p.proof_mime, p.proof_size, p.proof_at, p.proof_path,
+  CASE WHEN (p.proof_path IS NOT NULL AND p.proof_path <> '') OR (p.proof_data IS NOT NULL AND p.proof_data <> '') THEN 1 ELSE 0 END AS has_proof`;
 
 const PAYMENT_SELECT = `
   SELECT ${PAYMENT_COLUMNS},
@@ -357,9 +367,28 @@ const PAYMENT_SELECT = `
 `;
 
 function proofDataUrl(db, paymentId) {
-  const row = db.prepare("SELECT proof_mime, proof_data FROM subscription_payments WHERE id = ?").get(Number(paymentId) || 0);
-  if (!row || !row.proof_data) return null;
-  return `data:${row.proof_mime || "application/octet-stream"};base64,${row.proof_data}`;
+  const row = db.prepare("SELECT proof_mime, proof_data, proof_path FROM subscription_payments WHERE id = ?").get(Number(paymentId) || 0);
+  if (!row) return null;
+  const mime = row.proof_mime || "application/octet-stream";
+
+  // Prioritaskan berkas fisik dari proof_path
+  if (row.proof_path) {
+    try {
+      const fullPath = path.isAbsolute(row.proof_path)
+        ? row.proof_path
+        : path.join(getUploadDir(), row.proof_path);
+      if (fs.existsSync(fullPath)) {
+        const fileBuf = fs.readFileSync(fullPath);
+        return `data:${mime};base64,${fileBuf.toString("base64")}`;
+      }
+    } catch (_) {}
+  }
+
+  // Fallback ke kolom proof_data lama bila berkas belum dipindah
+  if (row.proof_data) {
+    return `data:${mime};base64,${row.proof_data}`;
+  }
+  return null;
 }
 
 function findPayment(db, id) {
@@ -509,10 +538,17 @@ function attachProof(db, paymentId, studentId, input = {}, options = {}) {
     const name = text(input.name, "name", 120) || `bukti-transfer.${parsed.ext}`;
     const uploadedAt = new Date().toISOString();
 
+    // Simpan berkas fisik ke disk agar database SQLite tetap ramping
+    const uploadDir = getUploadDir();
+    const filename = `proof-${payment.id}-${Date.now()}.${parsed.ext}`;
+    const filePath = path.join(uploadDir, filename);
+    const buffer = Buffer.from(parsed.base64, "base64");
+    fs.writeFileSync(filePath, buffer);
+
     db.prepare(`UPDATE subscription_payments
-      SET proof_data = ?, proof_mime = ?, proof_name = ?, proof_size = ?, proof_at = ?,
+      SET proof_path = ?, proof_data = '', proof_mime = ?, proof_name = ?, proof_size = ?, proof_at = ?,
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?`).run(parsed.base64, parsed.mime, name, parsed.size, uploadedAt, payment.id);
+      WHERE id = ?`).run(filename, parsed.mime, name, parsed.size, uploadedAt, payment.id);
 
     writeAudit(db, {
       actorId: studentId,

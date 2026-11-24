@@ -176,21 +176,33 @@ const INSTRUKTUR_ROOT = path.join(__dirname, "..", "Instruktur"); // frontend in
 // MIDDLEWARE
 // ============================================================
 
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || null;
-if (process.env.NODE_ENV === "production" && FRONTEND_ORIGIN) {
-    app.use(cors({ origin: FRONTEND_ORIGIN }));
+// FRONTEND_ORIGIN boleh berisi beberapa origin dipisah koma, mis.
+// "https://app.example.com,https://admin.example.com".
+const FRONTEND_ORIGINS = String(process.env.FRONTEND_ORIGIN || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+if (FRONTEND_ORIGINS.length) {
+    app.use(cors({ origin: FRONTEND_ORIGINS.length === 1 ? FRONTEND_ORIGINS[0] : FRONTEND_ORIGINS }));
+} else if (process.env.NODE_ENV === "production") {
+    // Gagal-tertutup: frontend produksi disajikan dari origin yang sama, jadi
+    // tidak butuh CORS. Jangan pernah membuka "*" di production.
+    console.warn("[WARN] FRONTEND_ORIGIN belum diset; CORS lintas-origin dimatikan (same-origin only).");
 } else {
     app.use(cors());
-    if (process.env.NODE_ENV === "production") {
-        console.warn("[WARN] CORS terbuka (*) di production. Set FRONTEND_ORIGIN untuk membatasi.");
-    }
 }
 // Kompresi response teks (HTML/CSS/JS/JSON) agar lebih cepat di jaringan lambat.
 app.use(compression({ threshold: 1024 }));
 
 // Respons API yang membawa token jangan disimpan di cache browser/proxy.
+// Endpoint auth juga selalu no-store karena respons login/register memuat
+// token tanpa header Authorization.
 app.use("/api", (req, res, next) => {
-    if (req.headers.authorization) res.setHeader("Cache-Control", "no-store");
+    if (req.headers.authorization || req.path.startsWith("/auth/")) {
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("Pragma", "no-cache");
+    }
     next();
 });
 
@@ -271,6 +283,19 @@ app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("X-DNS-Prefetch-Control", "off");
+    res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+
+    // HSTS hanya dikirim lewat HTTPS. Di balik proxy, trust proxy + header
+    // X-Forwarded-Proto membuat req.secure bernilai true.
+    const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim();
+    if (req.secure || forwardedProto === "https") {
+        res.setHeader("Strict-Transport-Security", "max-age=31536000");
+    }
+
     res.setHeader(
         "Content-Security-Policy",
         "default-src 'self'; " +
@@ -292,17 +317,20 @@ app.use((req, res, next) => {
 // ============================================================
 
 app.use((req, res, next) => {
+    // Bandingkan lowercase: di Windows filesystem tidak case-sensitive,
+    // sehingga /Backend/... bisa membuka file yang sama dengan /backend/...
+    const lower = req.path.toLowerCase();
     if (
-        req.path === "/backend" ||
-        req.path.startsWith("/backend/") ||
-        req.path.startsWith("/node_modules") ||
-        req.path === "/package.json" ||
-        req.path === "/package-lock.json" ||
-        req.path === "/.env" ||
-        req.path.startsWith("/.env.") ||
-        req.path === "/.git" ||
-        req.path.startsWith("/.git/") ||
-        /\.sqlite(-shm|-wal)?$/.test(req.path)
+        lower === "/backend" ||
+        lower.startsWith("/backend/") ||
+        lower.startsWith("/node_modules") ||
+        lower === "/package.json" ||
+        lower === "/package-lock.json" ||
+        lower === "/.env" ||
+        lower.startsWith("/.env.") ||
+        lower === "/.git" ||
+        lower.startsWith("/.git/") ||
+        /\.sqlite(-shm|-wal)?$/.test(lower)
     ) {
         return res.status(404).send("Not Found");
     }
@@ -550,7 +578,11 @@ app.get("/api/modules/:grade", (req, res) => {
 // AUTH (LOGIN) - Username/Password (Legacy)
 // ============================================================
 
-app.post("/api/auth/login", rateLimitMiddleware(10), (req, res) => {
+// Batas percobaan login per IP per 15 menit. Bisa dinaikkan lewat env untuk
+// pengujian atau instansi dengan banyak pengguna di satu IP (mis. lab sekolah).
+const LOGIN_RATE_LIMIT = Math.max(1, Number.parseInt(process.env.LOGIN_RATE_LIMIT || "10", 10) || 10);
+
+app.post("/api/auth/login", rateLimitMiddleware(LOGIN_RATE_LIMIT), (req, res) => {
     const body = req.body || {};
     const emailInput = normalizeEmail(body.email);
     const usernameInput = sanitizeString(body.username, 32);
@@ -859,6 +891,35 @@ app.get("/api/auth/me", auth.requireAuth, (req, res) => {
 app.post("/api/auth/logout", auth.requireAuth, (req, res) => {
     auth.deleteSession(req.token);
     sendApiSuccess(res, {}, "Logout berhasil");
+});
+
+// ------------------------------------------------------------
+// SESI AKTIF
+// Pengguna bisa melihat perangkat yang sedang login dan mencabut yang tidak
+// dikenal. Kunci sesi hanya 16 karakter pertama hash token, bukan tokennya.
+// ------------------------------------------------------------
+app.get("/api/auth/sessions", auth.requireAuth, (req, res) => {
+    sendApiSuccess(res, { sessions: auth.listSessions(req.userId, req.token) });
+});
+
+app.post("/api/auth/sessions/revoke-others", auth.requireAuth, rateLimitMiddleware(30), (req, res) => {
+    const revoked = auth.deleteOtherSessions(req.userId, req.token);
+    sendApiSuccess(res, { revoked }, "Sesi di perangkat lain dicabut.");
+});
+
+app.delete("/api/auth/sessions/:key", auth.requireAuth, rateLimitMiddleware(30), (req, res) => {
+    const key = String(req.params.key || "").trim().toLowerCase();
+    if (auth.sessionKey(req.token) === key) {
+        return sendApiError(res, 409, "Sesi yang sedang dipakai tidak bisa dicabut dari sini. Gunakan logout.", "CANNOT_REVOKE_CURRENT");
+    }
+    const revoked = auth.revokeSession(req.userId, key);
+    if (!revoked) return sendApiError(res, 404, "Sesi tidak ditemukan.", "NOT_FOUND");
+    sendApiSuccess(res, { key }, "Sesi dicabut.");
+});
+
+app.post("/api/auth/logout-all", auth.requireAuth, (req, res) => {
+    const revoked = auth.deleteAllSessions(req.userId);
+    sendApiSuccess(res, { revoked }, "Semua sesi dicabut. Silakan login lagi.");
 });
 
 // ============================================================
@@ -1597,6 +1658,25 @@ setInterval(() => {
         if (r.changes) console.log(`Sesi kedaluwarsa dibersihkan: ${r.changes}`);
     } catch (e) { console.error("Gagal membersihkan sesi:", e.message); }
 }, 60 * 60 * 1000).unref();
+
+// Retensi notifikasi (opsional). Default 0 = simpan selamanya. Kalau diisi,
+// notifikasi yang lebih tua dari N hari dibuang supaya tabel tidak tumbuh
+// tanpa batas. Audit admin sengaja TIDAK ikut dihapus otomatis.
+const NOTIFICATION_RETENTION_DAYS = Number.parseInt(process.env.NOTIFICATION_RETENTION_DAYS || "0", 10);
+if (Number.isSafeInteger(NOTIFICATION_RETENTION_DAYS) && NOTIFICATION_RETENTION_DAYS > 0) {
+    setInterval(() => {
+        try {
+            const cutoff = `-${NOTIFICATION_RETENTION_DAYS} days`;
+            const student = db.prepare(
+                "DELETE FROM student_notifications WHERE created_at <= datetime('now', ?)"
+            ).run(cutoff).changes;
+            const admin = db.prepare(
+                "DELETE FROM admin_notifications WHERE created_at <= datetime('now', ?)"
+            ).run(cutoff).changes;
+            if (student + admin) console.log(`Notifikasi lama dibersihkan: ${student + admin}`);
+        } catch (e) { console.error("Gagal membersihkan notifikasi:", e.message); }
+    }, 6 * 60 * 60 * 1000).unref();
+}
 
 // Tandai invoice langganan yang lewat masa berlaku. Endpoint juga memeriksa
 // saat dibaca; sapuan ini menjaga status tetap benar walau tidak ada akses.

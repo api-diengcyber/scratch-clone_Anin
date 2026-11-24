@@ -20,6 +20,22 @@ db.pragma("busy_timeout = 5000");
 db.pragma("temp_store = MEMORY");
 db.pragma("cache_size = -16000"); // ~16 MB cache halaman
 
+// WAL: pembaca tidak memblokir penulis (dan sebaliknya), penting karena
+// dashboard/laporan membaca sambil endpoint lain menulis. `synchronous=NORMAL`
+// aman dipakai bersama WAL dan jauh lebih cepat daripada FULL.
+// Database :memory: (dipakai sebagian tes) tidak mendukung WAL.
+if (dbPath !== ":memory:") {
+    try {
+        const mode = String(db.pragma("journal_mode = WAL", { simple: true }) || "").toLowerCase();
+        db.pragma("synchronous = NORMAL");
+        if (mode !== "wal") {
+            console.warn(`[WARN] journal_mode bukan WAL (${mode || "tidak diketahui"}). Filesystem mungkin tidak mendukung WAL.`);
+        }
+    } catch (error) {
+        console.warn("[WARN] Gagal mengaktifkan WAL:", error.message);
+    }
+}
+
 // ============================================================
 // USERS — FINAL SCHEMA
 // ============================================================
@@ -1080,6 +1096,9 @@ db.exec(`
     if (!cols.includes("proof_at")) {
         db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_at DATETIME");
     }
+    if (!cols.includes("proof_path")) {
+        db.exec("ALTER TABLE subscription_payments ADD COLUMN proof_path TEXT NOT NULL DEFAULT ''");
+    }
 })();
 
 // Migrasi untuk database lama: finance_expenses semula hanya mencatat
@@ -1821,6 +1840,16 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_attempts_user_updated ON attempts(user_id, updated_at DESC);
     CREATE INDEX IF NOT EXISTS idx_user_items_user ON user_items(user_id);
 `);
+
+// Migrasi berversi untuk perubahan skema berikutnya. Bootstrap di atas tetap
+// dipertahankan untuk database baru; runner ini mencatat baseline dan
+// menerapkan file migrations/*.js yang belum pernah jalan.
+try {
+    require("./migrations").runMigrations(db, { logger: console });
+} catch (error) {
+    console.error("[MIGRASI] Gagal menjalankan migrasi:", error.message);
+    throw error;
+}
 
 console.log("Database berhasil terhubung.");
 console.log("Lokasi database:", dbPath);

@@ -31,6 +31,28 @@ const destination = path.join(backupDir, `database-${stamp}.sqlite`);
         db.close();
     }
 
+    // Verifikasi hasil backup, bukan hanya ukurannya. Backup yang rusak lebih
+    // berbahaya daripada tidak punya backup karena memberi rasa aman palsu.
+    if (String(process.env.BACKUP_VERIFY || "true").trim().toLowerCase() !== "false") {
+        const check = new Database(destination, { readonly: true, fileMustExist: true });
+        try {
+            const integrity = String(check.pragma("integrity_check", { simple: true }) || "");
+            if (integrity.toLowerCase() !== "ok") {
+                throw new Error(`integrity_check gagal: ${integrity}`);
+            }
+            const violations = check.pragma("foreign_key_check");
+            if (violations.length) {
+                throw new Error(`foreign_key_check menemukan ${violations.length} pelanggaran`);
+            }
+            console.log("Backup diverifikasi: integrity_check ok, foreign_key_check bersih.");
+        } catch (error) {
+            try { fs.unlinkSync(destination); } catch (_) {}
+            throw new Error(`Backup tidak valid dan dihapus: ${error.message}`);
+        } finally {
+            check.close();
+        }
+    }
+
     const backups = fs.readdirSync(backupDir)
         .filter((name) => /^database-.*\.sqlite$/.test(name))
         .map((name) => ({

@@ -17,7 +17,12 @@ node_modules/
 # Local backups / runtime data
 backend/backups/
 backend/plugin-data/
+backend/uploads/
 users/jadwal/backup-*.zip
+
+# Catatan/dokumentasi lokal (tidak ikut repo)
+/docs/
+/agent.md
 
 # Logs
 *.log

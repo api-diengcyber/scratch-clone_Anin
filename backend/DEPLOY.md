@@ -81,6 +81,22 @@ Migrasi schema berjalan otomatis saat server/seed start (kolom profil, `user_ite
 `user_id`, index, dll). Tidak perlu SQL manual. Migrasi identitas menolak boot jika
 ada baris anak yang tidak punya user valid; sesi lama tanpa user dihapus.
 
+Sejak batch ini ada **migrasi berversi** di `backend/migrations/`:
+
+- Saat pertama kali dijalankan pada database lama, `0000_baseline` dicatat di tabel
+  `schema_migrations` supaya skema yang sudah ada tidak dibuat ulang.
+- File `migrations/NNNN_nama.js` dijalankan berurutan dan dibungkus transaksi;
+  kegagalan menghentikan boot (lebih baik gagal terang-terangan daripada setengah
+  termigrasi).
+- Setiap file dicatat checksum-nya. **Jangan mengubah file migrasi yang sudah
+  jalan** — runner akan memberi peringatan. Perubahan baru harus lewat file baru.
+- Jangan menjalankan dua proses terhadap DB yang sama saat migrasi berjalan.
+
+Database file juga otomatis memakai **WAL** + `synchronous=NORMAL` agar pembaca
+(dashboard/laporan) tidak memblokir penulis. Ini membuat file `database.sqlite-wal`
+dan `-shm`; ikutkan ketiganya saat menyalin DB secara manual, atau gunakan
+`npm run backup` yang konsisten. Untuk `:memory:` (tes) WAL dilewati.
+
 Kalau jumlah data tidak sesuai, cek `DB_PATH` — kemungkinan seed masuk ke DB lain.
 
 ## 1.3 Environment production
@@ -102,8 +118,12 @@ Opsional:
 
 | Variabel | Default | Keterangan |
 |---|---|---|
-| `FRONTEND_ORIGIN` | - | Isi kalau frontend beda domain; kalau satu domain, kosongkan. |
+| `FRONTEND_ORIGIN` | - | Isi kalau frontend beda domain; boleh beberapa origin dipisah koma. Kosong di production = CORS lintas-origin **dimatikan** (same-origin only), bukan `*`. |
 | `TRUST_PROXY` | `1` | `1` = Nginx/Caddy langsung, `2` = Cloudflare + Nginx. |
+| `LOGIN_RATE_LIMIT` | `10` | Batas percobaan login per IP per 15 menit. |
+| `MAX_SESSIONS_PER_USER` | `20` | Batas sesi aktif per akun; sesi terlama dibuang otomatis (`0` = tanpa batas). |
+| `SESSION_IDLE_HOURS` | `0` | Akhiri sesi tanpa aktivitas setelah N jam (`0` = nonaktif). |
+| `NOTIFICATION_RETENTION_DAYS` | `0` | Buang notifikasi lebih tua dari N hari (`0` = simpan selamanya); audit admin tidak dihapus. |
 | `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL` | - | AI Tutor; tanpa ini fitur lain tetap jalan. |
 | `AI_MOCK` | - | `1` untuk jawaban dummy saat testing. |
 | `FIRST_TRY_BONUS` | `5` | Bonus koin percobaan pertama. |
@@ -111,6 +131,8 @@ Opsional:
 | `LOG_LEVEL` | `info` | Level log pino. |
 | `BACKUP_DIR` | `backend/backups` | Sebaiknya `/data/backups`. |
 | `BACKUP_KEEP` | `7` | Jumlah backup terakhir yang disimpan. |
+| `BACKUP_VERIFY` | `true` | Verifikasi backup dengan `integrity_check` + `foreign_key_check`; backup rusak dihapus. |
+| `UPLOAD_DIR` | `backend/uploads/proofs` | Folder bukti transfer. Arahkan ke volume persistent di production (mis. `/data/uploads/proofs`). |
 | `PLUGIN_DIR` | `/data/plugins` | Harus sama untuk backend dan runtime plugin. |
 | `PLUGIN_PUBLIC_ORIGIN` | `https://plugins.example.com` | Origin runtime plugin (subdomain terpisah). |
 | `APP_PUBLIC_ORIGIN` | `https://example.com` | Origin aplikasi utama untuk `frame-ancestors` runtime. Wajib di production. |
@@ -222,7 +244,10 @@ DB_PATH=/data/database.sqlite BACKUP_DIR=/data/backups npm run backup
 ```
 
 Script memakai SQLite backup API, jadi konsisten walau server sedang jalan dan
-otomatis menyimpan hanya `BACKUP_KEEP` file terakhir.
+otomatis menyimpan hanya `BACKUP_KEEP` file terakhir. Setelah menyalin, backup
+diverifikasi dengan `integrity_check` dan `foreign_key_check`; kalau gagal, file
+backup dihapus dan perintah keluar dengan error (jangan diabaikan di cron). Set
+`BACKUP_VERIFY=false` hanya bila verifikasi memang tidak diinginkan.
 
 Contoh cron harian 02:00:
 
@@ -334,7 +359,9 @@ Server menyajikan frontend dari root repo, tetapi memblokir:
 - `/.env`, `/.git`, `/node_modules`
 - semua file `*.sqlite`, `*.sqlite-shm`, `*.sqlite-wal`
 
-Sudah ada test otomatis untuk ini (`test-endpoints.js` dan `npm run smoke`).
+Pemblokiran tidak peka huruf besar/kecil, jadi `/Backend/...` atau `/Node_Modules/...`
+juga ditolak (penting di Windows yang filesystem-nya case-insensitive). Sudah ada
+test otomatis untuk ini (`test-auth.js`, `test-endpoints.js`, dan `npm run smoke`).
 
 ## 4. Troubleshooting
 
@@ -350,6 +377,10 @@ Sudah ada test otomatis untuk ini (`test-endpoints.js` dan `npm run smoke`).
 | Upload plugin `403 PLUGIN_DEVELOPER_REQUIRED` | `PLUGIN_DEVELOPER_USER_IDS` belum berisi `users.id` admin. |
 | Iframe plugin kosong / ditolak | `APP_PUBLIC_ORIGIN`, `PLUGIN_PUBLIC_ORIGIN`, dan CSP `frame-src` harus cocok; runtime harus di origin terpisah. |
 | Murid 403 setelah username diubah | Frontend masih memakai username lama; ambil ulang `/api/auth/me` lalu pakai username baru. |
+| `[MIGRASI] ... isinya berubah` | File migrasi lama diedit. Kembalikan isinya, atau buat migrasi baru; jangan hapus baris `schema_migrations`. |
+| Boot gagal di tengah migrasi | Baca pesan `Migrasi NNNN gagal: ...`; transaksi sudah di-rollback. Perbaiki penyebab (mis. data lama tidak valid) lalu start ulang. |
+| Backup gagal "tidak valid dan dihapus" | Cek ruang disk dan permission; jalankan `npm run backup` manual untuk melihat detail `integrity_check`. |
+| Frontend beda domain kena CORS | Isi `FRONTEND_ORIGIN` (boleh dipisah koma). Di production, origin kosong berarti same-origin only. |
 
 ## 5. Rollback
 

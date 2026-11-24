@@ -73,6 +73,30 @@ function sha256(text) {
     return crypto.createHash("sha256").update(text).digest("hex");
 }
 
+// `last_seen_at` ditulis SQLite sebagai "YYYY-MM-DD HH:MM:SS" (UTC, tanpa Z).
+// new Date() di Node membacanya sebagai waktu lokal, jadi tambahkan T + Z.
+function parseSqliteUtc(value) {
+    if (!value) return null;
+    const text = String(value).trim();
+    if (!text) return null;
+    if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(text)) return new Date(text);
+    return new Date(text.replace(" ", "T") + "Z");
+}
+
+// Batas sesi aktif per akun. Sesi terlama dibuang otomatis supaya tabel tidak
+// tumbuh tanpa batas dan perangkat yang hilang tidak menumpuk.
+function maxSessionsPerUser() {
+    const raw = Number.parseInt(process.env.MAX_SESSIONS_PER_USER, 10);
+    return Number.isSafeInteger(raw) && raw >= 0 ? Math.min(raw, 200) : 20;
+}
+
+// Idle timeout opsional (default mati agar tidak mengeluarkan pengguna yang
+// sudah terbiasa dengan masa sesi absolut dari pengaturan instansi).
+function idleTimeoutHours() {
+    const raw = Number(process.env.SESSION_IDLE_HOURS);
+    return Number.isFinite(raw) && raw > 0 ? Math.min(raw, 24 * 365) : 0;
+}
+
 function createSession(userId, { sessionHours, userAgent, ip } = {}) {
     const token = crypto.randomBytes(32).toString("hex");
     const hours = Number(sessionHours);
@@ -84,12 +108,70 @@ function createSession(userId, { sessionHours, userAgent, ip } = {}) {
 
     const ua = userAgent === undefined || userAgent === null ? null : String(userAgent).slice(0, 400);
     const clientIp = ip === undefined || ip === null ? null : String(ip).slice(0, 80);
-    db.prepare(`
-        INSERT INTO sessions (token_hash, user_id, expires_at, user_agent, ip, last_seen_at)
-        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).run(sha256(token), userId, expiresAt, ua, clientIp);
+    const tokenHash = sha256(token);
+
+    const insert = db.transaction(() => {
+        db.prepare(`
+            INSERT INTO sessions (token_hash, user_id, expires_at, user_agent, ip, last_seen_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `).run(tokenHash, userId, expiresAt, ua, clientIp);
+
+        const max = maxSessionsPerUser();
+        if (max > 0) {
+            const rows = db.prepare(`
+                SELECT token_hash FROM sessions
+                WHERE user_id = ?
+                ORDER BY COALESCE(last_seen_at, created_at) DESC, created_at DESC, rowid DESC
+            `).all(userId);
+            const extra = rows.slice(max);
+            if (extra.length) {
+                const placeholders = extra.map(() => "?").join(", ");
+                db.prepare(`DELETE FROM sessions WHERE token_hash IN (${placeholders})`)
+                    .run(...extra.map((row) => row.token_hash));
+            }
+        }
+    });
+    insert();
 
     return token;
+}
+
+// Kunci publik sesi untuk ditampilkan/dicabut dari UI. Ini hanya 16 karakter
+// pertama hash token, bukan token dan bukan hash penuh.
+function sessionKey(token) {
+    return token ? sha256(token).slice(0, 16) : null;
+}
+
+function listSessions(userId, currentToken) {
+    const currentHash = currentToken ? sha256(currentToken) : null;
+    return db.prepare(`
+        SELECT token_hash, created_at, expires_at, user_agent, ip, last_seen_at
+        FROM sessions
+        WHERE user_id = ?
+        ORDER BY COALESCE(last_seen_at, created_at) DESC, created_at DESC
+    `).all(userId).map((row) => ({
+        key: row.token_hash.slice(0, 16),
+        current: currentHash ? row.token_hash === currentHash : false,
+        createdAt: row.created_at || null,
+        lastSeenAt: row.last_seen_at || null,
+        expiresAt: row.expires_at || null,
+        userAgent: row.user_agent || null,
+        ip: row.ip || null
+    }));
+}
+
+// Mencabut satu sesi berdasarkan kunci publik. Mengembalikan token_hash agar
+// pemanggil bisa mencegah pencabutan sesi yang sedang dipakai.
+function revokeSession(userId, key) {
+    const value = String(key || "").trim().toLowerCase();
+    if (!/^[a-f0-9]{16}$/.test(value)) return null;
+    const row = db.prepare(`
+        SELECT token_hash FROM sessions
+        WHERE user_id = ? AND substr(token_hash, 1, 16) = ?
+    `).get(userId, value);
+    if (!row) return null;
+    db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(row.token_hash);
+    return row.token_hash;
 }
 
 function readToken(req) {
@@ -99,22 +181,21 @@ function readToken(req) {
 }
 
 function deleteSession(token) {
-    db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha256(token));
+    return db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha256(token)).changes;
 }
 
 // Cabut semua sesi user, kecuali token yang sedang dipakai (kalau ada).
 // Dipakai setelah ganti password supaya sesi lama di perangkat lain ikut mati.
 function deleteOtherSessions(userId, keepToken) {
     if (keepToken) {
-        db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?")
-            .run(userId, sha256(keepToken));
-    } else {
-        db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
+        return db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?")
+            .run(userId, sha256(keepToken)).changes;
     }
+    return db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId).changes;
 }
 
 function deleteAllSessions(userId) {
-    db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
+    return db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId).changes;
 }
 
 // ============================================================
@@ -159,7 +240,7 @@ function requireAuth(req, res, next) {
 
     const tokenHash = sha256(token);
     const session = db.prepare(`
-        SELECT s.user_id, s.expires_at,
+        SELECT s.user_id, s.expires_at, s.created_at, s.last_seen_at,
                u.username, u.role, u.status, u.must_change_password
         FROM sessions s
         JOIN users u ON u.id = s.user_id
@@ -168,6 +249,15 @@ function requireAuth(req, res, next) {
 
     if (!session || new Date(session.expires_at) < new Date()) {
         return authError(res, 401, "Sesi habis, silakan login lagi", "SESSION_EXPIRED");
+    }
+
+    const idleHours = idleTimeoutHours();
+    if (idleHours > 0) {
+        const lastActivity = parseSqliteUtc(session.last_seen_at || session.created_at);
+        if (lastActivity && Date.now() - lastActivity.getTime() > idleHours * 60 * 60 * 1000) {
+            db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(tokenHash);
+            return authError(res, 401, "Sesi berakhir karena tidak ada aktivitas", "SESSION_IDLE_TIMEOUT");
+        }
     }
 
     if (session.status === "suspended") {
@@ -311,6 +401,9 @@ module.exports = {
     deleteSession,
     deleteOtherSessions,
     deleteAllSessions,
+    sessionKey,
+    listSessions,
+    revokeSession,
     requireAuth,
     requireAdmin,
     requireStaff,

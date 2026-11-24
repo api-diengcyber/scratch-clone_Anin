@@ -8,6 +8,8 @@
 // `dedupe_key` mencegah kejadian yang sama masuk dua kali.
 // ------------------------------------------------------------
 
+const sseHub = require("./sse-hub");
+
 const MAX_TITLE = 200;
 const MAX_BODY = 500;
 const MAX_KIND = 60;
@@ -46,7 +48,20 @@ function notifyStudent(db, userId, payload = {}) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(id, kind, title, body, view, icon, tone, dedupeKey);
 
-  return info.changes === 1 ? 1 : 0;
+  const changed = info.changes === 1 ? 1 : 0;
+  if (changed) {
+    sseHub.broadcastToUser(id, "notification", {
+      kind,
+      title,
+      body,
+      view,
+      icon,
+      tone,
+      unreadCount: unreadCount(db, id)
+    });
+  }
+
+  return changed;
 }
 
 function toItem(row) {
@@ -108,6 +123,36 @@ function registerStudentNotificationApi(app, deps) {
     }
     next();
   }
+
+  app.get("/api/notifications/stream", auth.requireAuth, (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    // Kirim pesan connected awal beserta status unread terkini
+    sseHub.addClient(req.userId, res);
+    const unread = req.role === "student"
+      ? unreadCount(db, req.userId)
+      : (req.role === "admin"
+          ? Number(db.prepare("SELECT COUNT(*) AS n FROM admin_notifications WHERE user_id = ? AND read_at IS NULL").get(req.userId)?.n || 0)
+          : 0);
+
+    sseHub.sendSseMessage(res, "connected", { userId: req.userId, role: req.role, unreadCount: unread });
+
+    // Heartbeat ping setiap 25 detik agar koneksi proxy/LB tidak idle-timeout
+    const pingInterval = setInterval(() => {
+      try {
+        res.write(": ping\n\n");
+      } catch (_) {
+        clearInterval(pingInterval);
+      }
+    }, 25000);
+
+    res.on("close", () => {
+      clearInterval(pingInterval);
+    });
+  });
 
   app.get("/api/notifications", auth.requireAuth, requireStudent, (req, res) => {
     const notifications = listStudentNotifications(db, req.userId, { limit: req.query.limit });
