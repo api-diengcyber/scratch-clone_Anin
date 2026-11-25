@@ -282,4 +282,677 @@
       accent-color: #4f46e5;
       cursor: pointer;
     }
-    .checkbox-label {\n      font-size: 13px;\n      font-weight: 500;\n      color: #64748b;\n      cursor: pointer;\n    }\n\n    /* Alert Error */\n    .alert-error {\n      display: none;\n      padding: 10px 14px;\n      border-radius: 11px;\n      background: #fef2f2;\n      border: 1px solid #fecaca;\n      color: #dc2626;\n      font-size: 12.5px;\n      font-weight: 600;\n      margin-bottom: 18px;\n      animation: fadeIn 0.25s ease;\n    }\n    @keyframes fadeIn {\n      from { opacity: 0; transform: translateY(-4px); }\n      to { opacity: 1; transform: translateY(0); }\n    }\n\n    /* Submit Button (SIGN IN) */\n    .btn-signin {\n      width: 100%;\n      height: 48px;\n      border: none;\n      border-radius: 14px;\n      background: var(--btn-grad);\n      color: #ffffff;\n      font-family: var(--font-heading);\n      font-size: 14px;\n      font-weight: 800;\n      letter-spacing: 0.8px;\n      text-transform: uppercase;\n      cursor: pointer;\n      box-shadow: 0 8px 22px -3px rgba(79, 70, 229, 0.38);\n      transition: all 0.25s ease;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      gap: 8px;\n    }\n    .btn-signin:hover {\n      background: var(--btn-grad-hover);\n      box-shadow: 0 10px 26px -3px rgba(79, 70, 229, 0.48);\n      transform: translateY(-1.5px);\n    }\n    .btn-signin:active {\n      transform: translateY(0.5px);\n      box-shadow: 0 4px 14px -2px rgba(79, 70, 229, 0.35);\n    }\n    .btn-signin:disabled {\n      opacity: 0.7;\n      cursor: not-allowed;\n      transform: none;\n    }\n\n    /* Footer Register Link */\n    .register-footer {\n      text-align: center;\n      margin-top: 24px;\n      font-size: 13px;\n      color: #64748b;\n    }\n    .register-footer a {\n      color: #4f46e5;\n      font-weight: 700;\n      text-decoration: none;\n      transition: color 0.2s;\n    }\n    .register-footer a:hover {\n      color: #3730a3;\n      text-decoration: underline;\n    }\n\n    /* ============================================================\n       KOLOM KANAN: WARM & SIMPLE KIDS LEARNING SHOWCASE\n       Bersih, Tidak Rame, Nyaman Dipandang dengan Foto Asli Belajar\n       ============================================================ */\n    .visual-column {\n      position: relative;\n      background: #ffffff;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      overflow: hidden;\n      padding: 14px 14px 14px 0;\n    }\n\n    .photo-hero-panel {\n      width: 100%;\n      height: 100%;\n      min-height: 568px;\n      border-radius: 24px;\n      position: relative;\n      overflow: hidden;\n      display: flex;\n      flex-direction: column;\n      justify-content: flex-end;\n      padding: 32px 28px;\n      background-color: #f1f5f9;\n      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);\n    }\n\n    /* Real Educational Photo Background */\n    .photo-bg-img {\n      position: absolute;\n      inset: 0;\n      width: 100%;\n      height: 100%;\n      object-fit: cover;\n      object-position: center 25%;\n      transition: transform 0.6s ease;\n    }\n    .photo-hero-panel:hover .photo-bg-img {\n      transform: scale(1.03);\n    }\n\n    /* Soft Warm Gradient Overlay */\n    .photo-gradient-overlay {\n      position: absolute;\n      inset: 0;\n      background: linear-gradient(\n        to bottom,\n        rgba(15, 23, 42, 0.05) 0%,\n        rgba(15, 23, 42, 0.25) 45%,\n        rgba(15, 23, 42, 0.88) 100%\n      );\n      pointer-events: none;\n    }\n\n    /* Top Floating Clean Badge */\n    .top-floating-badge {\n      position: absolute;\n      top: 24px;\n      left: 24px;\n      z-index: 2;\n      display: inline-flex;\n      align-items: center;\n      gap: 7px;\n      background: rgba(255, 255, 255, 0.92);\n      backdrop-filter: blur(10px);\n      -webkit-backdrop-filter: blur(10px);\n      padding: 7px 14px;\n      border-radius: 30px;\n      font-size: 12px;\n      font-weight: 700;\n      color: #0f172a;\n      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);\n      border: 1px solid rgba(255, 255, 255, 0.8);\n    }\n    .dot-live-green {\n      width: 8px;\n      height: 8px;\n      border-radius: 50%;\n      background: #10b981;\n      box-shadow: 0 0 6px #10b981;\n    }\n\n    /* Bottom Simple & Inspiring Content */\n    .panel-caption-box {\n      position: relative;\n      z-index: 2;\n      color: #ffffff;\n    }\n    .panel-caption-tag {\n      font-size: 11.5px;\n      font-weight: 800;\n      letter-spacing: 0.8px;\n      text-transform: uppercase;\n      color: #38bdf8;\n      margin-bottom: 6px;\n    }\n    .panel-caption-title {\n      font-family: var(--font-heading);\n      font-size: 24px;\n      font-weight: 800;\n      line-height: 1.25;\n      color: #ffffff;\n      margin-bottom: 8px;\n      letter-spacing: -0.3px;\n    }\n    .panel-caption-desc {\n      font-size: 13px;\n      color: #e2e8f0;\n      line-height: 1.5;\n      max-width: 380px;\n      margin-bottom: 18px;\n    }\n\n    /* Clean Mini Feature Pills */\n    .panel-feature-row {\n      display: flex;\n      align-items: center;\n      gap: 10px;\n      flex-wrap: wrap;\n    }\n    .feature-pill {\n      display: inline-flex;\n      align-items: center;\n      gap: 6px;\n      background: rgba(255, 255, 255, 0.18);\n      backdrop-filter: blur(8px);\n      -webkit-backdrop-filter: blur(8px);\n      border: 1px solid rgba(255, 255, 255, 0.3);\n      padding: 6px 12px;\n      border-radius: 12px;\n      font-size: 12px;\n      font-weight: 600;\n      color: #ffffff;\n    }\n\n    /* ============================================================\n       MODAL LUPA PASSWORD (RAMAH EDUKASI)\n       ============================================================ */\n    .modal-backdrop {\n      display: none;\n      position: fixed;\n      inset: 0;\n      background: rgba(15, 23, 42, 0.65);\n      backdrop-filter: blur(6px);\n      z-index: 999;\n      align-items: center;\n      justify-content: center;\n      padding: 16px;\n    }\n    .modal-box {\n      width: 100%;\n      max-width: 440px;\n      background: #ffffff;\n      border-radius: 28px;\n      padding: 32px 28px;\n      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);\n      text-align: center;\n      animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);\n    }\n    @keyframes modalPop {\n      from { transform: scale(0.92); opacity: 0; }\n      to { transform: scale(1); opacity: 1; }\n    }\n    .modal-icon {\n      width: 64px;\n      height: 64px;\n      border-radius: 20px;\n      background: #ecfdf5;\n      color: #059669;\n      display: grid;\n      place-items: center;\n      font-size: 28px;\n      margin: 0 auto 18px;\n    }\n    .modal-title {\n      font-family: var(--font-heading);\n      font-size: 20px;\n      font-weight: 800;\n      color: #0f172a;\n      margin-bottom: 8px;\n    }\n    .modal-desc {\n      font-size: 13.5px;\n      color: #64748b;\n      line-height: 1.5;\n      margin-bottom: 22px;\n    }\n    .modal-actions {\n      display: flex;\n      flex-direction: column;\n      gap: 10px;\n    }\n    .btn-wa-help {\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      gap: 8px;\n      background: #25d366;\n      color: #ffffff;\n      font-weight: 700;\n      font-size: 14px;\n      padding: 13px 20px;\n      border-radius: 14px;\n      text-decoration: none;\n      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);\n      transition: background 0.2s;\n    }\n    .btn-wa-help:hover {\n      background: #20ba5a;\n    }\n    .btn-close-modal {\n      background: #f1f5f9;\n      border: none;\n      color: #475569;\n      font-weight: 700;\n      font-size: 13.5px;\n      padding: 12px;\n      border-radius: 14px;\n      cursor: pointer;\n    }\n    .btn-close-modal:hover {\n      background: #e2e8f0;\n    }\n\n    /* ============================================================\n       RESPONSIVE DESIGN (MOCKUP HP & TABLET)\n       ============================================================ */\n    @media (max-width: 900px) {\n      .outer-glass-dock {\n        padding: 8px;\n        border-radius: 30px;\n      }\n      .main-login-card {\n        grid-template-columns: 1fr;\n        border-radius: 24px;\n      }\n      \n      .visual-column {\n        order: -1;\n        padding: 12px 12px 0 12px;\n      }\n      .photo-hero-panel {\n        min-height: 240px;\n        border-radius: 18px;\n        padding: 20px 18px;\n      }\n      .panel-caption-title {\n        font-size: 19px;\n      }\n      .panel-caption-desc {\n        display: none;\n      }\n      .top-floating-badge {\n        top: 14px;\n        left: 14px;\n        padding: 5px 10px;\n        font-size: 11px;\n      }\n\n      .form-column {\n        padding: 30px 22px 32px 22px;\n      }\n      .welcome-title {\n        font-size: 22px;\n      }\n      .welcome-subtitle {\n        font-size: 13px;\n        margin-bottom: 20px;\n      }\n    }\n  </style>\n</head>\n<body>\n\n  <!-- Ambient Glow Effects -->\n  <div class=\"ambient-glow glow-1\"></div>\n  <div class=\"ambient-glow glow-2\"></div>\n\n  <!-- Outer Glass Dock -->\n  <div class=\"outer-glass-dock\">\n    <div class=\"main-login-card\">\n\n      <!-- ==========================================\n           KOLOM KIRI: FORM LOGIN\n           ========================================== -->\n      <div class=\"form-column\">\n        <!-- Brand Header -->\n        <div class=\"brand-header\">\n          <div class=\"brand-logo-wrap\">\n            <img src=\"Assets/logo.webp\" alt=\"Logo Ruang KKA\" width=\"28\" height=\"28\" onerror=\"this.onerror=null; this.src='/Assets/logo.webp';\">\n          </div>\n          <div class=\"brand-text\">\n            <h2>RUANG KKA</h2>\n            <span>Dieng Cyber Academy</span>\n          </div>\n        </div>\n\n        <h1 class=\"welcome-title\">Sign In to your Account</h1>\n        <p class=\"welcome-subtitle\">Lanjutkan petualangan seru belajar koding & AI bersama mentor ramah.</p>\n\n        <!-- Form Login -->\n        <form id=\"loginForm\" autocomplete=\"on\">\n          <!-- Input Email -->\n          <div class=\"input-group\">\n            <div class=\"label-row\">\n              <label for=\"email\" class=\"input-label\">Email atau Username</label>\n            </div>\n            <div class=\"input-wrapper\">\n              <i class=\"fa-regular fa-envelope input-icon-left\" aria-hidden=\"true\"></i>\n              <input \n                type=\"text\" \n                id=\"email\" \n                class=\"custom-input\" \n                placeholder=\"nama@email.com atau username\" \n                autocomplete=\"username\" \n                autocapitalize=\"none\" \n                spellcheck=\"false\" \n                required\n              >\n            </div>\n          </div>\n\n          <!-- Input Password -->\n          <div class=\"input-group\">\n            <div class=\"label-row\">\n              <label for=\"password\" class=\"input-label\">Password</label>\n              <a href=\"#\" id=\"forgotBtn\" class=\"forgot-link\">Forgot password?</a>\n            </div>\n            <div class=\"input-wrapper\">\n              <i class=\"fa-solid fa-lock input-icon-left\" aria-hidden=\"true\"></i>\n              <input \n                type=\"password\" \n                id=\"password\" \n                class=\"custom-input\" \n                placeholder=\"Masukkan password akun\" \n                autocomplete=\"current-password\" \n                required\n                style=\"padding-right: 48px;\"\n              >\n              <button \n                type=\"button\" \n                id=\"togglePassword\" \n                class=\"toggle-pass-btn\" \n                aria-label=\"Tampilkan atau sembunyikan password\"\n              >\n                <i id=\"eyeIcon\" class=\"fa-regular fa-eye\"></i>\n              </button>\n            </div>\n          </div>\n\n          <!-- Alert Error -->\n          <div id=\"loginError\" class=\"alert-error\" role=\"alert\"></div>\n\n          <!-- Remember Me Checkbox -->\n          <div class=\"checkbox-row\">\n            <input type=\"checkbox\" id=\"rememberMe\" class=\"custom-checkbox\">\n            <label for=\"rememberMe\" class=\"checkbox-label\">Remember me</label>\n          </div>\n\n          <!-- Submit Button -->\n          <button type=\"submit\" id=\"submitBtn\" class=\"btn-signin\">\n            <span>SIGN IN</span>\n            <i class=\"fa-solid fa-arrow-right\" style=\"font-size: 13px;\"></i>\n          </button>\n        </form>\n\n        <!-- Register Link -->\n        <div class=\"register-footer\">\n          Not registered yet? <a href=\"register.html\">Create an account</a>\n        </div>\n      </div>\n\n      <!-- ==========================================\n           KOLOM KANAN: WARM & SIMPLE KIDS LEARNING\n           ========================================== -->\n      <div class=\"visual-column\">\n        <div class=\"photo-hero-panel\">\n          <!-- Real Kids Learning Photo -->\n          <img \n            src=\"Assets/kids-learning.jpg\" \n            alt=\"Anak belajar koding bersama mentor di depan komputer\" \n            class=\"photo-bg-img\"\n            loading=\"eager\"\n          >\n          <!-- Soft Dark Gradient Overlay for Readability -->\n          <div class=\"photo-gradient-overlay\"></div>\n\n          <!-- Top Floating Badge -->\n          <div class=\"top-floating-badge\">\n            <span class=\"dot-live-green\"></span>\n            <span>Kelas Koding & AI Interaktif</span>\n          </div>\n\n          <!-- Clean Bottom Caption -->\n          <div class=\"panel-caption-box\">\n            <div class=\"panel-caption-tag\">Belajar Menyenangkan</div>\n            <h2 class=\"panel-caption-title\">Eksplorasi Kreatif Koding Bersama Mentor</h2>\n            <p class=\"panel-caption-desc\">Dampingi langkah awal anak memahami logika koding, bikin game impian, dan berkreasi dengan teknologi sejak dini.</p>\n            \n            <div class=\"panel-feature-row\">\n              <span class=\"feature-pill\">\n                <i class=\"fa-solid fa-star\" style=\"color: #facc15;\"></i>\n                <span>Mentor Ramah</span>\n              </span>\n              <span class=\"feature-pill\">\n                <i class=\"fa-solid fa-shapes\" style=\"color: #38bdf8;\"></i>\n                <span>Scratch & Game 3D</span>\n              </span>\n              <span class=\"feature-pill\">\n                <i class=\"fa-solid fa-trophy\" style=\"color: #4ade80;\"></i>\n                <span>Praktik Proyek Seru</span>\n              </span>\n            </div>\n          </div>\n        </div>\n      </div>\n\n    </div>\n  </div>\n\n  <!-- ==========================================\n       MODAL BANTUAN LUPA PASSWORD\n       ========================================== -->\n  <div id=\"forgotModal\" class=\"modal-backdrop\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"modalTitle\">\n    <div class=\"modal-box\">\n      <div class=\"modal-icon\">\n        <i class=\"fa-solid fa-key\"></i>\n      </div>\n      <h3 id=\"modalTitle\" class=\"modal-title\">Bantuan Akun & Password</h3>\n      <p class=\"modal-desc\">\n        Untuk keamanan siswa, reset password dapat dibantu langsung oleh Tim Mentor atau Administrator <strong>Dieng Cyber</strong> via WhatsApp resmi atau bantuan orang tua.\n      </p>\n      <div class=\"modal-actions\">\n        <a \n          href=\"https://wa.me/6285741000000?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20membutuhkan%20bantuan%20reset%20password%20akun%20koding.\" \n          target=\"_blank\" \n          rel=\"noopener noreferrer\" \n          class=\"btn-wa-help\"\n        >\n          <i class=\"fa-brands fa-whatsapp\" style=\"font-size: 18px;\"></i>\n          Hubungi Admin via WhatsApp\n        </a>\n        <button type=\"button\" id=\"closeModalBtn\" class=\"btn-close-modal\">Tutup</button>\n      </div>\n    </div>\n  </div>\n\n  <!-- ==========================================\n       LOGIKA JAVASCRIPT AUTHENTIKASI & INTERAKSI\n       ========================================== -->\n  <script type=\"module\">\n    const loginForm = document.getElementById(\"loginForm\");\n    const loginError = document.getElementById(\"loginError\");\n    const emailInput = document.getElementById(\"email\");\n    const passwordInput = document.getElementById(\"password\");\n    const togglePassword = document.getElementById(\"togglePassword\");\n    const eyeIcon = document.getElementById(\"eyeIcon\");\n    const rememberMe = document.getElementById(\"rememberMe\");\n    const submitBtn = document.getElementById(\"submitBtn\");\n\n    const forgotBtn = document.getElementById(\"forgotBtn\");\n    const forgotModal = document.getElementById(\"forgotModal\");\n    const closeModalBtn = document.getElementById(\"closeModalBtn\");\n\n    // Muat remembered email bila ada\n    try {\n      const savedEmail = localStorage.getItem(\"dc_remembered_login\");\n      if (savedEmail) {\n        emailInput.value = savedEmail;\n        rememberMe.checked = true;\n      }\n    } catch (_) {}\n\n    // Pengalihan peran setelah login\n    function homeForRole(role) {\n      if (role === \"admin\") return \"/admin/\";\n      if (role === \"instruktur\") return \"/instruktur/\";\n      return \"/dashboard.html\";\n    }\n\n    // Toggle Show / Hide Password\n    togglePassword.addEventListener(\"click\", function () {\n      const isPassword = passwordInput.getAttribute(\"type\") === \"password\";\n      passwordInput.setAttribute(\"type\", isPassword ? \"text\" : \"password\");\n\n      if (isPassword) {\n        eyeIcon.className = \"fa-regular fa-eye-slash\";\n        togglePassword.setAttribute(\"aria-label\", \"Sembunyikan password\");\n      } else {\n        eyeIcon.className = \"fa-regular fa-eye\";\n        togglePassword.setAttribute(\"aria-label\", \"Tampilkan password\");\n      }\n    });\n\n    // Modal Lupa Password\n    forgotBtn.addEventListener(\"click\", function (e) {\n      e.preventDefault();\n      forgotModal.style.display = \"flex\";\n    });\n    closeModalBtn.addEventListener(\"click\", function () {\n      forgotModal.style.display = \"none\";\n    });\n    forgotModal.addEventListener(\"click\", function (e) {\n      if (e.target === forgotModal) {\n        forgotModal.style.display = \"none\";\n      }\n    });\n\n    // Submit Form Login\n    loginForm.addEventListener(\"submit\", async function (e) {\n      e.preventDefault();\n\n      const email = emailInput.value.trim();\n      const password = passwordInput.value;\n\n      loginError.style.display = \"none\";\n      loginError.textContent = \"\";\n\n      if (!email || !password) {\n        loginError.textContent = \"Email/Username dan Password wajib diisi.\";\n        loginError.style.display = \"block\";\n        return;\n      }\n\n      // Indikator loading\n      submitBtn.disabled = true;\n      submitBtn.innerHTML = `\n        <i class=\"fa-solid fa-circle-notch fa-spin\"></i>\n        <span>MEMVERIFIKASI...</span>\n      `;\n\n      try {\n        const response = await fetch(\"/api/auth/login\", {\n          method: \"POST\",\n          headers: {\n            \"Content-Type\": \"application/json\"\n          },\n          body: JSON.stringify({ email, password })\n        });\n\n        const data = await response.json().catch(() => ({}));\n\n        if (!response.ok) {\n          throw new Error(data.message || \"Email atau password tidak sesuai.\");\n        }\n\n        const username = data.username || email;\n\n        // Remember Me Handler\n        if (rememberMe.checked) {\n          try { localStorage.setItem(\"dc_remembered_login\", email); } catch (_) {}\n        } else {\n          try { localStorage.removeItem(\"dc_remembered_login\"); } catch (_) {}\n        }\n\n        // Simpan sesi autentikasi\n        localStorage.setItem(\"isLoggedIn\", \"true\");\n        localStorage.setItem(\"username\", username);\n        localStorage.setItem(\"email\", data.email || email);\n        localStorage.setItem(\"scratch_user\", username);\n        localStorage.setItem(\"authToken\", data.token);\n\n        // Jika akun baru yang wajib ganti password\n        if (data.mustChangePassword) {\n          window.location.replace(\"/ganti-password.html\");\n          return;\n        }\n\n        // Pengalihan ke halaman sesuai role\n        window.location.replace(homeForRole(data.role));\n\n      } catch (error) {\n        console.error(\"Login error:\", error);\n\n        let message = error.message || \"Gagal masuk. Periksa kembali akun kamu.\";\n        if (error instanceof TypeError) {\n          message = \"Server backend tidak dapat dihubungi. Pastikan koneksi aktif.\";\n        }\n\n        loginError.textContent = message;\n        loginError.style.display = \"block\";\n\n        // Kembalikan tombol\n        submitBtn.disabled = false;\n        submitBtn.innerHTML = `\n          <span>SIGN IN</span>\n          <i class=\"fa-solid fa-arrow-right\" style=\"font-size: 13px;\"></i>\n        `;\n      }\n    });\n  </script>\n</body>\n</html>\n
+    .checkbox-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    /* Alert Error */
+    .alert-error {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 11px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Submit Button (SIGN IN) */
+    .btn-signin {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 14px;
+      background: var(--btn-grad);
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 8px 22px -3px rgba(79, 70, 229, 0.38);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-signin:hover {
+      background: var(--btn-grad-hover);
+      box-shadow: 0 10px 26px -3px rgba(79, 70, 229, 0.48);
+      transform: translateY(-1.5px);
+    }
+    .btn-signin:active {
+      transform: translateY(0.5px);
+      box-shadow: 0 4px 14px -2px rgba(79, 70, 229, 0.35);
+    }
+    .btn-signin:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Footer Register Link */
+    .register-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .register-footer a {
+      color: #4f46e5;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .register-footer a:hover {
+      color: #3730a3;
+      text-decoration: underline;
+    }
+
+    /* ============================================================
+       KOLOM KANAN: WARM & SIMPLE KIDS LEARNING SHOWCASE
+       Bersih, Tidak Rame, Nyaman Dipandang dengan Foto Asli Belajar
+       ============================================================ */
+    .visual-column {
+      position: relative;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 14px 14px 14px 0;
+    }
+
+    .photo-hero-panel {
+      width: 100%;
+      height: 100%;
+      min-height: 568px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 32px 28px;
+      background-color: #f1f5f9;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Real Educational Photo Background */
+    .photo-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+      transition: transform 0.6s ease;
+    }
+    .photo-hero-panel:hover .photo-bg-img {
+      transform: scale(1.03);
+    }
+
+    /* Soft Warm Gradient Overlay */
+    .photo-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 23, 42, 0.05) 0%,
+        rgba(15, 23, 42, 0.25) 45%,
+        rgba(15, 23, 42, 0.88) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Top Floating Clean Badge */
+    .top-floating-badge {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 7px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .dot-live-green {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    /* Bottom Simple & Inspiring Content */
+    .panel-caption-box {
+      position: relative;
+      z-index: 2;
+      color: #ffffff;
+    }
+    .panel-caption-tag {
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #38bdf8;
+      margin-bottom: 6px;
+    }
+    .panel-caption-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .panel-caption-desc {
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.5;
+      max-width: 380px;
+      margin-bottom: 18px;
+    }
+
+    /* Clean Mini Feature Pills */
+    .panel-feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .feature-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* ============================================================
+       MODAL LUPA PASSWORD (RAMAH EDUKASI)
+       ============================================================ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 32px 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: #ecfdf5;
+      color: #059669;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      margin: 0 auto 18px;
+    }
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 13.5px;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-wa-help {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #25d366;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 13px 20px;
+      border-radius: 14px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+      transition: background 0.2s;
+    }
+    .btn-wa-help:hover {
+      background: #20ba5a;
+    }
+    .btn-close-modal {
+      background: #f1f5f9;
+      border: none;
+      color: #475569;
+      font-weight: 700;
+      font-size: 13.5px;
+      padding: 12px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+    .btn-close-modal:hover {
+      background: #e2e8f0;
+    }
+
+    /* ============================================================
+       RESPONSIVE DESIGN (MOCKUP HP & TABLET)
+       ============================================================ */
+    @media (max-width: 900px) {
+      .outer-glass-dock {
+        padding: 8px;
+        border-radius: 30px;
+      }
+      .main-login-card {
+        grid-template-columns: 1fr;
+        border-radius: 24px;
+      }
+      
+      .visual-column {
+        order: -1;
+        padding: 12px 12px 0 12px;
+      }
+      .photo-hero-panel {
+        min-height: 240px;
+        border-radius: 18px;
+        padding: 20px 18px;
+      }
+      .panel-caption-title {
+        font-size: 19px;
+      }
+      .panel-caption-desc {
+        display: none;
+      }
+      .top-floating-badge {
+        top: 14px;
+        left: 14px;
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+
+      .form-column {
+        padding: 30px 22px 32px 22px;
+      }
+      .welcome-title {
+        font-size: 22px;
+      }
+      .welcome-subtitle {
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Outer Glass Dock -->
+  <div class="outer-glass-dock">
+    <div class="main-login-card">
+
+      <!-- ==========================================
+           KOLOM KIRI: FORM LOGIN
+           ========================================== -->
+      <div class="form-column">
+        <!-- Brand Header -->
+        <div class="brand-header">
+          <div class="brand-logo-wrap">
+            <img src="Assets/logo.webp" alt="Logo Ruang KKA" width="28" height="28" onerror="this.onerror=null; this.src='/Assets/logo.webp';">
+          </div>
+          <div class="brand-text">
+            <h2>RUANG KKA</h2>
+            <span>Dieng Cyber Academy</span>
+          </div>
+        </div>
+
+        <h1 class="welcome-title">Sign In to your Account</h1>
+        <p class="welcome-subtitle">Lanjutkan petualangan seru belajar koding & AI bersama mentor ramah.</p>
+
+        <!-- Form Login -->
+        <form id="loginForm" autocomplete="on">
+          <!-- Input Email -->
+          <div class="input-group">
+            <div class="label-row">
+              <label for="email" class="input-label">Email atau Username</label>
+            </div>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope input-icon-left" aria-hidden="true"></i>
+              <input 
+                type="text" 
+                id="email" 
+                class="custom-input" 
+                placeholder="nama@email.com atau username" 
+                autocomplete="username" 
+                autocapitalize="none" 
+                spellcheck="false" 
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Input Password -->
+          <div class="input-group">
+            <div class="label-row">
+              <label for="password" class="input-label">Password</label>
+              <a href="#" id="forgotBtn" class="forgot-link">Forgot password?</a>
+            </div>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon-left" aria-hidden="true"></i>
+              <input 
+                type="password" 
+                id="password" 
+                class="custom-input" 
+                placeholder="Masukkan password akun" 
+                autocomplete="current-password" 
+                required
+                style="padding-right: 48px;"
+              >
+              <button 
+                type="button" 
+                id="togglePassword" 
+                class="toggle-pass-btn" 
+                aria-label="Tampilkan atau sembunyikan password"
+              >
+                <i id="eyeIcon" class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Alert Error -->
+          <div id="loginError" class="alert-error" role="alert"></div>
+
+          <!-- Remember Me Checkbox -->
+          <div class="checkbox-row">
+            <input type="checkbox" id="rememberMe" class="custom-checkbox">
+            <label for="rememberMe" class="checkbox-label">Remember me</label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="btn-signin">
+            <span>SIGN IN</span>
+            <i class="fa-solid fa-arrow-right" style="font-size: 13px;"></i>
+          </button>
+        </form>
+
+        <!-- Register Link -->
+        <div class="register-footer">
+          Not registered yet? <a href="register.html">Create an account</a>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           KOLOM KANAN: WARM & SIMPLE KIDS LEARNING
+           ========================================== -->
+      <div class="visual-column">
+        <div class="photo-hero-panel">
+          <!-- Real Kids Learning Photo -->
+          <img 
+            src="Assets/kids-learning.jpg" 
+            alt="Anak belajar koding bersama mentor di depan komputer" 
+            class="photo-bg-img"
+            loading="eager"
+          >
+          <!-- Soft Dark Gradient Overlay for Readability -->
+          <div class="photo-gradient-overlay"></div>
+
+          <!-- Top Floating Badge -->
+          <div class="top-floating-badge">
+            <span class="dot-live-green"></span>
+            <span>Kelas Koding & AI Interaktif</span>
+          </div>
+
+          <!-- Clean Bottom Caption -->
+          <div class="panel-caption-box">
+            <div class="panel-caption-tag">Belajar Menyenangkan</div>
+            <h2 class="panel-caption-title">Eksplorasi Kreatif Koding Bersama Mentor</h2>
+            <p class="panel-caption-desc">Dampingi langkah awal anak memahami logika koding, bikin game impian, dan berkreasi dengan teknologi sejak dini.</p>
+            
+            <div class="panel-feature-row">
+              <span class="feature-pill">
+                <i class="fa-solid fa-star" style="color: #facc15;"></i>
+                <span>Mentor Ramah</span>
+              </span>
+              <span class="feature-pill">
+                <i class="fa-solid fa-shapes" style="color: #38bdf8;"></i>
+                <span>Scratch & Game 3D</span>
+              </span>
+              <span class="feature-pill">
+                <i class="fa-solid fa-trophy" style="color: #4ade80;"></i>
+                <span>Praktik Proyek Seru</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL BANTUAN LUPA PASSWORD
+       ========================================== -->
+  <div id="forgotModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <div class="modal-icon">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 id="modalTitle" class="modal-title">Bantuan Akun & Password</h3>
+      <p class="modal-desc">
+        Untuk keamanan siswa, reset password dapat dibantu langsung oleh Tim Mentor atau Administrator <strong>Dieng Cyber</strong> via WhatsApp resmi atau bantuan orang tua.
+      </p>
+      <div class="modal-actions">
+        <a 
+          href="https://wa.me/6285741000000?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20membutuhkan%20bantuan%20reset%20password%20akun%20koding." 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="btn-wa-help"
+        >
+          <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i>
+          Hubungi Admin via WhatsApp
+        </a>
+        <button type="button" id="closeModalBtn" class="btn-close-modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       LOGIKA JAVASCRIPT AUTHENTIKASI & INTERAKSI
+       ========================================== -->
+  <script type="module">
+    const loginForm = document.getElementById("loginForm");
+    const loginError = document.getElementById("loginError");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const rememberMe = document.getElementById("rememberMe");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const forgotBtn = document.getElementById("forgotBtn");
+    const forgotModal = document.getElementById("forgotModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    // Muat remembered email bila ada
+    try {
+      const savedEmail = localStorage.getItem("dc_remembered_login");
+      if (savedEmail) {
+        emailInput.value = savedEmail;
+        rememberMe.checked = true;
+      }
+    } catch (_) {}
+
+    // Pengalihan peran setelah login
+    function homeForRole(role) {
+      if (role === "admin") return "/admin/";
+      if (role === "instruktur") return "/instruktur/";
+      return "/dashboard.html";
+    }
+
+    // Toggle Show / Hide Password
+    togglePassword.addEventListener("click", function () {
+      const isPassword = passwordInput.getAttribute("type") === "password";
+      passwordInput.setAttribute("type", isPassword ? "text" : "password");
+
+      if (isPassword) {
+        eyeIcon.className = "fa-regular fa-eye-slash";
+        togglePassword.setAttribute("aria-label", "Sembunyikan password");
+      } else {
+        eyeIcon.className = "fa-regular fa-eye";
+        togglePassword.setAttribute("aria-label", "Tampilkan password");
+      }
+    });
+
+    // Modal Lupa Password
+    forgotBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      forgotModal.style.display = "flex";
+    });
+    closeModalBtn.addEventListener("click", function () {
+      forgotModal.style.display = "none";
+    });
+    forgotModal.addEventListener("click", function (e) {
+      if (e.target === forgotModal) {
+        forgotModal.style.display = "none";
+      }
+    });
+
+    // Submit Form Login
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      loginError.style.display = "none";
+      loginError.textContent = "";
+
+      if (!email || !password) {
+        loginError.textContent = "Email/Username dan Password wajib diisi.";
+        loginError.style.display = "block";
+        return;
+      }
+
+      // Indikator loading
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>MEMVERIFIKASI...</span>
+      `;
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.message || "Email atau password tidak sesuai.");
+        }
+
+        const username = data.username || email;
+
+        // Remember Me Handler
+        if (rememberMe.checked) {
+          try { localStorage.setItem("dc_remembered_login", email); } catch (_) {}
+        } else {
+          try { localStorage.removeItem("dc_remembered_login"); } catch (_) {}
+        }
+
+        // Simpan sesi autentikasi
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("username", username);
+        localStorage.setItem("email", data.email || email);
+        localStorage.setItem("scratch_user", username);
+        localStorage.setItem("authToken", data.token);
+
+        // Jika akun baru yang wajib ganti password
+        if (data.mustChangePassword) {
+          window.location.replace("/ganti-password.html");
+          return;
+        }
+
+        // Pengalihan ke halaman sesuai role
+        window.location.replace(homeForRole(data.role));
+
+      } catch (error) {
+        console.error("Login error:", error);
+
+        let message = error.message || "Gagal masuk. Periksa kembali akun kamu.";
+        if (error instanceof TypeError) {
+          message = "Server backend tidak dapat dihubungi. Pastikan koneksi aktif.";
+        }
+
+        loginError.textContent = message;
+        loginError.style.display = "block";
+
+        // Kembalikan tombol
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <span>SIGN IN</span>
+          <i class="fa-solid fa-arrow-right" style="font-size: 13px;"></i>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
