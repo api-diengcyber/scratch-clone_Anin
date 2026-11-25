@@ -685,24 +685,24 @@
               
               <!-- Jenjang SD -->
               <optgroup label="🎒 Jenjang SD (Usia 6 – 12 Tahun)">
-                <option value="SD Basic (Scratch & Logika Visual)" data-grade="sd">SD Basic (Scratch & Logika Visual)</option>
-                <option value="SD Explore - Game Development (2D Arcade)" data-grade="sd">SD Explore – Game Development (2D Arcade)</option>
-                <option value="SD Explore - 3D & Roblox World" data-grade="sd">SD Explore – 3D & Roblox World</option>
-                <option value="SD Explore - Website Development" data-grade="sd">SD Explore – Website Development</option>
+                <option value="SD Basic (Scratch & Logika Visual)" data-grade="sd" data-track="sd_basic">SD Basic (Scratch & Logika Visual)</option>
+                <option value="SD Explore - Game Development (2D Arcade)" data-grade="sd" data-track="sd_explore_game">SD Explore – Game Development (2D Arcade)</option>
+                <option value="SD Explore - 3D & Roblox World" data-grade="sd" data-track="sd_explore_3d">SD Explore – 3D & Roblox World</option>
+                <option value="SD Explore - Website Development" data-grade="sd" data-track="sd_explore_web">SD Explore – Website Development</option>
               </optgroup>
 
               <!-- Jenjang SMP -->
               <optgroup label="🎮 Jenjang SMP (Usia 12 – 15 Tahun)">
-                <option value="Python Start (Dasar Python & Logika)" data-grade="smp">Python Start (SMP – Dasar Python & Logika)</option>
-                <option value="AI & Creative Tech (Kecerdasan Buatan)" data-grade="smp">AI & Creative Tech (SMP – Kecerdasan Buatan)</option>
-                <option value="Game Dev 3D Lanjutan (3D Studio & WebGL)" data-grade="smp">Game Dev 3D Lanjutan (SMP – 3D Engine & Fisika)</option>
+                <option value="Python Start (Dasar Python & Logika)" data-grade="smp" data-track="smp_python">Python Start (SMP – Dasar Python & Logika)</option>
+                <option value="AI & Creative Tech (Kecerdasan Buatan)" data-grade="smp" data-track="smp_ai">AI & Creative Tech (SMP – Kecerdasan Buatan)</option>
+                <option value="Game Dev 3D Lanjutan (3D Studio & WebGL)" data-grade="smp" data-track="smp_gamedev3d">Game Dev 3D Lanjutan (SMP – 3D Engine & Fisika)</option>
               </optgroup>
 
               <!-- Jenjang SMA / SMK -->
               <optgroup label="💻 Jenjang SMA / SMK (Usia 15 – 18+ Tahun)">
-                <option value="Python Lanjutan & Algoritma (SMA/K)" data-grade="smak">Python Lanjutan & Algoritma (SMA/K)</option>
-                <option value="Web Development Fullstack (SMA/K)" data-grade="smak">Web Development Fullstack (SMA/K)</option>
-                <option value="Data & AI Terapan (SMA/K)" data-grade="smak">Data & AI Terapan (SMA/K – Data Science & ML)</option>
+                <option value="Python Lanjutan & Algoritma (SMA/K)" data-grade="smak" data-track="smk_algo">Python Lanjutan & Algoritma (SMA/K)</option>
+                <option value="Web Development Fullstack (SMA/K)" data-grade="smak" data-track="smk_web">Web Development Fullstack (SMA/K)</option>
+                <option value="Data & AI Terapan (SMA/K)" data-grade="smak" data-track="smk_data">Data & AI Terapan (SMA/K – Data Science & ML)</option>
               </optgroup>
             </select>
           </div>
@@ -884,18 +884,21 @@
         localStorage.setItem('authToken', token);
         localStorage.setItem('role', userPayload.role || 'student');
 
-        // Simpan data pendaftaran trial
+        // Simpan data pendaftaran trial dan batasan jalur belajar
+        localStorage.setItem('trial_active', 'true');
         localStorage.setItem('trial_parent_name', extra.parentName);
         localStorage.setItem('trial_phone', extra.phone);
         localStorage.setItem('trial_child_age', extra.childAge);
         localStorage.setItem('trial_course', extra.course);
+        localStorage.setItem('trial_track_id', extra.trackId || '');
+        localStorage.setItem('trial_grade', extra.grade || '');
         localStorage.setItem('trial_city', extra.city);
         localStorage.setItem('trial_source', extra.referral);
         localStorage.setItem('trial_registered_at', new Date().toISOString());
 
         // Arahkan jenjang otomatis berdasarkan pilihan kursus atau usia anak
         const selectedOpt = courseTrackSelect.selectedOptions[0];
-        const gradeFromCourse = selectedOpt ? selectedOpt.getAttribute('data-grade') : '';
+        const gradeFromCourse = extra.grade || (selectedOpt ? selectedOpt.getAttribute('data-grade') : '');
         if (gradeFromCourse) {
           localStorage.setItem('lastGrade', gradeFromCourse);
         } else {
@@ -953,12 +956,18 @@
           return;
         }
 
+        const selectedOpt = courseTrackSelect.selectedOptions[0];
+        const trackId = selectedOpt ? selectedOpt.getAttribute('data-track') : '';
+        const grade = selectedOpt ? selectedOpt.getAttribute('data-grade') : '';
+
         const extraData = {
           parentName,
           email: parentEmail,
           phone,
           childAge,
           course,
+          trackId,
+          grade,
           city,
           referral
         };
@@ -1063,12 +1072,18 @@
             }
 
             const user = loginData.data || loginData;
+            const selectedOpt = courseTrackSelect.selectedOptions[0];
+            const trackId = selectedOpt ? selectedOpt.getAttribute('data-track') : 'sd_basic';
+            const grade = selectedOpt ? selectedOpt.getAttribute('data-grade') : 'sd';
+
             const extraData = {
               parentName: document.getElementById('parentName').value.trim() || user.username,
               email: email,
               phone: cleanPhoneNumber(document.getElementById('parentPhone').value.trim() || '628000000000'),
               childAge: document.getElementById('childAge').value.trim() || '10',
               course: courseTrackSelect.value || 'SD Basic (Scratch & Logika Visual)',
+              trackId: trackId,
+              grade: grade,
               city: document.getElementById('cityOrigin').value.trim() || 'Wonosobo',
               referral: document.getElementById('referralSource').value || 'Langsung'
             };

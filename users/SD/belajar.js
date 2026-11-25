@@ -41,6 +41,11 @@
     return;
   }
 
+  // Proteksi akun trial gratis agar hanya mengakses jalurnya
+  if (window.TrialGate && typeof window.TrialGate.guardStudyPage === "function") {
+    window.TrialGate.guardStudyPage("sd");
+  }
+
   const app = document.getElementById("app");
   let tahap = LP.tahap[0];                         // tahap yang sedang dibuka (berubah sesuai task / jalur)
   const $points = document.getElementById("pointsValue");
@@ -113,7 +118,24 @@
       '<div class="flow"><b>Tahap ' + tahap.no + '</b><span>→</span><b>📚 Pilih Pembelajaran</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
       '<h2 class="sec-title">📚 Pilih pembelajaran</h2><div class="pgrid">' + cards + "</div>";
 
-    app.querySelectorAll(".pcard").forEach((c) => c.addEventListener("click", () => showPemb(c.dataset.p)));
+    app.querySelectorAll(".pcard").forEach((c) => {
+      if (window.TrialGate && !window.TrialGate.isPathAllowed("sd", c.dataset.p)) {
+        c.classList.add("trial-locked");
+        if (!c.querySelector(".trial-lock-badge")) {
+          const lk = document.createElement("span");
+          lk.className = "trial-lock-badge";
+          lk.textContent = "🔒 Terkunci";
+          c.appendChild(lk);
+        }
+      }
+      c.addEventListener("click", () => {
+        if (window.TrialGate && !window.TrialGate.isPathAllowed("sd", c.dataset.p)) {
+          window.TrialGate.showLockModal(c.querySelector("h3") ? c.querySelector("h3").textContent : "Jalur ini");
+          return;
+        }
+        showPemb(c.dataset.p);
+      });
+    });
     window.scrollTo(0, 0);
   }
 
@@ -142,7 +164,24 @@
       '<div class="flow"><b>Tahap 2</b><span>→</span><b>🧭 Pilih Jalur</b><span>→</span><b>🧩 Task 1–5</b><span>→</span><b>🏆 Project Akhir</b><span>→</span><b>📤 Submit</b></div>' +
       '<h2 class="sec-title">🧭 Pilih jalurmu</h2><div class="jgrid">' + cards + "</div>";
 
-    app.querySelectorAll(".jcard").forEach((c) => c.addEventListener("click", () => showPemb(c.dataset.p)));
+    app.querySelectorAll(".jcard").forEach((c) => {
+      if (window.TrialGate && !window.TrialGate.isPathAllowed("sd", c.dataset.p)) {
+        c.classList.add("trial-locked");
+        if (!c.querySelector(".trial-lock-badge")) {
+          const lk = document.createElement("span");
+          lk.className = "trial-lock-badge";
+          lk.textContent = "🔒 Terkunci";
+          c.appendChild(lk);
+        }
+      }
+      c.addEventListener("click", () => {
+        if (window.TrialGate && !window.TrialGate.isPathAllowed("sd", c.dataset.p)) {
+          window.TrialGate.showLockModal(c.querySelector("h3") ? c.querySelector("h3").textContent : "Jalur ini");
+          return;
+        }
+        showPemb(c.dataset.p);
+      });
+    });
     window.scrollTo(0, 0);
   }
 
