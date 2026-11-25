@@ -22,7 +22,11 @@ users/jadwal/backup-*.zip
 
 # Catatan/dokumentasi lokal (tidak ikut repo)
 /docs/
+/docs/*
 /agent.md
+/agend.md
+/agents.md
+/AGENTS.md
 
 # Logs
 *.log
