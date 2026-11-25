@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const db = require("./database");
+const db = require("../../database");
 
 // ============================================================
 // LOAD FILE DATA KURIKULUM
@@ -10,6 +10,8 @@ const db = require("./database");
 function loadData(filename) {
     const filePath = path.join(
         __dirname,
+        "..",
+        "..",
         "..",
         "users",
         "kurikulum",

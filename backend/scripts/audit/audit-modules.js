@@ -1,4 +1,4 @@
-const db = require("./database");
+const db = require("../../database");
 
 console.log("\n=== JUMLAH MODUL PER JENJANG ===");
 

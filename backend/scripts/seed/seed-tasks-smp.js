@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const db = require("./database");
+const db = require("../../database");
 
 // ============================================================
 // LOAD DATA SMP
@@ -10,6 +10,8 @@ const db = require("./database");
 
 const dataFile = path.join(
     __dirname,
+    "..",
+    "..",
     "..",
     "users",
     "kurikulum",

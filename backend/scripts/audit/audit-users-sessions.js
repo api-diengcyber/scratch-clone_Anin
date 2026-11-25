@@ -2,7 +2,7 @@
 
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
-const db = require("./database");
+const db = require("../../database");
 
 console.log("\n=== KOLOM USERS ===");
 console.table(db.prepare("PRAGMA table_info(users)").all());

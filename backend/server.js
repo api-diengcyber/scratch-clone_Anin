@@ -35,6 +35,7 @@ const { notifyAdmins } = require("./notifications");
 const { releaseDeletedEmail } = require("./user-identity");
 const learningService = require("./learning-service");
 const reportScheduler = require("./report-scheduler");
+const mentoringScheduler = require("./mentoring-reminder-scheduler");
 const subscriptionService = require("./subscription-service");
 
 const app = express();
@@ -1703,6 +1704,10 @@ setInterval(() => {
 // REPORT_EMAIL_ENABLED=true setelah provider email dikonfigurasi.
 const reportSchedulerHandle = reportScheduler.startReportScheduler(db);
 
+// Penjadwal email pengingat mentoring Zoom. Default mati; aktifkan dengan
+// MENTORING_REMINDER_ENABLED=true di .env.
+const mentoringSchedulerHandle = mentoringScheduler.startMentoringReminderScheduler(db);
+
 // ============================================================
 // START SERVER
 // ============================================================
@@ -1729,6 +1734,7 @@ server.headersTimeout = 66000;
 
 server.on("close", () => {
     if (reportSchedulerHandle) reportSchedulerHandle.stop();
+    if (mentoringSchedulerHandle) clearInterval(mentoringSchedulerHandle);
 });
 
 server.on("error", (err) => {

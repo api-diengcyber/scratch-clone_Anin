@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const db = require("./database");
+const db = require("../../database");
 
 const PROJECT_ROOT = path.join(__dirname, "..");
 

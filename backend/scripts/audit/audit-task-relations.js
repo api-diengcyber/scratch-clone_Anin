@@ -2,7 +2,7 @@
 
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
-const db = require("./database");
+const db = require("../../database");
 
 console.log("\n=== ID TASK YANG MUNCUL DI BEBERAPA JENJANG ===");
 console.table(db.prepare(`

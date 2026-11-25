@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const db = require("./database");
+const db = require("../../database");
 
 // ============================================================
 // SINKRONISASI MATERI — SD, SMP, SMK
@@ -19,7 +19,7 @@ const db = require("./database");
 // ============================================================
 
 function loadWindow(filename) {
-    const filePath = path.join(__dirname, "..", "users", "kurikulum", "data", filename);
+    const filePath = path.join(__dirname, "..", "..", "..", "users", "kurikulum", "data", filename);
     const source = fs.readFileSync(filePath, "utf8");
     const sandbox = { window: {} };
     vm.createContext(sandbox);
