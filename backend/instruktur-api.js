@@ -32,6 +32,7 @@
 
 const { normalizeSchedule, scheduleDto, isMonth } = require("./jadwal-api");
 const attendanceService = require("./attendance-service");
+const graduationService = require("./graduation-service");
 const crypto = require("crypto");
 
 const GRADES = ["SD", "SMP", "SMK"];
@@ -1282,6 +1283,23 @@ function registerInstrukturApi(app, deps) {
       SET rubrik = ?, nilai = ?, status = ?, feedback = ?, graded_at = CURRENT_TIMESTAMP,
           graded_by = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?`).run(JSON.stringify(rubrik), nilai, status, feedback, req.userId, submission.id);
+
+    // Kunci kelulusan resmi & sertifikat bila status lulus
+    if (status === "lulus") {
+      try {
+        const pathKey = exam.learning_path_id || `${exam.grade}|${exam.judul}`;
+        const pathName = exam.learning_path_name || exam.judul;
+        graduationService.recordGraduation(db, {
+          studentUserId: submission.student_user_id,
+          grade: exam.grade,
+          learningPathKey: pathKey,
+          learningPathName: pathName,
+          examId: exam.id,
+          examSubmissionId: submission.id,
+          finalScore: nilai
+        });
+      } catch (_) {}
+    }
 
     audit(req, "instruktur_ujian.nilai", "instruktur_exam_submission", submission.id, {
       examId: exam.id, studentUserId: submission.student_user_id, nilai, status

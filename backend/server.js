@@ -1625,6 +1625,38 @@ require("./student-notifications").registerStudentNotificationApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
 
+// ------------------------------------------------------------
+// SERTIFIKAT & KELULUSAN
+// ------------------------------------------------------------
+const graduationService = require("./graduation-service");
+
+// 1. Verifikasi publik sertifikat (bisa diakses siapa saja tanpa login)
+// Mendukung via path param (/api/certificates/verify/:certNumber) atau query (?number=DCC/...)
+const verifyCertificateHandler = (req, res) => {
+    const certNumber = String(req.params.certNumber || req.query.number || req.query.certNumber || "").trim();
+    if (!certNumber) {
+        return sendApiError(res, 400, "Nomor sertifikat wajib diisi.", "VALIDATION_ERROR");
+    }
+    const result = graduationService.verifyCertificate(db, certNumber);
+    if (!result) {
+        return sendApiError(res, 404, "Sertifikat tidak ditemukan atau tidak valid.", "CERTIFICATE_NOT_FOUND");
+    }
+    return sendApiSuccess(res, { certificate: result });
+};
+app.get("/api/certificates/verify", verifyCertificateHandler);
+app.get("/api/certificates/verify/:certNumber", verifyCertificateHandler);
+
+// 2. Daftar sertifikat resmi milik siswa login
+app.get("/api/certificates/my-certificates", auth.requireAuth, (req, res) => {
+    if (req.role !== "student") {
+        return sendApiError(res, 403, "Khusus akun siswa.", "STUDENT_REQUIRED");
+    }
+    // Periksa apakah ada jalur yang baru diselesaikan
+    graduationService.checkAndGraduateEligible(db, req.userId);
+    const certificates = graduationService.listStudentGraduations(db, req.userId);
+    return sendApiSuccess(res, { certificates, total: certificates.length });
+});
+
 // ============================================================
 // 404
 // ============================================================
