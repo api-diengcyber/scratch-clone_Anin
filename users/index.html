@@ -11,13 +11,13 @@
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
     /* ============================================================
        PASTEL GLASS & NEOMORPHIC STYLING
-       Inspirasi Desain Modern EdTech Anak • Dieng Cyber Signature
+       Modern EdTech Anak • Dieng Cyber Signature
        ============================================================ */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -28,6 +28,7 @@
     :root {
       --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-heading: 'Outfit', sans-serif;
+      --font-code: 'JetBrains Mono', monospace, sans-serif;
 
       /* Primary Indigo-Emerald Gradient Accent */
       --btn-grad: linear-gradient(135deg, #4f46e5 0%, #3b82f6 50%, #059669 100%);
@@ -374,7 +375,7 @@
     }
 
     /* ============================================================
-       KOLOM KANAN: ILUSTRASI DOME KODING ANAK
+       KOLOM KANAN: 3D GAME & CODING SHOWCASE
        ============================================================ */
     .visual-column {
       position: relative;
@@ -383,220 +384,353 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      padding: 18px 18px 18px 0;
+      padding: 16px 16px 16px 0;
     }
 
     /* Curved Arch Container */
     .arch-dome {
       width: 100%;
       height: 100%;
-      min-height: 550px;
+      min-height: 560px;
       border-radius: 200px 32px 32px 200px;
-      background: radial-gradient(circle at 65% 40%, #1e1b4b 0%, #172554 45%, #064e3b 85%, #022c22 100%);
+      background: radial-gradient(circle at 65% 35%, #2e266d 0%, #1e295d 40%, #0d4a46 80%, #06352f 100%);
       position: relative;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.35);
+      box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.4);
     }
 
-    /* Subtle background grid & stars */
+    /* Ambient Stardust & Tech Grid */
     .dome-stars {
       position: absolute;
       inset: 0;
       background-image: 
-        radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-        radial-gradient(1.5px 1.5px at 100px 150px, #a5b4fc, rgba(0,0,0,0)),
-        radial-gradient(1px 1px at 220px 80px, #67e8f9, rgba(0,0,0,0)),
-        radial-gradient(2px 2px at 300px 280px, #fde047, rgba(0,0,0,0)),
-        radial-gradient(1px 1px at 160px 420px, #ffffff, rgba(0,0,0,0)),
-        radial-gradient(1.5px 1.5px at 380px 460px, #a7f3d0, rgba(0,0,0,0));
+        radial-gradient(1.5px 1.5px at 30px 40px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 120px 140px, #a5b4fc, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 240px 70px, #67e8f9, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 320px 300px, #fde047, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 170px 440px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 390px 480px, #a7f3d0, rgba(0,0,0,0));
       background-repeat: repeat;
-      background-size: 400px 480px;
-      opacity: 0.75;
-    }
-
-    /* Tech Constellation Lines */
-    .constellation-svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      background-size: 420px 500px;
+      opacity: 0.85;
       pointer-events: none;
-      z-index: 1;
     }
 
-    /* Center Flying Kid & Orbs Container */
-    .dome-content {
+    /* Center Stage Container */
+    .dome-stage {
       position: relative;
       width: 100%;
-      height: 100%;
-      max-width: 460px;
+      max-width: 440px;
+      height: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       z-index: 2;
     }
 
-    /* Flying Kid Character (SVG) */
-    .kid-character {
+    /* Hologram Glow Platform Disk */
+    .holo-glow-disk {
       position: absolute;
       top: 50%;
-      left: 51%;
-      transform: translate(-50%, -50%);
-      width: 250px;
-      height: 330px;
-      z-index: 3;
-      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45));
-      animation: floatCharacter 4.5s ease-in-out infinite;
-    }
-
-    @keyframes floatCharacter {
-      0%, 100% {
-        transform: translate(-50%, -50%) translateY(0) rotate(0deg);
-      }
-      50% {
-        transform: translate(-50%, -50%) translateY(-10px) rotate(1.2deg);
-      }
-    }
-
-    /* Floating Coding Badges (Orbs) */
-    .floating-orb {
-      position: absolute;
-      width: 58px;
-      height: 58px;
+      left: 50%;
+      transform: translate(-50%, -46%);
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 
-        0 8px 24px rgba(0, 0, 0, 0.28),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.8);
-      z-index: 4;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(6, 182, 212, 0.3) 45%, rgba(16, 185, 129, 0) 70%);
+      filter: blur(28px);
+      pointer-events: none;
+      z-index: 1;
+      animation: pulseGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { transform: translate(-50%, -46%) scale(0.92); opacity: 0.7; }
+      to { transform: translate(-50%, -46%) scale(1.1); opacity: 1; }
+    }
+
+    /* Orbit Rings */
+    .orbit-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -48%) rotateX(62deg);
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(165, 180, 252, 0.4);
+      pointer-events: none;
+      z-index: 1;
+      animation: spinOrbit 30s linear infinite;
+    }
+    @keyframes spinOrbit {
+      from { transform: translate(-50%, -48%) rotateX(62deg) rotate(0deg); }
+      to { transform: translate(-50%, -48%) rotateX(62deg) rotate(360deg); }
+    }
+
+    /* 3D Hero Controller Image */
+    .hero-controller-wrap {
+      position: relative;
+      z-index: 3;
+      width: 260px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      animation: floatController 4s ease-in-out infinite;
+      cursor: pointer;
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .floating-orb:hover {
-      transform: scale(1.12) !important;
+    .hero-controller-wrap:hover {
+      transform: scale(1.08) translateY(-6px) !important;
+    }
+    .hero-controller-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 25px rgba(244, 114, 182, 0.35));
+      border-radius: 20px;
+    }
+    @keyframes floatController {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-12px) rotate(2deg);
+      }
     }
 
-    .orb-glow {
+    /* ============================================================
+       FLOATING GLASS UI CARDS
+       ============================================================ */
+    .glass-card {
       position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      z-index: -1;
-      opacity: 0.65;
-      filter: blur(8px);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.28), 0 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 18px;
+      z-index: 4;
+      pointer-events: auto;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .glass-card:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 18px 36px -6px rgba(0, 0, 0, 0.35);
     }
 
-    /* Orb 1: Glowing Code Symbol (Top Center - Karakter menyentuh ini) */
-    .orb-top-hand {
+    /* Card 1: Scratch Code Block (Top Left) */
+    .card-scratch {
+      top: 36px;
+      left: 20px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: floatBadge1 4.5s ease-in-out infinite;
+    }
+    .scratch-flag-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ffedd5, #fed7aa);
+      color: #ea580c;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .scratch-info-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+    .scratch-info-code {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #4f46e5;
+      background: #eef2ff;
+      padding: 2px 7px;
+      border-radius: 6px;
+      margin-top: 3px;
+      font-family: var(--font-code);
+    }
+
+    /* Card 2: AI Companion (Top Right) */
+    .card-ai {
       top: 48px;
-      left: 49%;
-      transform: translateX(-50%);
-      width: 62px;
-      height: 62px;
-      background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
-      border: 2px solid #38bdf8;
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.7);
-      animation: floatOrb1 4s ease-in-out infinite;
+      right: 22px;
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      animation: floatBadge2 5s ease-in-out infinite 0.5s;
     }
-    .orb-top-hand .orb-glow { background: #38bdf8; }
+    .ai-bot-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      color: #0284c7;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .ai-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+    .ai-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #059669;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+      animation: pulseDot 1.4s infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
 
-    /* Orb 2: Scratch Puzzle (Kiri Atas) */
-    .orb-scratch {
-      top: 145px;
-      left: 42px;
-      background: linear-gradient(135deg, #fff7ed, #ffedd5);
-      border: 2px solid #fb923c;
-      animation: floatOrb2 5.2s ease-in-out infinite 0.4s;
+    /* Card 3: XP & Gamification (Left Center) */
+    .card-xp {
+      bottom: 125px;
+      left: 18px;
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      animation: floatBadge3 4.8s ease-in-out infinite 1s;
     }
-    .orb-scratch .orb-glow { background: #fb923c; }
+    .xp-star-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #d97706;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .xp-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .xp-value {
+      font-size: 11px;
+      font-weight: 700;
+      color: #d97706;
+    }
 
-    /* Orb 3: Python / Roket Projek (Kanan Atas) */
-    .orb-rocket {
-      top: 120px;
-      right: 48px;
-      background: linear-gradient(135deg, #fef2f2, #fee2e2);
-      border: 2px solid #f43f5e;
-      animation: floatOrb3 4.8s ease-in-out infinite 0.8s;
+    /* Card 4: Roblox & Python Track (Right Center) */
+    .card-track {
+      bottom: 115px;
+      right: 18px;
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      animation: floatBadge4 5.2s ease-in-out infinite 0.7s;
     }
-    .orb-rocket .orb-glow { background: #f43f5e; }
+    .track-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+      color: #db2777;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .track-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .track-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: #64748b;
+    }
 
-    /* Orb 4: Robot AI (Kiri Bawah) */
-    .orb-robot {
-      bottom: 140px;
-      left: 36px;
-      background: linear-gradient(135deg, #fdf4ff, #fae8ff);
-      border: 2px solid #d946ef;
-      animation: floatOrb4 4.5s ease-in-out infinite 1.2s;
+    /* Card 5: Bottom Big Showcase Banner */
+    .card-bottom-banner {
+      bottom: 22px;
+      width: 86%;
+      max-width: 360px;
+      padding: 12px 18px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 20px;
     }
-    .orb-robot .orb-glow { background: #d946ef; }
+    .banner-heading {
+      font-family: var(--font-heading);
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .banner-tags {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .badge-tag {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+    }
+    .tag-scratch { background: #ffedd5; color: #c2410c; }
+    .tag-roblox { background: #e0e7ff; color: #4338ca; }
+    .tag-web { background: #dcfce7; color: #15803d; }
+    .tag-ai { background: #fce7f3; color: #be185d; }
 
-    /* Orb 5: Game 3D & Roblox (Kanan Tengah) */
-    .orb-game {
-      top: 255px;
-      right: 32px;
-      background: linear-gradient(135deg, #fffbeb, #fef3c7);
-      border: 2px solid #f59e0b;
-      animation: floatOrb5 5.5s ease-in-out infinite 0.2s;
-    }
-    .orb-game .orb-glow { background: #f59e0b; }
-
-    /* Orb 6: Web Dev Code Tag (Bawah Tengah) */
-    .orb-code {
-      bottom: 58px;
-      left: 56%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-      border: 2px solid #10b981;
-      animation: floatOrb6 4.7s ease-in-out infinite 1.5s;
-    }
-    .orb-code .orb-glow { background: #10b981; }
-
-    @keyframes floatOrb1 {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-7px); }
-    }
-    @keyframes floatOrb2 {
+    @keyframes floatBadge1 {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-7px); }
     }
-    @keyframes floatOrb3 {
+    @keyframes floatBadge2 {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(8px); }
     }
-    @keyframes floatOrb4 {
+    @keyframes floatBadge3 {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-6px); }
     }
-    @keyframes floatOrb5 {
+    @keyframes floatBadge4 {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(7px); }
-    }
-    @keyframes floatOrb6 {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-8px); }
-    }
-
-    /* Tropical Foliage Foliage Silhouettes */
-    .foliage-decor {
-      position: absolute;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.35;
-      fill: #3b82f6;
-    }
-    .foliage-top {
-      top: -20px;
-      right: -25px;
-      width: 170px;
-      height: 190px;
-    }
-    .foliage-bottom {
-      bottom: -35px;
-      right: -20px;
-      width: 210px;
-      height: 220px;
-      transform: rotate(-10deg);
-      fill: #0d9488;
     }
 
     /* ============================================================
@@ -689,7 +823,7 @@
     }
 
     /* ============================================================
-       RESPONSIVE DESIGN (PERSIS SEPERTI MOCKUP HP DI GAMBAR)
+       RESPONSIVE DESIGN (PERSIS SEPERTI MOCKUP HP)
        ============================================================ */
     @media (max-width: 900px) {
       .outer-glass-dock {
@@ -711,49 +845,72 @@
         height: 290px;
         border-radius: 22px 22px 140px 140px;
       }
-      .kid-character {
-        width: 175px;
+      .dome-stage {
+        height: 280px;
+      }
+      .holo-glow-disk {
+        width: 220px;
         height: 220px;
       }
-      .floating-orb {
-        width: 44px;
-        height: 44px;
+      .orbit-ring {
+        width: 240px;
+        height: 240px;
       }
-      .floating-orb svg {
-        width: 20px;
-        height: 20px;
+      .hero-controller-wrap {
+        width: 170px;
+        height: 130px;
+        margin-bottom: 0;
       }
-      .orb-top-hand {
-        top: 18px;
-        width: 48px;
-        height: 48px;
+      
+      .card-scratch {
+        top: 14px;
+        left: 12px;
+        padding: 6px 10px;
       }
-      .orb-scratch {
-        top: 75px;
-        left: 20px;
+      .scratch-flag-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
       }
-      .orb-rocket {
-        top: 65px;
-        right: 24px;
+      .scratch-info-title {
+        font-size: 11px;
       }
-      .orb-robot {
-        bottom: 50px;
-        left: 24px;
+      .scratch-info-code {
+        font-size: 9.5px;
       }
-      .orb-game {
-        top: 140px;
-        right: 18px;
+
+      .card-ai {
+        top: 14px;
+        right: 12px;
+        padding: 6px 10px;
       }
-      .orb-code {
-        bottom: 22px;
+      .ai-bot-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
       }
-      .foliage-top {
-        width: 110px;
-        height: 120px;
+      .ai-title {
+        font-size: 11px;
       }
-      .foliage-bottom {
-        width: 130px;
-        height: 140px;
+
+      .card-xp {
+        display: none;
+      }
+      .card-track {
+        display: none;
+      }
+
+      .card-bottom-banner {
+        bottom: 12px;
+        width: 92%;
+        padding: 8px 12px;
+      }
+      .banner-heading {
+        font-size: 12.5px;
+      }
+      .badge-tag {
+        font-size: 9.5px;
+        padding: 2px 6px;
       }
 
       .form-column {
@@ -871,186 +1028,92 @@
       </div>
 
       <!-- ==========================================
-           KOLOM KANAN: ILUSTRASI DOME KODING ANAK
+           KOLOM KANAN: 3D GAME & CODING SHOWCASE
            ========================================== -->
       <div class="visual-column">
         <div class="arch-dome">
           <!-- Starry Tech Background -->
           <div class="dome-stars"></div>
 
-          <!-- Foliage / Tropical Leaf Silhouette Decors -->
-          <svg class="foliage-decor foliage-top" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 0 C70 10, 40 40, 30 80 C20 50, 10 30, 0 20 C20 40, 30 70, 40 100 C50 70, 70 40, 100 30 Z" />
-          </svg>
-          <svg class="foliage-decor foliage-bottom" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 100 C60 90, 30 60, 20 20 C30 50, 50 70, 80 80 C40 60, 20 30, 0 0 C20 40, 50 70, 100 100 Z" />
-          </svg>
+          <!-- Showcase Stage -->
+          <div class="dome-stage">
+            <!-- Holographic Radial Glow Disk -->
+            <div class="holo-glow-disk"></div>
 
-          <!-- Constellation Tech Connecting Lines -->
-          <svg class="constellation-svg" viewBox="0 0 460 550" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6"/>
-                <stop offset="50%" stop-color="#818cf8" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#34d399" stop-opacity="0.6"/>
-              </linearGradient>
-            </defs>
-            <!-- Connecting glowing lines between orbs -->
-            <line x1="230" y1="80" x2="71" y2="174" stroke="url(#lineGrad)" stroke-width="1.8" stroke-dasharray="4,3"/>
-            <line x1="230" y1="80" x2="383" y2="149" stroke="url(#lineGrad)" stroke-width="1.8" stroke-dasharray="4,3"/>
-            <line x1="71" y1="174" x2="65" y2="381" stroke="url(#lineGrad)" stroke-width="1.5" stroke-dasharray="3,3"/>
-            <line x1="383" y1="149" x2="399" y2="284" stroke="url(#lineGrad)" stroke-width="1.5" stroke-dasharray="3,3"/>
-            <line x1="65" y1="381" x2="257" y2="463" stroke="url(#lineGrad)" stroke-width="1.8" stroke-dasharray="4,3"/>
-            <line x1="399" y1="284" x2="257" y2="463" stroke="url(#lineGrad)" stroke-width="1.8" stroke-dasharray="4,3"/>
-            <!-- Energy lines to character center -->
-            <line x1="230" y1="80" x2="235" y2="180" stroke="#38bdf8" stroke-width="2" opacity="0.8"/>
-            <line x1="71" y1="174" x2="190" y2="250" stroke="#fb923c" stroke-width="1.2" opacity="0.5"/>
-            <line x1="383" y1="149" x2="280" y2="250" stroke="#f43f5e" stroke-width="1.2" opacity="0.5"/>
-          </svg>
+            <!-- Orbit Cosmic Ring -->
+            <div class="orbit-ring"></div>
 
-          <!-- Floating Coding Badges (Orbs) -->
-          <div class="dome-content">
-
-            <!-- Orb 1 (Top Center): Shining Code Portal / Loop -->
-            <div class="floating-orb orb-top-hand" title="Gerbang Koding Masa Depan">
-              <div class="orb-glow"></div>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-                <circle cx="12" cy="12" r="3" fill="#38bdf8"></circle>
-              </svg>
+            <!-- Card 1: Scratch Code Block (Top Left) -->
+            <div class="glass-card card-scratch">
+              <div class="scratch-flag-icon">
+                <i class="fa-solid fa-flag"></i>
+              </div>
+              <div>
+                <div class="scratch-info-title">Scratch Coding</div>
+                <div class="scratch-info-code">▶ when_clicked()</div>
+              </div>
             </div>
 
-            <!-- Orb 2: Scratch Puzzle (Kiri Atas) -->
-            <div class="floating-orb orb-scratch" title="Scratch Coding Blok">
-              <div class="orb-glow"></div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19.439 7.85c0-1.571-1.275-2.85-2.85-2.85-.466 0-.904.113-1.29.311C14.73 3.924 13.468 3 12 3c-1.468 0-2.73.924-3.299 2.311A2.846 2.846 0 0 0 7.41 5c-1.575 0-2.85 1.279-2.85 2.85 0 .466.113.904.311 1.29C3.484 9.709 2.56 10.971 2.56 12.439c0 1.468.924 2.73 2.311 3.299a2.846 2.846 0 0 0-.311 1.29c0 1.575 1.275 2.85 2.85 2.85.466 0 .904-.113 1.29-.311C9.27 20.954 10.532 21.878 12 21.878c1.468 0 2.73-.924 3.299-2.311.386.198.824.311 1.29.311 1.575 0 2.85-1.275 2.85-2.85 0-.466-.113-.904-.311-1.29 1.387-.569 2.311-1.831 2.311-3.299 0-1.468-.924-2.73-2.311-3.299.198-.386.311-.824.311-1.29z"></path>
-              </svg>
+            <!-- Card 2: AI Buddy (Top Right) -->
+            <div class="glass-card card-ai">
+              <div class="ai-bot-icon">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <div>
+                <div class="ai-title">AI Companion</div>
+                <div class="ai-status">
+                  <span class="pulse-dot"></span>
+                  <span>Online Siap Bantu</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Orb 3: Roket Peluncuran Projek (Kanan Atas) -->
-            <div class="floating-orb orb-rocket" title="Peluncuran Projek & Portofolio">
-              <div class="orb-glow"></div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
-                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
-                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
-                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
-              </svg>
+            <!-- Center 3D Hero Controller Image -->
+            <div class="hero-controller-wrap" title="Belajar Koding Sambil Bermain & Bikin Game!">
+              <img 
+                src="Assets/belajar-bermain.webp" 
+                alt="3D Game Controller Koding Anak" 
+                class="hero-controller-img"
+                onerror="this.onerror=null; this.src='/Assets/belajar-bermain.webp';"
+              >
             </div>
 
-            <!-- Orb 4: Robot AI Ramah (Kiri Bawah) -->
-            <div class="floating-orb orb-robot" title="Kecerdasan Artifisial (AI) & Robot">
-              <div class="orb-glow"></div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c026d3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="10" rx="4"></rect>
-                <circle cx="8.5" cy="16" r="1.5" fill="#c026d3"></circle>
-                <circle cx="15.5" cy="16" r="1.5" fill="#c026d3"></circle>
-                <path d="M12 2v4M8 6h8"></path>
-                <path d="M1 16h2M21 16h2"></path>
-              </svg>
+            <!-- Card 3: XP Gamification (Left Center) -->
+            <div class="glass-card card-xp">
+              <div class="xp-star-icon">
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <div>
+                <div class="xp-title">Level Up!</div>
+                <div class="xp-value">+150 XP Koding</div>
+              </div>
             </div>
 
-            <!-- Orb 5: Game 3D & Roblox Controller (Kanan Tengah) -->
-            <div class="floating-orb orb-game" title="Game Development 3D & Roblox">
-              <div class="orb-glow"></div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="6" y1="12" x2="10" y2="12"></line>
-                <line x1="8" y1="10" x2="8" y2="14"></line>
-                <line x1="15" y1="13" x2="15.01" y2="13"></line>
-                <line x1="18" y1="11" x2="18.01" y2="11"></line>
-                <rect x="2" y="6" width="20" height="12" rx="6"></rect>
-              </svg>
+            <!-- Card 4: Roblox & Python Track (Right Center) -->
+            <div class="glass-card card-track">
+              <div class="track-icon">
+                <i class="fa-solid fa-cube"></i>
+              </div>
+              <div>
+                <div class="track-title">Roblox & Python</div>
+                <div class="track-sub">3D Game Master</div>
+              </div>
             </div>
 
-            <!-- Orb 6: Web Code </> (Bawah Tengah) -->
-            <div class="floating-orb orb-code" title="Web Development & Python">
-              <div class="orb-glow"></div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-              </svg>
+            <!-- Card 5: Bottom Banner Showcase -->
+            <div class="glass-card card-bottom-banner">
+              <div class="banner-heading">
+                <span>Bikin Game & Karyamu Sendiri!</span>
+                <span>🚀</span>
+              </div>
+              <div class="banner-tags">
+                <span class="badge-tag tag-scratch">🧩 Scratch</span>
+                <span class="badge-tag tag-roblox">🎮 Game 3D</span>
+                <span class="badge-tag tag-web">💻 Web Dev</span>
+                <span class="badge-tag tag-ai">🤖 Python & AI</span>
+              </div>
             </div>
 
-            <!-- Center Flying Kid Illustration (High Quality Stylized Vector) -->
-            <svg class="kid-character" viewBox="0 0 260 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#ffd5b4"/>
-                  <stop offset="100%" stop-color="#fca584"/>
-                </linearGradient>
-                <linearGradient id="hairGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#1e1b4b"/>
-                  <stop offset="100%" stop-color="#312e81"/>
-                </linearGradient>
-                <linearGradient id="hoodieGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#6366f1"/>
-                  <stop offset="50%" stop-color="#4f46e5"/>
-                  <stop offset="100%" stop-color="#059669"/>
-                </linearGradient>
-                <linearGradient id="pantsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#334155"/>
-                  <stop offset="100%" stop-color="#1e293b"/>
-                </linearGradient>
-                <linearGradient id="shoeGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#f8fafc"/>
-                  <stop offset="100%" stop-color="#cbd5e1"/>
-                </linearGradient>
-              </defs>
-
-              <!-- Aura Glow Behind Kid -->
-              <ellipse cx="130" cy="180" rx="75" ry="110" fill="#6366f1" opacity="0.3" filter="blur(20px)"/>
-
-              <!-- Back Left Arm (Reaching towards Orb 1 with glowing hand) -->
-              <path d="M125 110 L132 45 L144 32" stroke="url(#skinGrad)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- Glowing Energy Sparkles at fingertips -->
-              <circle cx="145" cy="28" r="6" fill="#38bdf8"/>
-              <circle cx="145" cy="28" r="14" fill="#38bdf8" opacity="0.4" filter="blur(4px)"/>
-
-              <!-- Left Leg (Floating Backwards) -->
-              <path d="M118 210 L102 265 L90 310" stroke="url(#pantsGrad)" stroke-width="19" stroke-linecap="round"/>
-              <!-- Left Shoe -->
-              <ellipse cx="85" cy="318" rx="14" ry="8" fill="url(#shoeGrad)" transform="rotate(-15 85 318)"/>
-              <ellipse cx="88" cy="320" rx="13" ry="4" fill="#059669"/>
-
-              <!-- Right Leg (Bent Flying Forward) -->
-              <path d="M138 210 L152 260 L146 312" stroke="url(#pantsGrad)" stroke-width="19" stroke-linecap="round"/>
-              <!-- Right Shoe -->
-              <ellipse cx="145" cy="322" rx="15" ry="8" fill="url(#shoeGrad)" transform="rotate(10 145 322)"/>
-              <ellipse cx="147" cy="324" rx="14" ry="4" fill="#6366f1"/>
-
-              <!-- Kid Torso (Modern Tech Hoodie) -->
-              <path d="M106 120 C106 105, 148 105, 148 120 L152 205 C152 215, 102 215, 102 205 Z" fill="url(#hoodieGrad)"/>
-              <!-- Tech Chest Emblem (Dieng Cyber Code Symbol) -->
-              <circle cx="127" cy="148" r="11" fill="rgba(255,255,255,0.2)"/>
-              <path d="M123 144 L119 148 L123 152 M131 144 L135 148 L131 152" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-
-              <!-- Front Right Arm (Balanced in mid-air) -->
-              <path d="M108 125 L88 160 L78 185" stroke="url(#skinGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- Hoodie Sleeve Cuff -->
-              <path d="M108 122 L98 145" stroke="url(#hoodieGrad)" stroke-width="16" stroke-linecap="round"/>
-
-              <!-- Head & Neck -->
-              <rect x="120" y="96" width="14" height="18" fill="url(#skinGrad)" rx="6"/>
-              <circle cx="127" cy="85" r="23" fill="url(#skinGrad)"/>
-
-              <!-- Friendly Kid Face -->
-              <!-- Smile -->
-              <path d="M123 92 Q128 97 133 92" stroke="#e06a3b" stroke-width="2.4" stroke-linecap="round"/>
-              <!-- Cheerful Eyes -->
-              <ellipse cx="122" cy="82" rx="2.5" ry="3.5" fill="#1e1b4b"/>
-              <ellipse cx="134" cy="82" rx="2.5" ry="3.5" fill="#1e1b4b"/>
-              <circle cx="123" cy="81" r="1" fill="#ffffff"/>
-              <circle cx="135" cy="81" r="1" fill="#ffffff"/>
-              <!-- Cute Blush -->
-              <circle cx="118" cy="87" r="3.5" fill="#f87171" opacity="0.6"/>
-              <circle cx="138" cy="87" r="3.5" fill="#f87171" opacity="0.6"/>
-
-              <!-- Trendy Anime/Tech Hair -->
-              <path d="M106 82 C104 62, 120 54, 134 54 C148 54, 153 66, 151 82 C145 74, 137 72, 130 76 C124 72, 114 74, 106 82 Z" fill="url(#hairGrad)"/>
-              <path d="M104 78 Q98 88 108 92 Q108 82 112 77 Z" fill="url(#hairGrad)"/>
-              <path d="M150 78 Q156 88 146 92 Q146 82 142 77 Z" fill="url(#hairGrad)"/>
-            </svg>
           </div>
         </div>
       </div>
