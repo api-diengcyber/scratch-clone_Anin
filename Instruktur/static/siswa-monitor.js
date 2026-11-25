@@ -66,7 +66,7 @@
   const banner = () => (isMock ? `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh:</b> endpoint <code>/api/instruktur/siswa</code> belum tersedia. Yang tampil adalah data contoh, bukan siswa sungguhan.</span></div>` : '');
   const empty = (icon, title, msg, btn) => `<div class="px-6 py-14 text-center"><span class="mx-auto w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-lg"><i class="fa-solid ${icon}"></i></span><h3 class="mt-4 font-bold text-slate-800 dark:text-white">${esc(title)}</h3><p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">${esc(msg)}</p>${btn || ''}</div>`;
   const skeleton = (n) => `<div class="divide-y divide-slate-100 dark:divide-slate-800" aria-busy="true" aria-label="Memuat">${Array.from({ length: n || 5 }, () => '<div class="flex items-center gap-4 px-5 py-4"><div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse"></div><div class="flex-1 space-y-2"><div class="h-3 w-1/3 rounded bg-slate-100 dark:bg-slate-800 animate-pulse"></div><div class="h-2.5 w-1/2 rounded bg-slate-100 dark:bg-slate-800 animate-pulse"></div></div></div>').join('')}</div>`;
-  const COLS = 'md:grid-cols-[minmax(0,2.1fr)_minmax(0,1.7fr)_minmax(0,1.5fr)_minmax(0,1.1fr)_minmax(0,1.1fr)_1rem]';
+  const COLS = 'xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1.7fr)_minmax(0,1.5fr)_minmax(0,1.1fr)_minmax(0,1.1fr)_1rem]';
 
   // ---------- daftar ----------
   async function showList() {
@@ -117,12 +117,12 @@
   function row(s) {
     const pend = s.pendingReview ? `<span class="inline-flex mt-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${TONE.warn} border">${s.pendingReview} perlu dinilai</span>` : '';
     return `<article data-sm="open" data-id="${esc(s.id)}" class="bg-white dark:bg-slate-900 grid grid-cols-2 ${COLS} gap-x-4 gap-y-2.5 items-center px-4 sm:px-5 py-4 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
-      <div class="col-span-2 md:col-span-1 flex items-center gap-3 min-w-0">${avatar(s)}<div class="min-w-0"><button type="button" data-sm="open" data-id="${esc(s.id)}" class="block max-w-full text-left font-semibold text-slate-900 dark:text-white truncate hover:text-sky-700 dark:hover:text-sky-300 focus:outline-none focus-visible:underline">${esc(s.nama)}</button><p class="text-xs text-slate-500 dark:text-slate-400 truncate">${s.grade ? esc(GRADES[s.grade]) : 'Jenjang belum diisi'}${s.username ? ' · @' + esc(s.username) : ''}</p></div></div>
-      <div class="col-span-2 md:col-span-1 min-w-0"><p class="text-sm text-slate-700 dark:text-slate-200 truncate">${esc(s.pathName)}</p><p class="text-xs text-slate-500 dark:text-slate-400">${s.tasksDone}${s.tasksTotal ? ' dari ' + s.tasksTotal : ''} task selesai</p></div>
-      <div class="col-span-2 md:col-span-1 flex items-center gap-2.5"><div class="flex-1">${bar(s.progress)}</div><b class="w-9 text-right text-sm text-slate-800 dark:text-slate-100">${s.progress}%</b></div>
+      <div class="col-span-2 xl:col-span-1 flex items-center gap-3 min-w-0">${avatar(s)}<div class="min-w-0"><button type="button" data-sm="open" data-id="${esc(s.id)}" class="block max-w-full text-left font-semibold text-slate-900 dark:text-white truncate hover:text-sky-700 dark:hover:text-sky-300 focus:outline-none focus-visible:underline">${esc(s.nama)}</button><p class="text-xs text-slate-500 dark:text-slate-400 truncate">${s.grade ? esc(GRADES[s.grade]) : 'Jenjang belum diisi'}${s.username ? ' · @' + esc(s.username) : ''}</p></div></div>
+      <div class="col-span-2 xl:col-span-1 min-w-0"><p class="text-sm text-slate-700 dark:text-slate-200 break-words">${esc(s.pathName)}</p><p class="text-xs text-slate-500 dark:text-slate-400">${s.tasksDone}${s.tasksTotal ? ' dari ' + s.tasksTotal : ''} task selesai</p></div>
+      <div class="col-span-2 xl:col-span-1 flex items-center gap-2.5"><div class="flex-1">${bar(s.progress)}</div><b class="w-9 text-right text-sm text-slate-800 dark:text-slate-100">${s.progress}%</b></div>
       <div class="min-w-0"><p class="text-sm text-slate-700 dark:text-slate-200">${esc(ago(s.lastActive))}</p>${pend}</div>
-      <div class="justify-self-end md:justify-self-start">${dotStatus(s.status)}</div>
-      <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600 hidden md:block"></i></article>`;
+      <div class="justify-self-end xl:justify-self-start">${dotStatus(s.status)}</div>
+      <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600 hidden xl:block"></i></article>`;
   }
 
   function drawResults() {
@@ -131,7 +131,7 @@
     if (!a.length) { $('#smResults').innerHTML = empty('fa-magnifying-glass', 'Tidak ada siswa yang cocok', 'Coba ubah kata kunci atau hapus sebagian filter.', '<button type="button" data-sm="reset" class="dc-btn dc-btn-sec mt-5">Reset filter</button>'); return; }
     $('#smResults').innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 mb-2.5" aria-live="polite">${a.length === S.items.length ? a.length + ' siswa' : a.length + ' dari ' + S.items.length + ' siswa'}</p>
       <div class="border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden">
-        <div class="hidden md:grid ${COLS} gap-x-4 px-5 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200/90 dark:border-slate-800"><span>Siswa</span><span>Learning Path</span><span>Progress</span><span>Aktivitas terakhir</span><span>Status</span><span></span></div>
+        <div class="hidden xl:grid ${COLS} gap-x-4 px-5 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200/90 dark:border-slate-800"><span>Siswa</span><span>Learning Path</span><span>Progress</span><span>Aktivitas terakhir</span><span>Status</span><span></span></div>
         <div class="divide-y divide-slate-100 dark:divide-slate-800">${a.map(row).join('')}</div></div>`;
   }
 

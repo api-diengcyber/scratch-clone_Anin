@@ -1,0 +1,2473 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruang KKA • Dieng Cyber Coding Academy | Sekolah Koding & Game Anak</title>
+  <meta name="description" content="Akademi koding anak dan remaja berstandar industri di Wonosobo. Belajar Scratch, Game 3D, Web Development, hingga Python & AI bersama mentor profesional.">
+  <link rel="icon" type="image/webp" href="users/Assets/logo.webp">
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Master Stylesheet (External + Inlined for Zero-Fail Rendering) -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+/* ============================================================
+   RUANG KKA • DIENG CYBER CODING ACADEMY
+   Clean, Trustworthy, Modern EdTech Stylesheet
+   Official Dieng Cyber Green Signature Palette
+   ============================================================ */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Official Dieng Cyber Green Signature Palette */
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-subtle: #ecfdf5;
+  --primary-glow: rgba(5, 150, 105, 0.2);
+
+  --secondary: #0d9488;
+  --secondary-hover: #0f766e;
+  --secondary-subtle: #f0fdfa;
+
+  --accent-amber: #f59e0b;
+  --accent-amber-subtle: #fef3c7;
+  --accent-emerald: #10b981;
+  --accent-emerald-subtle: #d1fae5;
+  --accent-rose: #f43f5e;
+  --accent-blue: #0284c7;
+
+  /* Surfaces & Backgrounds - Light Mode */
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-soft: #f1f5f9;
+  --bg-surface-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.92);
+
+  /* Typography */
+  --text-main: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+
+  /* Borders & Dividers */
+  --border-light: #e2e8f0;
+  --border-card: #e2e8f0;
+  --border-focus: #059669;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 14px -2px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 30px -4px rgba(15, 23, 42, 0.1);
+  --shadow-primary: 0 8px 20px -2px rgba(5, 150, 105, 0.28);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+
+  /* Layout Constants */
+  --container-max: 1240px;
+  --nav-height: 74px;
+}
+
+/* Dark Mode Palette */
+html[data-theme="dark"],
+body.dark-mode {
+  --bg-page: #0b1310;
+  --bg-surface: #101c17;
+  --bg-surface-soft: #162620;
+  --bg-surface-elevated: #1a2e26;
+  --bg-card: #12201a;
+  --bg-glass: rgba(16, 28, 23, 0.92);
+
+  --text-main: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+
+  --border-light: #20352c;
+  --border-card: #20352c;
+  --border-focus: #10b981;
+
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-subtle: rgba(16, 185, 129, 0.14);
+  --primary-glow: rgba(16, 185, 129, 0.25);
+
+  --secondary: #14b8a6;
+  --secondary-subtle: rgba(20, 184, 166, 0.15);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-primary: 0 8px 22px rgba(16, 185, 129, 0.3);
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-body);
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Typography Gradient */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, #10b981 60%, #0d9488 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.badge-primary {
+  background: var(--primary-subtle);
+  color: var(--primary);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.badge-emerald {
+  background: var(--accent-emerald-subtle);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badge-amber {
+  background: var(--accent-amber-subtle);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+}
+
+.btn-sm {
+  padding: 8px 18px;
+  font-size: 0.85rem;
+}
+
+.btn-md {
+  padding: 11px 22px;
+}
+
+.btn-lg {
+  padding: 13px 26px;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -2px rgba(5, 150, 105, 0.35);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-surface-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  border: 1.5px solid var(--border-light);
+  color: var(--text-main);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-subtle);
+}
+
+.btn-whatsapp {
+  background: #25d366;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.28);
+}
+
+.btn-whatsapp:hover {
+  background: #20bd5a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.35);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ============================================================
+   TOP ANNOUNCEMENT BAR
+   ============================================================ */
+.announcement-bar {
+  background: linear-gradient(90deg, #047857 0%, #059669 50%, #0d9488 100%);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  text-align: center;
+  position: relative;
+  z-index: 60;
+}
+
+.announcement-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.announcement-tag {
+  background: rgba(255, 255, 255, 0.22);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.announcement-code {
+  font-family: var(--font-mono);
+  background: #ffffff;
+  color: #047857;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+}
+
+/* ============================================================
+   STICKY NAVBAR (3-COLUMN GRID: LOGO LEFT, MENU CENTER, ACTIONS RIGHT)
+   ============================================================ */
+.navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 50;
+  transition: all 0.25s ease;
+}
+
+.navbar.scrolled {
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar .container {
+  max-width: 100%;
+  padding-left: clamp(20px, 3.5vw, 48px);
+  padding-right: clamp(20px, 3.5vw, 48px);
+}
+
+.navbar-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  gap: 16px;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: start;
+}
+
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 3px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.brand-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  justify-self: center;
+  flex-wrap: nowrap;
+}
+
+.nav-link {
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: var(--text-body);
+  position: relative;
+  padding: 8px 0;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--primary);
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.22s ease;
+}
+
+.nav-link.active::after,
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: end;
+}
+
+.theme-toggle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-body);
+  background: var(--bg-surface-soft);
+  border: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--text-main);
+  border-color: var(--primary);
+}
+
+.theme-icon-sun { display: none; }
+.theme-icon-moon { display: block; }
+
+html[data-theme="dark"] .theme-icon-sun { display: block; }
+html[data-theme="dark"] .theme-icon-moon { display: none; }
+
+.mobile-menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 1.25rem;
+}
+
+/* ============================================================
+   SECTIONS & SECTION HEADERS
+   ============================================================ */
+.section {
+  padding: 80px 0;
+  position: relative;
+  scroll-margin-top: calc(var(--nav-height) + 16px);
+}
+
+.hero {
+  position: relative;
+  padding: 64px 0 88px;
+  overflow: hidden;
+  scroll-margin-top: calc(var(--nav-height) + 16px);
+}
+
+.section-alt {
+  background-color: var(--bg-surface-soft);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.section-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 52px;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin: 12px 0;
+}
+
+.section-desc {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero-headline {
+  font-size: 3.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-main);
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 580px;
+}
+
+.hero-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Hero Collage Card */
+.hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-collage-card {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-image-banner {
+  height: 220px;
+  position: relative;
+  background: #1e293b;
+  overflow: hidden;
+}
+
+.hero-image-overlay-text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.88) 100%);
+  color: #ffffff;
+  padding: 14px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.hero-mini-code-box {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  line-height: 1.5;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.floating-pill {
+  position: absolute;
+  background: var(--bg-surface);
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 4;
+}
+
+.floating-pill-top {
+  top: -14px;
+  right: -10px;
+}
+
+.floating-pill-bottom {
+  bottom: -14px;
+  left: -10px;
+}
+
+/* ============================================================
+   TENTANG KAMI / STORY SECTION
+   ============================================================ */
+.story-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.story-lead {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.story-body {
+  font-size: 1rem;
+  color: var(--text-body);
+  line-height: 1.7;
+}
+
+.story-body p {
+  margin-bottom: 14px;
+}
+
+.story-cards-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.story-value-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.story-value-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px -2px rgba(5, 150, 105, 0.16);
+}
+
+.story-value-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.story-value-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.story-value-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   TIM PENGAJAR / EXPERT TEAM
+   ============================================================ */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.team-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.team-avatar-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.team-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.team-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-subtle);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.team-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.team-role {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.team-bio {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* ============================================================
+   KURIKULUM BERJENJANG (SD, SMP, SMK)
+   ============================================================ */
+.grade-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.grade-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 32px 26px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+}
+
+.grade-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.grade-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.grade-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--primary-subtle);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.grade-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.grade-age {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.grade-summary {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.grade-module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-grow: 1;
+}
+
+.module-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--text-body);
+}
+
+.module-bullet {
+  color: var(--primary);
+  margin-top: 3px;
+  font-size: 0.8rem;
+}
+
+/* ============================================================
+   INTERACTIVE PLAYGROUND TABS
+   ============================================================ */
+.playground-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  margin-top: 50px;
+  box-shadow: var(--shadow-sm);
+}
+
+.playground-nav {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.playground-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-surface-soft);
+  transition: all 0.2s ease;
+}
+
+.playground-tab-btn:hover {
+  color: var(--text-main);
+}
+
+.playground-tab-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.tab-pane {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.tab-pane.active {
+  display: grid;
+}
+
+.playground-desc h4 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.playground-desc p {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.playground-visual-frame {
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   PRICING / PAKET SECTION (REFINED NEW PACKAGES)
+   ============================================================ */
+.pricing-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+.billing-switcher {
+  display: inline-flex;
+  background: var(--bg-surface-soft);
+  padding: 5px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-light);
+  gap: 4px;
+}
+
+.billing-cycle-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.billing-cycle-btn:hover {
+  color: var(--text-main);
+}
+
+.billing-cycle-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.discount-pill {
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.grade-filter-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.grade-filter-btn {
+  padding: 7px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-body);
+  background: var(--bg-surface-soft);
+  border: 1px solid var(--border-light);
+  transition: all 0.15s ease;
+}
+
+.grade-filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.grade-filter-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pricing Grid */
+.pricing-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 28px;
+  margin-bottom: 50px;
+}
+
+.pricing-card {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 34px 26px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+/* Card yang sedang disentuh kursor (Card A) menjadi hijau bercahaya */
+.pricing-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 14px 34px -4px rgba(5, 150, 105, 0.24);
+  border-color: var(--primary) !important;
+}
+
+/* Card Paling Diminati: Badge tetap stay, namun border default tetap netral hingga di-hover */
+.pricing-card.popular {
+  border-color: var(--border-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.pricing-card.popular:hover {
+  border-color: var(--primary) !important;
+  box-shadow: 0 16px 36px -4px rgba(5, 150, 105, 0.28);
+  transform: translateY(-8px);
+}
+
+.pricing-card:hover .select-package-btn.btn-outline {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--primary) 0%, #10b981 100%);
+  color: #ffffff;
+  padding: 5px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px var(--primary-glow);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pricing-header {
+  margin-bottom: 18px;
+}
+
+.pricing-grade-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-subtle);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 10px;
+}
+
+.pricing-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.pricing-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  min-height: 44px;
+  line-height: 1.5;
+}
+
+/* Track selector on SD Explore package */
+.track-selection-box {
+  background: var(--bg-surface-soft);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin: 14px 0;
+}
+
+.track-selection-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.track-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.track-option-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.track-option-item:hover {
+  background: rgba(5, 150, 105, 0.08);
+}
+
+.track-option-item input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+.pricing-price-wrap {
+  margin: 18px 0 22px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pricing-amount {
+  font-size: 2.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.03em;
+}
+
+.pricing-period {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.pricing-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-grow: 1;
+}
+
+.pricing-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--text-body);
+  line-height: 1.45;
+}
+
+.pricing-feature-item i {
+  color: var(--primary);
+  font-size: 0.9rem;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   COMPARISON TABLE
+   ============================================================ */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  margin-top: 40px;
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.compare-table th {
+  background: var(--bg-surface-soft);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.testimonial-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 30px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 24px -2px rgba(5, 150, 105, 0.16);
+}
+
+.testi-stars {
+  color: #f59e0b;
+  margin-bottom: 14px;
+  display: flex;
+  gap: 4px;
+}
+
+.testi-quote {
+  font-size: 0.9375rem;
+  color: var(--text-body);
+  line-height: 1.65;
+  margin-bottom: 22px;
+}
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.author-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.author-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.author-role {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   FAQ ACCORDION
+   ============================================================ */
+.faq-accordion {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.faq-item.open {
+  border-color: var(--primary);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 20px 24px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.faq-icon {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.faq-item.open .faq-icon {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.faq-answer-inner {
+  padding: 0 24px 22px;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* ============================================================
+   CTA BANNER
+   ============================================================ */
+.cta-banner {
+  background: linear-gradient(135deg, #047857 0%, #059669 50%, #0d9488 100%);
+  color: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 56px 36px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(5, 150, 105, 0.25);
+  margin-top: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-banner h2 {
+  font-size: 2.35rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 14px;
+  letter-spacing: -0.025em;
+}
+
+.cta-banner p {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 600px;
+  margin: 0 auto 30px;
+  line-height: 1.6;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-light);
+  padding: 64px 0 32px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+.footer-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 16px 0 20px;
+  max-width: 320px;
+}
+
+.footer-col h5 {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 18px;
+  letter-spacing: -0.01em;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.8125rem;
+  color: var(--text-subtle);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  padding: 20px;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 34px;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(20px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.open .modal-box {
+  transform: translateY(0);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bg-surface-soft);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   RESPONSIVE MEDIA QUERIES
+   ============================================================ */
+@media (max-width: 1200px) {
+  .nav-menu {
+    gap: 16px;
+  }
+  .nav-link {
+    font-size: 0.875rem;
+  }
+  .brand-title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .navbar-inner {
+    display: flex;
+    justify-content: space-between;
+  }
+  .nav-menu {
+    position: fixed;
+    top: var(--nav-height);
+    left: 0;
+    right: 0;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-light);
+    padding: 20px 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    display: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+  .nav-menu.mobile-open {
+    display: flex;
+  }
+  .mobile-menu-toggle {
+    display: block;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hero-headline {
+    font-size: 2.75rem;
+  }
+  .story-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pricing-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .pricing-card.popular {
+    transform: none;
+  }
+  .grade-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .tab-pane.active {
+    grid-template-columns: 1fr;
+  }
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-headline {
+    font-size: 2.2rem;
+  }
+  .hero-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .cta-banner {
+    padding: 38px 22px;
+  }
+  .cta-banner h2 {
+    font-size: 1.85rem;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Top Announcement Promo Bar -->
+  <aside class="announcement-bar" aria-label="Pengumuman promo">
+    <div class="announcement-inner">
+      <span class="announcement-tag"><i class="fa-solid fa-gift"></i> Promo Spesial</span>
+      <span>Gunakan kode promo <span class="announcement-code">HEMAT10</span> untuk ekstra diskon 10% atau <span class="announcement-code">SD25K</span> khusus siswa baru!</span>
+      <a href="#paket" class="btn btn-sm btn-secondary" style="padding: 3px 14px; font-size: 0.75rem; border-radius: 9999px;">Klaim Diskon</a>
+    </div>
+  </aside>
+
+  <!-- Sticky Navbar -->
+  <header class="navbar" id="navbar">
+    <div class="container navbar-inner">
+      <!-- Brand Logo (Pojok Kiri) -->
+      <a href="#" class="brand-link" aria-label="Beranda Dieng Cyber">
+        <img src="users/Assets/logo.webp" onerror="this.onerror=null; this.src='assets/logo.webp';" alt="Logo Dieng Cyber" class="brand-logo" width="44" height="44">
+        <div class="brand-text">
+          <span class="brand-title">DIENG CYBER</span>
+          <span class="brand-subtitle">Ruang KKA Academy</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu (Di Tengah) -->
+      <nav class="nav-menu" id="navMenu" aria-label="Navigasi Utama">
+        <a href="#beranda" class="nav-link active">Beranda</a>
+        <a href="#cerita-kami" class="nav-link">Tentang Kami</a>
+        <a href="#tim-mentor" class="nav-link">Tim Pengajar</a>
+        <a href="#kurikulum" class="nav-link">Kurikulum</a>
+        <a href="#paket" class="nav-link">Paket & Biaya</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </nav>
+
+      <!-- Action Buttons (Pojok Kanan) -->
+      <div class="nav-actions">
+        <!-- Theme Toggle -->
+        <button type="button" class="theme-toggle-btn" aria-label="Ganti mode gelap/terang" title="Ganti Mode Gelap/Terang">
+          <i class="fa-solid fa-sun theme-icon-sun"></i>
+          <i class="fa-solid fa-moon theme-icon-moon"></i>
+        </button>
+
+        <!-- Tombol Login -->
+        <a href="users/index.html" class="btn btn-sm btn-secondary" title="Login ke Akun">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Login</span>
+        </a>
+
+        <!-- Coba Gratis CTA -->
+        <a href="users/register.html" class="btn btn-sm btn-primary" title="Coba Gratis">
+          <i class="fa-solid fa-sparkles"></i>
+          <span>Coba Gratis</span>
+        </a>
+
+        <!-- Mobile Menu Toggle -->
+        <button type="button" class="mobile-menu-toggle" aria-label="Buka menu navigasi" id="mobileMenuBtn">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============================================================
+         HERO SECTION (CERITA & INSPIRATIF)
+         ============================================================ -->
+    <section class="hero" id="beranda">
+      <div class="container">
+        <div class="hero-grid">
+          <!-- Left Text Content -->
+          <div class="hero-content">
+            <div class="badge badge-primary">
+              <i class="fa-solid fa-award"></i>
+              <span>Sekolah Koding & AI Nomor 1 di Kawasan Dieng & Wonosobo</span>
+            </div>
+
+            <h1 class="hero-headline">
+              Membentuk Masa Depan Anak Menjadi <span class="text-gradient">Pencipta Teknologi Digital</span>
+            </h1>
+
+            <p class="hero-subtitle">
+              Dieng Cyber Coding Academy (Ruang KKA) membimbing siswa SD, SMP, hingga SMK menguasai Computational Thinking, pembuatan game mandiri, robotika visual, web interaktif, serta AI dengan kurikulum berjenjang yang menyenangkan.
+            </p>
+
+            <div class="hero-cta-group">
+              <a href="users/register.html" class="btn btn-lg btn-primary">
+                <i class="fa-solid fa-sparkles"></i>
+                <span>Coba Kelas Gratis</span>
+              </a>
+              <a href="#paket" class="btn btn-lg btn-secondary">
+                <i class="fa-solid fa-tags"></i>
+                <span>Lihat Pilihan Paket</span>
+              </a>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="hero-stats-row">
+              <div class="stat-item">
+                <span class="stat-number">1.250+</span>
+                <span class="stat-label">Siswa Terbina</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">45+</span>
+                <span class="stat-label">Mentor & Pengajar</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">3.800+</span>
+                <span class="stat-label">Karya Projek Siswa</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">98.5%</span>
+                <span class="stat-label">Kepuasan Orang Tua</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Visual / Story Collage Card -->
+          <div class="hero-visual">
+            <div class="floating-pill floating-pill-top">
+              <i class="fa-solid fa-shield-check" style="color: #10b981;"></i>
+              <span>Kurikulum Terakreditasi Industri</span>
+            </div>
+
+            <div class="hero-collage-card">
+              <div class="hero-image-banner">
+                <img src="users/Assets/belajar-bermain.webp" onerror="this.style.display='none';" alt="Suasana Belajar Koding Anak" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="hero-image-overlay-text">
+                  <i class="fa-solid fa-users" style="color: #38bdf8; margin-right: 6px;"></i>
+                  <span>Pembelajaran Interaktif Live Zoom & Pendampingan Personal</span>
+                </div>
+              </div>
+
+              <!-- Mini Interactive Python Box -->
+              <div class="hero-mini-code-box">
+                <div style="color: #94a3b8; margin-bottom: 4px;"># Program Kreator Cilik Dieng Cyber</div>
+                <div><span style="color: #f43f5e; font-weight: bold;">def</span> <span style="color: #38bdf8;">ciptakan_karya</span>(siswa):</div>
+                <div style="padding-left: 18px;"><span style="color: #f43f5e; font-weight: bold;">return</span> <span style="color: #4ade80;">f"Hebat {siswa}! Game 3D & AI kamu telah terbit!"</span></div>
+                <div style="margin-top: 4px;">print(ciptakan_karya(<span style="color: #fbbf24;">"Aditya (10 th)"</span>))</div>
+                <div style="margin-top: 10px; background: rgba(56,189,248,0.15); padding: 6px 12px; border-radius: 6px; color: #7dd3fc; border-left: 3px solid #38bdf8;">
+                  &gt; Output: Hebat Aditya! Game 3D & AI kamu telah terbit!
+                </div>
+              </div>
+            </div>
+
+            <div class="floating-pill floating-pill-bottom">
+              <i class="fa-solid fa-robot" style="color: #f59e0b;"></i>
+              <span>Asisten AI Tutor 24 Jam</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TENTANG KAMI / CERITA KAMI (ABOUT SECTION)
+         ============================================================ -->
+    <section class="section section-alt" id="cerita-kami">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-primary">Tentang Kami</span>
+          <h2 class="section-title">Cerita & Misi Dieng Cyber Coding Academy</h2>
+          <p class="section-desc">Berawal dari komitmen bersama para praktisi software engineering dan pendidik di Wonosobo untuk mengubah masa depan anak-anak Indonesia melalui literasi komputasi kelas dunia.</p>
+        </div>
+
+        <div class="story-grid">
+          <div class="story-content-col">
+            <h3 class="story-lead">Mengubah screen time pasif anak menjadi pengalaman berkarya yang produktif dan membanggakan keluarga.</h3>
+            <div class="story-body">
+              <p>
+                Di era perkembangan kecerdasan buatan dan transformasi digital yang kian cepat, kemampuan pemrograman bukan lagi sekadar keterampilan teknis, melainkan cara berpikir baru: <strong>Computational Thinking</strong> (kemampuan memecah masalah kompleks, mengenali pola, dan merancang solusi terstruktur).
+              </p>
+              <p>
+                <strong>Ruang KKA • Dieng Cyber</strong> didirikan untuk memberikan ruang belajar koding yang aman, ramah anak, dan berkualitas tinggi. Melalui kurikulum berbasis proyek (Project-Based Learning), anak tidak hanya bermain game, namun belajar mendesain logika di balik layar, membuat karakter animasi, hingga membangun platform cerdas mereka sendiri.
+              </p>
+              <div style="margin-top: 14px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <span class="badge badge-emerald"><i class="fa-solid fa-check"></i> Pendekatan Humanis & Empati</span>
+                <span class="badge badge-primary"><i class="fa-solid fa-check"></i> Standar Kurikulum Teruji</span>
+                <span class="badge badge-amber"><i class="fa-solid fa-check"></i> Komunikasi Rutin ke Orang Tua</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Value Cards Column -->
+          <div class="story-cards-col">
+            <div class="story-value-card">
+              <div class="story-value-icon" style="background: var(--primary-subtle); color: var(--primary);">
+                <i class="fa-solid fa-lightbulb"></i>
+              </div>
+              <div>
+                <h4 class="story-value-title">Project-Based Learning</h4>
+                <p class="story-value-desc">Setiap materi selalu menghasilkan karya nyata yang dapat dipamerkan dan dimainkan oleh teman maupun keluarga.</p>
+              </div>
+            </div>
+
+            <div class="story-value-card">
+              <div class="story-value-icon" style="background: var(--accent-emerald-subtle); color: #047857;">
+                <i class="fa-solid fa-heart"></i>
+              </div>
+              <div>
+                <h4 class="story-value-title">Kelas Nyaman & Terbimbing</h4>
+                <p class="story-value-desc">Rasio kelas kecil memastikan setiap anak mendapatkan perhatian personal mentor tanpa takut tertinggal atau merasa minder.</p>
+              </div>
+            </div>
+
+            <div class="story-value-card">
+              <div class="story-value-icon" style="background: var(--accent-amber-subtle); color: #b45309;">
+                <i class="fa-solid fa-chart-line"></i>
+              </div>
+              <div>
+                <h4 class="story-value-title">Transparansi Perkembangan</h4>
+                <p class="story-value-desc">Laporan kemajuan belajar, portofolio tugas, dan kehadiran terkirim otomatis ke WhatsApp wali murid secara periodik.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TIM PENGAJAR & MENTOR (OUR EXPERT TEAM)
+         ============================================================ -->
+    <section class="section" id="tim-mentor">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-primary">Tim Pengajar Kami</span>
+          <h2 class="section-title">Dibimbing oleh Mentor Ahli Berpengalaman</h2>
+          <p class="section-desc">Instruktur Dieng Cyber merupakan praktisi teknologi profesional dan pendidik terlatih yang berdedikasi membimbing anak dengan sabar dan menyenangkan.</p>
+        </div>
+
+        <div class="team-grid">
+          <!-- Mentor 1 -->
+          <div class="team-card">
+            <div class="team-avatar-wrap">
+              <div class="team-avatar-placeholder">BP</div>
+              <span class="team-badge-tag"><i class="fa-solid fa-laptop-code"></i> 10+ Thn Engineering</span>
+            </div>
+            <div class="team-info">
+              <h4 class="team-name">Bagus Prasetyo, S.Kom., M.T.</h4>
+              <span class="team-role">Head of Curriculum & Tech</span>
+              <p class="team-bio">Praktisi arsitektur perangkat lunak dan konsultan IT. Telah merancang kurikulum koding anak yang adaptif dan telah mengajar ratusan siswa di Jawa Tengah.</p>
+            </div>
+          </div>
+
+          <!-- Mentor 2 -->
+          <div class="team-card">
+            <div class="team-avatar-wrap">
+              <div class="team-avatar-placeholder">FN</div>
+              <span class="team-badge-tag"><i class="fa-solid fa-shapes"></i> Kids Pedagogi Specialist</span>
+            </div>
+            <div class="team-info">
+              <h4 class="team-name">Fadhilah Nurul, S.Pd.</h4>
+              <span class="team-role">Lead Kids Educator (SD)</span>
+              <p class="team-bio">Pakar pendidikan anak dan visual coding. Sangat berpengalaman mengajar Scratch, animasi dongeng digital, dan logika komputasi untuk siswa usia 6–12 tahun.</p>
+            </div>
+          </div>
+
+          <!-- Mentor 3 -->
+          <div class="team-card">
+            <div class="team-avatar-wrap">
+              <div class="team-avatar-placeholder">RH</div>
+              <span class="team-badge-tag"><i class="fa-brands fa-python"></i> AI & Data Specialist</span>
+            </div>
+            <div class="team-info">
+              <h4 class="team-name">Rian Hidayat, M.Cs.</h4>
+              <span class="team-role">Senior Python & AI Mentor</span>
+              <p class="team-bio">Spesialis kecerdasan buatan dan matematika algoritma. Membimbing siswa SMP dan SMK memahami fondasi Python modern serta pengolahan data terapan.</p>
+            </div>
+          </div>
+
+          <!-- Mentor 4 -->
+          <div class="team-card">
+            <div class="team-avatar-wrap">
+              <div class="team-avatar-placeholder">DA</div>
+              <span class="team-badge-tag"><i class="fa-solid fa-gamepad"></i> Game & Web Lead</span>
+            </div>
+            <div class="team-info">
+              <h4 class="team-name">Dewi Anggraini, S.Kom.</h4>
+              <span class="team-role">Fullstack & Game Mentor</span>
+              <p class="team-bio">Pengembang game dan aplikasi web interaktif. Berfokus pada bimbingan 3D Studio, Roblox game builder, serta persiapan portofolio siswa menuju dunia industri.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         KURIKULUM BERJENJANG (SD, SMP, SMK)
+         ============================================================ -->
+    <section class="section section-alt" id="kurikulum">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-primary">Jalur Pembelajaran Terstruktur</span>
+          <h2 class="section-title">Kurikulum Dirancang Khusus Sesuai Usia Anak</h2>
+          <p class="section-desc">Mulai dari koding visual tanpa mengetik yang menyenangkan hingga arsitektur software profesional berstandar industri.</p>
+        </div>
+
+        <div class="grade-cards-grid">
+          <!-- Jenjang SD -->
+          <div class="grade-card grade-sd">
+            <div class="grade-header">
+              <div class="grade-icon"><i class="fa-solid fa-shapes"></i></div>
+              <div class="grade-meta">
+                <h3 class="grade-title">Kids Explorer (SD)</h3>
+                <span class="grade-age">Usia 6 – 12 Tahun</span>
+              </div>
+            </div>
+            <p class="grade-summary">Membangun fondasi logika berpikir sistematis (Computational Thinking) lewat koding blok visual yang seru dan penuh warna.</p>
+            <div class="grade-module-list">
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Animasi Interaktif & Dongeng Visual Scratch</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Membuat Game 2D Mandiri (Maze & Arcade)</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Mendesain Dunia 3D Sederhana & Aset Roblox</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Dasar Pembuatan Website Profil Pribadi</span>
+              </div>
+            </div>
+            <a href="#paket" class="btn btn-outline" style="width: 100%;">Lihat Biaya Paket SD</a>
+          </div>
+
+          <!-- Jenjang SMP -->
+          <div class="grade-card grade-smp">
+            <div class="grade-header">
+              <div class="grade-icon"><i class="fa-solid fa-code"></i></div>
+              <div class="grade-meta">
+                <h3 class="grade-title">Junior Developer (SMP)</h3>
+                <span class="grade-age">Usia 12 – 15 Tahun</span>
+              </div>
+            </div>
+            <p class="grade-summary">Transisi mulus dari blok visual ke bahasa pemrograman teks nyata Python, matematika terapan, dan pengenalan AI kreatif.</p>
+            <div class="grade-module-list">
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Sintaks & Struktur Logika Python Modern</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Algoritma Pemecahan Masalah & Problem Solving</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Eksplorasi Artificial Intelligence & Chatbot</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Pembangunan Web Interaktif (HTML, CSS & JS)</span>
+              </div>
+            </div>
+            <a href="#paket" class="btn btn-primary" style="width: 100%;">Lihat Biaya Paket SMP</a>
+          </div>
+
+          <!-- Jenjang SMK / SMA -->
+          <div class="grade-card grade-smk">
+            <div class="grade-header">
+              <div class="grade-icon"><i class="fa-solid fa-laptop-code"></i></div>
+              <div class="grade-meta">
+                <h3 class="grade-title">Pro Career Path (SMK)</h3>
+                <span class="grade-age">Usia 15 – 18+ Tahun</span>
+              </div>
+            </div>
+            <p class="grade-summary">Fokus keahlian industri nyata, arsitektur software, fullstack web development, basis data, dan persiapan portofolio kerja/magang.</p>
+            <div class="grade-module-list">
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Fullstack Web Development (Frontend & REST API)</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Pemrograman Python Lanjutan & Olah Data</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Basis Data Relasional SQLite & Backend Server</span>
+              </div>
+              <div class="module-item">
+                <i class="fa-solid fa-check module-bullet"></i>
+                <span>Bimbingan Portofolio GitHub & Persiapan Karir</span>
+              </div>
+            </div>
+            <a href="#paket" class="btn btn-outline" style="width: 100%;">Lihat Biaya Paket SMK</a>
+          </div>
+        </div>
+
+        <!-- Interactive Playground Tabs -->
+        <div class="playground-section">
+          <div class="playground-nav" role="tablist">
+            <button type="button" class="playground-tab-btn active" data-target="tabScratch" role="tab" aria-selected="true">
+              <i class="fa-solid fa-puzzle-piece"></i>
+              <span>Scratch Editor Visual</span>
+            </button>
+            <button type="button" class="playground-tab-btn" data-target="tabPython" role="tab" aria-selected="false">
+              <i class="fa-brands fa-python"></i>
+              <span>Python Runner + AI Tutor</span>
+            </button>
+            <button type="button" class="playground-tab-btn" data-target="tab3D" role="tab" aria-selected="false">
+              <i class="fa-solid fa-cubes"></i>
+              <span>3D Studio & Game Designer</span>
+            </button>
+          </div>
+
+          <!-- Tab Scratch -->
+          <div class="tab-pane active" id="tabScratch">
+            <div class="playground-desc">
+              <h4>Koding Visual Tanpa Rasa Takut Typo</h4>
+              <p>Siswa SD menyusun blok algoritma seperti bermain lego. Setiap perintah memiliki warna dan konektor khusus, mencegah error penulisan dan langsung melihat hasilnya secara visual.</p>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <span class="badge badge-emerald"><i class="fa-solid fa-check"></i> Blok Logika Interaktif</span>
+                <span class="badge badge-primary"><i class="fa-solid fa-music"></i> Suara & Animasi</span>
+                <span class="badge badge-amber"><i class="fa-solid fa-gamepad"></i> Kontrol Game</span>
+              </div>
+            </div>
+            <div class="playground-visual-frame">
+              <div style="color: #f59e0b; margin-bottom: 8px;"><i class="fa-solid fa-flag"></i> KETIKA BENDERA HIJAU DIKLIK:</div>
+              <div style="background: rgba(99,102,241,0.25); padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #6366f1;">
+                &bull; Ulangi Selamanya:
+                <div style="margin-left: 15px; color: #38bdf8;">&rarr; Bergerak 10 Langkah</div>
+                <div style="margin-left: 15px; color: #4ade80;">&rarr; Jika Menyentuh Tepi, Pantulkan</div>
+              </div>
+              <div style="color: #94a3b8; font-size: 0.78rem;">Sprite Karakter berjalan mulus di canvas 60 FPS!</div>
+            </div>
+          </div>
+
+          <!-- Tab Python -->
+          <div class="tab-pane" id="tabPython">
+            <div class="playground-desc">
+              <h4>Jalankan Python Langsung di Web Browser</h4>
+              <p>Didukung oleh WebAssembly Pyodide di browser siswa. Tidak perlu instalasi rumit di laptop! Ditambah asisten AI Tutor yang membimbing saat anak menemui error.</p>
+              <button type="button" class="btn btn-sm btn-primary" id="runDemoPyBtn">
+                <i class="fa-solid fa-play"></i>
+                <span>Jalankan Kode Contoh</span>
+              </button>
+            </div>
+            <div class="playground-visual-frame">
+              <div style="color: #38bdf8; margin-bottom: 8px;">// Python In-Browser Runner</div>
+              <div style="color: #cbd5e1; margin-bottom: 12px;">
+                def sapa(nama):<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;return f"Halo {nama}, selamat datang di Dieng Cyber!"<br><br>
+                print(sapa("Siswa Baru"))
+              </div>
+              <div id="demoPyOutput" style="background: #1e293b; padding: 12px; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #10b981;">
+                Klik tombol "Jalankan Kode Contoh" di samping untuk mencoba!
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3D -->
+          <div class="tab-pane" id="tab3D">
+            <div class="playground-desc">
+              <h4>Editor 3D & Desain Properti Game</h4>
+              <p>Mengasah imajinasi spasial 3 dimensi anak dengan menyusun objek ruang geometri, pencahayaan, material, dan fisika sederhana untuk mempersiapkan mereka menciptakan game masa depan.</p>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <span class="badge badge-primary"><i class="fa-solid fa-cube"></i> Rotasi 3 Sumbu</span>
+                <span class="badge badge-emerald"><i class="fa-solid fa-lightbulb"></i> Pencahayaan & Kamera</span>
+              </div>
+            </div>
+            <div class="playground-visual-frame" style="text-align: center; padding: 36px 20px;">
+              <i class="fa-solid fa-vr-cardboard" style="font-size: 3rem; color: #818cf8; margin-bottom: 14px;"></i>
+              <div style="font-size: 1rem; font-weight: 700; color: #f8fafc;">3D Canvas Viewport Aktif</div>
+              <p style="font-size: 0.8rem; color: #94a3b8; max-width: 320px; margin: 8px auto 0;">Objek ter-render menggunakan WebGL Three.js secara langsung di portal belajar siswa.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         KATALOG PAKET & DAFTAR HARGA (BAGIAN UTAMA)
+         ============================================================ -->
+    <section class="section" id="paket">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-primary">Investasi Masa Depan</span>
+          <h2 class="section-title">Pilihan Paket Belajar & Daftar Biaya</h2>
+          <p class="section-desc">Pilih jalur belajar sesuai jenjang anak: <strong>SD</strong> (Basic, Explore, All-in-One), <strong>SMP</strong> (Python Start, AI & Creative Tech, Game Dev 3D, Semua Path), dan <strong>SMA/K</strong> (Python Algo, Web Dev, Data & AI, Semua Path).</p>
+        </div>
+
+        <!-- Filter & Switcher Controls -->
+        <div class="pricing-controls">
+          <!-- Billing Cycle Switcher (Durasi) -->
+          <div class="billing-switcher" role="group" aria-label="Pilihan Durasi Berlangganan">
+            <button type="button" class="billing-cycle-btn" data-cycle="1">
+              <span>1 Bulan</span>
+            </button>
+            <button type="button" class="billing-cycle-btn active" data-cycle="3">
+              <span>3 Bulan</span>
+              <span class="discount-pill">Hemat 10%</span>
+            </button>
+            <button type="button" class="billing-cycle-btn" data-cycle="6">
+              <span>6 Bulan</span>
+              <span class="discount-pill">Hemat 20%</span>
+            </button>
+            <button type="button" class="billing-cycle-btn" data-cycle="12">
+              <span>1 Tahun</span>
+              <span class="discount-pill">Hemat 25%</span>
+            </button>
+          </div>
+
+          <!-- Grade Filter Group -->
+          <div class="grade-filter-group" role="group" aria-label="Filter Jenjang">
+            <button type="button" class="grade-filter-btn active" data-grade="ALL">Semua Paket</button>
+            <button type="button" class="grade-filter-btn" data-grade="SD">Jenjang SD</button>
+            <button type="button" class="grade-filter-btn" data-grade="SMP">Jenjang SMP</button>
+            <button type="button" class="grade-filter-btn" data-grade="SMK">Jenjang SMK/SMA</button>
+          </div>
+        </div>
+
+        <!-- Dynamic Pricing Cards Container -->
+        <div class="pricing-cards-grid" id="pricingCardsGrid">
+          <!-- Injected dynamically by script.js -->
+        </div>
+
+        <!-- Tabel Komparasi Fitur Lengkap -->
+        <div class="table-responsive">
+          <table class="compare-table" aria-label="Tabel perbandingan fitur paket">
+            <thead>
+              <tr>
+                <th style="width: 31%;">Fasilitas & Layanan</th>
+                <th>SD (Basic / Explore / All)</th>
+                <th>SMP (Python / AI / Game / All)</th>
+                <th>SMA/K (Algo / Web / Data / All)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Pertemuan Live Zoom</strong></td>
+                <td>4x s/d 12x / bulan</td>
+                <td>8x s/d 12x / bulan</td>
+                <td>8x s/d 12x / bulan</td>
+              </tr>
+              <tr>
+                <td><strong>Akses Editor Koding Web</strong></td>
+                <td>Scratch, 3D Roblox & Web Builder</td>
+                <td>Python Runner, AI Tools & 3D Engine</td>
+                <td>Fullstack IDE, Git, DB & Data Tools</td>
+              </tr>
+              <tr>
+                <td><strong>Pilihan Track / Peminatan</strong></td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Game Dev, 3D Roblox, Web Dev</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Python, AI Tech, Game 3D</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Algo Python, Web, Data & AI</td>
+              </tr>
+              <tr>
+                <td><strong>Bantuan AI Tutor Pintar 24/7</strong></td>
+                <td>Tersedia di Explore & All-in-One</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Aktif di Semua Paket</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Aktif di Semua Paket</td>
+              </tr>
+              <tr>
+                <td><strong>Laporan Otomatis ke WhatsApp Wali</strong></td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Setiap Bulan</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Setiap Bulan</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Setiap Bulan</td>
+              </tr>
+              <tr>
+                <td><strong>Review Personal Tugas & Portofolio</strong></td>
+                <td>Review & Pameran Karya</td>
+                <td>Review Kode & Logika</td>
+                <td>Code Review Standar Industri</td>
+              </tr>
+              <tr>
+                <td><strong>E-Sertifikat Resmi Kelulusan</strong></td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Terverifikasi</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Terverifikasi</td>
+                <td><i class="fa-solid fa-check" style="color: #10b981;"></i> Terverifikasi Industri</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TESTIMONI ORANG TUA & SISWA
+         ============================================================ -->
+    <section class="section section-alt" id="testimoni">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-amber">Apa Kata Mereka</span>
+          <h2 class="section-title">Cerita Sukses Orang Tua & Siswa Kami</h2>
+          <p class="section-desc">Ratusan keluarga telah merasakan manfaat positif dari beralihnya kebiasaan bermain game menjadi pembuat karya digital sejati.</p>
+        </div>
+
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <div class="testi-stars">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="testi-quote">"Anak saya (SD kelas 4) dulu kecanduan main game seharian di tablet. Setelah 3 bulan ikut kelas Scratch di Ruang KKA, sekarang dia malah sibuk bikin game sendiri dan bangga ditunjukkan ke keluarga!"</p>
+            <div class="testi-author">
+              <div class="author-avatar">RD</div>
+              <div>
+                <div class="author-name">Ibu Ratna Dewi</div>
+                <div class="author-role">Wali dari Farhan (Siswa SD)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testi-stars">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="testi-quote">"Mentornya sangat sabar dan kurikulum Python-nya gampang dipahami. Fitur AI Tutor di browser ngebantu banget saat saya ngerjain tugas malem-malem dan ada error koding."</p>
+            <div class="testi-author">
+              <div class="author-avatar">AP</div>
+              <div>
+                <div class="author-name">Aditya Pratama</div>
+                <div class="author-role">Siswa SMP Kelas 8</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testi-stars">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="testi-quote">"Sebagai orang tua yang bekerja, fitur laporan WhatsApp wali murid sangat melegakan. Saya bisa melihat grafik kehadiran anak, nilai latihan, dan catatan mentor kapan saja tanpa perlu ribet login."</p>
+            <div class="testi-author">
+              <div class="author-avatar">BS</div>
+              <div>
+                <div class="author-name">Pak Bambang Santoso</div>
+                <div class="author-role">Wali dari Naufal (Siswa SMK)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         FAQ (PERTANYAAN UMUM)
+         ============================================================ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-primary">Pusat Bantuan</span>
+          <h2 class="section-title">Pertanyaan yang Sering Diajukan</h2>
+          <p class="section-desc">Punya pertanyaan seputar teknis kelas, perangkat, atau sistem pembayaran? Temukan jawabannya di sini.</p>
+        </div>
+
+        <div class="faq-accordion">
+          <div class="faq-item open">
+            <button type="button" class="faq-question">
+              <span>Apakah anak yang belum pernah koding sama sekali bisa ikut?</span>
+              <i class="fa-solid fa-chevron-down faq-icon"></i>
+            </button>
+            <div class="faq-answer" style="max-height: 200px;">
+              <div class="faq-answer-inner">
+                Tentu saja! Kurikulum kami didesain bertahap dari nol (Level 0). Untuk pemula SD, materi diawali dengan Scratch blok koding visual tanpa mengetik teks, melatih logika pemecahan masalah dengan animasi yang menyenangkan.
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question">
+              <span>Perangkat apa yang perlu disiapkan untuk belajar?</span>
+              <i class="fa-solid fa-chevron-down faq-icon"></i>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">
+                Cukup menggunakan Laptop atau Komputer (PC) standar dengan browser modern (Google Chrome / Edge) dan koneksi internet stabil. Semua editor (Scratch, Python, 3D, Text Editor) berjalan langsung di web browser tanpa perlu instalasi aplikasi berat.
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question">
+              <span>Bagaimana jika anak berhalangan hadir saat sesi Zoom?</span>
+              <i class="fa-solid fa-chevron-down faq-icon"></i>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">
+                Seluruh materi modul, latihan mandiri, dan rekaman rangkuman selalu tersedia di dashboard portal siswa 24/7. Siswa juga dapat bertanya langsung ke mentor di inbox pertanyaan atau dibimbing oleh asisten AI Tutor cerdas kapan saja.
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question">
+              <span>Bagaimana metode pembayaran dan konfirmasi langganan?</span>
+              <i class="fa-solid fa-chevron-down faq-icon"></i>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">
+                Pembayaran mendukung Transfer Bank (BCA, Mandiri, BRI, BNI) serta QRIS nasional. Setelah transfer, invoice akan diverifikasi secara otomatis atau oleh tim finance akademi, dan akses kelas langsung aktif seketika.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Ajakan Bawah -->
+        <div class="cta-banner">
+          <h2>Jadwalkan Kelas Trial Gratis Anak Anda Sekarang!</h2>
+          <p>Daftarkan akun gratis sekarang, konsultasikan minat belajar anak bersama mentor kami, dan dapatkan penawaran diskon terbaik.</p>
+          <div class="cta-buttons">
+            <a href="users/register.html" class="btn btn-lg btn-secondary">
+              <i class="fa-solid fa-calendar-check"></i>
+              <span>Daftar Trial Gratis</span>
+            </a>
+            <a href="https://wa.me/6281222334455?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20ingin%20konsultasi%20paket%20koding%20anak" target="_blank" rel="noopener" class="btn btn-lg btn-whatsapp">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>Konsultasi WhatsApp</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Col 1: Brand & Bio -->
+        <div class="footer-brand">
+          <div class="brand-link">
+            <img src="users/Assets/logo.webp" onerror="this.onerror=null; this.src='assets/logo.webp';" alt="Logo Dieng Cyber" class="brand-logo" width="44" height="44">
+            <div class="brand-text">
+              <span class="brand-title">DIENG CYBER</span>
+              <span class="brand-subtitle">Ruang KKA Academy</span>
+            </div>
+          </div>
+          <p class="footer-desc">
+            Pusat pendidikan pemrograman komputer dan teknologi kreatif untuk anak dan remaja di Wonosobo. Membina generasi pencipta inovasi masa depan Indonesia.
+          </p>
+          <div style="display: flex; gap: 14px; color: var(--text-muted); font-size: 1.15rem;">
+            <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+          </div>
+        </div>
+
+        <!-- Col 2: Program & Kurikulum -->
+        <div class="footer-col">
+          <h5>Program Kami</h5>
+          <div class="footer-links">
+            <a href="#kurikulum">Kids Explorer (SD 6-12 Thn)</a>
+            <a href="#kurikulum">Junior Developer (SMP 12-15 Thn)</a>
+            <a href="#kurikulum">Pro Career Path (SMK 15-18+ Thn)</a>
+            <a href="#paket">Paket & Biaya Belajar</a>
+            <a href="#cerita-kami">Tentang Kami & Misi</a>
+          </div>
+        </div>
+
+        <!-- Col 3: Akses Portal -->
+        <div class="footer-col">
+          <h5>Akses Portal</h5>
+          <div class="footer-links">
+            <a href="users/index.html">Masuk ke Akun (Login)</a>
+            <a href="users/register.html">Pendaftaran Siswa Baru</a>
+            <a href="users/orangtua/laporan.html">Cek Laporan Belajar Siswa</a>
+          </div>
+        </div>
+
+        <!-- Col 4: Kontak & Lokasi -->
+        <div class="footer-col">
+          <h5>Hubungi Kami</h5>
+          <div class="footer-links">
+            <span style="font-size: 0.875rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Kawasan Dieng Cyber, Wonosobo, Jawa Tengah</span>
+            <span style="font-size: 0.875rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> +62 812-2233-4455</span>
+            <span style="font-size: 0.875rem; color: var(--text-muted);"><i class="fa-solid fa-envelope"></i> info@diengcyber.com</span>
+            <a href="#paket" class="btn btn-sm btn-outline" style="margin-top: 8px;">Katalog Harga Paket</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Ruang KKA - PT Dieng Cyber Indonesia. Seluruh hak cipta dilindungi undang-undang.</div>
+        <div style="display: flex; gap: 20px;">
+          <a href="#">Kebijakan Privasi</a>
+          <a href="#">Syarat & Ketentuan</a>
+          <a href="#">Bantuan & CS</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       CHECKOUT / SELEKSI PAKET MODAL
+       ============================================================ -->
+  <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="modalPkgTitle">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="closeModalBtn" aria-label="Tutup modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="margin-bottom: 20px;">
+        <span class="badge badge-primary" style="margin-bottom: 6px;">Konfirmasi Pilihan Paket</span>
+        <h3 id="modalPkgTitle" style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Nama Paket</h3>
+        <div id="modalPkgGrade" style="font-size: 0.875rem; color: var(--text-muted); margin-top: 2px;">Jenjang: SD</div>
+        <div id="modalPkgDuration" style="font-size: 0.875rem; color: var(--primary); font-weight: 700; margin-top: 2px;">Durasi: 3 Bulan</div>
+      </div>
+
+      <div style="background: var(--bg-surface-soft); border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px; border: 1px solid var(--border-light);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem; color: var(--text-muted);">Total Biaya Pembelajaran:</span>
+          <span id="modalPkgTotal" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">Rp 0</span>
+        </div>
+        <small style="color: var(--text-subtle); display: block; margin-top: 6px;">Sudah termasuk fasilitas kelas live, akses semua modul & AI tutor, serta laporan berkala wali.</small>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="#" class="btn btn-whatsapp btn-block" id="modalWaBtn" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i>
+          <span>Konsultasi & Konfirmasi via WhatsApp</span>
+        </a>
+        <a href="users/register.html" class="btn btn-primary btn-block" id="modalRegisterBtn">
+          <i class="fa-solid fa-user-plus"></i>
+          <span>Lanjutkan ke Pendaftaran Siswa</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Frontend Script -->
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
