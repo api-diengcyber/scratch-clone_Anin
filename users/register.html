@@ -1,199 +1,1033 @@
 <!DOCTYPE html>
-<html lang="id" data-dark="manual">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/shared/js/theme.js?v=20261019"></script>
-  <title>Daftar • Ruang KKA</title>
-  <meta name="description" content="Daftar akun Ruang KKA untuk mulai belajar koding interaktif, dari Scratch dan web sampai Python dan 3D.">
+  <title>Daftar Kelas Trial Gratis • Dieng Cyber Coding Academy</title>
+  <meta name="description" content="Daftar kelas trial koding dan AI gratis untuk anak usia 4-18 tahun di Dieng Cyber. Dapatkan akses langsung ke platform belajar interaktif.">
   <link rel="icon" type="image/webp" href="/Assets/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
-    .card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 30px; box-shadow: 0 8px 25px rgba(50,70,110,.08); }
-    .brand { text-align: center; margin-bottom: 20px; }
-    .brand-icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 16px; background: #fff; display: grid; place-items: center; font-size: 28px; overflow: hidden; }
-    .brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
-    p { margin: 4px 0 0; color: #8791a5; font-size: 12px; }
-    label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
-    input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
-    input:focus { outline: 2px solid #7181ec; border-color: transparent; }
-    
-    .password-wrapper {
-      position: relative;
+    /* ============================================================
+       RESET & GLOBAL TYPOGRAPHY
+       ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #ffffff;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ============================================================
+       TOP NAVBAR (MATCHING IMAGE 1)
+       ============================================================ */
+    .site-header {
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 20px;
     }
-    .password-wrapper input {
-      padding-right: 44px;
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      color: #0f172a;
     }
-    .toggle-password {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      padding: 0;
-      margin: 0;
-      width: auto;
+
+    .brand-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .brand-logo span.brand-accent {
+      color: #059669;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      color: #0f172a;
+    }
+
+    .nav-links a i.chevron {
+      font-size: 0.65rem;
+      color: #94a3b8;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-gratis-first {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 9px 20px;
+      border-radius: 9999px;
+      letter-spacing: 0.01em;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-gratis-first:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    .lang-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
       cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .flag-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* ============================================================
+       PAGE CONTENT (SPLIT 2 COLUMNS)
+       ============================================================ */
+    .main-wrapper {
+      flex: 1;
+      max-width: 1140px;
+      width: 100%;
+      margin: 48px auto 80px;
+      padding: 0 24px;
+    }
+
+    .registration-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    /* Left Side: Bold Big Heading */
+    .left-hero-col {
+      padding-top: 18px;
+    }
+
+    .highlight-pink {
+      color: #db2777; /* Magenta / pink from image */
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .title-black {
+      color: #0f172a;
+      font-size: 3.4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin: 6px 0 24px;
+      font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .hero-subdesc {
+      font-size: 0.98rem;
+      color: #64748b;
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+
+    .benefit-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .benefit-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #dbeafe;
+      color: #2563eb;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #8791a5;
-    }
-    .toggle-password:hover {
-      background: none;
-      color: #556075;
+      font-size: 0.75rem;
+      flex-shrink: 0;
     }
 
-    .message { display: none; margin-top: 12px; font-size: 12px; }
-    .error { color: #d33; }
-    .success { color: #2e7d32; }
+    /* Right Side: Clean Form */
+    .right-form-col {
+      background: #ffffff;
+      padding: 6px 0;
+    }
 
-    .btn-submit { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
-    .btn-submit:hover { background: #5f70dd; }
+    .form-group {
+      margin-bottom: 20px;
+    }
 
-    .login-link {
+    .form-label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 7px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: #0f172a;
+      background: #ffffff;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .form-input:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+    }
+
+    /* WhatsApp input with Flag selector */
+    .phone-input-wrap {
+      display: flex;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .phone-input-wrap:focus-within {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+    }
+
+    .country-flag-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+      user-select: none;
+    }
+
+    .phone-input-wrap input {
+      border: none;
+      border-radius: 0;
+      flex: 1;
+      padding: 12px 14px;
+      outline: none;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: #0f172a;
+    }
+
+    .phone-input-wrap input::placeholder {
+      color: #94a3b8;
+    }
+
+    .form-helper {
+      font-size: 0.76rem;
+      color: #64748b;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    /* Radio Course Selector */
+    .radio-courses-row {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+    }
+
+    .radio-label input[type="radio"] {
+      width: 17px;
+      height: 17px;
+      accent-color: #db2777;
+      cursor: pointer;
+    }
+
+    /* Select Dropdown */
+    .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 12px;
+      padding-right: 36px;
+    }
+
+    .form-select:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+    }
+
+    /* Submit Button (Vivid Pink/Magenta matching Image 1) */
+    .btn-submit-pink {
+      width: 100%;
+      background: #db2777;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(219, 39, 119, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-submit-pink:hover {
+      background: #be185d;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(219, 39, 119, 0.35);
+    }
+
+    .btn-submit-pink:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Message / Status Alert */
+    .form-alert {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .form-alert.alert-error {
+      display: block;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .form-alert.alert-success {
+      display: block;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    /* Quick Login Prompt if Email Exists */
+    .existing-account-box {
+      display: none;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+
+    .existing-account-box.active {
+      display: block;
+    }
+
+    .login-footer-link {
       text-align: center;
       margin-top: 20px;
-      font-size: 13px;
-      color: #8791a5;
+      font-size: 0.88rem;
+      color: #64748b;
     }
-    .login-link a {
-      color: #7181ec;
-      text-decoration: none;
-      font-weight: bold;
+
+    .login-footer-link a {
+      color: #059669;
+      font-weight: 700;
     }
-    .login-link a:hover {
+
+    .login-footer-link a:hover {
       text-decoration: underline;
     }
+
+    /* ============================================================
+       FLOATING WHATSAPP BUTTON (BOTTOM RIGHT)
+       ============================================================ */
+    .floating-wa-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .wa-bubble-hint {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #1e293b;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: bounceHint 3s infinite;
+    }
+
+    .wa-bubble-close {
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .wa-bubble-close:hover {
+      color: #475569;
+    }
+
+    .wa-icon-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #25d366;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 16px rgba(37, 211, 102, 0.35);
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .wa-icon-circle:hover {
+      transform: scale(1.06);
+    }
+
+    .wa-badge-notif {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: #ef4444;
+      color: #ffffff;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+    }
+
+    @keyframes bounceHint {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* ============================================================
+       RESPONSIVE DESIGN
+       ============================================================ */
+    @media (max-width: 900px) {
+      .registration-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+
+      .highlight-pink {
+        font-size: 2.4rem;
+      }
+
+      .title-black {
+        font-size: 2.8rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .highlight-pink {
+        font-size: 2rem;
+      }
+
+      .title-black {
+        font-size: 2.3rem;
+      }
+
+      .radio-courses-row {
+        gap: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
-  <link rel="stylesheet" href="/shared/css/dark.css?v=20261022">
 </head>
 <body>
-  <div class="card">
-    <div class="brand">
-      <div class="brand-icon"><img src="Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"></div>
-      <h1>RUANG KKA</h1>
-      <p>Buat akun baru untuk mulai belajar coding</p>
+
+  <!-- ============================================================
+       NAVBAR (MIRRORING IMAGE 1)
+       ============================================================ -->
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="/index.html" class="brand-logo" title="Kembali ke Beranda">
+        <img src="Assets/logo.webp" alt="Logo Dieng Cyber" width="36" height="36" onerror="this.src='/Assets/logo.webp'">
+        <span>DIENG <span class="brand-accent">CYBER</span></span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="/index.html#cerita-kami">Tentang Kami <i class="fa-solid fa-chevron-down chevron"></i></a></li>
+          <li><a href="/index.html#kurikulum">Kursus & Jalur Belajar <i class="fa-solid fa-chevron-down chevron"></i></a></li>
+          <li><a href="/index.html#paket">Paket & Biaya</a></li>
+          <li><a href="/index.html#faq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#trialForm" class="btn-gratis-first">GRATIS Kelas Pertama</a>
+        <div class="lang-selector" title="Bahasa Indonesia">
+          <span class="flag-icon">🇮🇩</span>
+          <i class="fa-solid fa-chevron-down" style="font-size: 0.65rem; color: #64748b;"></i>
+        </div>
+      </div>
     </div>
+  </header>
 
-    <form id="registerForm">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Buat email" autocomplete="email" autocapitalize="none" spellcheck="false" required>
+  <!-- ============================================================
+       MAIN CONTENT (HERO TITLE LEFT + FORM RIGHT)
+       ============================================================ -->
+  <main class="main-wrapper">
+    <div class="registration-grid">
+      
+      <!-- Left Column: Big Headline -->
+      <div class="left-hero-col">
+        <div class="highlight-pink">Daftar</div>
+        <h1 class="title-black">Kelas Trial Gratis</h1>
+        <p class="hero-subdesc">
+          Bimbing anak menjadi pencipta teknologi masa depan bersama Dieng Cyber Coding Academy. Dapatkan 1 sesi trial interaktif gratis dengan mentor ahli, tanpa komitmen biaya, dan <strong>langsung akses dashboard belajar</strong>.
+        </p>
 
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Buat password" autocomplete="new-password" required>
-        <button type="button" class="toggle-password" data-target="password" aria-label="Tampilkan atau sembunyikan password">
-          <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button>
+        <ul class="benefit-list">
+          <li class="benefit-item">
+            <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+            <span>1 Sesi Live Zoom Interaktif Eksklusif</span>
+          </li>
+          <li class="benefit-item">
+            <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+            <span>Langsung Akses Editor Koding Web & Proyek Seru</span>
+          </li>
+          <li class="benefit-item">
+            <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+            <span>Konsultasi Kurikulum Sesuai Bakat & Usia Anak</span>
+          </li>
+          <li class="benefit-item">
+            <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+            <span>Rasio Kelas Terbimbing & Ramah Anak</span>
+          </li>
+        </ul>
       </div>
 
-      <label for="confirmPassword">Konfirmasi Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="confirmPassword" placeholder="Ulangi password" autocomplete="new-password" required>
-        <button type="button" class="toggle-password" data-target="confirmPassword" aria-label="Tampilkan atau sembunyikan konfirmasi password">
-          <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button>
+      <!-- Right Column: Registration Form (Exact Fields of Image 1) -->
+      <div class="right-form-col">
+        <div id="formAlert" class="form-alert"></div>
+
+        <form id="trialForm" novalidate>
+          
+          <!-- Field 1: Nama Orangtua -->
+          <div class="form-group">
+            <label for="parentName" class="form-label">Nama Orangtua *</label>
+            <input type="text" id="parentName" class="form-input" placeholder="contoh: Lisa Valencia" required autocomplete="name">
+          </div>
+
+          <!-- Field 2: Email Orangtua -->
+          <div class="form-group">
+            <label for="parentEmail" class="form-label">Email Orangtua *</label>
+            <input type="email" id="parentEmail" class="form-input" placeholder="contoh: lisavalencia@gmail.com" required autocomplete="email">
+          </div>
+
+          <!-- Field 3: Nomor WhatsApp Orangtua -->
+          <div class="form-group">
+            <label for="parentPhone" class="form-label">Nomor WhatsApp Orangtua *</label>
+            <div class="phone-input-wrap">
+              <div class="country-flag-box">
+                <span>🇮🇩</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.6rem; color: #94a3b8;"></i>
+                <span style="margin-left: 2px;">+62</span>
+              </div>
+              <input type="tel" id="parentPhone" placeholder="8123456789" required autocomplete="tel">
+            </div>
+            <div class="form-helper">
+              Contoh: +628123456789 ganti 0 dengan +62<br>
+              Wajib aktif dan terhubung ke WhatsApp
+            </div>
+          </div>
+
+          <!-- Field 4: Usia Anak -->
+          <div class="form-group">
+            <label for="childAge" class="form-label">Usia Anak *</label>
+            <input type="text" id="childAge" class="form-input" placeholder="4-16 tahun dihitung hingga akhir tahun ini" required>
+          </div>
+
+          <!-- Field 5: Pilih Kursus -->
+          <div class="form-group">
+            <label class="form-label">Pilih Kursus *</label>
+            <div class="radio-courses-row">
+              <label class="radio-label">
+                <input type="radio" name="courseTrack" value="Koding - Dieng Cyber" checked>
+                <span>Koding – Dieng Cyber</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="courseTrack" value="Robotika & AI - Dieng Cyber">
+                <span>Robotika & AI – Dieng Cyber</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Field 6: Kota Domisili -->
+          <div class="form-group">
+            <label for="cityOrigin" class="form-label">Kota Domisili *</label>
+            <input type="text" id="cityOrigin" class="form-input" placeholder="contoh: Wonosobo atau Jakarta" required>
+          </div>
+
+          <!-- Field 7: Darimana Anda Mengetahui Tentang Dieng Cyber? -->
+          <div class="form-group">
+            <label for="referralSource" class="form-label">Darimana Anda Mengetahui Tentang Dieng Cyber? *</label>
+            <select id="referralSource" class="form-select" required>
+              <option value="" disabled selected>Ini akan membantu kami meningkatkan kualitas pelayanan</option>
+              <option value="Instagram">Instagram</option>
+              <option value="TikTok / Facebook">TikTok / Facebook</option>
+              <option value="Rekomendasi Teman / Keluarga">Rekomendasi Teman / Keluarga</option>
+              <option value="Sekolah / Guru">Sekolah / Guru</option>
+              <option value="Pencarian Google">Pencarian Google</option>
+              <option value="Brosur / Acara Edukasi">Brosur / Acara Edukasi</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+
+          <!-- Quick Password Entry (Hanya muncul jika akun sudah ada di database) -->
+          <div id="existingAccountBox" class="existing-account-box">
+            <p style="font-size: 0.85rem; font-weight: 600; color: #047857; margin-bottom: 8px;">
+              <i class="fa-solid fa-circle-check"></i> Email Anda sudah terdaftar! Masukkan password akun untuk langsung masuk:
+            </p>
+            <input type="password" id="existingPassword" class="form-input" placeholder="Masukkan password akun Anda" style="margin-bottom: 8px;">
+            <button type="button" id="btnExistingLogin" class="btn-submit-pink" style="background: #059669; padding: 10px;">
+              <span>Masuk Langsung ke Dashboard</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="btn-submit-pink">
+            <span>Daftar Trial Gratis</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+        </form>
+
+        <div class="login-footer-link">
+          Sudah memiliki akun? <a href="index.html">Masuk di sini</a>
+        </div>
       </div>
 
-      <div id="registerMsg" class="message"></div>
-
-      <button type="submit" class="btn-submit">Daftar</button>
-    </form>
-
-    <div class="login-link">
-      Sudah punya akun? <a href="index.html">Masuk di sini</a>
     </div>
+  </main>
+
+  <!-- ============================================================
+       FLOATING WHATSAPP CHAT BUTTON (MATCHING IMAGE 1)
+       ============================================================ -->
+  <div class="floating-wa-wrap">
+    <div class="wa-bubble-hint" id="waBubbleHint">
+      <span>Ada yang bisa kami bantu?</span>
+      <span class="wa-bubble-close" id="closeWaBubble" title="Tutup">×</span>
+    </div>
+    <a href="https://wa.me/6281222334455?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20tertarik%20dengan%20Kelas%20Trial%20Gratis%20untuk%20anak%20saya" target="_blank" rel="noopener noreferrer" class="wa-icon-circle" title="Chat via WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i>
+      <span class="wa-badge-notif">1</span>
+    </a>
   </div>
 
+  <!-- ============================================================
+       CLIENT-SIDE LOGIC & INSTANT ACCESS CONTROLLER
+       ============================================================ -->
   <script>
-    const registerForm = document.getElementById('registerForm');
-    const registerMsg = document.getElementById('registerMsg');
-    const toggleButtons = document.querySelectorAll('.toggle-password');
+    (function () {
+      const trialForm = document.getElementById('trialForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const formAlert = document.getElementById('formAlert');
+      const existingAccountBox = document.getElementById('existingAccountBox');
+      const existingPassword = document.getElementById('existingPassword');
+      const btnExistingLogin = document.getElementById('btnExistingLogin');
+      const waBubbleHint = document.getElementById('waBubbleHint');
+      const closeWaBubble = document.getElementById('closeWaBubble');
 
-    const eyeOpenSvg = `
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-      <circle cx="12" cy="12" r="3"></circle>
-    `;
-    const eyeCloseSvg = `
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-      <line x1="1" y1="1" x2="23" y2="23"></line>
-    `;
+      // Pre-fill dari URL query parameter jika datang dari landing page
+      const urlParams = new URLSearchParams(window.location.search);
+      const pkgParam = urlParams.get('package') || '';
+      const trackParam = urlParams.get('track') || '';
 
-    // Toggle visibility untuk kedua field password
-    toggleButtons.forEach(button => {
-      button.addEventListener('click', function () {
-        const targetId = this.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        const icon = this.querySelector('.eye-icon');
-        const isPassword = input.getAttribute('type') === 'password';
+      if (pkgParam) {
+        if (pkgParam.startsWith('sd')) {
+          document.getElementById('childAge').value = '9';
+        } else if (pkgParam.startsWith('smp')) {
+          document.getElementById('childAge').value = '13';
+        } else if (pkgParam.startsWith('smk')) {
+          document.getElementById('childAge').value = '16';
+        }
 
-        input.setAttribute('type', isPassword ? 'text' : 'password');
-        icon.innerHTML = isPassword ? eyeCloseSvg : eyeOpenSvg;
-      });
-    });
-
-    registerForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-
-      registerMsg.style.display = 'none';
-      registerMsg.className = 'message error';
-
-      if (!email || !password || !confirmPassword) {
-        registerMsg.textContent = 'Semua field wajib diisi!';
-        registerMsg.style.display = 'block';
-        return;
+        if (pkgParam.includes('ai') || trackParam.includes('3D') || pkgParam.includes('robot')) {
+          const robRadio = document.querySelector('input[name="courseTrack"][value="Robotika & AI - Dieng Cyber"]');
+          if (robRadio) robRadio.checked = true;
+        }
       }
 
-      if (password !== confirmPassword) {
-        registerMsg.textContent = 'Password dan konfirmasi password tidak sama!';
-        registerMsg.style.display = 'block';
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+      // WhatsApp bubble close
+      if (closeWaBubble && waBubbleHint) {
+        closeWaBubble.addEventListener('click', (e) => {
+          e.preventDefault();
+          waBubbleHint.style.display = 'none';
         });
+      }
 
-        const data = await response.json();
+      function showAlert(type, text) {
+        formAlert.className = 'form-alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+        formAlert.innerHTML = text;
+        formAlert.style.display = 'block';
+        formAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
 
-        if (!response.ok) {
-          registerMsg.textContent = data.message || 'Pendaftaran gagal.';
-          registerMsg.style.display = 'block';
+      function hideAlert() {
+        formAlert.style.display = 'none';
+      }
+
+      // Format WhatsApp number to clean format
+      function cleanPhoneNumber(raw) {
+        let digits = raw.replace(/\D/g, '');
+        if (digits.startsWith('0')) {
+          digits = '62' + digits.substring(1);
+        } else if (!digits.startsWith('62')) {
+          digits = '62' + digits;
+        }
+        return digits;
+      }
+
+      // Simpan session ke localStorage agar langsung login tanpa prompt ulang
+      function establishDirectAccess(userPayload, extra) {
+        const username = userPayload.username || (extra.email.split('@')[0]);
+        const email = userPayload.email || extra.email;
+        const token = userPayload.token;
+
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', username);
+        localStorage.setItem('email', email);
+        localStorage.setItem('scratch_user', username);
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('role', userPayload.role || 'student');
+
+        // Simpan data pendaftaran trial
+        localStorage.setItem('trial_parent_name', extra.parentName);
+        localStorage.setItem('trial_phone', extra.phone);
+        localStorage.setItem('trial_child_age', extra.childAge);
+        localStorage.setItem('trial_course', extra.course);
+        localStorage.setItem('trial_city', extra.city);
+        localStorage.setItem('trial_source', extra.referral);
+        localStorage.setItem('trial_registered_at', new Date().toISOString());
+
+        // Arahkan jenjang otomatis berdasarkan usia anak
+        const ageNum = parseInt(extra.childAge, 10);
+        if (!isNaN(ageNum)) {
+          if (ageNum <= 11) {
+            localStorage.setItem('lastGrade', 'sd');
+          } else if (ageNum <= 15) {
+            localStorage.setItem('lastGrade', 'smp');
+          } else {
+            localStorage.setItem('lastGrade', 'smak');
+          }
+        }
+
+        // Tentukan path dashboard yang tepat (mendukung baik / maupun /users/)
+        const currentPath = window.location.pathname;
+        let targetUrl = '/dashboard.html';
+        if (currentPath.includes('/users/')) {
+          targetUrl = 'dashboard/dashboard.html';
+        }
+
+        showAlert('success', '🎉 <strong>Pendaftaran Berhasil!</strong> Akun trial gratis Anda telah aktif. Mengalihkan Anda langsung ke ruang belajar...');
+        
+        setTimeout(() => {
+          window.location.replace(targetUrl);
+        }, 1100);
+      }
+
+      // Standard auto-generated secure password for trial accounts
+      const DEFAULT_TRIAL_PASS = "DiengTrial2026!";
+
+      // Handle submit pendaftaran trial
+      trialForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideAlert();
+
+        const parentName = document.getElementById('parentName').value.trim();
+        const parentEmail = document.getElementById('parentEmail').value.trim();
+        const parentPhoneRaw = document.getElementById('parentPhone').value.trim();
+        const childAge = document.getElementById('childAge').value.trim();
+        const course = (document.querySelector('input[name="courseTrack"]:checked') || {}).value || 'Koding - Dieng Cyber';
+        const city = document.getElementById('cityOrigin').value.trim();
+        const referral = document.getElementById('referralSource').value;
+
+        // Validasi
+        if (!parentName || !parentEmail || !parentPhoneRaw || !childAge || !city || !referral) {
+          showAlert('error', 'Mohon lengkapi semua kolom bertanda * terlebih dahulu.');
           return;
         }
 
-        // Tampilkan pesan sukses dan arahkan ke halaman login
-        registerMsg.className = 'message success';
-        registerMsg.textContent = 'Pendaftaran berhasil! Mengalihkan ke halaman login...';
-        registerMsg.style.display = 'block';
+        const phone = cleanPhoneNumber(parentPhoneRaw);
+        if (phone.length < 9) {
+          showAlert('error', 'Nomor WhatsApp tidak valid. Pastikan nomor aktif.');
+          return;
+        }
 
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
+        const extraData = {
+          parentName,
+          email: parentEmail,
+          phone,
+          childAge,
+          course,
+          city,
+          referral
+        };
 
-      } catch (error) {
-        console.error('Register error:', error);
-        registerMsg.textContent = 'Backend tidak dapat dihubungi.';
-        registerMsg.style.display = 'block';
+        // Buat username ramah anak
+        const baseUsername = parentEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'siswa';
+
+        // Tampilkan loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Membuat Akses Kelas...</span>';
+
+        try {
+          // 1. Coba daftarkan via backend API
+          const regRes = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: parentEmail,
+              username: baseUsername,
+              password: DEFAULT_TRIAL_PASS
+            })
+          });
+
+          const regData = await regRes.json().catch(() => ({}));
+
+          // Jika registrasi sukses (status 201)
+          if (regRes.ok) {
+            const user = regData.data || regData;
+            establishDirectAccess(user, extraData);
+            return;
+          }
+
+          // 2. Jika email sudah ada di database (HTTP 409 / EMAIL_EXISTS)
+          if (regRes.status === 409 || (regData.code === 'EMAIL_EXISTS')) {
+            // Coba login otomatis dengan trial password
+            const loginRes = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: parentEmail,
+                password: DEFAULT_TRIAL_PASS
+              })
+            });
+
+            if (loginRes.ok) {
+              const loginData = await loginRes.json().catch(() => ({}));
+              const user = loginData.data || loginData;
+              establishDirectAccess(user, extraData);
+              return;
+            }
+
+            // Jika user sebelumnya sudah punya password khusus: buka kotak masukkan password
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Daftar Trial Gratis</span><i class="fa-solid fa-arrow-right"></i>';
+            existingAccountBox.classList.add('active');
+            existingPassword.focus();
+            showAlert('error', 'Email <strong>' + parentEmail + '</strong> sudah terdaftar sebelumnya. Silakan masukkan password Anda di bawah untuk langsung mengakses kelas:');
+            return;
+          }
+
+          // Error lainnya
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Daftar Trial Gratis</span><i class="fa-solid fa-arrow-right"></i>';
+          showAlert('error', regData.message || 'Pendaftaran gagal. Silakan periksa kembali data Anda.');
+
+        } catch (err) {
+          console.error('Registration error:', err);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Daftar Trial Gratis</span><i class="fa-solid fa-arrow-right"></i>';
+          showAlert('error', 'Gagal menghubungi server. Pastikan koneksi internet Anda aktif.');
+        }
+      });
+
+      // Handle login untuk akun yang sudah memiliki password khusus
+      if (btnExistingLogin) {
+        btnExistingLogin.addEventListener('click', async function () {
+          const email = document.getElementById('parentEmail').value.trim();
+          const password = existingPassword.value;
+
+          if (!password) {
+            existingPassword.focus();
+            return;
+          }
+
+          btnExistingLogin.disabled = true;
+          btnExistingLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Memverifikasi...</span>';
+
+          try {
+            const loginRes = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password })
+            });
+
+            const loginData = await loginRes.json().catch(() => ({}));
+
+            if (!loginRes.ok) {
+              btnExistingLogin.disabled = false;
+              btnExistingLogin.innerHTML = '<span>Masuk Langsung ke Dashboard</span><i class="fa-solid fa-arrow-right"></i>';
+              showAlert('error', loginData.message || 'Password salah. Silakan coba lagi atau reset password.');
+              return;
+            }
+
+            const user = loginData.data || loginData;
+            const extraData = {
+              parentName: document.getElementById('parentName').value.trim() || user.username,
+              email: email,
+              phone: cleanPhoneNumber(document.getElementById('parentPhone').value.trim() || '628000000000'),
+              childAge: document.getElementById('childAge').value.trim() || '10',
+              course: (document.querySelector('input[name="courseTrack"]:checked') || {}).value || 'Koding - Dieng Cyber',
+              city: document.getElementById('cityOrigin').value.trim() || 'Wonosobo',
+              referral: document.getElementById('referralSource').value || 'Langsung'
+            };
+
+            establishDirectAccess(user, extraData);
+
+          } catch (err) {
+            btnExistingLogin.disabled = false;
+            btnExistingLogin.innerHTML = '<span>Masuk Langsung ke Dashboard</span><i class="fa-solid fa-arrow-right"></i>';
+            showAlert('error', 'Gagal memproses login. Coba lagi.');
+          }
+        });
       }
-    });
+
+    })();
   </script>
 </body>
 </html>
