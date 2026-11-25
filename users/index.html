@@ -362,8 +362,8 @@
     }
 
     /* ============================================================
-       KOLOM KANAN: WARM & SIMPLE KIDS LEARNING SHOWCASE
-       Bersih, Tidak Rame, Nyaman Dipandang dengan Foto Asli Belajar
+       KOLOM KANAN: CLEAN & KIDS-FRIENDLY VECTOR ILLUSTRATION
+       Fokus Gambar Vektor Belajar Koding Anak (Tanpa Tulisan)
        ============================================================ */
     .visual-column {
       position: relative;
@@ -375,7 +375,7 @@
       padding: 14px 14px 14px 0;
     }
 
-    .photo-hero-panel {
+    .vector-hero-panel {
       width: 100%;
       height: 100%;
       min-height: 568px;
@@ -383,119 +383,27 @@
       position: relative;
       overflow: hidden;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 32px 28px;
-      background-color: #f1f5f9;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      background: linear-gradient(145deg, #f0f4ff 0%, #faf5ff 45%, #ecfeff 100%);
+      box-shadow: inset 0 0 50px rgba(99, 102, 241, 0.05);
+      border: 1px solid rgba(224, 231, 255, 0.7);
     }
 
-    /* Real Educational Photo Background */
-    .photo-bg-img {
-      position: absolute;
-      inset: 0;
+    .vector-hero-img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 25%;
-      transition: transform 0.6s ease;
+      max-width: 490px;
+      height: auto;
+      max-height: 530px;
+      object-fit: contain;
+      filter: drop-shadow(0 16px 36px rgba(79, 70, 229, 0.12));
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+      -webkit-user-drag: none;
     }
-    .photo-hero-panel:hover .photo-bg-img {
-      transform: scale(1.03);
-    }
-
-    /* Soft Warm Gradient Overlay */
-    .photo-gradient-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(15, 23, 42, 0.05) 0%,
-        rgba(15, 23, 42, 0.25) 45%,
-        rgba(15, 23, 42, 0.88) 100%
-      );
-      pointer-events: none;
-    }
-
-    /* Top Floating Clean Badge */
-    .top-floating-badge {
-      position: absolute;
-      top: 24px;
-      left: 24px;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      padding: 7px 14px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #0f172a;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-    }
-    .dot-live-green {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 6px #10b981;
-    }
-
-    /* Bottom Simple & Inspiring Content */
-    .panel-caption-box {
-      position: relative;
-      z-index: 2;
-      color: #ffffff;
-    }
-    .panel-caption-tag {
-      font-size: 11.5px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: #38bdf8;
-      margin-bottom: 6px;
-    }
-    .panel-caption-title {
-      font-family: var(--font-heading);
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1.25;
-      color: #ffffff;
-      margin-bottom: 8px;
-      letter-spacing: -0.3px;
-    }
-    .panel-caption-desc {
-      font-size: 13px;
-      color: #e2e8f0;
-      line-height: 1.5;
-      max-width: 380px;
-      margin-bottom: 18px;
-    }
-
-    /* Clean Mini Feature Pills */
-    .panel-feature-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .feature-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #ffffff;
+    .vector-hero-panel:hover .vector-hero-img {
+      transform: scale(1.03) translateY(-6px);
     }
 
     /* ============================================================
@@ -604,22 +512,15 @@
         order: -1;
         padding: 12px 12px 0 12px;
       }
-      .photo-hero-panel {
-        min-height: 240px;
+      .vector-hero-panel {
+        min-height: 220px;
+        max-height: 280px;
         border-radius: 18px;
-        padding: 20px 18px;
+        padding: 16px;
       }
-      .panel-caption-title {
-        font-size: 19px;
-      }
-      .panel-caption-desc {
-        display: none;
-      }
-      .top-floating-badge {
-        top: 14px;
-        left: 14px;
-        padding: 5px 10px;
-        font-size: 11px;
+      .vector-hero-img {
+        max-width: 260px;
+        max-height: 220px;
       }
 
       .form-column {
@@ -736,47 +637,17 @@
       </div>
 
       <!-- ==========================================
-           KOLOM KANAN: WARM & SIMPLE KIDS LEARNING
+           KOLOM KANAN: VECTOR ILLUSTRATION (NO TEXT)
+           Murni Gambar Vektor Belajar Koding Anak
            ========================================== -->
       <div class="visual-column">
-        <div class="photo-hero-panel">
-          <!-- Real Kids Learning Photo -->
+        <div class="vector-hero-panel">
           <img 
-            src="Assets/kids-learning.jpg" 
-            alt="Anak belajar koding bersama mentor di depan komputer" 
-            class="photo-bg-img"
+            src="Assets/kids-coding-vector.svg" 
+            alt="Ilustrasi Belajar Koding Anak Ruang KKA Dieng Cyber" 
+            class="vector-hero-img"
             loading="eager"
           >
-          <!-- Soft Dark Gradient Overlay for Readability -->
-          <div class="photo-gradient-overlay"></div>
-
-          <!-- Top Floating Badge -->
-          <div class="top-floating-badge">
-            <span class="dot-live-green"></span>
-            <span>Kelas Koding & AI Interaktif</span>
-          </div>
-
-          <!-- Clean Bottom Caption -->
-          <div class="panel-caption-box">
-            <div class="panel-caption-tag">Belajar Menyenangkan</div>
-            <h2 class="panel-caption-title">Eksplorasi Kreatif Koding Bersama Mentor</h2>
-            <p class="panel-caption-desc">Dampingi langkah awal anak memahami logika koding, bikin game impian, dan berkreasi dengan teknologi sejak dini.</p>
-            
-            <div class="panel-feature-row">
-              <span class="feature-pill">
-                <i class="fa-solid fa-star" style="color: #facc15;"></i>
-                <span>Mentor Ramah</span>
-              </span>
-              <span class="feature-pill">
-                <i class="fa-solid fa-shapes" style="color: #38bdf8;"></i>
-                <span>Scratch & Game 3D</span>
-              </span>
-              <span class="feature-pill">
-                <i class="fa-solid fa-trophy" style="color: #4ade80;"></i>
-                <span>Praktik Proyek Seru</span>
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
