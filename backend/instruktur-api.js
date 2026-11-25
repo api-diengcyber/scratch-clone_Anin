@@ -33,6 +33,7 @@
 const { normalizeSchedule, scheduleDto, isMonth } = require("./jadwal-api");
 const attendanceService = require("./attendance-service");
 const graduationService = require("./graduation-service");
+const { notifyAdmins } = require("./notifications");
 const crypto = require("crypto");
 
 const GRADES = ["SD", "SMP", "SMK"];
@@ -374,13 +375,15 @@ function examDto(row, results) {
 function taskSubmissionDto(row, withStudent) {
   const out = {
     id: Number(row.id),
+    studentUserId: Number(row.student_user_id),
     text: row.text || "",
     link: row.link || "",
     status: row.status || "dikumpulkan",
     nilai: row.nilai == null ? null : Number(row.nilai),
     feedback: row.feedback || "",
     submittedAt: sqliteIso(row.submitted_at),
-    gradedAt: sqliteIso(row.graded_at)
+    gradedAt: sqliteIso(row.graded_at),
+    isMyStudent: row.is_my_student ? Boolean(row.is_my_student) : false
   };
   if (withStudent) {
     out.nama = row.full_name || row.username || "Siswa";
@@ -1091,16 +1094,28 @@ function registerInstrukturApi(app, deps) {
   });
 
   // Daftar & penilaian jawaban siswa untuk satu tugas tambahan.
+  // Mendukung filter ?scope=mine (hanya siswa binaan instruktur tersebut)
   app.get("/api/instruktur/tugas/:id/submissions", taskGuard, (req, res) => {
     const task = findTask(req, req.params.id);
     if (!task) return sendApiError(res, 404, "Tugas tambahan tidak ditemukan.", "NOT_FOUND");
+
+    const scope = String(req.query.scope || "").trim().toLowerCase();
+    const where = ["s.task_id = ?"];
+    const params = [task.id];
+
+    if (scope === "mine") {
+      where.push("ins.instructor_user_id IS NOT NULL");
+    }
+
     const rows = db.prepare(`
-      SELECT s.*, u.username, u.full_name
+      SELECT s.*, u.username, u.full_name,
+             CASE WHEN ins.instructor_user_id IS NOT NULL THEN 1 ELSE 0 END AS is_my_student
       FROM instruktur_task_submissions s
       LEFT JOIN users u ON u.id = s.student_user_id
-      WHERE s.task_id = ?
-      ORDER BY s.submitted_at DESC, s.id DESC
-    `).all(task.id);
+      LEFT JOIN instructor_students ins ON ins.student_user_id = s.student_user_id AND ins.instructor_user_id = ?
+      WHERE ${where.join(" AND ")}
+      ORDER BY is_my_student DESC, s.submitted_at DESC, s.id DESC
+    `).all(req.userId, ...params);
     const items = rows.map((row) => taskSubmissionDto(row, true));
     return sendApiSuccess(res, { items, total: items.length });
   });
@@ -1523,6 +1538,21 @@ function registerInstrukturApi(app, deps) {
         VALUES (?, ?, ?, ?, 'dikumpulkan', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`).run(
         task.id, req.userId, answer, link
       );
+
+      // Beri notifikasi ke instruktur pemilik tugas / pembimbing
+      try {
+        const student = db.prepare("SELECT username, full_name FROM users WHERE id = ?").get(req.userId);
+        const studentName = student?.full_name || student?.username || "Siswa";
+        notifyAdmins(db, {
+          kind: "task.submitted",
+          title: "Jawaban Tugas Masuk",
+          body: `${studentName} telah mengumpulkan tugas "${task.title}".`,
+          view: "tugas",
+          icon: "fa-solid fa-file-arrow-up",
+          tone: "indigo",
+          dedupeKey: `task:sub:${task.id}:${req.userId}`
+        });
+      } catch (_) {}
     }
     return sendApiSuccess(
       res,

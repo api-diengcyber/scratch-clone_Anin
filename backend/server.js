@@ -1740,6 +1740,10 @@ const reportSchedulerHandle = reportScheduler.startReportScheduler(db);
 // MENTORING_REMINDER_ENABLED=true di .env.
 const mentoringSchedulerHandle = mentoringScheduler.startMentoringReminderScheduler(db);
 
+// Penjadwal pemeliharaan basis data otomatis (WAL Checkpoint & Backup harian).
+const dbMaintenance = require("./db-maintenance");
+const dbMaintenanceHandle = dbMaintenance.startMaintenanceScheduler(db);
+
 // ============================================================
 // START SERVER
 // ============================================================
