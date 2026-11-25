@@ -3,7 +3,7 @@
 //
 // Tampilan:
 //   Daftar Sesi        strip 7 hari + kartu statistik + kartu sesi yang bisa dibuka
-//                      (siapa yang hadir / tidak hadir, cari siswa, follow-up lewat WhatsApp)
+//                      (siapa yang hadir / tidak hadir, cari siswa, follow-up lewat email)
 //   Visual Time Track  jalur waktu 7 hari: tiap sesi satu balok, warnanya mengikuti persentase hadir
 //   Rekap Bulanan      rekap per siswa per bulan yang sudah ada (DCRekap.instruktur)
 //
@@ -15,8 +15,8 @@
 //                                              tidakHadir: [{ siswaId, nama, whatsapp? }] }] }
 //   GET /api/instruktur/sesi/ringkasan?bulan=YYYY-MM
 //     -> { ok, rataRata, rataRataBulanLalu, perhatian: [{ siswaId, nama, hadir, total, pct }] }
-// Nomor WhatsApp BELUM dipakai: tombol Follow-up membuka WhatsApp dengan pesan siap kirim lalu
-// instruktur memilih kontaknya sendiri (aman: tidak ada nomor yang tertebak/salah kirim).
+// Follow-up siswa yang belum absen dikirim langsung ke alamat email akun siswa terkait
+// (mailto: dengan subjek & pesan terstruktur, serta BCC untuk pengingat massal).
 //
 // MODE CONTOH hanya aktif bila window.DC_REKAP_DEMO = true (sama seperti rekap-absen.js):
 // siswa, sesi, dan kehadiran diambil dari data percobaan DCRekap (50 siswa contoh), ditambah satu
@@ -49,6 +49,30 @@
   const demoOn = () => !!root.DC_REKAP_DEMO;
   const weekOfMonth = (ymd) => { const [y, m, d] = parts(ymd); const first = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7; return Math.ceil((d + first) / 7); };
   const waLink = (text) => 'https://wa.me/?text=' + encodeURIComponent(text);
+
+  // Helper resolusi email akun siswa dan pembuatan mailto link
+  const getStudentEmail = (n) => {
+    if (!n) return 'siswa@diengcyber.com';
+    const key = String(n).trim().toLowerCase();
+    if (S.emailMap && S.emailMap[key]) return S.emailMap[key];
+    const un = key.replace(/\s+/g, '_');
+    if (S.emailMap && S.emailMap[un]) return S.emailMap[un];
+    const clean = key.replace(/[^a-z0-9]/g, '');
+    return clean ? clean + '@gmail.com' : 'siswa@diengcyber.com';
+  };
+
+  const emailLink = (toEmail, subject, body) => {
+    return 'mailto:' + encodeURIComponent(toEmail || '') +
+      '?subject=' + encodeURIComponent(subject || '') +
+      '&body=' + encodeURIComponent(body || '');
+  };
+
+  const bccEmailLink = (bccEmails, subject, body) => {
+    const bcc = (Array.isArray(bccEmails) ? bccEmails : [bccEmails]).filter(Boolean).join(',');
+    return 'mailto:?bcc=' + encodeURIComponent(bcc) +
+      '&subject=' + encodeURIComponent(subject || '') +
+      '&body=' + encodeURIComponent(body || '');
+  };
 
   // ---------- data contoh ----------
   let cache = null;
@@ -180,7 +204,38 @@
   const model = () => (demoOn() ? data() : S.model);
 
   // ---------- state ----------
-  const S = { host: null, tab: 'daftar', start: null, sel: null, filter: 'all', open: new Set(), q: {}, modal: false, init: false, model: null, loading: false, loaded: '', failed: '', err: '', picked: false };
+  const S = { host: null, tab: 'daftar', start: null, sel: null, filter: 'all', open: new Set(), q: {}, modal: false, init: false, model: null, loading: false, loaded: '', failed: '', err: '', picked: false, emailMap: {}, emailMapLoaded: false };
+
+  function fetchStudentEmails() {
+    if (S.emailMapLoaded) return Promise.resolve(S.emailMap);
+    S.emailMapLoaded = true;
+    return api('/api/admin/users?limit=100').then((res) => {
+      const list = (res && res.users) || (res && res.items) || [];
+      list.forEach((u) => {
+        if (!u) return;
+        const em = u.email || '';
+        if (em) {
+          if (u.full_name) S.emailMap[String(u.full_name).trim().toLowerCase()] = em;
+          if (u.username) S.emailMap[String(u.username).trim().toLowerCase()] = em;
+        }
+      });
+      return S.emailMap;
+    }).catch(() => {
+      return api('/api/instruktur/siswa').then((res) => {
+        const list = (res && res.items) || [];
+        list.forEach((u) => {
+          if (!u) return;
+          const em = u.email || '';
+          if (em) {
+            if (u.nama) S.emailMap[String(u.nama).trim().toLowerCase()] = em;
+            if (u.username) S.emailMap[String(u.username).trim().toLowerCase()] = em;
+          }
+        });
+        return S.emailMap;
+      }).catch(() => S.emailMap);
+    });
+  }
+
   const resetWeek = () => { S.sel = todayWib(); S.start = shift(S.sel, -4); };
   const windowDays = () => Array.from({ length: 7 }, (_, i) => shift(S.start, i));
   const sessionsIn = (d, days) => d.sessions.filter((s) => days.includes(s.tanggal));
@@ -327,9 +382,17 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
     const q = (S.q[s.id] || '').trim().toLowerCase(), st = statusOf(s);
     const no = absentOf(d, s).filter((n) => !q || n.toLowerCase().includes(q));
     const yes = (s.hadirNames || d.names.filter((n) => s.att.has(n))).filter((n) => !q || n.toLowerCase().includes(q));
-    const fu = (n) => waLink(`Halo ${n}, kakak lihat kamu belum hadir di sesi "${s.judul}" (${fmtDate(s.tanggal)}, ${s.mulai} WIB). Ada kendala? Kabari kakak ya, nanti kita bantu kejar materinya. Semangat! 💪`);
+    const fu = (n) => {
+      const email = getStudentEmail(n);
+      const subject = `Presensi Sesi Mentoring: ${s.judul} (${fmtDate(s.tanggal)})`;
+      const body = `Halo ${n},\n\nKakak instruktur melihat kamu belum hadir di sesi mentoring "${s.judul}" pada hari ${fmtDate(s.tanggal)}, pukul ${s.mulai} WIB.\n\nApakah ada kendala teknis atau pertanyaan materi yang perlu dibantu? Silakan balas email ini agar kami bisa bantu kamu mengejar materi sesi ini.\n\nTetap semangat belajar!\nTim Instruktur Dieng Cyber`;
+      return { link: emailLink(email, subject, body), email };
+    };
     return `<div class="sa-col no"><div class="sa-ch"><span><i class="fa-solid fa-user-xmark" aria-hidden="true"></i>${st === 'live' ? 'Belum Hadir' : 'Tidak Hadir'} (${no.length})</span><small>Perlu Penanganan</small></div>
-        <div class="sa-rows">${no.length ? no.map((n) => `<div class="sa-row"><span class="sa-av">${esc(initials(n))}</span><span class="sa-nm" title="${esc(n)}">${esc(n)}</span><a class="sa-fu" href="${esc(fu(n))}" target="_blank" rel="noopener noreferrer" aria-label="Follow-up ${esc(n)} lewat WhatsApp"><i class="fa-brands fa-whatsapp"></i>Follow-up</a></div>`).join('') : '<div class="sa-empty">Tidak ada.</div>'}</div></div>
+        <div class="sa-rows">${no.length ? no.map((n) => {
+          const item = fu(n);
+          return `<div class="sa-row"><span class="sa-av">${esc(initials(n))}</span><span class="sa-nm" title="${esc(n)} (${esc(item.email)})">${esc(n)}</span><a class="sa-fu" href="${esc(item.link)}" aria-label="Kirim email follow-up ke ${esc(n)} (${esc(item.email)})"><i class="fa-solid fa-envelope"></i>Follow-up</a></div>`;
+        }).join('') : '<div class="sa-empty">Tidak ada.</div>'}</div></div>
       <div class="sa-col yes"><div class="sa-ch"><span><i class="fa-solid fa-user-check" aria-hidden="true"></i>Hadir (${yes.length})</span><small>Terverifikasi Zoom</small></div>
         <div class="sa-rows">${yes.length ? yes.map((n) => `<div class="sa-row"><span class="sa-av">${esc(initials(n))}</span><span class="sa-nm" title="${esc(n)}">${esc(n)}</span><i class="fa-solid fa-check sa-ck" aria-label="hadir"></i></div>`).join('') : '<div class="sa-empty">Tidak ada.</div>'}</div></div>`;
   }
@@ -337,10 +400,19 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   function bodyHtml(d, s) {
     const st = statusOf(s);
     if (st === 'next') return `<div class="sa-empty">Sesi belum dimulai. Siswa bisa absen lewat halaman Jadwal Saya mulai 15 menit sebelum kelas.</div>`;
-    const absent = absentOf(d, s).length;
-    const msg = st === 'live' ? `Sesi Zoom mentoring "${s.judul}" sedang berlangsung sekarang (${s.room}). Yuk segera gabung ya!` : `Pengingat: sesi Zoom mentoring "${s.judul}" (${fmtDate(s.tanggal)}, ${s.mulai} WIB). Yang belum hadir, silakan hubungi mentor untuk mengejar materi. Terima kasih!`;
+    const absentList = absentOf(d, s);
+    const absent = absentList.length;
+    const bccEmails = absentList.map((n) => getStudentEmail(n));
+    const emailSubject = st === 'live'
+      ? `[Penting] Sesi Mentoring Sedang Berlangsung: ${s.judul}`
+      : `Pengingat Presensi Sesi Mentoring: ${s.judul}`;
+    const emailMsg = st === 'live'
+      ? `Halo teman-teman siswa,\n\nSesi mentoring "${s.judul}" sedang berlangsung saat ini di ruang ${s.room}.\nBagi yang belum bergabung, yuk segera masuk ke ruang mentoring ya!\n\nSampai jumpa di kelas,\nInstruktur Dieng Cyber`
+      : `Halo teman-teman siswa,\n\nPengingat untuk sesi mentoring "${s.judul}" pada hari ${fmtDate(s.tanggal)}, pukul ${s.mulai} WIB.\nBagi siswa yang belum hadir atau berhalangan, silakan hubungi mentor atau balas email ini untuk menjadwalkan pembahasan materi susulan.\n\nTerima kasih dan tetap semangat!\nInstruktur Dieng Cyber`;
+    const mailLink = bccEmailLink(bccEmails, emailSubject, emailMsg);
+
     return `<div class="sa-bt"><input type="search" class="sa-q" data-sa-q="${esc(s.id)}" value="${esc(S.q[s.id] || '')}" placeholder="Cari siswa di sesi ini..." aria-label="Cari siswa di sesi ${esc(s.judul)}" autocomplete="off">
-        <div class="sa-btr">${absent ? `<a class="sa-wa" href="${esc(waLink(msg))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i>Ingatkan ${absent} Siswa Absen</a><button type="button" class="sa-cp" data-sa-copy="${esc(s.id)}" title="Salin daftar siswa yang absen" aria-label="Salin daftar siswa yang absen"><i class="fa-regular fa-copy"></i></button>` : '<span class="sa-wa ok"><i class="fa-solid fa-circle-check"></i>Semua siswa hadir</span>'}</div></div>
+        <div class="sa-btr">${absent ? `<a class="sa-wa" href="${esc(mailLink)}" aria-label="Kirim email pengingat ke ${absent} siswa yang belum hadir"><i class="fa-solid fa-envelope"></i>Email ${absent} Siswa Absen</a><button type="button" class="sa-cp" data-sa-copy="${esc(s.id)}" title="Salin daftar siswa yang absen" aria-label="Salin daftar siswa yang absen"><i class="fa-regular fa-copy"></i></button>` : '<span class="sa-wa ok"><i class="fa-solid fa-circle-check"></i>Semua siswa hadir</span>'}</div></div>
       <div class="sa-cols" data-sa-lists="${esc(s.id)}">${listsHtml(d, s)}</div>`;
   }
 
@@ -384,7 +456,13 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
 
   function modalHtml(d) {
     const ym = S.sel.slice(0, 7), cur = monthStats(d, ym);
-    const rows = cur.low.map((x) => `<div class="sa-mrow"><span class="sa-av" style="background:var(--low-bg);color:var(--low)">${esc(initials(x.nama))}</span><span class="sa-nm"><span>${esc(x.nama)}</span><small>Hadir ${x.hadir} dari ${x.total} sesi bulan ini</small></span><span class="sa-pct low">${x.pct}%</span><a class="sa-fu" href="${esc(waLink(`Halo ${x.nama}, kakak lihat kehadiranmu di sesi mentoring bulan ini baru ${x.pct}%. Ada kendala? Kabari kakak ya, kita cari solusinya bareng. Semangat! 💪`))}" target="_blank" rel="noopener noreferrer" aria-label="Follow-up ${esc(x.nama)} lewat WhatsApp"><i class="fa-brands fa-whatsapp"></i>Follow-up</a></div>`).join('');
+    const rows = cur.low.map((x) => {
+      const email = getStudentEmail(x.nama);
+      const subject = `Evaluasi Kehadiran Mentoring Dieng Cyber - ${x.nama}`;
+      const body = `Halo ${x.nama},\n\nKakak instruktur melihat tingkat kehadiranmu di sesi mentoring bulan ${BLN[parts(S.sel)[1] - 1]} ${parts(S.sel)[0]} tercatat ${x.pct}% (hadir ${x.hadir} dari ${x.total} sesi).\n\nApakah ada kendala waktu atau kendala pembelajaran yang dihadapi? Silakan balas email ini ya, agar kita bisa mencari solusinya bersama.\n\nTetap semangat belajar!\nInstruktur Dieng Cyber`;
+      const mailLink = emailLink(email, subject, body);
+      return `<div class="sa-mrow"><span class="sa-av" style="background:var(--low-bg);color:var(--low)">${esc(initials(x.nama))}</span><span class="sa-nm" title="${esc(x.nama)} (${esc(email)})"><span>${esc(x.nama)}</span><small>Hadir ${x.hadir} dari ${x.total} sesi bulan ini</small></span><span class="sa-pct low">${x.pct}%</span><a class="sa-fu" href="${esc(mailLink)}" aria-label="Kirim email follow-up ke ${esc(x.nama)} (${esc(email)})"><i class="fa-solid fa-envelope"></i>Follow-up</a></div>`;
+    }).join('');
     return `<div class="sa-modalbg" data-sa-modal="bg"><div class="sa-modal" role="dialog" aria-modal="true" aria-labelledby="saMt"><div class="sa-mh"><div><h3 id="saMt">Siswa perlu perhatian</h3><p>Kehadiran di bawah ${LOW}% pada sesi selesai bulan ${BLN[parts(S.sel)[1] - 1]} ${parts(S.sel)[0]}.</p></div><button type="button" class="sa-mx" data-sa-modal="close" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
       <div class="sa-mb">${rows || '<div class="sa-empty">Tidak ada siswa di bawah batas. 🎉</div>'}</div></div></div>`;
   }
@@ -393,6 +471,7 @@ html.dark .sa{--acc:#3fb888;--acc2:#1fa06e;--acc-soft:rgba(63,184,136,.14);--tx:
   function ensure() {
     if (demoOn()) return;
     const key = S.sel.slice(0, 7) + '|' + S.start;
+    fetchStudentEmails();
     if (S.loaded === key || S.failed === key || S.loading) return;
     S.loading = true; S.err = '';
     S.model = null;
