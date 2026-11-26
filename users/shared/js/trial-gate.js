@@ -444,11 +444,11 @@
               <div class="tdb-icon" style="background: #dbeafe; color: #1d4ed8;">💳</div>
               <div>
                 <div class="tdb-title" style="color: #1e3a8a;">⭐ Pendaftaran Paket Belajar: <b>${pkgName}</b></div>
-                <div class="tdb-desc" style="color: #3b82f6;">Status: <strong>Menunggu Konfirmasi Pembayaran</strong> (${invCode ? 'Invoice: ' + invCode : 'Segera Diproses'}). Akses kelas resmi sedang disiapkan.</div>
+                <div class="tdb-desc" style="color: #3b82f6;">Status: <strong>Menunggu Pembayaran (Batas Waktu: 24 Jam)</strong> ${invCode ? '• Invoice: <b>' + invCode + '</b>' : ''}. Selesaikan pembayaran agar akun aktif otomatis.</div>
               </div>
             </div>
             <div class="tdb-right">
-              <a href="/users/checkout.html" class="tdb-btn" style="background: #2563eb; color: #ffffff;">Lihat Detail Tagihan / Bukti 📄</a>
+              <a href="/users/checkout.html" class="tdb-btn" style="background: #2563eb; color: #ffffff;">Lihat Tagihan & Cek Status 📄</a>
             </div>
           `;
           gradeArea.parentNode.insertBefore(subBanner, gradeArea);

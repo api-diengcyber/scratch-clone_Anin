@@ -672,7 +672,7 @@
           Pesanan Berhasil Dibuat!
         </h2>
         <p style="color: var(--text-muted); font-size: 0.92rem;">
-          Silakan selesaikan pembayaran dan unggah bukti transfer di bawah ini:
+          Silakan selesaikan pembayaran sebelum batas waktu berakhir. Sistem akan otomatis memverifikasi transaksi Anda:
         </p>
 
         <!-- Invoice Details Box -->
@@ -696,30 +696,54 @@
               <button type="button" class="copy-btn" id="btnCopyAcc">Salin</button>
             </div>
           </div>
-          <div class="bank-row">
-            <span style="font-size: 0.85rem; color: var(--text-muted);">Batas Pembayaran:</span>
-            <span style="font-size: 0.85rem; font-weight: 600; color: #dc2626;" id="invExpiry">3 Hari</span>
+          <!-- Expiry Timestamp & Live Countdown (24 Jam / 1 Hari) -->
+          <div class="bank-row" style="flex-direction: column; align-items: stretch; gap: 8px; padding-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+              <span style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Batas Waktu Bayar (1 Hari):</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #dc2626;" id="invExpiryDate">Memuat jadwal...</span>
+            </div>
+            <!-- Live Countdown Box -->
+            <div style="background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: #9f1239;">
+                <i class="fa-solid fa-hourglass-half"></i> Sisa Waktu Pembayaran:
+              </span>
+              <span style="font-family: monospace; font-size: 1.02rem; font-weight: 900; color: #e11d48;" id="invCountdown">23:59:59</span>
+            </div>
           </div>
         </div>
 
-        <!-- Proof Upload Box -->
-        <div style="text-align: left; margin-bottom: 20px;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 6px;">Sudah Melakukan Transfer?</h4>
-          <p style="font-size: 0.82rem; color: var(--text-muted);">Unggah bukti struk atau tangkapan layar pembayaran untuk mempercepat verifikasi akun:</p>
-
-          <input type="file" id="proofFileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
-          <div class="upload-proof-box" id="dropProofBox">
-            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: var(--primary); margin-bottom: 8px;"></i>
-            <div style="font-weight: 700; font-size: 0.9rem;" id="proofLabel">Klik untuk memilih foto bukti transfer</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Mendukung format JPG, PNG (Maks 5MB)</div>
-          </div>
-
-          <button type="button" id="btnUploadProof" class="btn-pay-now" style="margin-top: 14px;" disabled>
-            <i class="fa-solid fa-upload"></i>
-            <span>Kirim Bukti Pembayaran</span>
+        <!-- Auto Check Payment Status -->
+        <div style="margin: 20px 0 16px;">
+          <button type="button" id="btnCheckStatus" class="btn-pay-now" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
+            <i class="fa-solid fa-arrows-rotate" id="checkStatusIcon"></i>
+            <span>Saya Sudah Bayar (Cek Otomatis)</span>
           </button>
-          <div id="proofUploadMsg" style="font-size: 0.85rem; margin-top: 8px; text-align: center; display: none;"></div>
+          <div id="checkStatusMsg" style="font-size: 0.86rem; margin-top: 10px; text-align: center; display: none;"></div>
         </div>
+
+        <!-- Optional Proof Upload Box (Collapsible) -->
+        <details style="text-align: left; margin-bottom: 22px; background: #f8fafc; border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+          <summary style="font-size: 0.85rem; font-weight: 700; color: #475569; cursor: pointer;">
+            <i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Ingin melampirkan foto bukti transfer? (Opsional)
+          </summary>
+          <div style="margin-top: 14px;">
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+              Sistem akan memverifikasi pembayaran Anda secara otomatis. Anda juga dapat melampirkan bukti struk di sini jika diperlukan:
+            </p>
+            <input type="file" id="proofFileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+            <div class="upload-proof-box" id="dropProofBox">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 6px;"></i>
+              <div style="font-weight: 700; font-size: 0.88rem;" id="proofLabel">Klik untuk memilih foto struk / bukti transfer</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Mendukung format JPG, PNG (Maks 5MB)</div>
+            </div>
+
+            <button type="button" id="btnUploadProof" class="btn-pay-now" style="margin-top: 12px; height: 44px; font-size: 0.88rem;" disabled>
+              <i class="fa-solid fa-upload"></i>
+              <span>Kirim Bukti Pembayaran</span>
+            </button>
+            <div id="proofUploadMsg" style="font-size: 0.82rem; margin-top: 6px; text-align: center; display: none;"></div>
+          </div>
+        </details>
 
         <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
           <a href="#" id="btnWaConfirmation" target="_blank" rel="noopener" class="btn-pay-now" style="background: #25d366; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);">
@@ -1040,6 +1064,54 @@
         }
       });
 
+      let countdownInterval = null;
+
+      function formatIndoDateTime(dateObj) {
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const day = days[dateObj.getDay()];
+        const date = dateObj.getDate();
+        const month = months[dateObj.getMonth()];
+        const year = dateObj.getFullYear();
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const mins = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${day}, ${date} ${month} ${year} pukul ${hours}:${mins} WIB`;
+      }
+
+      function startExpiryCountdown(expiryTs) {
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        const elCountdown = document.getElementById('invCountdown');
+        const elDate = document.getElementById('invExpiryDate');
+        if (!elCountdown || !elDate) return;
+
+        elDate.textContent = formatIndoDateTime(new Date(expiryTs));
+
+        function tick() {
+          const now = Date.now();
+          const diff = expiryTs - now;
+
+          if (diff <= 0) {
+            elCountdown.innerHTML = '<span style="color: #64748b;">Kedaluwarsa (00:00:00)</span>';
+            clearInterval(countdownInterval);
+            return;
+          }
+
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+          const hStr = String(hours).padStart(2, '0');
+          const mStr = String(mins).padStart(2, '0');
+          const sStr = String(secs).padStart(2, '0');
+
+          elCountdown.innerHTML = `<span style="letter-spacing: 1px;">${hStr}:${mStr}:${sStr}</span> <span style="font-size: 0.8rem; font-weight: 700; color: #9f1239;">(kurang ${hours} jam ${mins} mnt)</span>`;
+        }
+
+        tick();
+        countdownInterval = setInterval(tick, 1000);
+      }
+
       // Tampilkan Screen Invoice
       function showInvoiceScreen(payment, instructions) {
         currentPaymentId = payment?.id;
@@ -1051,7 +1123,10 @@
         document.getElementById('invTotal').textContent = typeof payment?.total === 'number' ? formatRupiah(payment.total) : payment?.total || calcFinalTotal.textContent;
         document.getElementById('invBank').textContent = instructions?.bankName || 'Bank BCA (Ruang KKA Dieng Cyber)';
         document.getElementById('invAccount').textContent = instructions?.accountNumber || '8210-9988-77';
-        document.getElementById('invExpiry').textContent = payment?.expiresOn || '3 Hari ke depan';
+
+        // Hitung tenggat waktu 24 jam (1 Hari)
+        const expiryTs = Date.now() + 24 * 60 * 60 * 1000;
+        startExpiryCountdown(expiryTs);
 
         // Simpan data invoice untuk status dashboard
         localStorage.setItem('account_type', 'paid_subscription');
@@ -1059,6 +1134,7 @@
         localStorage.setItem('payment_pending', 'true');
         localStorage.setItem('pending_invoice_code', payment?.code || 'SUB-2026');
         localStorage.setItem('pending_invoice_total', document.getElementById('invTotal').textContent);
+        localStorage.setItem('pending_invoice_expiry_ts', String(expiryTs));
 
         // WhatsApp confirmation button
         const textWa = encodeURIComponent(
@@ -1143,6 +1219,71 @@
           btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
         }
       });
+
+      // Cek Status Pembayaran Otomatis Tanpa Upload Bukti
+      const btnCheckStatus = document.getElementById('btnCheckStatus');
+      const checkStatusIcon = document.getElementById('checkStatusIcon');
+      const checkStatusMsg = document.getElementById('checkStatusMsg');
+
+      if (btnCheckStatus) {
+        btnCheckStatus.addEventListener('click', async () => {
+          checkStatusIcon.classList.add('fa-spin');
+          btnCheckStatus.disabled = true;
+          checkStatusMsg.style.display = 'block';
+          checkStatusMsg.style.color = '#2563eb';
+          checkStatusMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa mutasi & status pembayaran gateway...';
+
+          const token = localStorage.getItem('authToken');
+
+          try {
+            let isConfirmed = false;
+
+            if (currentPaymentId && token) {
+              const res = await fetch(`/api/subscription/payments/${currentPaymentId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+              });
+              const data = await res.json().catch(() => ({}));
+              const status = data.data?.item?.status || data.item?.status;
+              if (status === 'confirmed' || status === 'active') {
+                isConfirmed = true;
+              }
+            }
+
+            // Cek juga status subscription siswa secara umum
+            if (!isConfirmed && token) {
+              const resSub = await fetch('/api/subscription', {
+                headers: { 'Authorization': 'Bearer ' + token }
+              });
+              const dataSub = await resSub.json().catch(() => ({}));
+              const subObj = dataSub.data?.subscription || dataSub.subscription;
+              if (subObj?.active) {
+                isConfirmed = true;
+              }
+            }
+
+            if (isConfirmed) {
+              checkStatusMsg.style.color = '#059669';
+              checkStatusMsg.innerHTML = '🎉 <strong>Pembayaran Berhasil Terkonfirmasi!</strong> Akun belajar Anda telah aktif. Mengalihkan ke dashboard...';
+              localStorage.removeItem('payment_pending');
+              localStorage.setItem('account_type', 'paid_subscription');
+              setTimeout(() => {
+                window.location.href = 'dashboard/dashboard.html';
+              }, 1600);
+            } else {
+              checkStatusMsg.style.color = '#b45309';
+              checkStatusMsg.innerHTML = '⏳ <strong>Menunggu Notifikasi Masuk</strong>. Pembayaran Anda sedang diproses oleh sistem gateway. Jika baru saja transfer, mohon tunggu 1-2 menit lalu klik cek kembali.';
+              btnCheckStatus.disabled = false;
+              checkStatusIcon.classList.remove('fa-spin');
+            }
+
+          } catch (e) {
+            checkStatusMsg.style.color = '#b45309';
+            checkStatusMsg.innerHTML = '⏳ Menunggu konfirmasi gateway. Silakan klik cek kembali atau konfirmasi via WhatsApp.';
+            btnCheckStatus.disabled = false;
+            checkStatusIcon.classList.remove('fa-spin');
+          }
+        });
+      }
 
     })();
   </script>
