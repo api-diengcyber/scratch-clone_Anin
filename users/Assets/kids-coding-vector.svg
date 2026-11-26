@@ -1,0 +1,325 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0e7ff" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#fdf2f8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ecfeff" stop-opacity="0.7"/>
+    </linearGradient>
+
+    <linearGradient id="laptopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+
+    <linearGradient id="deskGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#fbd0a0"/>
+    </linearGradient>
+
+    <linearGradient id="hoodieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#472a1e"/>
+      <stop offset="100%" stop-color="#2d1810"/>
+    </linearGradient>
+
+    <linearGradient id="rocketBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+
+    <linearGradient id="windowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Filters -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#4f46e5" flood-opacity="0.12"/>
+    </filter>
+    <filter id="deskShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Backdrop Circles -->
+  <circle cx="400" cy="400" r="320" fill="url(#bgGlow)"/>
+  <circle cx="220" cy="240" r="140" fill="#ede9fe" opacity="0.45"/>
+  <circle cx="600" cy="280" r="120" fill="#e0f2fe" opacity="0.5"/>
+  <circle cx="420" cy="560" r="200" fill="#fef3c7" opacity="0.3"/>
+
+  <!-- Playful Floating Vector Icons around -->
+  
+  <!-- Mini Rocket (Top Right) -->
+  <g transform="translate(620, 160) rotate(25)" filter="url(#softShadow)">
+    <!-- Rocket Flame -->
+    <path d="M-8 40 Q0 60 8 40 Q4 50 0 56 Q-4 50 -8 40 Z" fill="#fbbf24"/>
+    <path d="M-5 40 Q0 52 5 40 Z" fill="#f97316"/>
+    <!-- Fins -->
+    <path d="M-18 25 Q-24 38 -10 38 L-8 28 Z" fill="#4f46e5"/>
+    <path d="M18 25 Q24 38 10 38 L8 28 Z" fill="#4f46e5"/>
+    <!-- Body -->
+    <path d="M0 -30 C18 0 18 28 14 36 L-14 36 C-18 28 -18 0 0 -30 Z" fill="url(#rocketBody)"/>
+    <!-- Window -->
+    <circle cx="0" cy="4" r="8" fill="#ffffff"/>
+    <circle cx="0" cy="4" r="6" fill="url(#windowGrad)"/>
+    <circle cx="-2" cy="2" r="2" fill="#ffffff" opacity="0.8"/>
+    <!-- Tip -->
+    <path d="M0 -30 C-6 -20 -10 -10 -10 -4 L10 -4 C10 -10 6 -20 0 -30 Z" fill="#be123c"/>
+  </g>
+
+  <!-- Scratch Coding Blocks (Floating Top Left) -->
+  <g transform="translate(130, 210) rotate(-12)" filter="url(#softShadow)">
+    <!-- Blue Block -->
+    <path d="M0 0 L15 0 C18 0 20 4 23 4 L37 4 C40 4 42 0 45 0 L110 0 C116 0 120 4 120 10 L120 28 C120 34 116 38 110 38 L45 38 C42 38 40 42 37 42 L23 42 C20 42 18 38 15 38 L0 38 C-6 38 -10 34 -10 28 L-10 10 C-10 4 -6 0 0 0 Z" fill="#3b82f6"/>
+    <circle cx="15" cy="19" r="6" fill="#60a5fa"/>
+    <rect x="32" y="14" width="46" height="10" rx="5" fill="#ffffff" opacity="0.85"/>
+    <rect x="86" y="14" width="18" height="10" rx="5" fill="#1d4ed8"/>
+    
+    <!-- Yellow Block Connected Below -->
+    <g transform="translate(0, 38)">
+      <path d="M0 0 L15 0 C18 0 20 4 23 4 L37 4 C40 4 42 0 45 0 L100 0 C106 0 110 4 110 10 L110 28 C110 34 106 38 100 38 L45 38 C42 38 40 42 37 42 L23 42 C20 42 18 38 15 38 L0 38 C-6 38 -10 34 -10 28 L-10 10 C-10 4 -6 0 0 0 Z" fill="#eab308"/>
+      <circle cx="15" cy="19" r="6" fill="#fde047"/>
+      <rect x="32" y="14" width="38" height="10" rx="5" fill="#ffffff" opacity="0.85"/>
+      <rect x="78" y="14" width="16" height="10" rx="5" fill="#a16207"/>
+    </g>
+  </g>
+
+  <!-- Gamepad / Controller (Floating Mid Left) -->
+  <g transform="translate(130, 410) rotate(14)" filter="url(#softShadow)">
+    <rect x="-35" y="-22" width="70" height="44" rx="20" fill="#ec4899"/>
+    <!-- Grips -->
+    <path d="M-30 8 C-36 24 -24 36 -12 30 L-8 16 Z" fill="#db2777"/>
+    <path d="M30 8 C36 24 24 36 12 30 L8 16 Z" fill="#db2777"/>
+    <!-- D-Pad -->
+    <path d="M-18 -8 H-14 V-12 H-10 V-8 H-6 V-4 H-10 V0 H-14 V-4 H-18 Z" fill="#ffffff"/>
+    <!-- Action Buttons -->
+    <circle cx="14" cy="-10" r="3.5" fill="#fbbf24"/>
+    <circle cx="20" cy="-4" r="3.5" fill="#38bdf8"/>
+    <circle cx="8" cy="-4" r="3.5" fill="#34d399"/>
+    <circle cx="14" cy="2" r="3.5" fill="#f43f5e"/>
+  </g>
+
+  <!-- Floating Sparkles & Dots -->
+  <g fill="#f59e0b" filter="url(#glow)">
+    <!-- 4-point star top -->
+    <path d="M380 120 Q380 135 395 135 Q380 135 380 150 Q380 135 365 135 Q380 135 380 120 Z"/>
+    <path d="M680 340 Q680 350 690 350 Q680 350 680 360 Q680 350 670 350 Q680 350 680 340 Z"/>
+    <path d="M190 330 Q190 338 198 338 Q190 338 190 346 Q190 338 182 338 Q190 338 190 330 Z"/>
+  </g>
+
+  <circle cx="280" cy="170" r="4" fill="#818cf8"/>
+  <circle cx="530" cy="140" r="6" fill="#38bdf8" opacity="0.7"/>
+  <circle cx="690" cy="460" r="5" fill="#f472b6" opacity="0.6"/>
+  <circle cx="140" cy="510" r="6" fill="#34d399" opacity="0.7"/>
+
+  <!-- ==============================================
+       MAIN SCENE: ERGONOMIC CHAIR & DESK
+       ============================================== -->
+
+  <!-- Chair Backrest (behind kid) -->
+  <g filter="url(#softShadow)">
+    <rect x="330" y="320" width="140" height="210" rx="30" fill="#312e81"/>
+    <rect x="345" y="335" width="110" height="180" rx="20" fill="#4338ca"/>
+    <!-- Headrest -->
+    <rect x="360" y="260" width="80" height="50" rx="16" fill="#312e81"/>
+    <rect x="370" y="270" width="60" height="32" rx="10" fill="#4f46e5"/>
+    <rect x="395" y="306" width="10" height="18" fill="#1e1b4b"/>
+  </g>
+
+  <!-- ==============================================
+       KID CHARACTER (BOY WITH HEADPHONES & HOODIE)
+       ============================================== -->
+  <g id="kidCharacter">
+    <!-- Body / Hoodie Torso -->
+    <path d="M340 500 C340 450 370 435 400 435 C430 435 460 450 460 500 L470 560 L330 560 Z" fill="url(#hoodieGrad)" filter="url(#softShadow)"/>
+    
+    <!-- Hoodie Pocket -->
+    <path d="M365 520 L435 520 L425 550 L375 550 Z" fill="#4338ca"/>
+
+    <!-- Hoodie Strings -->
+    <path d="M390 465 L390 495" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="390" cy="497" r="2.5" fill="#cbd5e1"/>
+    <path d="M410 465 L410 495" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="410" cy="497" r="2.5" fill="#cbd5e1"/>
+
+    <!-- Neck -->
+    <rect x="388" y="415" width="24" height="26" rx="6" fill="#fbcfe8"/>
+    <path d="M388 426 C396 432 404 432 412 426" stroke="#f472b6" stroke-width="2" fill="none" opacity="0.4"/>
+
+    <!-- Head / Face -->
+    <ellipse cx="400" cy="385" rx="46" ry="50" fill="#fed7aa"/>
+
+    <!-- Cute Cheeks -->
+    <circle cx="372" cy="398" r="8" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="428" cy="398" r="8" fill="#f43f5e" opacity="0.25"/>
+
+    <!-- Eyes (Happy / Smiling Arc) -->
+    <path d="M370 384 Q378 376 386 384" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M414 384 Q422 376 430 384" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Eyebrows -->
+    <path d="M369 373 Q377 368 385 373" stroke="#472a1e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M415 373 Q423 368 431 373" stroke="#472a1e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Nose -->
+    <circle cx="400" cy="391" r="2.5" fill="#fb923c"/>
+
+    <!-- Big Happy Smile -->
+    <path d="M388 402 Q400 416 412 402" stroke="#991b1b" stroke-width="3" stroke-linecap="round" fill="#e11d48"/>
+    <path d="M392 403 Q400 408 408 403" fill="#ffffff"/>
+
+    <!-- Hair (Cool Messy Kids Haircut) -->
+    <path d="M352 380 C345 350 365 330 400 330 C435 330 455 350 448 380 C445 365 440 355 425 350 C410 345 405 350 395 348 C380 345 365 355 352 380 Z" fill="url(#hairGrad)"/>
+    <path d="M365 340 Q380 325 395 338" stroke="#5c3828" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+    <!-- Headphones -->
+    <!-- Headband -->
+    <path d="M350 385 C345 330 455 330 450 385" stroke="#0284c7" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M350 385 C345 330 455 330 450 385" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <!-- Left Ear Cup -->
+    <rect x="340" y="370" width="14" height="32" rx="7" fill="#0284c7"/>
+    <rect x="342" y="374" width="8" height="24" rx="4" fill="#38bdf8"/>
+    <!-- Right Ear Cup -->
+    <rect x="446" y="370" width="14" height="32" rx="7" fill="#0284c7"/>
+    <rect x="450" y="374" width="8" height="24" rx="4" fill="#38bdf8"/>
+
+    <!-- Arms resting forward towards laptop -->
+    <!-- Left Arm -->
+    <path d="M345 480 C335 510 350 540 380 545" stroke="#4f46e5" stroke-width="26" stroke-linecap="round" fill="none"/>
+    <!-- Right Arm -->
+    <path d="M455 480 C465 510 450 540 420 545" stroke="#4f46e5" stroke-width="26" stroke-linecap="round" fill="none"/>
+    
+    <!-- Hands / Sleeves Cuff -->
+    <circle cx="378" cy="544" r="13" fill="#fed7aa"/>
+    <circle cx="422" cy="544" r="13" fill="#fed7aa"/>
+  </g>
+
+  <!-- ==============================================
+       STUDY DESK & ACCESSORIES
+       ============================================== -->
+  <!-- Desk Tabletop Surface -->
+  <g filter="url(#deskShadow)">
+    <path d="M160 550 L640 550 C655 550 665 560 660 575 L650 600 C648 605 642 610 635 610 L165 610 C158 610 152 605 150 600 L140 575 C135 560 145 550 160 550 Z" fill="url(#deskGrad)"/>
+    <!-- Table Bevel highlight line -->
+    <line x1="160" y1="552" x2="640" y2="552" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+    <!-- Desk Front Edge Plank -->
+    <rect x="148" y="605" width="504" height="14" rx="4" fill="#ea580c" opacity="0.3"/>
+  </g>
+
+  <!-- Desk Legs -->
+  <rect x="180" y="619" width="18" height="110" rx="6" fill="#cbd5e1"/>
+  <rect x="602" y="619" width="18" height="110" rx="6" fill="#cbd5e1"/>
+
+  <!-- Items on the Desk -->
+
+  <!-- Cute Succulent Plant in Pot (Desk Left) -->
+  <g transform="translate(210, 520)" filter="url(#softShadow)">
+    <!-- Pot -->
+    <path d="M-14 30 L14 30 L11 48 L-11 48 Z" fill="#fb923c"/>
+    <rect x="-16" y="26" width="32" height="6" rx="3" fill="#f97316"/>
+    <!-- Leaves -->
+    <ellipse cx="0" cy="18" rx="8" ry="14" fill="#10b981"/>
+    <ellipse cx="-8" cy="22" rx="7" ry="12" fill="#059669" transform="rotate(-25 -8 22)"/>
+    <ellipse cx="8" cy="22" rx="7" ry="12" fill="#34d399" transform="rotate(25 8 22)"/>
+  </g>
+
+  <!-- Pencil Holder / Pen Cup (Desk Right) -->
+  <g transform="translate(590, 515)" filter="url(#softShadow)">
+    <!-- Pens -->
+    <rect x="-8" y="0" width="5" height="30" rx="2" fill="#3b82f6" transform="rotate(-15 -8 0)"/>
+    <rect x="2" y="-5" width="5" height="35" rx="2" fill="#eab308" transform="rotate(10 2 -5)"/>
+    <rect x="8" y="5" width="4" height="25" rx="2" fill="#ec4899" transform="rotate(20 8 5)"/>
+    <!-- Cup -->
+    <rect x="-14" y="24" width="28" height="32" rx="6" fill="#e0e7ff"/>
+    <rect x="-11" y="32" width="22" height="18" rx="3" fill="#c7d2fe"/>
+  </g>
+
+  <!-- ==============================================
+       LAPTOP WITH SCRATCH / CODING SCREEN (Center Desk)
+       ============================================== -->
+  <g id="codingLaptop" filter="url(#softShadow)">
+    <!-- Laptop Base / Keyboard deck -->
+    <path d="M300 554 L500 554 L520 570 L280 570 Z" fill="#64748b"/>
+    <path d="M305 556 L495 556 L513 568 L287 568 Z" fill="#475569"/>
+    <!-- Trackpad -->
+    <rect x="382" y="560" width="36" height="7" rx="2" fill="#94a3b8"/>
+
+    <!-- Laptop Screen Bezel -->
+    <rect x="310" y="420" width="180" height="134" rx="8" fill="url(#laptopGrad)"/>
+    <!-- Webcam dot -->
+    <circle cx="400" cy="425" r="2" fill="#64748b"/>
+    <circle cx="400" cy="425" r="1" fill="#38bdf8"/>
+
+    <!-- Screen Display Area -->
+    <rect x="318" y="432" width="164" height="114" rx="4" fill="url(#screenGrad)"/>
+
+    <!-- Scratch-like Block Coding UI on Screen -->
+    <!-- Window Bar -->
+    <rect x="318" y="432" width="164" height="14" fill="#1e293b"/>
+    <circle cx="326" cy="439" r="2.5" fill="#ef4444"/>
+    <circle cx="334" cy="439" r="2.5" fill="#f59e0b"/>
+    <circle cx="342" cy="439" r="2.5" fill="#10b981"/>
+
+    <!-- Screen Content: Code Area (Left) -->
+    <!-- Block 1: Event (Yellow/Orange) -->
+    <rect x="325" y="452" width="60" height="11" rx="3" fill="#eab308"/>
+    <rect x="330" y="455" width="20" height="5" rx="2" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- Block 2: Motion (Blue) -->
+    <rect x="325" y="466" width="70" height="11" rx="3" fill="#3b82f6"/>
+    <rect x="330" y="469" width="35" height="5" rx="2" fill="#ffffff" opacity="0.9"/>
+    <circle cx="385" cy="471.5" r="3" fill="#ffffff"/>
+
+    <!-- Block 3: Looks (Purple) -->
+    <rect x="325" y="480" width="55" height="11" rx="3" fill="#a855f7"/>
+    <rect x="330" y="483" width="25" height="5" rx="2" fill="#ffffff" opacity="0.9"/>
+
+    <!-- Block 4: Control / Loop (Orange) -->
+    <rect x="325" y="494" width="75" height="11" rx="3" fill="#f97316"/>
+    <rect x="330" y="497" width="30" height="5" rx="2" fill="#ffffff" opacity="0.9"/>
+
+    <!-- Screen Content: Stage Area (Right) -->
+    <rect x="408" y="452" width="68" height="68" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+    
+    <!-- Animated Scratch Sprite on Screen (Cute Orange Cat / Robot Character) -->
+    <!-- Head -->
+    <ellipse cx="442" cy="482" rx="14" ry="12" fill="#f97316"/>
+    <!-- Ears -->
+    <polygon points="432,474 430,466 438,471" fill="#f97316"/>
+    <polygon points="452,474 454,466 446,471" fill="#f97316"/>
+    <!-- Eyes -->
+    <circle cx="438" cy="481" r="2.5" fill="#ffffff"/>
+    <circle cx="438" cy="481" r="1.5" fill="#0f172a"/>
+    <circle cx="446" cy="481" r="2.5" fill="#ffffff"/>
+    <circle cx="446" cy="481" r="1.5" fill="#0f172a"/>
+    <!-- Smile & Whiskers -->
+    <circle cx="442" cy="485" r="1" fill="#9a3412"/>
+    <line x1="432" y1="484" x2="428" y2="483" stroke="#fed7aa" stroke-width="1"/>
+    <line x1="452" y1="484" x2="456" y2="483" stroke="#fed7aa" stroke-width="1"/>
+    <!-- Body -->
+    <ellipse cx="442" cy="502" rx="11" ry="10" fill="#ea580c"/>
+    <ellipse cx="442" cy="502" rx="7" ry="7" fill="#ffffff"/>
+    <!-- Green Flag Button (Run Code) -->
+    <path d="M414 458 L420 461 L414 464 Z" fill="#22c55e"/>
+    <!-- Red Stop Button -->
+    <circle cx="426" cy="461" r="3" fill="#ef4444"/>
+
+    <!-- Screen Glow reflection on desk -->
+    <ellipse cx="400" cy="554" rx="70" ry="10" fill="#38bdf8" opacity="0.15"/>
+  </g>
+
+</svg>

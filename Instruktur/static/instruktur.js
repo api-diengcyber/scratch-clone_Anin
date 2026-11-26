@@ -715,7 +715,7 @@
   }
 
   // ---------- navigasi ----------
-  const VIEWS = ['dashboard', 'siswa', 'tugas', 'ujian', 'jadwal', 'pengumuman', 'pertanyaan', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
+  const VIEWS = ['dashboard', 'siswa', 'tugas', 'ujian', 'jadwal', 'kalender', 'pengumuman', 'pertanyaan', 'rekap', 'profil'];   // 'profil' sengaja tidak ada di sidebar: dibuka lewat avatar topbar / #profil
   const ON = ['is-active', 'text-sky-700', 'dark:text-sky-300', 'bg-sky-50', 'dark:bg-sky-500/10', 'font-semibold'];
   const OFF = ['text-slate-600', 'dark:text-slate-400', 'font-medium'];
   function showView(name) {
@@ -729,6 +729,7 @@
     if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
     if (name === 'dashboard') drawDashboard();
     if (name === 'siswa' && window.DCSiswa) window.DCSiswa.mount($('#view-siswa'));
+    if (name === 'kalender' && window.DCKalender) window.DCKalender.mount($('#view-kalender'), { stores: { jadwal: stores.jadwal, tugas: stores.tugas, ujian: stores.ujian } });
     if (name === 'pertanyaan' && window.DCPertanyaan) window.DCPertanyaan.mount($('#view-pertanyaan'), { store: stores.pertanyaan, h: { toast } });
     if (name === 'pengumuman' && window.DCPengumuman) window.DCPengumuman.mount($('#view-pengumuman'), pengumumanCtx());
     if (name === 'rekap') {   // tampilan per sesi (Daftar Sesi / Time Track); rekap bulanan lama jadi tab ketiganya

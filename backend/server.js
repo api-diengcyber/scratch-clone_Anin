@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const dotenv = require("dotenv");
@@ -169,6 +170,7 @@ function checkAiRateLimit(ip) {
 // PATH PROJECT
 // ============================================================
 
+const ROOT_DIR = path.join(__dirname, "..");
 const PROJECT_ROOT = path.join(__dirname, "..", "users"); // frontend siswa
 const ADMIN_ROOT = path.join(__dirname, "..", "Admin");   // frontend admin
 const INSTRUKTUR_ROOT = path.join(__dirname, "..", "Instruktur"); // frontend instruktur
@@ -352,6 +354,19 @@ app.use(
     })
 );
 
+// Mendukung prefix /users/ secara langsung
+app.use(
+    "/users",
+    express.static(PROJECT_ROOT, {
+        index: false,
+        setHeaders(res, filePath) {
+            if (STATIC_CACHE_EXT.test(filePath)) {
+                res.setHeader("Cache-Control", "public, max-age=3600");
+            }
+        }
+    })
+);
+
 // Halaman admin: http://localhost:3000/admin/
 app.use("/admin", express.static(ADMIN_ROOT, { index: "index.html" }));
 
@@ -370,10 +385,22 @@ app.get("/admin/:view", (req, res, next) => {
 });
 
 // ============================================================
-// HALAMAN UTAMA
+// HALAMAN UTAMA & AUTH ALIAS
 // ============================================================
 
 app.get("/", (req, res) => {
+    const rootLanding = path.join(ROOT_DIR, "index.html");
+    if (fs.existsSync(rootLanding)) {
+        return res.sendFile(rootLanding);
+    }
+    res.sendFile(path.join(PROJECT_ROOT, "index.html"));
+});
+
+app.get("/login", (req, res) => {
+    res.sendFile(path.join(PROJECT_ROOT, "index.html"));
+});
+
+app.get("/masuk", (req, res) => {
     res.sendFile(path.join(PROJECT_ROOT, "index.html"));
 });
 

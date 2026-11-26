@@ -62,7 +62,7 @@
     await loadBank(); if (S.tab !== 'bank') return;
     const sel = `${INPUT} pr-8 cursor-pointer`, opt = (v, l, cur) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(l)}</option>`;
     panel.innerHTML = `<div class="space-y-4">${S.ctx.store.isLocal() ? demoNote('/api/instruktur/bank-tugas') : ''}
-      <div class="flex flex-col lg:flex-row gap-2.5 lg:items-center">
+      <div class="flex flex-col xl:flex-row gap-2.5 xl:items-center">
         <label class="relative flex-1"><span class="sr-only">Cari template</span><input data-tgf="q" type="search" value="${esc(S.q)}" placeholder="Cari template tugas" class="${INPUT} w-full"></label>
         <select data-tgf="cat" aria-label="Filter kategori" class="${sel}">${opt('', 'Semua kategori', S.cat)}${CATS.map((c) => opt(c, c, S.cat)).join('')}</select>
         <select data-tgf="lvl" aria-label="Filter tingkat kesulitan" class="${sel}">${opt('', 'Semua tingkat', S.lvl)}${Object.entries(LEVEL).map(([k, v]) => opt(k, v[0], S.lvl)).join('')}</select>
@@ -77,7 +77,7 @@
     const list = (S.bank || []).filter((t) => (!q || (t.title + ' ' + (t.description || '')).toLowerCase().includes(q)) && (!S.cat || t.category === S.cat) && (!S.lvl || t.difficulty === S.lvl));
     if (!(S.bank || []).length) { box.innerHTML = empty('fa-box-archive', 'Bank Tugas masih kosong', 'Simpan tugas yang sering dipakai sebagai template, lalu gunakan lagi kapan saja.', '<button type="button" data-tg="add" class="dc-btn dc-btn-pri mt-5">Tambah Template</button>'); return; }
     if (!list.length) { box.innerHTML = empty('fa-magnifying-glass', 'Tidak ada template yang cocok', 'Coba ubah kata kunci atau filter.'); return; }
-    box.innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 mb-2.5" aria-live="polite">${list.length} template</p><div class="grid gap-3 md:grid-cols-2">${list.map((t) => `<article class="${CARD} p-4 sm:p-5 flex flex-col gap-3">
+    box.innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 mb-2.5" aria-live="polite">${list.length} template</p><div class="grid gap-3 lg:grid-cols-2">${list.map((t) => `<article class="${CARD} p-4 sm:p-5 flex flex-col gap-3">
       <div class="min-w-0"><h3 class="font-bold text-slate-900 dark:text-white">${esc(t.title)}</h3>
         <div class="flex flex-wrap gap-1.5 mt-2">${t.category ? pill(t.category, TONE.info) : ''}${LEVEL[t.difficulty] ? pill(LEVEL[t.difficulty][0], LEVEL[t.difficulty][1]) : ''}${pill(H.GRADES[t.grade] || 'Semua jenjang', TONE.mute)}${pill(H.TYPES[t.type] || t.type || '-', TONE.mute)}</div>
         ${t.description ? `<p class="text-sm text-slate-600 dark:text-slate-300 mt-2.5 line-clamp-2">${esc(t.description)}</p>` : ''}

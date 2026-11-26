@@ -1,5 +1,8 @@
 // Jalur Belajar SMA/SMK (khusus SMA/SMK; SMP ada di belajar-smp.js). ?t=<tahap> = daftar modul tahap itu · ?p=<modul> = daftar task modul (seperti halaman task SD).
 (function () {
+  if (window.TrialGate && typeof window.TrialGate.guardStudyPage === 'function') {
+    window.TrialGate.guardStudyPage('smak');
+  }
   const T = window.LP_SMAK || [], S = window.SMAK, M = window.SMAK_META, LP = window.LP, app = document.getElementById("app"), q = new URLSearchParams(location.search);
   const esc = window.DCUtils.esc;
   const paintPoints = () => { document.getElementById("pointsValue").textContent = LP.saldo(); };   // saldo = sama dengan dashboard & halaman Koin

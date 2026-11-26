@@ -1,288 +1,829 @@
 ﻿<!DOCTYPE html>
-<html lang="id" data-dark="manual">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="/shared/js/theme.js?v=20261019"></script>
-  <title>Masuk • Ruang KKA</title>
-  <meta name="description" content="Masuk ke Ruang KKA dan lanjutkan belajar koding: Scratch, web, Python, dan 3D untuk siswa SD, SMP, dan SMA/SMK.">
+  <title>Masuk ke Akun • Ruang KKA Dieng Cyber</title>
+  <meta name="description" content="Masuk ke portal belajar koding dan AI Dieng Cyber Coding Academy. Scratch, Game 3D, Web, dan Python.">
   <link rel="icon" type="image/webp" href="/Assets/logo.webp">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f5f8ff; color: #25324a; padding: 20px; }
-    .card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e3e8f3; border-radius: 22px; padding: 30px; box-shadow: 0 8px 25px rgba(50,70,110,.08); }
-    .brand { text-align: center; margin-bottom: 20px; }
-    .brand-icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 16px; background: #fff; display: grid; place-items: center; font-size: 28px; overflow: hidden; }
-    .brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
-    p { margin: 4px 0 0; color: #8791a5; font-size: 12px; }
-    label { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: bold; }
-    input { width: 100%; padding: 12px; border: 1px solid #d9e0f0; border-radius: 12px; font: inherit; }
-    input:focus { outline: 2px solid #7181ec; border-color: transparent; }
-    
-    /* Wrapper untuk input password dan tombol toggle */
-    .password-wrapper {
+    /* ============================================================
+       CLEAN, WARM & KIDS-FRIENDLY LOGIN DESIGN
+       Simpel, Estetis, & Menampilkan Suasana Belajar Anak yang Hangat
+       ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+
+      /* Primary Gradients & Accents */
+      --btn-grad: linear-gradient(135deg, #4f46e5 0%, #3b82f6 50%, #10b981 100%);
+      --btn-grad-hover: linear-gradient(135deg, #4338ca 0%, #2563eb 50%, #059669 100%);
+      --primary: #4f46e5;
+      --emerald: #059669;
+
+      /* Backgrounds & Text */
+      --canvas-bg: linear-gradient(125deg, #eef2ff 0%, #fdf4ff 35%, #f0fdf4 70%, #ede9fe 100%);
+      --card-bg: #ffffff;
+      --input-bg: #f8fafc;
+      --text-dark: #0f172a;
+      --text-subtle: #64748b;
+    }
+
+    body {
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--canvas-bg);
+      background-attachment: fixed;
+      padding: 24px 16px;
+      color: var(--text-dark);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Soft Pastel Glows */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+    .glow-1 {
+      width: 500px;
+      height: 500px;
+      background: #c7d2fe;
+      top: -140px;
+      left: -120px;
+    }
+    .glow-2 {
+      width: 540px;
+      height: 540px;
+      background: #fbcfe8;
+      bottom: -160px;
+      right: -120px;
+    }
+
+    /* Outer Frosted Glass Dock Container */
+    .outer-glass-dock {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1060px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      border-radius: 36px;
+      box-shadow: 
+        0 30px 70px -15px rgba(79, 70, 229, 0.12),
+        0 15px 35px -10px rgba(0, 0, 0, 0.04),
+        inset 0 1px 2px rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* Main Solid Card */
+    .main-login-card {
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      background: var(--card-bg);
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(30, 41, 59, 0.04);
+      min-height: 600px;
+    }
+
+    /* ============================================================
+       KOLOM KIRI: FORM LOGIN
+       ============================================================ */
+    .form-column {
+      padding: 48px 46px 44px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #ffffff;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+    .brand-logo-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+      flex-shrink: 0;
+    }
+    .brand-logo-wrap img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+    .brand-text h2 {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: #0f172a;
+      line-height: 1.15;
+    }
+    .brand-text span {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--emerald);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: block;
+    }
+
+    .welcome-title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .welcome-subtitle {
+      font-size: 13.5px;
+      color: var(--text-subtle);
+      margin-bottom: 26px;
+      line-height: 1.45;
+    }
+
+    /* Form Fields */
+    .input-group {
+      margin-bottom: 18px;
+    }
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .input-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+      letter-spacing: 0.1px;
+    }
+    .forgot-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: #4f46e5;
+      text-decoration: none;
+      transition: color 0.2s, text-decoration 0.2s;
+    }
+    .forgot-link:hover {
+      color: #3730a3;
+      text-decoration: underline;
+    }
+
+    .input-wrapper {
       position: relative;
       display: flex;
       align-items: center;
     }
-    .password-wrapper input {
-      padding-right: 44px;
+    .input-icon-left {
+      position: absolute;
+      left: 15px;
+      font-size: 14px;
+      color: #94a3b8;
+      pointer-events: none;
+      transition: color 0.2s;
     }
-    .toggle-password {
+    .custom-input {
+      width: 100%;
+      height: 48px;
+      background: var(--input-bg);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 0 16px 0 42px;
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      color: var(--text-dark);
+      transition: all 0.22s ease;
+    }
+    .custom-input::placeholder {
+      color: #94a3b8;
+      font-size: 13px;
+    }
+    .custom-input:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    }
+    .custom-input:focus + .input-icon-left,
+    .input-wrapper:focus-within .input-icon-left {
+      color: #4f46e5;
+    }
+
+    /* Toggle Password Button */
+    .toggle-pass-btn {
       position: absolute;
       right: 12px;
       background: none;
       border: none;
-      padding: 0;
-      margin: 0;
-      width: auto;
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
       cursor: pointer;
+      transition: color 0.2s, background-color 0.2s;
+    }
+    .toggle-pass-btn:hover {
+      color: #475569;
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    /* Checkbox Row */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 14px;
+      margin-bottom: 22px;
+      user-select: none;
+    }
+    .custom-checkbox {
+      width: 17px;
+      height: 17px;
+      border-radius: 5px;
+      border: 1.5px solid #cbd5e1;
+      accent-color: #4f46e5;
+      cursor: pointer;
+    }
+    .checkbox-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    /* Alert Error */
+    .alert-error {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 11px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Submit Button (SIGN IN) */
+    .btn-signin {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 14px;
+      background: var(--btn-grad);
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 8px 22px -3px rgba(79, 70, 229, 0.38);
+      transition: all 0.25s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #8791a5;
+      gap: 8px;
     }
-    .toggle-password:hover {
-      background: none;
-      color: #556075;
+    .btn-signin:hover {
+      background: var(--btn-grad-hover);
+      box-shadow: 0 10px 26px -3px rgba(79, 70, 229, 0.48);
+      transform: translateY(-1.5px);
+    }
+    .btn-signin:active {
+      transform: translateY(0.5px);
+      box-shadow: 0 4px 14px -2px rgba(79, 70, 229, 0.35);
+    }
+    .btn-signin:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
     }
 
-    .error { display: none; margin-top: 12px; color: #d33; font-size: 12px; }
-    .btn-submit { width: 100%; margin-top: 18px; padding: 13px; border: 0; border-radius: 12px; background: #7181ec; color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
-    .btn-submit:hover { background: #5f70dd; }
-
-    /* Footer link untuk registrasi */
-    .register-link {
+    /* Footer Register Link */
+    .register-footer {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 24px;
       font-size: 13px;
-      color: #8791a5;
+      color: #64748b;
     }
-    .register-link a {
-      color: #7181ec;
+    .register-footer a {
+      color: #4f46e5;
+      font-weight: 700;
       text-decoration: none;
-      font-weight: bold;
+      transition: color 0.2s;
     }
-    .register-link a:hover {
+    .register-footer a:hover {
+      color: #3730a3;
       text-decoration: underline;
     }
-  </style>
-  <link rel="stylesheet" href="/shared/css/dark.css?v=20261022">
-</head>
-<body>
-  <div class="card">
-    <div class="brand">
-      <div class="brand-icon"><img src="Assets/logo.webp" alt="Logo Ruang KKA" width="256" height="256"></div>
-      <h1>RUANG KKA</h1>
-      <p>Masuk untuk mulai belajar coding</p>
-    </div>
 
-    <form id="loginForm">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Masukkan Email" autocomplete="email" autocapitalize="none" spellcheck="false" required>
-
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
-        <button type="button" id="togglePassword" class="toggle-password" aria-label="Tampilkan atau sembunyikan password">
-          <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button>
-      </div>
-
-      <div id="loginError" class="error">Email dan Password wajib diisi!</div>
-
-      <button type="submit" class="btn-submit">Masuk</button>
-    </form>
-
-    <!-- Navigasi Belum Punya Akun -->
-    <div class="register-link">
-      Belum punya akun? <a href="register.html">Daftar sekarang</a>
-    </div>
-  </div>
-<script type="module">
-  const loginForm = document.getElementById("loginForm");
-  const loginError = document.getElementById("loginError");
-  const passwordInput = document.getElementById("password");
-  const togglePassword = document.getElementById("togglePassword");
-  const eyeIcon = document.getElementById("eyeIcon");
-
-  // Tujuan setelah login mengikuti peran akun. Instruktur punya portal
-  // sendiri; sebelumnya semua non-admin dilempar ke dashboard murid.
-  function homeForRole(role) {
-    if (role === "admin") return "/admin/";
-    if (role === "instruktur") return "/instruktur/";
-    return "/dashboard.html";
-  }
-
-  // ======================================================
-  // TOGGLE SHOW / HIDE PASSWORD
-  // ======================================================
-
-  togglePassword.addEventListener("click", function () {
-    const isPassword =
-      passwordInput.getAttribute("type") === "password";
-
-    passwordInput.setAttribute(
-      "type",
-      isPassword ? "text" : "password"
-    );
-
-    if (isPassword) {
-      eyeIcon.innerHTML = `
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-        <line x1="1" y1="1" x2="23" y2="23"></line>
-      `;
-    } else {
-      eyeIcon.innerHTML = `
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      `;
-    }
-  });
-
-  // ======================================================
-  // LOGIN
-  // ======================================================
-
-  loginForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const email =
-      document
-        .getElementById("email")
-        .value
-        .trim();
-
-    const password =
-      passwordInput.value;
-
-    loginError.style.display = "none";
-
-    if (!email || !password) {
-      loginError.textContent =
-        "Email dan password wajib diisi.";
-
-      loginError.style.display =
-        "block";
-
-      return;
+    /* ============================================================
+       KOLOM KANAN: CLEAN & KIDS-FRIENDLY VECTOR ILLUSTRATION
+       Fokus Gambar Vektor Belajar Koding Anak (Tanpa Tulisan)
+       ============================================================ */
+    .visual-column {
+      position: relative;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 14px 14px 14px 0;
     }
 
-    try {
-      // ==================================================
-      // LOGIN DATABASE
-      // ==================================================
+    .vector-hero-panel {
+      width: 100%;
+      height: 100%;
+      min-height: 568px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      background: linear-gradient(145deg, #f0f4ff 0%, #faf5ff 45%, #ecfeff 100%);
+      box-shadow: inset 0 0 50px rgba(99, 102, 241, 0.05);
+      border: 1px solid rgba(224, 231, 255, 0.7);
+    }
 
-      const response =
-        await fetch(
-          "/api/auth/login",
-          {
-            method: "POST",
+    .vector-hero-img {
+      width: 100%;
+      max-width: 490px;
+      height: auto;
+      max-height: 530px;
+      object-fit: contain;
+      filter: drop-shadow(0 16px 36px rgba(79, 70, 229, 0.12));
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .vector-hero-panel:hover .vector-hero-img {
+      transform: scale(1.03) translateY(-6px);
+    }
 
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
+    /* ============================================================
+       MODAL LUPA PASSWORD (RAMAH EDUKASI)
+       ============================================================ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 32px 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: #ecfdf5;
+      color: #059669;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      margin: 0 auto 18px;
+    }
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 13.5px;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-wa-help {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #25d366;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 13px 20px;
+      border-radius: 14px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+      transition: background 0.2s;
+    }
+    .btn-wa-help:hover {
+      background: #20ba5a;
+    }
+    .btn-close-modal {
+      background: #f1f5f9;
+      border: none;
+      color: #475569;
+      font-weight: 700;
+      font-size: 13.5px;
+      padding: 12px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+    .btn-close-modal:hover {
+      background: #e2e8f0;
+    }
 
-            body:
-              JSON.stringify({
-                email,
-                password
-              })
-          }
-        );
-
-      const data =
-        await response
-          .json()
-          .catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          "Login gagal."
-        );
+    /* ============================================================
+       RESPONSIVE DESIGN (MOCKUP HP & TABLET)
+       ============================================================ */
+    @media (max-width: 900px) {
+      .outer-glass-dock {
+        padding: 8px;
+        border-radius: 30px;
+      }
+      .main-login-card {
+        grid-template-columns: 1fr;
+        border-radius: 24px;
+      }
+      
+      .visual-column {
+        order: -1;
+        padding: 12px 12px 0 12px;
+      }
+      .vector-hero-panel {
+        min-height: 220px;
+        max-height: 280px;
+        border-radius: 18px;
+        padding: 16px;
+      }
+      .vector-hero-img {
+        max-width: 260px;
+        max-height: 220px;
       }
 
-      const username =
-        data.username || email;
+      .form-column {
+        padding: 30px 22px 32px 22px;
+      }
+      .welcome-title {
+        font-size: 22px;
+      }
+      .welcome-subtitle {
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
 
-      // ==================================================
-      // SIMPAN SESSION BACKEND
-      // ==================================================
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-      localStorage.setItem(
-        "isLoggedIn",
-        "true"
-      );
+  <!-- Outer Glass Dock -->
+  <div class="outer-glass-dock">
+    <div class="main-login-card">
 
-      localStorage.setItem(
-        "username",
-        username
-      );
+      <!-- ==========================================
+           KOLOM KIRI: FORM LOGIN
+           ========================================== -->
+      <div class="form-column">
+        <!-- Brand Header -->
+        <div class="brand-header">
+          <div class="brand-logo-wrap">
+            <img src="Assets/logo.webp" alt="Logo Ruang KKA" width="28" height="28" onerror="this.onerror=null; this.src='/Assets/logo.webp';">
+          </div>
+          <div class="brand-text">
+            <h2>RUANG KKA</h2>
+            <span>Dieng Cyber Academy</span>
+          </div>
+        </div>
 
-      localStorage.setItem(
-        "email",
-        data.email || email
-      );
+        <h1 class="welcome-title">Sign In to your Account</h1>
+        <p class="welcome-subtitle">Lanjutkan petualangan seru belajar koding & AI bersama mentor ramah.</p>
 
-      localStorage.setItem(
-        "scratch_user",
-        username
-      );
+        <!-- Form Login -->
+        <form id="loginForm" autocomplete="on">
+          <!-- Input Email -->
+          <div class="input-group">
+            <div class="label-row">
+              <label for="email" class="input-label">Email atau Username</label>
+            </div>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope input-icon-left" aria-hidden="true"></i>
+              <input 
+                type="text" 
+                id="email" 
+                class="custom-input" 
+                placeholder="nama@email.com atau username" 
+                autocomplete="username" 
+                autocapitalize="none" 
+                spellcheck="false" 
+                required
+              >
+            </div>
+          </div>
 
-      localStorage.setItem(
-        "authToken",
-        data.token
-      );
+          <!-- Input Password -->
+          <div class="input-group">
+            <div class="label-row">
+              <label for="password" class="input-label">Password</label>
+              <a href="#" id="forgotBtn" class="forgot-link">Forgot password?</a>
+            </div>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon-left" aria-hidden="true"></i>
+              <input 
+                type="password" 
+                id="password" 
+                class="custom-input" 
+                placeholder="Masukkan password akun" 
+                autocomplete="current-password" 
+                required
+                style="padding-right: 48px;"
+              >
+              <button 
+                type="button" 
+                id="togglePassword" 
+                class="toggle-pass-btn" 
+                aria-label="Tampilkan atau sembunyikan password"
+              >
+                <i id="eyeIcon" class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
 
-      // ==================================================
-      // WAJIB GANTI PASSWORD (akun baru)
-      // ==================================================
+          <!-- Alert Error -->
+          <div id="loginError" class="alert-error" role="alert"></div>
 
-      if (data.mustChangePassword) {
-        window.location.replace(
-          "/ganti-password.html"
-        );
+          <!-- Remember Me Checkbox -->
+          <div class="checkbox-row">
+            <input type="checkbox" id="rememberMe" class="custom-checkbox">
+            <label for="rememberMe" class="checkbox-label">Remember me</label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="btn-signin">
+            <span>SIGN IN</span>
+            <i class="fa-solid fa-arrow-right" style="font-size: 13px;"></i>
+          </button>
+        </form>
+
+        <!-- Register Link -->
+        <div class="register-footer">
+          Not registered yet? <a href="register.html">Create an account</a>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           KOLOM KANAN: VECTOR ILLUSTRATION (NO TEXT)
+           Murni Gambar Vektor Belajar Koding Anak
+           ========================================== -->
+      <div class="visual-column">
+        <div class="vector-hero-panel">
+          <img 
+            src="Assets/kids-coding-vector.svg" 
+            alt="Ilustrasi Belajar Koding Anak Ruang KKA Dieng Cyber" 
+            class="vector-hero-img"
+            loading="eager"
+          >
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL BANTUAN LUPA PASSWORD
+       ========================================== -->
+  <div id="forgotModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <div class="modal-icon">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 id="modalTitle" class="modal-title">Bantuan Akun & Password</h3>
+      <p class="modal-desc">
+        Untuk keamanan siswa, reset password dapat dibantu langsung oleh Tim Mentor atau Administrator <strong>Dieng Cyber</strong> via WhatsApp resmi atau bantuan orang tua.
+      </p>
+      <div class="modal-actions">
+        <a 
+          href="https://wa.me/6285741000000?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20membutuhkan%20bantuan%20reset%20password%20akun%20koding." 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="btn-wa-help"
+        >
+          <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i>
+          Hubungi Admin via WhatsApp
+        </a>
+        <button type="button" id="closeModalBtn" class="btn-close-modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       LOGIKA JAVASCRIPT AUTHENTIKASI & INTERAKSI
+       ========================================== -->
+  <script type="module">
+    const loginForm = document.getElementById("loginForm");
+    const loginError = document.getElementById("loginError");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const rememberMe = document.getElementById("rememberMe");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const forgotBtn = document.getElementById("forgotBtn");
+    const forgotModal = document.getElementById("forgotModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    // Muat remembered email bila ada
+    try {
+      const savedEmail = localStorage.getItem("dc_remembered_login");
+      if (savedEmail) {
+        emailInput.value = savedEmail;
+        rememberMe.checked = true;
+      }
+    } catch (_) {}
+
+    // Pengalihan peran setelah login
+    function homeForRole(role) {
+      if (role === "admin") return "/admin/";
+      if (role === "instruktur") return "/instruktur/";
+      return "/dashboard.html";
+    }
+
+    // Toggle Show / Hide Password
+    togglePassword.addEventListener("click", function () {
+      const isPassword = passwordInput.getAttribute("type") === "password";
+      passwordInput.setAttribute("type", isPassword ? "text" : "password");
+
+      if (isPassword) {
+        eyeIcon.className = "fa-regular fa-eye-slash";
+        togglePassword.setAttribute("aria-label", "Sembunyikan password");
+      } else {
+        eyeIcon.className = "fa-regular fa-eye";
+        togglePassword.setAttribute("aria-label", "Tampilkan password");
+      }
+    });
+
+    // Modal Lupa Password
+    forgotBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      forgotModal.style.display = "flex";
+    });
+    closeModalBtn.addEventListener("click", function () {
+      forgotModal.style.display = "none";
+    });
+    forgotModal.addEventListener("click", function (e) {
+      if (e.target === forgotModal) {
+        forgotModal.style.display = "none";
+      }
+    });
+
+    // Submit Form Login
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      loginError.style.display = "none";
+      loginError.textContent = "";
+
+      if (!email || !password) {
+        loginError.textContent = "Email/Username dan Password wajib diisi.";
+        loginError.style.display = "block";
         return;
       }
 
-      // ==================================================
-      // MASUK DASHBOARD
-      // ==================================================
+      // Indikator loading
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>MEMVERIFIKASI...</span>
+      `;
 
-      window.location.replace(
-        homeForRole(data.role)
-      );
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        });
 
-    } catch (error) {
-      console.error(
-        "Login error:",
-        error
-      );
+        const data = await response.json().catch(() => ({}));
 
-      let message =
-        error.message ||
-        "Login gagal.";
+        if (!response.ok) {
+          throw new Error(data.message || "Email atau password tidak sesuai.");
+        }
 
-      if (
-        error instanceof TypeError
-      ) {
-        message =
-          "Backend tidak dapat dihubungi. Coba lagi.";
+        const username = data.username || email;
+
+        // Remember Me Handler
+        if (rememberMe.checked) {
+          try { localStorage.setItem("dc_remembered_login", email); } catch (_) {}
+        } else {
+          try { localStorage.removeItem("dc_remembered_login"); } catch (_) {}
+        }
+
+        // Simpan sesi autentikasi
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("username", username);
+        localStorage.setItem("email", data.email || email);
+        localStorage.setItem("scratch_user", username);
+        localStorage.setItem("authToken", data.token);
+
+        // Jika akun baru yang wajib ganti password
+        if (data.mustChangePassword) {
+          window.location.replace("/ganti-password.html");
+          return;
+        }
+
+        // Pengalihan ke halaman sesuai role
+        window.location.replace(homeForRole(data.role));
+
+      } catch (error) {
+        console.error("Login error:", error);
+
+        let message = error.message || "Gagal masuk. Periksa kembali akun kamu.";
+        if (error instanceof TypeError) {
+          message = "Server backend tidak dapat dihubungi. Pastikan koneksi aktif.";
+        }
+
+        loginError.textContent = message;
+        loginError.style.display = "block";
+
+        // Kembalikan tombol
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <span>SIGN IN</span>
+          <i class="fa-solid fa-arrow-right" style="font-size: 13px;"></i>
+        `;
       }
-
-      loginError.textContent =
-        message;
-
-      loginError.style.display =
-        "block";
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>

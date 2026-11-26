@@ -40,9 +40,9 @@
     el.innerHTML = `<div class="space-y-5">
       <div><h1 class="text-2xl font-bold text-slate-900 dark:text-white">Pertanyaan siswa</h1><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Jawab pertanyaan siswa seputar materi dan tugas.</p></div>
       <div id="pqBanner"></div>
-      <div class="lg:grid lg:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] gap-5 items-start">
+      <div class="xl:grid xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] gap-5 items-start">
         <section id="pqListPane" class="${CARD} overflow-hidden"><div id="pqTools" class="p-3 space-y-2.5 border-b border-slate-100 dark:border-slate-800"></div><div id="pqList" class="max-h-[70vh] overflow-y-auto"></div></section>
-        <section id="pqDetail" class="hidden lg:block ${CARD} min-h-[320px]"></section></div></div>`;
+        <section id="pqDetail" class="hidden xl:block ${CARD} min-h-[320px]"></section></div></div>`;
     S.items = null; S.sel = null; $('#pqList').innerHTML = '<div class="text-center text-sm text-slate-500 py-10"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat...</div>';
     load();
   }
@@ -51,7 +51,7 @@
     try { S.items = await S.ctx.store.list(); }
     catch (e) { S.items = null; $('#pqList').innerHTML = empty('fa-triangle-exclamation', 'Pertanyaan gagal dimuat', e.message || 'Terjadi kesalahan. Coba lagi.', '<button type="button" data-pq="retry" class="dc-btn dc-btn-pri mt-5">Coba lagi</button>'); return; }
     if (S.ctx.store.isLocal()) $('#pqBanner').innerHTML = `<div class="flex items-start gap-2.5 text-xs rounded-xl px-4 py-3 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"><i class="fa-solid fa-flask mt-0.5"></i><span><b>Mode contoh:</b> endpoint <code>/api/instruktur/pertanyaan</code> belum tersedia. Yang tampil adalah pertanyaan contoh, dan balasanmu belum sampai ke siswa.</span></div>`;
-    if (!S.sel && window.matchMedia('(min-width:1024px)').matches) { const f = visible()[0]; if (f) S.sel = String(f.id); }
+    if (!S.sel && window.matchMedia('(min-width:1280px)').matches) { const f = visible()[0]; if (f) S.sel = String(f.id); }
     drawTools(); drawList(); drawDetail();
   }
 
@@ -79,14 +79,14 @@
 
   function drawDetail() {
     const pane = $('#pqDetail'), x = (S.items || []).find((i) => String(i.id) === S.sel);
-    $('#pqListPane').classList.toggle('hidden', !!x && !window.matchMedia('(min-width:1024px)').matches);
-    pane.classList.toggle('hidden', !x && !window.matchMedia('(min-width:1024px)').matches);
+    $('#pqListPane').classList.toggle('hidden', !!x && !window.matchMedia('(min-width:1280px)').matches);
+    pane.classList.toggle('hidden', !x && !window.matchMedia('(min-width:1280px)').matches);
     if (!x) { pane.innerHTML = empty('fa-comments', 'Pilih pertanyaan', 'Pilih salah satu pertanyaan di daftar untuk membaca dan membalasnya.'); return; }
     const k = key(x), fact = (l, v) => `<div class="min-w-0"><p class="text-[11px] text-slate-500 dark:text-slate-400">${l}</p><p class="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">${esc(v || '-')}</p></div>`;
     const bubble = (b, q) => { const mine = b.by === 'instruktur'; return `<div class="flex ${mine ? 'justify-end' : ''}"><div class="max-w-[92%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${mine ? 'bg-sky-50 dark:bg-sky-500/10 border border-sky-200/70 dark:border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700'}"><p class="text-[11px] font-semibold ${mine ? 'text-sky-700 dark:text-sky-300' : 'text-slate-500 dark:text-slate-400'}">${mine ? 'Kamu' : esc(x.siswaNama || 'Siswa')} &middot; <span class="font-normal">${esc(fmt(b.at))}</span></p>${q ? `<p class="text-sm font-bold text-slate-900 dark:text-white mt-1">${esc(x.judul)}</p>` : ''}<p class="text-sm text-slate-800 dark:text-slate-100 mt-1 whitespace-pre-wrap break-words">${esc(b.teks)}</p></div></div>`; };
     const lamp = (x.lampiran || []).filter((l) => l && l.nama).map((l) => (/^https?:\/\//i.test(l.url || '') ? `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-sky-700 dark:text-sky-300 hover:underline"><i class="fa-solid fa-paperclip"></i>${esc(l.nama)}</a>` : `<span class="inline-flex items-center gap-1.5 text-xs text-slate-500"><i class="fa-solid fa-paperclip"></i>${esc(l.nama)}</span>`)).join('');
     pane.innerHTML = `<div class="p-5 sm:p-6 space-y-5">
-      <div><button type="button" data-pq="back" class="lg:hidden inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-3"><i class="fa-solid fa-arrow-left text-xs"></i>Semua pertanyaan</button>
+      <div><button type="button" data-pq="back" class="xl:hidden inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-3"><i class="fa-solid fa-arrow-left text-xs"></i>Semua pertanyaan</button>
         <div class="flex items-start justify-between gap-3 flex-wrap"><h2 class="text-lg font-bold text-slate-900 dark:text-white">${esc(x.judul)}</h2>${pill(ST[k][0], ST[k][1])}</div>
         <div class="flex items-center gap-2.5 mt-2.5">${avatar(x.siswaNama)}<div class="min-w-0"><p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">${esc(x.siswaNama || 'Siswa')}</p><p class="text-xs text-slate-500 dark:text-slate-400">${esc(GR[x.grade] || 'Jenjang belum diisi')}</p></div></div></div>
       <div class="grid sm:grid-cols-3 gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-3.5">${fact('Learning Path', x.learningPathName)}${fact('Tahap', x.tahap)}${fact('Task terkait', x.taskName)}</div>
@@ -124,7 +124,7 @@
     el.addEventListener('click', (e) => {
       const b = e.target.closest('[data-pq]'); if (!b) return;
       const a = b.dataset.pq, cur = (S.items || []).find((i) => String(i.id) === S.sel);
-      if (a === 'open') { S.sel = String(b.dataset.id); drawList(); drawDetail(); const d = $('#pqDetail'); if (!window.matchMedia('(min-width:1024px)').matches) d.scrollIntoView({ block: 'start' }); }
+      if (a === 'open') { S.sel = String(b.dataset.id); drawList(); drawDetail(); const d = $('#pqDetail'); if (!window.matchMedia('(min-width:1280px)').matches) d.scrollIntoView({ block: 'start' }); }
       else if (a === 'back') { S.sel = null; drawList(); drawDetail(); }
       else if (a === 'retry') mount(S.el, S.ctx);
       else if (a === 'chip') { S.f = b.dataset.f; drawTools(); drawList(); }

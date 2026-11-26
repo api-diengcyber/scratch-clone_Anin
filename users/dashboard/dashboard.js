@@ -202,6 +202,11 @@ function renderGrade(grade) {
       <p>Kami sedang menyiapkan petualangan seru untuk jenjang ini. Sementara itu, kamu bisa melihat jenjang SD.</p>
     </section>`;
   }
+
+  // Terapkan batasan jalur akun trial jika aktif
+  if (window.TrialGate && typeof window.TrialGate.applyDashboardLocks === 'function') {
+    window.TrialGate.applyDashboardLocks(grade);
+  }
 }
 
 document.querySelectorAll('.grade-tab').forEach(tab => tab.addEventListener('click', () => {
