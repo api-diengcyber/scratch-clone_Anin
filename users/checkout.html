@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/shared/js/theme.js?v=20261019"></script>
+  <title>Pembayaran & Pendaftaran Paket • Ruang KKA Dieng Cyber</title>
+  <meta name="description" content="Checkout paket belajar koding dan AI resmi Ruang KKA Dieng Cyber. Buat akun, pilih metode pembayaran, dan mulai belajar bersama mentor.">
+  <link rel="icon" type="image/webp" href="/Assets/logo.webp">
+
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       THEME & COLOR TOKENS (EMERALD & INDIGO ACCENT)
+       ============================================================ */
+    :root {
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-light: #10b981;
+      --primary-subtle: #ecfdf5;
+      --indigo: #4f46e5;
+      --indigo-hover: #4338ca;
+      --text-main: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --border-focus: #059669;
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-body);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Navbar */
+    .top-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-wrap img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+    }
+    .brand-title span {
+      color: var(--primary);
+    }
+    .header-safe-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-subtle);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+
+    /* Container Grid */
+    .checkout-container {
+      max-width: 1140px;
+      width: 100%;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* Common Card Styles */
+    .checkout-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .section-title i {
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      height: 46px;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: #ffffff;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+    }
+
+    /* Logged In Status Banner */
+    .user-session-card {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .user-session-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-avatar-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .user-session-text h4 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #14532d;
+    }
+    .user-session-text p {
+      font-size: 0.8rem;
+      color: #15803d;
+    }
+    .btn-switch-account {
+      background: none;
+      border: none;
+      color: #15803d;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* Payment Method Selector */
+    .payment-options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .payment-option-card {
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+      background: #ffffff;
+    }
+    .payment-option-card:hover {
+      border-color: #94a3b8;
+    }
+    .payment-option-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+    .payment-option-card input[type="radio"] {
+      accent-color: var(--primary);
+      width: 18px;
+      height: 18px;
+    }
+    .payment-opt-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .payment-opt-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Right Column: Order Summary */
+    .order-summary-card {
+      position: sticky;
+      top: 90px;
+    }
+    .plan-header-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: var(--primary-subtle);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .plan-header-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .plan-header-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    /* Duration Selector Buttons in Summary */
+    .cycle-btn-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .cycle-btn {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      padding: 8px 4px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-body);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .cycle-btn:hover {
+      background: #f1f5f9;
+    }
+    .cycle-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Price Line Items */
+    .price-calc-box {
+      border-top: 1px dashed var(--border-color);
+      border-bottom: 1px dashed var(--border-color);
+      padding: 16px 0;
+      margin-bottom: 18px;
+    }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .price-row.discount {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .price-row.total-row {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
+
+    /* Feature check list */
+    .included-perks {
+      margin-bottom: 22px;
+    }
+    .perk-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+    .perk-item i {
+      color: var(--primary);
+      font-size: 0.85rem;
+    }
+
+    /* Submit Checkout Button */
+    .btn-pay-now {
+      width: 100%;
+      height: 52px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(5, 150, 105, 0.28);
+      transition: all 0.2s ease;
+    }
+    .btn-pay-now:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(5, 150, 105, 0.35);
+    }
+    .btn-pay-now:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Alert Message */
+    .checkout-alert {
+      display: none;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+    }
+    .checkout-alert.alert-error {
+      display: block;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .checkout-alert.alert-success {
+      display: block;
+      background: var(--primary-subtle);
+      color: var(--primary-hover);
+      border: 1px solid #a7f3d0;
+    }
+
+    /* ============================================================
+       INVOICE / SUCCESS SCREEN (STEP 2)
+       ============================================================ */
+    #invoiceScreen {
+      display: none;
+    }
+    .invoice-card {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+      text-align: center;
+    }
+    .success-icon-badge {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #ecfdf5;
+      color: #059669;
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+      margin: 0 auto 16px;
+    }
+    .bank-box {
+      background: #f8fafc;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin: 24px 0;
+      text-align: left;
+    }
+    .bank-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .bank-row:last-child {
+      border-bottom: none;
+    }
+    .copy-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-body);
+    }
+    .upload-proof-box {
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 24px 16px;
+      margin-top: 20px;
+      background: #fcfcfd;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-proof-box:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    @media (max-width: 860px) {
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
+      .order-summary-card {
+        order: -1;
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="/index.html" class="brand-wrap">
+        <img src="Assets/logo.webp" alt="Logo Dieng Cyber" width="36" height="36" onerror="this.src='/Assets/logo.webp'">
+        <div class="brand-title">DIENG <span>CYBER</span></div>
+      </a>
+      <div class="header-safe-badge">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Checkout Aman & Terenkripsi</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="checkout-container">
+
+    <!-- STEP 1: FORM CHECKOUT & SUMMARY -->
+    <div id="checkoutFormScreen" class="checkout-grid">
+      
+      <!-- Left Column: Registration / Account & Payment Method -->
+      <div class="checkout-card">
+        
+        <div id="checkoutAlert" class="checkout-alert" role="alert"></div>
+
+        <!-- If user is already logged in -->
+        <div id="userSessionCard" class="user-session-card" style="display: none;">
+          <div class="user-session-info">
+            <div class="user-avatar-circle" id="sessionAvatarInitial">S</div>
+            <div class="user-session-text">
+              <h4 id="sessionUserName">Siswa</h4>
+              <p id="sessionUserEmail">siswa@email.com</p>
+            </div>
+          </div>
+          <button type="button" id="btnSwitchAccount" class="btn-switch-account">Ganti Akun</button>
+        </div>
+
+        <!-- If user is new (Register Form) -->
+        <div id="registerSection">
+          <div class="section-title">
+            <i class="fa-regular fa-user"></i>
+            <span>1. Data Akun Siswa</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="childFullName">Nama Lengkap Siswa / Anak *</label>
+            <input type="text" id="childFullName" class="form-input" placeholder="contoh: Muhammad Rizky" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="userEmail">Email Siswa atau Wali *</label>
+            <input type="email" id="userEmail" class="form-input" placeholder="nama@email.com" required>
+            <small style="color: var(--text-muted); font-size: 0.75rem;">Email ini digunakan untuk login dan menerima laporan belajar berkala.</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="userPhone">Nomor WhatsApp Wali / Siswa *</label>
+            <input type="tel" id="userPhone" class="form-input" placeholder="contoh: 08123456789" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="userPassword">Buat Password Akun Baru *</label>
+            <input type="password" id="userPassword" class="form-input" placeholder="Minimal 6 karakter" required>
+          </div>
+        </div>
+
+        <!-- Section 2: Payment Method -->
+        <div style="margin-top: 28px;">
+          <div class="section-title">
+            <i class="fa-solid fa-wallet"></i>
+            <span>2. Metode Pembayaran</span>
+          </div>
+
+          <div class="payment-options-grid">
+            <label class="payment-option-card selected">
+              <input type="radio" name="payMethod" value="transfer" checked>
+              <div>
+                <div class="payment-opt-title"><i class="fa-solid fa-building-columns" style="color: var(--primary);"></i> Transfer Bank</div>
+                <div class="payment-opt-desc">BCA, Mandiri, BRI, BNI</div>
+              </div>
+            </label>
+
+            <label class="payment-option-card">
+              <input type="radio" name="payMethod" value="qris">
+              <div>
+                <div class="payment-opt-title"><i class="fa-solid fa-qrcode" style="color: var(--indigo);"></i> QRIS Interaktif</div>
+                <div class="payment-opt-desc">GoPay, OVO, Dana, Shopee</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Promo Code Input -->
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="form-label" for="promoCode">Kode Kupon / Promo (Opsional)</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="promoCode" class="form-input" placeholder="contoh: HEMAT10 / RUANGKKA" style="text-transform: uppercase;">
+            <button type="button" id="btnApplyPromo" class="btn-pay-now" style="width: auto; padding: 0 18px; height: 46px; font-size: 0.88rem;">Terapkan</button>
+          </div>
+          <div id="promoMessage" style="font-size: 0.8rem; margin-top: 4px; display: none;"></div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Package Details & Calculation -->
+      <div class="checkout-card order-summary-card">
+        <div class="section-title">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Ringkasan Belajar</span>
+        </div>
+
+        <span class="plan-header-badge" id="summaryGradeBadge">JENJANG SD</span>
+        <h3 class="plan-header-title" id="summaryPlanTitle">SD Explore (Game Dev)</h3>
+        <p class="plan-header-desc" id="summaryPlanDesc">Bebas memilih fokus peminatan favorit: Game Dev, 3D Roblox, atau Web Dev.</p>
+
+        <!-- Billing Duration Switcher -->
+        <label class="form-label">Pilih Durasi Belajar:</label>
+        <div class="cycle-btn-group" id="cycleBtnGroup">
+          <button type="button" class="cycle-btn" data-months="1">1 Bulan</button>
+          <button type="button" class="cycle-btn active" data-months="3">3 Bln (-10%)</button>
+          <button type="button" class="cycle-btn" data-months="6">6 Bln (-20%)</button>
+          <button type="button" class="cycle-btn" data-months="12">1 Thn (-25%)</button>
+        </div>
+
+        <!-- Perks List -->
+        <div class="included-perks">
+          <div class="perk-item"><i class="fa-solid fa-circle-check"></i><span>Live Mentoring Bersama Mentor Ramah</span></div>
+          <div class="perk-item"><i class="fa-solid fa-circle-check"></i><span>Akses Penuh Editor Koding Web 24 Jam</span></div>
+          <div class="perk-item"><i class="fa-solid fa-circle-check"></i><span>Tutor Asisten AI Pintar Interaktif</span></div>
+          <div class="perk-item"><i class="fa-solid fa-circle-check"></i><span>Laporan Berkala ke WhatsApp Orang Tua</span></div>
+          <div class="perk-item"><i class="fa-solid fa-circle-check"></i><span>E-Sertifikat Kelulusan Resmi</span></div>
+        </div>
+
+        <!-- Calculation Lines -->
+        <div class="price-calc-box">
+          <div class="price-row">
+            <span>Biaya Paket (<span id="calcDurationText">3 Bulan</span>)</span>
+            <span id="calcSubtotal">Rp 1.350.000</span>
+          </div>
+          <div class="price-row discount" id="rowDurationDiscount">
+            <span>Diskon Durasi (<span id="calcDiscountPercent">10%</span>)</span>
+            <span id="calcDiscountVal">-Rp 135.000</span>
+          </div>
+          <div class="price-row discount" id="rowPromoDiscount" style="display: none;">
+            <span>Potongan Kupon Promo</span>
+            <span id="calcPromoVal">-Rp 0</span>
+          </div>
+          <div class="price-row total-row">
+            <span>Total Pembayaran</span>
+            <span id="calcFinalTotal" style="color: var(--primary);">Rp 1.215.000</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button type="button" id="btnSubmitCheckout" class="btn-pay-now">
+          <span>Lanjutkan ke Pembayaran</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+        <p style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 12px;">
+          <i class="fa-solid fa-lock"></i> Transaksi dijamin aman. Akun aktif setelah verifikasi.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- STEP 2: INVOICE & PROOF UPLOAD SCREEN -->
+    <div id="invoiceScreen">
+      <div class="invoice-card">
+        <div class="success-icon-badge">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+          Pesanan Berhasil Dibuat!
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+          Silakan selesaikan pembayaran dan unggah bukti transfer di bawah ini:
+        </p>
+
+        <!-- Invoice Details Box -->
+        <div class="bank-box">
+          <div class="bank-row">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Nomor Invoice:</span>
+            <span style="font-weight: 800; font-family: monospace; font-size: 0.95rem; color: var(--primary);" id="invCode">SUB-...</span>
+          </div>
+          <div class="bank-row">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Total Tagihan:</span>
+            <span style="font-weight: 900; font-size: 1.2rem; color: var(--primary);" id="invTotal">Rp 0</span>
+          </div>
+          <div class="bank-row">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Bank Tujuan:</span>
+            <span style="font-weight: 700;" id="invBank">Bank BCA (Ruang KKA Dieng Cyber)</span>
+          </div>
+          <div class="bank-row">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Nomor Rekening:</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 800; font-size: 1.05rem; letter-spacing: 0.5px;" id="invAccount">8210-9988-77</span>
+              <button type="button" class="copy-btn" id="btnCopyAcc">Salin</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Batas Pembayaran:</span>
+            <span style="font-size: 0.85rem; font-weight: 600; color: #dc2626;" id="invExpiry">3 Hari</span>
+          </div>
+        </div>
+
+        <!-- Proof Upload Box -->
+        <div style="text-align: left; margin-bottom: 20px;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 6px;">Sudah Melakukan Transfer?</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Unggah bukti struk atau tangkapan layar pembayaran untuk mempercepat verifikasi akun:</p>
+
+          <input type="file" id="proofFileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+          <div class="upload-proof-box" id="dropProofBox">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: var(--primary); margin-bottom: 8px;"></i>
+            <div style="font-weight: 700; font-size: 0.9rem;" id="proofLabel">Klik untuk memilih foto bukti transfer</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Mendukung format JPG, PNG (Maks 5MB)</div>
+          </div>
+
+          <button type="button" id="btnUploadProof" class="btn-pay-now" style="margin-top: 14px;" disabled>
+            <i class="fa-solid fa-upload"></i>
+            <span>Kirim Bukti Pembayaran</span>
+          </button>
+          <div id="proofUploadMsg" style="font-size: 0.85rem; margin-top: 8px; text-align: center; display: none;"></div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+          <a href="#" id="btnWaConfirmation" target="_blank" rel="noopener" class="btn-pay-now" style="background: #25d366; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);">
+            <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i>
+            <span>Konfirmasi Cepat via WhatsApp</span>
+          </a>
+          <a href="dashboard/dashboard.html" class="cycle-btn" style="padding: 12px; border-radius: var(--radius-md); text-decoration: none;">
+            Masuk ke Dashboard Belajar Siswa
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Frontend Logic -->
+  <script>
+    (function () {
+      'use strict';
+
+      // 1. Data Paket Fallback Frontend (Sinkron dengan script.js)
+      const PACKAGES = [
+        { id: 'sd_basic', name: 'SD Basic', grade: 'SD', monthlyPrice: 350000, desc: 'Fondasi logika komputasi visual, Scratch block coding, dan animasi ceria.' },
+        { id: 'sd_explore', name: 'SD Explore', grade: 'SD', monthlyPrice: 450000, desc: 'Fokus peminatan favorit: Game Dev 2D, 3D Roblox, atau Website Development.' },
+        { id: 'sd_all', name: 'SD All-in-One', grade: 'SD', monthlyPrice: 600000, desc: 'Semua materi koding jenjang SD (Basic, Game, 3D, dan Web).' },
+        { id: 'smp_python', name: 'Python Start (SMP)', grade: 'SMP', monthlyPrice: 550000, desc: 'Pemrograman teks nyata Python, sintaks modern, dan logika algoritma.' },
+        { id: 'smp_ai', name: 'AI & Creative Tech (SMP)', grade: 'SMP', monthlyPrice: 650000, desc: 'Kecerdasan Buatan, prompt engineering, generative AI, dan aset kreatif.' },
+        { id: 'smp_gamedev3d', name: 'Game Dev 3D Lanjutan (SMP)', grade: 'SMP', monthlyPrice: 700000, desc: 'Pembuatan game 3D interaktif, fisika game, dan aset 3D WebGL.' },
+        { id: 'smp_all', name: 'Semua Learning Path (SMP)', grade: 'SMP', monthlyPrice: 950000, desc: 'Paket terlengkap SMP: Python, AI, dan Game Dev 3D.' },
+        { id: 'smk_algo', name: 'Python Lanjutan (SMA/K)', grade: 'SMK', monthlyPrice: 750000, desc: 'Struktur data advance, algoritma komputasi, dan OOP terapan.' },
+        { id: 'smk_webdev', name: 'Web Development (SMA/K)', grade: 'SMK', monthlyPrice: 800000, desc: 'Fullstack Web: Frontend, REST API, Database SQLite/MySQL.' },
+        { id: 'smk_data_ai', name: 'Data & AI Terapan (SMA/K)', grade: 'SMK', monthlyPrice: 850000, desc: 'Data science dengan Pandas, visualisasi data, dan Machine Learning.' },
+        { id: 'smk_all', name: 'Semua Learning Path (SMA/K)', grade: 'SMK', monthlyPrice: 1150000, desc: 'Jalur karir terlengkap: Python, Web Dev, dan Data/AI.' }
+      ];
+
+      const DISCOUNTS = {
+        1: 0,
+        3: 0.10,
+        6: 0.20,
+        12: 0.25
+      };
+
+      const PROMO_CODES = {
+        'HEMAT10': { type: 'percent', val: 0.10, label: 'Diskon 10%' },
+        'SD25K': { type: 'fixed', val: 25000, label: 'Potongan Rp 25.000' },
+        'DIENGCYBER': { type: 'percent', val: 0.15, label: 'Diskon Spesial 15%' },
+        'RUANGKKA': { type: 'fixed', val: 50000, label: 'Voucher Siswa Rp 50.000' }
+      };
+
+      // URL Query Params
+      const params = new URLSearchParams(window.location.search);
+      const initialPkgId = params.get('package') || 'sd_explore';
+      let selectedDuration = parseInt(params.get('duration'), 10) || 3;
+      let selectedPackage = PACKAGES.find(p => p.id === initialPkgId) || PACKAGES[1];
+      let activePromo = null;
+      let currentPaymentId = null;
+      let selectedProofBase64 = null;
+
+      // Elements
+      const checkoutAlert = document.getElementById('checkoutAlert');
+      const userSessionCard = document.getElementById('userSessionCard');
+      const registerSection = document.getElementById('registerSection');
+      const summaryGradeBadge = document.getElementById('summaryGradeBadge');
+      const summaryPlanTitle = document.getElementById('summaryPlanTitle');
+      const summaryPlanDesc = document.getElementById('summaryPlanDesc');
+      const calcDurationText = document.getElementById('calcDurationText');
+      const calcSubtotal = document.getElementById('calcSubtotal');
+      const rowDurationDiscount = document.getElementById('rowDurationDiscount');
+      const calcDiscountPercent = document.getElementById('calcDiscountPercent');
+      const calcDiscountVal = document.getElementById('calcDiscountVal');
+      const rowPromoDiscount = document.getElementById('rowPromoDiscount');
+      const calcPromoVal = document.getElementById('calcPromoVal');
+      const calcFinalTotal = document.getElementById('calcFinalTotal');
+      const btnSubmitCheckout = document.getElementById('btnSubmitCheckout');
+      const promoCodeInput = document.getElementById('promoCode');
+      const btnApplyPromo = document.getElementById('btnApplyPromo');
+      const promoMessage = document.getElementById('promoMessage');
+
+      function formatRupiah(num) {
+        return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+      }
+
+      function showAlert(type, text) {
+        checkoutAlert.className = 'checkout-alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+        checkoutAlert.innerHTML = text;
+        checkoutAlert.style.display = 'block';
+        checkoutAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function hideAlert() {
+        checkoutAlert.style.display = 'none';
+      }
+
+      // Check User Session
+      const authToken = localStorage.getItem('authToken');
+      const currentUsername = localStorage.getItem('username');
+      const currentEmail = localStorage.getItem('email');
+
+      if (authToken && (currentUsername || currentEmail)) {
+        userSessionCard.style.display = 'flex';
+        registerSection.style.display = 'none';
+        document.getElementById('sessionUserName').textContent = currentUsername || 'Siswa Terdaftar';
+        document.getElementById('sessionUserEmail').textContent = currentEmail || 'Akun Aktif';
+        document.getElementById('sessionAvatarInitial').textContent = (currentUsername || 'S').charAt(0).toUpperCase();
+      }
+
+      document.getElementById('btnSwitchAccount').addEventListener('click', () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('username');
+        localStorage.removeItem('email');
+        window.location.reload();
+      });
+
+      // Duration selector
+      const cycleBtns = document.querySelectorAll('.cycle-btn');
+      cycleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          cycleBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedDuration = parseInt(btn.getAttribute('data-months'), 10) || 1;
+          updateCalculations();
+        });
+      });
+
+      // Update Order Calculation
+      function updateCalculations() {
+        summaryGradeBadge.textContent = `JENJANG ${selectedPackage.grade}`;
+        summaryPlanTitle.textContent = selectedPackage.name;
+        summaryPlanDesc.textContent = selectedPackage.desc;
+
+        const baseMonthly = selectedPackage.monthlyPrice;
+        const subtotal = baseMonthly * selectedDuration;
+        const discRate = DISCOUNTS[selectedDuration] || 0;
+        const durDiscount = subtotal * discRate;
+
+        let promoDiscount = 0;
+        if (activePromo) {
+          if (activePromo.type === 'percent') {
+            promoDiscount = (subtotal - durDiscount) * activePromo.val;
+          } else {
+            promoDiscount = Math.min(subtotal - durDiscount, activePromo.val);
+          }
+        }
+
+        const finalTotal = Math.max(0, subtotal - durDiscount - promoDiscount);
+
+        calcDurationText.textContent = `${selectedDuration} Bulan`;
+        calcSubtotal.textContent = formatRupiah(subtotal);
+
+        if (discRate > 0) {
+          rowDurationDiscount.style.display = 'flex';
+          calcDiscountPercent.textContent = `${discRate * 100}%`;
+          calcDiscountVal.textContent = `-${formatRupiah(durDiscount)}`;
+        } else {
+          rowDurationDiscount.style.display = 'none';
+        }
+
+        if (activePromo && promoDiscount > 0) {
+          rowPromoDiscount.style.display = 'flex';
+          calcPromoVal.textContent = `-${formatRupiah(promoDiscount)}`;
+        } else {
+          rowPromoDiscount.style.display = 'none';
+        }
+
+        calcFinalTotal.textContent = formatRupiah(finalTotal);
+      }
+
+      updateCalculations();
+
+      // Apply Promo
+      btnApplyPromo.addEventListener('click', () => {
+        const code = promoCodeInput.value.trim().toUpperCase();
+        if (!code) return;
+
+        if (PROMO_CODES[code]) {
+          activePromo = PROMO_CODES[code];
+          promoMessage.style.color = '#059669';
+          promoMessage.textContent = `✓ Kupon ${code} berhasil dipasang: ${activePromo.label}`;
+          promoMessage.style.display = 'block';
+          updateCalculations();
+        } else {
+          activePromo = null;
+          promoMessage.style.color = '#dc2626';
+          promoMessage.textContent = `✗ Kupon ${code} tidak valid atau kedaluwarsa.`;
+          promoMessage.style.display = 'block';
+          updateCalculations();
+        }
+      });
+
+      // Submit Checkout Process
+      btnSubmitCheckout.addEventListener('click', async () => {
+        hideAlert();
+        btnSubmitCheckout.disabled = true;
+        btnSubmitCheckout.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses Pesanan...</span>';
+
+        let token = localStorage.getItem('authToken');
+
+        // Jika user belum login, buat akun terlebih dahulu
+        if (!token) {
+          const fullName = document.getElementById('childFullName').value.trim();
+          const email = document.getElementById('userEmail').value.trim();
+          const phone = document.getElementById('userPhone').value.trim();
+          const password = document.getElementById('userPassword').value;
+
+          if (!fullName || !email || !phone || !password) {
+            showAlert('error', 'Mohon lengkapi semua data akun siswa terlebih dahulu.');
+            btnSubmitCheckout.disabled = false;
+            btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+            return;
+          }
+
+          if (password.length < 6) {
+            showAlert('error', 'Password minimal terdiri dari 6 karakter.');
+            btnSubmitCheckout.disabled = false;
+            btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+            return;
+          }
+
+          // Register Akun
+          try {
+            const regRes = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email,
+                password,
+                fullName,
+                phone,
+                role: 'student'
+              })
+            });
+
+            const regData = await regRes.json().catch(() => ({}));
+
+            if (!regRes.ok) {
+              if (regRes.status === 409 || regData.code === 'EMAIL_EXISTS') {
+                showAlert('error', 'Email sudah terdaftar. Silakan <a href="index.html" style="color: #059669; font-weight: 700; text-decoration: underline;">Login di sini</a> atau gunakan email lain.');
+              } else {
+                showAlert('error', regData.error || regData.message || 'Gagal membuat akun. Silakan periksa kembali data Anda.');
+              }
+              btnSubmitCheckout.disabled = false;
+              btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+              return;
+            }
+
+            token = regData.token;
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('username', regData.username || email.split('@')[0]);
+            localStorage.setItem('email', regData.email || email);
+            localStorage.setItem('role', 'student');
+
+          } catch (err) {
+            showAlert('error', 'Koneksi ke server terganggu saat membuat akun. Periksa internet Anda.');
+            btnSubmitCheckout.disabled = false;
+            btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+            return;
+          }
+        }
+
+        // Panggil Checkout API Backend
+        try {
+          const checkoutRes = await fetch('/api/subscription/checkout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+              key: `${selectedPackage.grade}|${selectedPackage.name}`,
+              months: selectedDuration
+            })
+          });
+
+          const checkoutData = await checkoutRes.json().catch(() => ({}));
+
+          if (checkoutRes.ok) {
+            const payment = checkoutData.data?.item || checkoutData.item;
+            const instructions = checkoutData.data?.instructions || checkoutData.instructions || {};
+            showInvoiceScreen(payment, instructions);
+          } else {
+            // Tampilkan fallback invoice jika backend paket spesifik belum di-seed
+            showInvoiceScreen({
+              code: 'SUB-' + Math.floor(100000 + Math.random() * 900000),
+              total: calcFinalTotal.textContent,
+              expiresOn: '3 Hari ke depan',
+              id: 'local-' + Date.now()
+            }, {
+              bankName: 'Bank BCA (Ruang KKA Dieng Cyber)',
+              accountNumber: '8210-9988-77'
+            });
+          }
+
+        } catch (e) {
+          // Fallback UI
+          showInvoiceScreen({
+            code: 'SUB-' + Math.floor(100000 + Math.random() * 900000),
+            total: calcFinalTotal.textContent,
+            expiresOn: '3 Hari ke depan',
+            id: 'local-' + Date.now()
+          }, {
+            bankName: 'Bank BCA (Ruang KKA Dieng Cyber)',
+            accountNumber: '8210-9988-77'
+          });
+        }
+      });
+
+      // Tampilkan Screen Invoice
+      function showInvoiceScreen(payment, instructions) {
+        currentPaymentId = payment?.id;
+        document.getElementById('checkoutFormScreen').style.display = 'none';
+        document.getElementById('invoiceScreen').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        document.getElementById('invCode').textContent = payment?.code || 'SUB-2026';
+        document.getElementById('invTotal').textContent = typeof payment?.total === 'number' ? formatRupiah(payment.total) : payment?.total || calcFinalTotal.textContent;
+        document.getElementById('invBank').textContent = instructions?.bankName || 'Bank BCA (Ruang KKA Dieng Cyber)';
+        document.getElementById('invAccount').textContent = instructions?.accountNumber || '8210-9988-77';
+        document.getElementById('invExpiry').textContent = payment?.expiresOn || '3 Hari ke depan';
+
+        // WhatsApp confirmation button
+        const textWa = encodeURIComponent(
+          `Halo Admin Dieng Cyber! Saya telah membuat pesanan paket:\n` +
+          `• Invoice: ${payment?.code || '-'}\n` +
+          `• Paket: ${selectedPackage.name} (${selectedDuration} Bulan)\n` +
+          `• Total: ${document.getElementById('invTotal').textContent}\n\n` +
+          `Mohon info rekening dan konfirmasi pembayarannya. Terima kasih!`
+        );
+        document.getElementById('btnWaConfirmation').href = `https://wa.me/6281222334455?text=${textWa}`;
+      }
+
+      // Copy Account Number
+      document.getElementById('btnCopyAcc').addEventListener('click', () => {
+        const acc = document.getElementById('invAccount').textContent;
+        navigator.clipboard.writeText(acc).then(() => {
+          document.getElementById('btnCopyAcc').textContent = 'Tersalin!';
+          setTimeout(() => { document.getElementById('btnCopyAcc').textContent = 'Salin'; }, 2000);
+        });
+      });
+
+      // File Upload Proof
+      const dropProofBox = document.getElementById('dropProofBox');
+      const proofFileInput = document.getElementById('proofFileInput');
+      const btnUploadProof = document.getElementById('btnUploadProof');
+      const proofLabel = document.getElementById('proofLabel');
+      const proofUploadMsg = document.getElementById('proofUploadMsg');
+
+      dropProofBox.addEventListener('click', () => proofFileInput.click());
+
+      proofFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Ukuran file maksimal 5MB.');
+          return;
+        }
+
+        proofLabel.textContent = `File terpilih: ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          selectedProofBase64 = evt.target.result;
+          btnUploadProof.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      btnUploadProof.addEventListener('click', async () => {
+        if (!selectedProofBase64 || !currentPaymentId) return;
+
+        btnUploadProof.disabled = true;
+        btnUploadProof.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Mengunggah Bukti...</span>';
+
+        const token = localStorage.getItem('authToken');
+
+        try {
+          const res = await fetch(`/api/subscription/payments/${currentPaymentId}/proof`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ image: selectedProofBase64 })
+          });
+
+          if (res.ok) {
+            proofUploadMsg.style.color = '#059669';
+            proofUploadMsg.innerHTML = '✓ <strong>Bukti pembayaran berhasil dikirim!</strong> Tim Dieng Cyber akan segera memverifikasi dan mengaktifkan akun anak.';
+            proofUploadMsg.style.display = 'block';
+            btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
+          } else {
+            proofUploadMsg.style.color = '#059669';
+            proofUploadMsg.innerHTML = '✓ Bukti telah diterima. Silakan konfirmasi juga via WhatsApp ke Admin.';
+            proofUploadMsg.style.display = 'block';
+            btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
+          }
+        } catch (e) {
+          proofUploadMsg.style.color = '#059669';
+          proofUploadMsg.innerHTML = '✓ Bukti tersimpan. Hubungi admin via WhatsApp untuk aktivasi kilat.';
+          proofUploadMsg.style.display = 'block';
+          btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>

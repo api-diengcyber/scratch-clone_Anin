@@ -591,7 +591,7 @@
 
     if (modalRegisterBtn) {
       const trackParam = chosenTrack ? `&track=${encodeURIComponent(chosenTrack)}` : '';
-      modalRegisterBtn.href = `users/register.html?package=${pkg.id}&duration=${months}${trackParam}`;
+      modalRegisterBtn.href = `users/checkout.html?package=${pkg.id}&duration=${months}${trackParam}`;
     }
 
     modal.classList.add('open');
