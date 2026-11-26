@@ -298,6 +298,11 @@
   const TrialGate = {
     // Cek apakah user saat ini berstatus siswa Trial Gratis
     isActive: function () {
+      // Jika akun terdaftar sebagai pembeli paket / berlangganan, BUKAN trial
+      const accType = localStorage.getItem("account_type");
+      if (accType === "paid_subscription" || accType === "paid_pending") {
+        return false;
+      }
       return localStorage.getItem("trial_active") === "true";
     },
 
@@ -420,10 +425,38 @@
 
     // Terapkan pembatasan & kuncian pada halaman Dashboard
     applyDashboardLocks: function (currentGrade) {
-      if (!this.isActive()) return;
-
       const gradeArea = document.getElementById("tahapArea");
       if (!gradeArea) return;
+
+      // Jika akun merupakan pembeli paket resmi yang menunggu pembayaran / verifikasi
+      if (localStorage.getItem("account_type") === "paid_subscription" && localStorage.getItem("payment_pending") === "true") {
+        let subBanner = document.getElementById("subPendingBanner");
+        if (!subBanner) {
+          subBanner = document.createElement("div");
+          subBanner.id = "subPendingBanner";
+          subBanner.className = "trial-dashboard-banner";
+          subBanner.style.background = "linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)";
+          subBanner.style.borderColor = "#93c5fd";
+          const pkgName = localStorage.getItem("purchased_package") || "Paket Belajar Siswa";
+          const invCode = localStorage.getItem("pending_invoice_code") || "";
+          subBanner.innerHTML = `
+            <div class="tdb-left">
+              <div class="tdb-icon" style="background: #dbeafe; color: #1d4ed8;">💳</div>
+              <div>
+                <div class="tdb-title" style="color: #1e3a8a;">⭐ Pendaftaran Paket Belajar: <b>${pkgName}</b></div>
+                <div class="tdb-desc" style="color: #3b82f6;">Status: <strong>Menunggu Konfirmasi Pembayaran</strong> (${invCode ? 'Invoice: ' + invCode : 'Segera Diproses'}). Akses kelas resmi sedang disiapkan.</div>
+              </div>
+            </div>
+            <div class="tdb-right">
+              <a href="/users/checkout.html" class="tdb-btn" style="background: #2563eb; color: #ffffff;">Lihat Detail Tagihan / Bukti 📄</a>
+            </div>
+          `;
+          gradeArea.parentNode.insertBefore(subBanner, gradeArea);
+        }
+        return; // Jangan kunci modul atau anggap sebagai akun trial
+      }
+
+      if (!this.isActive()) return;
 
       // 1. Tampilkan Banner Trial di atas daftar tahap jika belum ada
       let banner = document.getElementById("trialDashboardBanner");

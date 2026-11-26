@@ -638,6 +638,12 @@
 
       <!-- Right Column: Registration Form -->
       <div class="right-form-col">
+        <!-- Switcher to Paid Package Checkout -->
+        <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <span style="color: #14532d; font-weight: 600;"><i class="fa-solid fa-graduation-cap" style="color: #059669;"></i> Ingin langsung berlangganan paket resmi?</span>
+          <a href="checkout.html" style="color: #059669; font-weight: 800; text-decoration: underline;">Beli Paket & Checkout &rarr;</a>
+        </div>
+
         <div id="formAlert" class="form-alert"></div>
 
         <form id="trialForm" novalidate>
@@ -821,40 +827,10 @@
       const pkgParam = urlParams.get('package') || '';
       const trackParam = urlParams.get('track') || '';
 
+      // Jika membawa parameter paket berbayar, alihkan langsung ke halaman Checkout & Pembayaran
       if (pkgParam) {
-        if (pkgParam === 'sd_basic') {
-          courseTrackSelect.value = "SD Basic (Scratch & Logika Visual)";
-          childAgeInput.value = "8";
-        } else if (pkgParam === 'sd_explore') {
-          if (trackParam.includes('Game')) {
-            courseTrackSelect.value = "SD Explore - Game Development (2D Arcade)";
-          } else if (trackParam.includes('3D') || trackParam.includes('Roblox')) {
-            courseTrackSelect.value = "SD Explore - 3D & Roblox World";
-          } else if (trackParam.includes('Web')) {
-            courseTrackSelect.value = "SD Explore - Website Development";
-          } else {
-            courseTrackSelect.value = "SD Explore - Game Development (2D Arcade)";
-          }
-          childAgeInput.value = "10";
-        } else if (pkgParam === 'smp_python') {
-          courseTrackSelect.value = "Python Start (Dasar Python & Logika)";
-          childAgeInput.value = "13";
-        } else if (pkgParam === 'smp_ai') {
-          courseTrackSelect.value = "AI & Creative Tech (Kecerdasan Buatan)";
-          childAgeInput.value = "14";
-        } else if (pkgParam === 'smp_gamedev3d') {
-          courseTrackSelect.value = "Game Dev 3D Lanjutan (3D Studio & WebGL)";
-          childAgeInput.value = "14";
-        } else if (pkgParam === 'smk_algo') {
-          courseTrackSelect.value = "Python Lanjutan & Algoritma (SMA/K)";
-          childAgeInput.value = "16";
-        } else if (pkgParam === 'smk_web') {
-          courseTrackSelect.value = "Web Development Fullstack (SMA/K)";
-          childAgeInput.value = "17";
-        } else if (pkgParam === 'smk_data') {
-          courseTrackSelect.value = "Data & AI Terapan (SMA/K)";
-          childAgeInput.value = "17";
-        }
+        window.location.replace(`checkout.html${window.location.search}`);
+        return;
       }
 
       // Auto-suggest kursus saat usia anak diisi (jika kursus belum dipilih)

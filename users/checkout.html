@@ -779,6 +779,12 @@
       let currentPaymentId = null;
       let selectedProofBase64 = null;
 
+      // Hapus status trial lama agar akun tidak dianggap akun trial gratis
+      localStorage.removeItem('trial_active');
+      localStorage.removeItem('trial_course');
+      localStorage.removeItem('trial_track_id');
+      localStorage.removeItem('trial_grade');
+
       // Elements
       const checkoutAlert = document.getElementById('checkoutAlert');
       const userSessionCard = document.getElementById('userSessionCard');
@@ -972,6 +978,13 @@
             localStorage.setItem('email', regData.email || email);
             localStorage.setItem('role', 'student');
 
+            // Set akun sebagai pembeli paket berbayar resmi
+            localStorage.setItem('account_type', 'paid_subscription');
+            localStorage.setItem('purchased_package', selectedPackage.name);
+            localStorage.setItem('purchased_package_id', selectedPackage.id);
+            localStorage.setItem('purchased_package_grade', selectedPackage.grade);
+            localStorage.setItem('payment_pending', 'true');
+
           } catch (err) {
             showAlert('error', 'Koneksi ke server terganggu saat membuat akun. Periksa internet Anda.');
             btnSubmitCheckout.disabled = false;
@@ -1039,6 +1052,13 @@
         document.getElementById('invBank').textContent = instructions?.bankName || 'Bank BCA (Ruang KKA Dieng Cyber)';
         document.getElementById('invAccount').textContent = instructions?.accountNumber || '8210-9988-77';
         document.getElementById('invExpiry').textContent = payment?.expiresOn || '3 Hari ke depan';
+
+        // Simpan data invoice untuk status dashboard
+        localStorage.setItem('account_type', 'paid_subscription');
+        localStorage.setItem('purchased_package', selectedPackage.name);
+        localStorage.setItem('payment_pending', 'true');
+        localStorage.setItem('pending_invoice_code', payment?.code || 'SUB-2026');
+        localStorage.setItem('pending_invoice_total', document.getElementById('invTotal').textContent);
 
         // WhatsApp confirmation button
         const textWa = encodeURIComponent(
