@@ -693,7 +693,7 @@ function activateSubscription(db, studentId, months, options = {}) {
     throw invalid(`Total langganan tidak boleh melebihi ${MAX_MONTHS} bulan.`, "months");
   }
 
-  db.prepare("UPDATE users SET subscription_started_at = ?, subscription_months = ? WHERE id = ? AND role = 'student'")
+  db.prepare("UPDATE users SET subscription_started_at = ?, subscription_months = ?, account_type = 'paid_subscription' WHERE id = ? AND role = 'student'")
     .run(startedAt, totalMonths, studentId);
   const queued = reports.queueGuardianDeliveries(db, studentId, startedAt, totalMonths);
 

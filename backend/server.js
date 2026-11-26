@@ -812,14 +812,22 @@ app.post("/api/auth/register", rateLimitMiddleware(5), (req, res) => {
         }
     }
 
+    // Data profil tambahan dari registrasi (pendaftaran trial atau checkout paket)
+    const fullName = sanitizeString(req.body && req.body.fullName, 100);
+    const phone = sanitizeString(req.body && req.body.phone, 30);
+    const parentName = sanitizeString(req.body && req.body.parentName, 100);
+    const trialTrackId = sanitizeString(req.body && (req.body.trialTrackId || req.body.trackId), 50);
+    const trialCourse = sanitizeString(req.body && req.body.course, 100);
+    const accountType = trialTrackId ? "trial" : "free";
+
     // Buat user baru
     const { salt, hash } = auth.hashPassword(password);
     let userId;
     try {
         const info = db.prepare(`
-            INSERT INTO users (username, email, password_hash, password_salt)
-            VALUES (?, ?, ?, ?)
-        `).run(username, finalEmail, hash, salt);
+            INSERT INTO users (username, email, password_hash, password_salt, full_name, phone, parent_name, trial_track_id, trial_course, trial_registered_at, account_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ${trialTrackId ? "CURRENT_TIMESTAMP" : "NULL"}, ?)
+        `).run(username, finalEmail, hash, salt, fullName || null, phone || null, parentName || null, trialTrackId || null, trialCourse || null, accountType);
         userId = Number(info.lastInsertRowid);
     } catch (error) {
         // Jaga-jaga kalau ada request bersamaan yang lolos cek duplikat.
@@ -896,7 +904,9 @@ app.post("/api/auth/firebase-register", async (req, res) => {
 
 app.get("/api/auth/me", auth.requireAuth, (req, res) => {
     const user = db.prepare(`
-        SELECT id, username, email, full_name, password_hash, role, status,
+        SELECT id, username, email, full_name, phone, parent_name,
+               trial_track_id, trial_course, trial_registered_at, account_type,
+               password_hash, role, status,
                must_change_password, last_login_at
         FROM users WHERE id = ?
     `).get(req.userId);
@@ -908,6 +918,12 @@ app.get("/api/auth/me", auth.requireAuth, (req, res) => {
         username: user.username,
         email: user.email || null,
         fullName: user.full_name || null,
+        phone: user.phone || null,
+        parentName: user.parent_name || null,
+        trialTrackId: user.trial_track_id || null,
+        trialCourse: user.trial_course || null,
+        trialRegisteredAt: user.trial_registered_at || null,
+        accountType: user.account_type || "free",
         role: user.role || "student",
         status: user.status || "active",
         mustChangePassword: Boolean(user.must_change_password),
