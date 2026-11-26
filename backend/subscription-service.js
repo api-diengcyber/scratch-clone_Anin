@@ -331,6 +331,7 @@ function paymentDto(row, options = {}) {
     note: row.note,
     paidOn: row.paid_on || null,
     expiresOn: row.expires_on || null,
+    expiresAt: row.expires_on ? `${row.expires_on}T23:59:59+07:00` : null,
     hasProof,
     proof: hasProof ? {
       name: row.proof_name || "",
