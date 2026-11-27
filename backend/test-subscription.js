@@ -599,6 +599,18 @@ async function main() {
     eq([caps.provider, caps.manual, caps.webhook], ["manual", true, false], "kemampuan gateway");
   });
 
+  await t("langganan: publik bisa mengecek status invoice tanpa token", async () => {
+    let res = await api("GET", `/api/subscription/invoices/public/${proofPayment.code}`);
+    eq(res.r.status, 200, "status public invoice");
+    eq(res.d.item.code, proofPayment.code, "kode invoice");
+    eq(res.d.item.total, proofPayment.total, "nominal invoice");
+    ok(res.d.item.expiresAt, "memuat format ISO expiresAt");
+    eq(res.d.item.hasProof, true, "bukti transfer terdeteksi");
+
+    res = await api("GET", "/api/subscription/invoices/public/SUB-TIDAK-ADA");
+    eq(res.r.status, 404, "invoice tidak ditemukan -> 404");
+  });
+
   const passed = results.filter((r) => r[0] === "PASS").length;
   for (const [status, name] of results) console.log(`${status}  ${name}`);
   console.log(`\n${passed}/${results.length} lolos`);

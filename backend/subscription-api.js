@@ -68,6 +68,13 @@ function registerSubscriptionApi(app, deps) {
   // Siswa
   // ----------------------------------------------------------
 
+  // Endpoint publik verifikasi status invoice tanpa token (untuk UI checkout/WhatsApp)
+  app.get("/api/subscription/invoices/public/:code", (req, res) => dataResponse(res, () => {
+    const item = service.getPublicInvoiceStatus(db, req.params.code);
+    if (!item) return sendApiError(res, 404, "Invoice tidak ditemukan.", "NOT_FOUND");
+    return sendApiSuccess(res, { item });
+  }));
+
   app.get("/api/subscription", ...studentGuard, (req, res) => dataResponse(res, () => {
     return sendApiSuccess(res, service.getStudentOverview(db, req.userId, { env: process.env }));
   }));

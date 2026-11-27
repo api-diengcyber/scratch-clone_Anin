@@ -1486,8 +1486,17 @@ app.post("/api/attempts/:username", auth.requireAuth, auth.requireSameUser, (req
         if (timeSpent !== undefined && (!Number.isSafeInteger(timeSpent) || timeSpent < 0 || timeSpent > 86400)) {
             return sendApiError(res, 400, "timeSpent harus bilangan bulat 0-86400 detik", "VALIDATION_ERROR");
         }
-        const taskExists = db.prepare("SELECT 1 FROM tasks WHERE task_id = ?").get(taskId);
+        const taskExists = db.prepare("SELECT grade, module_id FROM tasks WHERE task_id = ?").get(taskId);
         if (!taskExists) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
+
+        // Evaluasi trial gate jika akun berstatus trial
+        const studentRow = db.prepare("SELECT account_type, trial_track_id FROM users WHERE id = ?").get(req.userId);
+        if (studentRow && studentRow.account_type === "trial" && studentRow.trial_track_id) {
+            if (!trialGate.isTaskAllowedForTrial(studentRow.trial_track_id, taskExists.grade, taskExists.module_id)) {
+                return sendApiError(res, 403, "Akses terkunci: akun trial hanya dapat mengakses materi pada jalur belajar yang dipilih saat pendaftaran.", "TRIAL_LOCKED");
+            }
+        }
+
         const ts = timeSpent === undefined ? 0 : timeSpent;
         const rec = db.transaction(() => {
             db.prepare(`INSERT INTO attempts (user_id, task_id, fails, time_spent, updated_at) VALUES (?, ?, 0, 0, CURRENT_TIMESTAMP) ON CONFLICT(user_id, task_id) DO NOTHING`).run(req.userId, taskId);

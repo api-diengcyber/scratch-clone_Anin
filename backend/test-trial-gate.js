@@ -34,3 +34,8 @@ test("trial-gate: aturan smk_web hanya boleh SMK modul Web (wb*)", () => {
   assert.equal(trialGate.isTaskAllowedForTrial("smk_web", "SMK", "wb1"), true);
   assert.equal(trialGate.isTaskAllowedForTrial("smk_web", "SMK", "pl1"), false);
 });
+
+test("trial-gate: aturan jenjang harus cocok dengan jenjang track", () => {
+  assert.equal(trialGate.isTaskAllowedForTrial("smk_algo", "SMK", "pl1"), true);
+  assert.equal(trialGate.isTaskAllowedForTrial("smk_algo", "SD", "pl1"), false);
+});

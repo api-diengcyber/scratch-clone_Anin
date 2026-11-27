@@ -398,6 +398,40 @@ function findPayment(db, id) {
   return db.prepare(`${PAYMENT_SELECT} WHERE p.id = ?`).get(num) || null;
 }
 
+function findPaymentByCode(db, code) {
+  if (!code || typeof code !== "string") return null;
+  const cleanCode = code.trim().toUpperCase();
+  if (!cleanCode) return null;
+  return db.prepare(`${PAYMENT_SELECT} WHERE p.code = ? COLLATE NOCASE`).get(cleanCode) || null;
+}
+
+function getPublicInvoiceStatus(db, code) {
+  const row = findPaymentByCode(db, code);
+  if (!row) return null;
+
+  // Cek apakah invoice sudah kedaluwarsa saat dibaca
+  const today = todayWib();
+  let status = row.status;
+  if (status === "pending" && row.expires_on && row.expires_on < today) {
+    expirePending(db, { paymentId: row.id });
+    status = "expired";
+  }
+
+  return {
+    code: row.code,
+    status,
+    pathName: row.path_name,
+    grade: row.grade,
+    months: Number(row.months),
+    total: Number(row.total),
+    method: row.method,
+    expiresOn: row.expires_on || null,
+    expiresAt: row.expires_on ? `${row.expires_on}T23:59:59+07:00` : null,
+    hasProof: Boolean(row.proof_name || row.proof_size || row.proof_path),
+    createdAt: row.created_at || null
+  };
+}
+
 function expirePending(db, options = {}) {
   const today = options.today || todayWib();
   const where = ["status = 'pending'", "expires_on <> ''", "expires_on < ?"];
@@ -1106,6 +1140,8 @@ module.exports = {
   subscriptionState,
   paymentDto,
   findPayment,
+  findPaymentByCode,
+  getPublicInvoiceStatus,
   proofDataUrl,
   createCheckout,
   createManualPayment,
