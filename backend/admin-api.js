@@ -11,6 +11,7 @@ const reportScheduler = require("./report-scheduler");
 const reportEmail = require("./report-email");
 const attendanceService = require("./attendance-service");
 const { releaseDeletedEmail } = require("./user-identity");
+const subscriptionService = require("./subscription-service");
 function registerAdminApi(app, deps) {
   const { db, auth, express, sendApiError, sendApiSuccess, sanitizeString, normalizeEmail, isValidEmail } = deps;
   const PLUGIN_DIR = process.env.PLUGIN_DIR || (process.env.NODE_ENV === "production" ? "/data/plugins" : path.join(__dirname, "plugin-data"));
@@ -85,6 +86,7 @@ function registerAdminApi(app, deps) {
     const num = Number(id);
     if (!Number.isSafeInteger(num) || num < 1) return null;
     const user = db.prepare(`SELECT id, username, email, full_name, bio, avatar_url, allowed_grades, role, status,
+        phone, parent_name, account_type, trial_track_id, trial_course, trial_registered_at,
         must_change_password, last_login_at, created_at, subscription_started_at, subscription_months FROM users WHERE id = ?`).get(num);
     return user && user.role === "student" ? user : null;
   }
@@ -1502,12 +1504,14 @@ function registerAdminApi(app, deps) {
     const search = sanitizeString(String(req.query.search || ""), 100);
     const status = ["active", "suspended", "deleted"].includes(String(req.query.status || "")) ? String(req.query.status) : "";
     const grade = ["SD", "SMP", "SMK"].includes(String(req.query.grade || "").toUpperCase()) ? String(req.query.grade).toUpperCase() : "";
+    const accountType = ["free", "trial", "paid_subscription"].includes(String(req.query.accountType || "").toLowerCase()) ? String(req.query.accountType).toLowerCase() : "";
     const page = Math.max(1, Math.min(100000, Number.parseInt(req.query.page, 10) || 1));
     const limitN = Math.max(1, Math.min(100, Number.parseInt(req.query.limit, 10) || 25));
     const where = ["u.role = 'student'"];
     const params = [];
     if (search) { where.push("(u.username LIKE ? OR u.email LIKE ? OR u.full_name LIKE ? OR CAST(u.id AS TEXT) = ?)"); params.push(`%${search}%`, `%${search}%`, `%${search}%`, search); }
     if (status) { where.push("u.status = ?"); params.push(status); }
+    if (accountType) { where.push("u.account_type = ?"); params.push(accountType); }
     if (grade) {
       // allowed_grades kosong berarti semua jenjang, jadi ikut tampil di filter apa pun.
       where.push("(u.allowed_grades IS NULL OR u.allowed_grades = '' OR u.allowed_grades = '[]' OR u.allowed_grades LIKE ?)");
@@ -1515,8 +1519,8 @@ function registerAdminApi(app, deps) {
     }
     const clause = where.join(" AND ");
     const total = db.prepare(`SELECT COUNT(*) AS n FROM users u WHERE ${clause}`).get(...params).n;
-    const aggregate = db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status='suspended' THEN 1 ELSE 0 END) AS suspended, (SELECT COUNT(*) FROM tasks) AS tasks_total FROM users WHERE role='student'").get();
-    const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.status, u.allowed_grades, u.last_login_at, u.created_at, u.subscription_started_at, u.subscription_months,
+    const aggregate = db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status='suspended' THEN 1 ELSE 0 END) AS suspended, SUM(CASE WHEN account_type='trial' THEN 1 ELSE 0 END) AS trial_count, SUM(CASE WHEN account_type='paid_subscription' THEN 1 ELSE 0 END) AS paid_count, (SELECT COUNT(*) FROM tasks) AS tasks_total FROM users WHERE role='student'").get();
+    const rows = db.prepare(`SELECT u.id, u.username, u.email, u.full_name, u.phone, u.parent_name, u.account_type, u.trial_track_id, u.trial_course, u.trial_registered_at, u.status, u.allowed_grades, u.last_login_at, u.created_at, u.subscription_started_at, u.subscription_months,
         COALESCE(p.total,0) AS points_total,
         (SELECT COUNT(*) FROM progress pr WHERE pr.user_id=u.id AND pr.completed=1) AS completed_tasks,
         (SELECT COUNT(*) FROM user_items ui WHERE ui.user_id=u.id) AS item_count
@@ -1531,6 +1535,12 @@ function registerAdminApi(app, deps) {
           ...r,
           allowedGrades: jsonAllowedGrades(r.allowed_grades),
           allowed_grades: undefined,
+          accountType: r.account_type || "free",
+          trialTrackId: r.trial_track_id || null,
+          trialCourse: r.trial_course || null,
+          trialRegisteredAt: r.trial_registered_at || null,
+          parentName: r.parent_name || null,
+          phone: r.phone || null,
           subscriptionStartedAt: subscription.subscriptionStartedAt,
           subscriptionMonths: subscription.subscriptionMonths,
           subscriptionEndsAt: subscription.subscriptionEndsAt,
@@ -1558,7 +1568,17 @@ function registerAdminApi(app, deps) {
     const sessionCount = db.prepare("SELECT COUNT(*) AS active FROM sessions WHERE user_id = ? AND expires_at > CURRENT_TIMESTAMP").get(u.id);
     const sessions = db.prepare("SELECT created_at, expires_at FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 20").all(u.id);
     const progressRows = db.prepare("SELECT task_id, completed, completed_at, bonus_awarded FROM progress WHERE user_id = ? ORDER BY id DESC LIMIT 100").all(u.id);
-    const safe = { ...u, allowedGrades: jsonAllowedGrades(u.allowed_grades) }; delete safe.allowed_grades;
+    const safe = {
+      ...u,
+      allowedGrades: jsonAllowedGrades(u.allowed_grades),
+      accountType: u.account_type || "free",
+      trialTrackId: u.trial_track_id || null,
+      trialCourse: u.trial_course || null,
+      trialRegisteredAt: u.trial_registered_at || null,
+      parentName: u.parent_name || null,
+      phone: u.phone || null
+    };
+    delete safe.allowed_grades;
     const subscription = subscriptionItem(u.id, u.subscription_started_at || null, u.subscription_months);
     safe.subscriptionStartedAt = subscription.subscriptionStartedAt;
     safe.subscriptionMonths = subscription.subscriptionMonths;
@@ -1693,6 +1713,36 @@ function registerAdminApi(app, deps) {
     auth.deleteAllSessions(u.id);
     audit(req, "student.soft_delete", "user", u.id, { status: "deleted" });
     return sendApiSuccess(res, { id: u.id, status: "deleted" }, "Murid dihapus secara soft delete.");
+  });
+
+  // Konversi akun trial menjadi akun berbayar (paid_subscription) oleh admin
+  app.post("/api/admin/users/:id/convert-to-paid", (req, res) => {
+    const u = studentTarget(req.params.id);
+    if (!u) return sendApiError(res, 404, "Murid tidak ditemukan.", "NOT_FOUND");
+    const body = req.body || {};
+    const months = Math.max(1, Math.min(36, Number.parseInt(body.months, 10) || 1));
+    const today = subscriptionService.todayWib();
+
+    const activation = subscriptionService.activateSubscription(db, u.id, months, {
+      actorId: req.userId,
+      actorUsername: req.user,
+      ip: req.ip || null,
+      source: "admin.convert_trial"
+    });
+
+    db.prepare("UPDATE users SET account_type = 'paid_subscription' WHERE id = ?").run(u.id);
+    audit(req, "student.convert_to_paid", "user", u.id, {
+      fromType: u.account_type,
+      toType: "paid_subscription",
+      months,
+      activation
+    });
+
+    return sendApiSuccess(res, {
+      id: u.id,
+      accountType: "paid_subscription",
+      subscription: activation
+    }, "Akun murid berhasil dikonversi menjadi paket berbayar.");
   });
 
   // ------------------------------------------------------------

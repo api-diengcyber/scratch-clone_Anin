@@ -1815,6 +1815,52 @@ function registerFinanceApi(app, deps) {
 
     return sendApiSuccess(res, { items, entries: items, total, page: safePage, pages, limit });
   }));
+
+  // Export transaksi keuangan ke format CSV
+  app.get("/api/admin/finance/export", guard, (req, res) => {
+    try {
+      const from = req.query.from || "2000-01-01";
+      const to = req.query.to || "2099-12-31";
+      const rows = db.prepare(`
+        SELECT t.code, COALESCE(u.full_name, u.username) AS student_name, u.email,
+               t.grade, t.learning_path_name, t.price, t.discount, t.total,
+               t.promo_code, t.method, t.status, t.paid_on, t.created_at
+        FROM finance_transactions t
+        LEFT JOIN users u ON u.id = t.student_user_id
+        WHERE (t.paid_on BETWEEN ? AND ? OR (t.paid_on = '' AND SUBSTR(t.created_at, 1, 10) BETWEEN ? AND ?))
+        ORDER BY t.id DESC
+      `).all(from, to, from, to);
+
+      const header = ["Kode Transaksi", "Nama Siswa", "Email", "Jenjang", "Learning Path", "Harga Asli", "Diskon", "Total Bayar", "Promo Code", "Metode", "Status", "Tanggal Bayar", "Dibuat Pada"];
+      const escapeCsv = (str) => `"${String(str ?? "").replace(/"/g, '""')}"`;
+      
+      const csvLines = [
+        header.join(","),
+        ...rows.map(r => [
+          escapeCsv(r.code),
+          escapeCsv(r.student_name),
+          escapeCsv(r.email),
+          escapeCsv(r.grade),
+          escapeCsv(r.learning_path_name),
+          r.price,
+          r.discount,
+          r.total,
+          escapeCsv(r.promo_code),
+          escapeCsv(r.method),
+          escapeCsv(r.status),
+          escapeCsv(r.paid_on),
+          escapeCsv(r.created_at)
+        ].join(","))
+      ];
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="transaksi-finance-${from}-to-${to}.csv"`);
+      return res.status(200).send("\uFEFF" + csvLines.join("\r\n"));
+    } catch (err) {
+      console.error("[FINANCE] Gagal export CSV:", err);
+      return sendApiError(res, 500, "Gagal mengekspor data transaksi.", "INTERNAL_ERROR");
+    }
+  });
 }
 
 module.exports = {

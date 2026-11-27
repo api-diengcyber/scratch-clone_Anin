@@ -488,10 +488,11 @@ app.get("/api/materials/:grade/:moduleId", (req, res) => {
 });
 
 // GET ALL MATERIALS
-// Default hanya materi terbit. Filter opsional ?grade=SD|SMP|SMK.
+// Default hanya materi terbit. Filter opsional ?grade=SD|SMP|SMK dan ?track=.
 app.get("/api/materials", (req, res) => {
     try {
         const grade = req.query.grade ? normalizeGrade(req.query.grade) : null;
+        const track = req.query.track ? sanitizeString(req.query.track, 64) : null;
         if (grade && !isValidGrade(grade)) {
             return sendApiError(res, 400, "grade tidak valid (SD/SMP/SMK)", "VALIDATION_ERROR");
         }
@@ -503,14 +504,18 @@ app.get("/api/materials", (req, res) => {
             params.push(grade);
         }
 
-        const materials = db.prepare(`
+        let materials = db.prepare(`
             SELECT id, grade, module_id, lesson_index, path, judul, status, created_at, updated_at
             FROM materials
             WHERE ${conditions.join(" AND ")}
             ORDER BY grade ASC, module_id ASC, lesson_index ASC
         `).all(...params);
 
-        sendApiSuccess(res, { materials });
+        if (track) {
+            materials = materials.filter(m => trialGate.isTaskAllowedForTrial(track, m.grade, m.module_id));
+        }
+
+        sendApiSuccess(res, { materials, total: materials.length });
     } catch (error) {
         console.error("Gagal mengambil semua materi:", error);
         sendApiError(res, 500, "Gagal mengambil data materi", "INTERNAL_ERROR");
@@ -1706,8 +1711,8 @@ const verifyCertificateHandler = (req, res) => {
     }
     return sendApiSuccess(res, { certificate: result });
 };
-app.get("/api/certificates/verify", verifyCertificateHandler);
-app.get("/api/certificates/verify/:certNumber", verifyCertificateHandler);
+app.get("/api/certificates/verify", rateLimitMiddleware(30), verifyCertificateHandler);
+app.get("/api/certificates/verify/:certNumber", rateLimitMiddleware(30), verifyCertificateHandler);
 
 // 2. Daftar sertifikat resmi milik siswa login
 app.get("/api/certificates/my-certificates", auth.requireAuth, (req, res) => {

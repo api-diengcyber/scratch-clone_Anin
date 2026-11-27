@@ -182,6 +182,25 @@ function registerStudentNotificationApi(app, deps) {
       unreadCount: unreadCount(db, req.userId)
     }, "Notifikasi ditandai sudah dibaca.");
   });
+
+  // Bersihkan semua notifikasi siswa yang sudah dibaca (didaftarkan sebelum /:id)
+  app.delete("/api/notifications/clear-read", auth.requireAuth, requireStudent, (req, res) => {
+    const result = db.prepare("DELETE FROM student_notifications WHERE user_id = ? AND read_at IS NOT NULL").run(req.userId);
+    return sendApiSuccess(res, { cleared: result.changes, unreadCount: unreadCount(db, req.userId) }, "Notifikasi terbaca berhasil dibersihkan.");
+  });
+
+  // Hapus satu notifikasi siswa
+  app.delete("/api/notifications/:id", auth.requireAuth, requireStudent, (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return sendApiError(res, 400, "ID notifikasi tidak valid.", "VALIDATION_ERROR");
+    }
+    const result = db.prepare("DELETE FROM student_notifications WHERE id = ? AND user_id = ?").run(id, req.userId);
+    if (result.changes === 0) {
+      return sendApiError(res, 404, "Notifikasi tidak ditemukan.", "NOT_FOUND");
+    }
+    return sendApiSuccess(res, { id, unreadCount: unreadCount(db, req.userId) }, "Notifikasi berhasil dihapus.");
+  });
 }
 
 module.exports = {

@@ -68,8 +68,12 @@ function registerSubscriptionApi(app, deps) {
   // Siswa
   // ----------------------------------------------------------
 
+  const publicLimit = typeof rateLimitMiddleware === "function"
+    ? rateLimitMiddleware(30)
+    : (_req, _res, next) => next();
+
   // Endpoint publik verifikasi status invoice tanpa token (untuk UI checkout/WhatsApp)
-  app.get("/api/subscription/invoices/public/:code", (req, res) => dataResponse(res, () => {
+  app.get("/api/subscription/invoices/public/:code", publicLimit, (req, res) => dataResponse(res, () => {
     const item = service.getPublicInvoiceStatus(db, req.params.code);
     if (!item) return sendApiError(res, 404, "Invoice tidak ditemukan.", "NOT_FOUND");
     return sendApiSuccess(res, { item });
@@ -244,6 +248,50 @@ function registerSubscriptionApi(app, deps) {
     const stats = service.getSubscriptionStats(db);
     return sendApiSuccess(res, { stats });
   }));
+
+  // Export data langganan ke CSV
+  app.get("/api/admin/subscription/export", ...adminGuard, (req, res) => {
+    try {
+      const rows = db.prepare(`
+        SELECT p.code, COALESCE(u.full_name, u.username) AS student_name, u.email,
+               p.grade, p.path_name, p.months, p.price, p.discount, p.total,
+               p.promo_code, p.method, p.status, p.paid_on, p.created_at
+        FROM subscription_payments p
+        LEFT JOIN users u ON u.id = p.student_user_id
+        ORDER BY p.id DESC
+      `).all();
+
+      const header = ["Invoice", "Nama Siswa", "Email", "Jenjang", "Paket Kurikulum", "Durasi (Bulan)", "Harga Asli", "Diskon", "Total Bayar", "Promo Code", "Metode", "Status", "Tanggal Lunas", "Dibuat Pada"];
+      const escapeCsv = (str) => `"${String(str ?? "").replace(/"/g, '""')}"`;
+
+      const csvLines = [
+        header.join(","),
+        ...rows.map(r => [
+          escapeCsv(r.code),
+          escapeCsv(r.student_name),
+          escapeCsv(r.email),
+          escapeCsv(r.grade),
+          escapeCsv(r.path_name),
+          r.months,
+          r.price,
+          r.discount,
+          r.total,
+          escapeCsv(r.promo_code),
+          escapeCsv(r.method),
+          escapeCsv(r.status),
+          escapeCsv(r.paid_on),
+          escapeCsv(r.created_at)
+        ].join(","))
+      ];
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", 'attachment; filename="data-langganan-ruangkka.csv"');
+      return res.status(200).send("\uFEFF" + csvLines.join("\r\n"));
+    } catch (err) {
+      console.error("[SUBSCRIPTION] Gagal export CSV:", err);
+      return sendApiError(res, 500, "Gagal mengekspor data langganan.", "INTERNAL_ERROR");
+    }
+  });
 }
 
 module.exports = { registerSubscriptionApi };
