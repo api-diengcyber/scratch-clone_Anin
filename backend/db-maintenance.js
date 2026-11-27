@@ -12,6 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 const Database = require("better-sqlite3");
+const subscriptionService = require("./subscription-service");
 
 // Menjalankan checkpoint WAL secara aman
 function checkpointWal(db) {
@@ -126,6 +127,12 @@ function startMaintenanceScheduler(db, options = {}) {
     Number.parseInt(options.backupIntervalMs || process.env.DB_BACKUP_INTERVAL_MS || String(24 * 60 * 60 * 1000), 10)
   );
 
+  // Interval pembersihan invoice langganan yang kedaluwarsa (default setiap 30 menit)
+  const invoiceExpiryIntervalMs = Math.max(
+    30 * 1000,
+    Number.parseInt(options.invoiceExpiryIntervalMs || process.env.DB_INVOICE_EXPIRY_INTERVAL_MS || String(30 * 60 * 1000), 10)
+  );
+
   const walTimer = setInterval(() => {
     const res = checkpointWal(db);
     if (!res.ok) {
@@ -146,12 +153,25 @@ function startMaintenanceScheduler(db, options = {}) {
     }
   }, backupIntervalMs).unref();
 
+  const invoiceExpiryTimer = setInterval(() => {
+    try {
+      const expiredCount = subscriptionService.expirePending(db);
+      if (expiredCount > 0) {
+        console.log(`[MAINTENANCE] Sapuan invoice kedaluwarsa: ${expiredCount} invoice diperbarui ke status expired.`);
+      }
+    } catch (err) {
+      console.error("[MAINTENANCE] Gagal menyapu invoice kedaluwarsa:", err.message);
+    }
+  }, invoiceExpiryIntervalMs).unref();
+
   return {
     walTimer,
     backupTimer,
+    invoiceExpiryTimer,
     stop() {
       clearInterval(walTimer);
       clearInterval(backupTimer);
+      clearInterval(invoiceExpiryTimer);
     }
   };
 }

@@ -35,6 +35,7 @@ const shop = require("./shop-catalog");
 const { notifyAdmins } = require("./notifications");
 const { releaseDeletedEmail } = require("./user-identity");
 const learningService = require("./learning-service");
+const trialGate = require("./trial-gate");
 const reportScheduler = require("./report-scheduler");
 const mentoringScheduler = require("./mentoring-reminder-scheduler");
 const subscriptionService = require("./subscription-service");
@@ -1434,6 +1435,16 @@ app.post("/api/progress/:username", auth.requireAuth, auth.requireSameUser, (req
         if (!username) return sendApiError(res, 400, "Username wajib diisi", "VALIDATION_ERROR");
         if (!taskId) return sendApiError(res, 400, "taskId wajib berupa teks (maksimal 128 karakter)", "VALIDATION_ERROR");
         if (typeof completed !== "boolean") return sendApiError(res, 400, "completed harus true/false", "VALIDATION_ERROR");
+
+        // Evaluasi trial gate jika akun berstatus trial
+        const studentRow = db.prepare("SELECT account_type, trial_track_id FROM users WHERE id = ?").get(req.userId);
+        if (studentRow && studentRow.account_type === "trial" && studentRow.trial_track_id) {
+            const taskMeta = db.prepare("SELECT grade, module_id FROM tasks WHERE task_id = ?").get(taskId);
+            if (taskMeta && !trialGate.isTaskAllowedForTrial(studentRow.trial_track_id, taskMeta.grade, taskMeta.module_id)) {
+                return sendApiError(res, 403, "Akses terkunci: akun trial hanya dapat mengakses materi pada jalur belajar yang dipilih saat pendaftaran.", "TRIAL_LOCKED");
+            }
+        }
+
         const result = applyProgress(req.userId, taskId, completed);
         if (result.error) return sendApiError(res, 404, "Task tidak ditemukan", "NOT_FOUND");
         if (completed && result.earned && result.earned.base > 0) {
@@ -1814,6 +1825,7 @@ server.headersTimeout = 66000;
 server.on("close", () => {
     if (reportSchedulerHandle) reportSchedulerHandle.stop();
     if (mentoringSchedulerHandle) clearInterval(mentoringSchedulerHandle);
+    if (dbMaintenanceHandle && typeof dbMaintenanceHandle.stop === "function") dbMaintenanceHandle.stop();
 });
 
 server.on("error", (err) => {
