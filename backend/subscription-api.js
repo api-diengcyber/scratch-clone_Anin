@@ -75,6 +75,27 @@ function registerSubscriptionApi(app, deps) {
     return sendApiSuccess(res, { item });
   }));
 
+  // Endpoint validasi promo code secara realtime untuk checkout frontend
+  app.get("/api/subscription/promos/validate", ...studentGuard, (req, res) => dataResponse(res, () => {
+    const code = req.query.code || "";
+    const basePrice = Number(req.query.price) || 0;
+    const grade = req.query.grade || "";
+
+    const promoRes = service.evaluatePromoCode(db, code, basePrice, grade);
+    if (!promoRes.valid) {
+      return sendApiError(res, 400, promoRes.message || "Kode promo tidak valid.", "INVALID_PROMO");
+    }
+
+    return sendApiSuccess(res, {
+      code: promoRes.code,
+      name: promoRes.name,
+      tipe: promoRes.tipe,
+      nilai: promoRes.nilai,
+      discount: promoRes.discount,
+      finalPrice: promoRes.finalPrice
+    }, "Kode promo valid.");
+  }));
+
   app.get("/api/subscription", ...studentGuard, (req, res) => dataResponse(res, () => {
     return sendApiSuccess(res, service.getStudentOverview(db, req.userId, { env: process.env }));
   }));
@@ -206,6 +227,22 @@ function registerSubscriptionApi(app, deps) {
     });
     if (!result.found) return sendApiError(res, 404, "Pembayaran tidak ditemukan.", "NOT_FOUND");
     return sendApiSuccess(res, { item: result.item }, "Pembayaran ditolak.");
+  }));
+
+  // Endpoint refund / pembatalan pembayaran berbayar oleh admin
+  app.post("/api/admin/subscription/payments/:id/refund", ...adminGuard, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+    const result = service.refundPayment(db, req.params.id, {
+      ...actor(req),
+      reason: body.reason
+    });
+    return sendApiSuccess(res, result, "Pembayaran langganan berhasil dibatalkan / di-refund.");
+  }));
+
+  // Endpoint ringkasan analitik langganan untuk admin
+  app.get("/api/admin/subscription/stats", ...adminGuard, (req, res) => dataResponse(res, () => {
+    const stats = service.getSubscriptionStats(db);
+    return sendApiSuccess(res, { stats });
   }));
 }
 

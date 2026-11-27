@@ -330,6 +330,7 @@ function paymentDto(row, options = {}) {
     method: row.method,
     note: row.note,
     paidOn: row.paid_on || null,
+    promoCode: row.promo_code || "",
     expiresOn: row.expires_on || null,
     expiresAt: row.expires_on ? `${row.expires_on}T23:59:59+07:00` : null,
     hasProof,
@@ -355,7 +356,7 @@ function paymentDto(row, options = {}) {
 // proof_data/proof_path tidak pernah ikut di daftar agar respons tetap ringan; detail
 // admin membacanya terpisah lewat proofDataUrl().
 const PAYMENT_COLUMNS = `p.id, p.code, p.student_user_id, p.package_id, p.path_key, p.path_name,
-  p.grade, p.months, p.price, p.discount, p.total, p.method, p.status, p.note, p.paid_on,
+  p.grade, p.months, p.price, p.discount, p.total, p.promo_code, p.method, p.status, p.note, p.paid_on,
   p.paid_at, p.confirmed_by, p.finance_transaction_id, p.expires_on, p.created_at, p.updated_at,
   p.proof_name, p.proof_mime, p.proof_size, p.proof_at, p.proof_path,
   CASE WHEN (p.proof_path IS NOT NULL AND p.proof_path <> '') OR (p.proof_data IS NOT NULL AND p.proof_data <> '') THEN 1 ELSE 0 END AS has_proof`;
@@ -423,12 +424,76 @@ function getPublicInvoiceStatus(db, code) {
     pathName: row.path_name,
     grade: row.grade,
     months: Number(row.months),
+    price: Number(row.price),
+    discount: Number(row.discount),
     total: Number(row.total),
+    promoCode: row.promo_code || "",
     method: row.method,
     expiresOn: row.expires_on || null,
     expiresAt: row.expires_on ? `${row.expires_on}T23:59:59+07:00` : null,
     hasProof: Boolean(row.proof_name || row.proof_size || row.proof_path),
     createdAt: row.created_at || null
+  };
+}
+
+// ------------------------------------------------------------
+// EVALUASI PROMO CODE
+// ------------------------------------------------------------
+function evaluatePromoCode(db, code, basePrice, grade = "", today = todayWib()) {
+  if (!code || typeof code !== "string" || !code.trim()) {
+    return { valid: false, discount: 0, finalPrice: basePrice, promo: null };
+  }
+
+  const clean = code.trim().toUpperCase();
+  const promo = db.prepare("SELECT * FROM finance_promos WHERE kode = ? COLLATE NOCASE").get(clean);
+  if (!promo) {
+    return { valid: false, message: `Kode promo ${clean} tidak ditemukan.`, discount: 0, finalPrice: basePrice, promo: null };
+  }
+
+  if (!promo.aktif) {
+    return { valid: false, message: `Kode promo ${clean} sedang tidak aktif.`, discount: 0, finalPrice: basePrice, promo: null };
+  }
+
+  if (promo.mulai && promo.mulai > today) {
+    return { valid: false, message: `Kode promo ${clean} belum dapat digunakan.`, discount: 0, finalPrice: basePrice, promo: null };
+  }
+
+  if (promo.selesai && promo.selesai < today) {
+    return { valid: false, message: `Kode promo ${clean} sudah kedaluwarsa.`, discount: 0, finalPrice: basePrice, promo: null };
+  }
+
+  if (promo.jenjang && grade && promo.jenjang.toUpperCase() !== grade.toUpperCase()) {
+    return { valid: false, message: `Kode promo ${clean} hanya berlaku untuk jenjang ${promo.jenjang}.`, discount: 0, finalPrice: basePrice, promo: null };
+  }
+
+  if (promo.kuota) {
+    const usedRow = db.prepare(`SELECT COUNT(*) AS n FROM finance_transactions
+      WHERE promo_code = ? COLLATE NOCASE AND status IN ('paid', 'pending')`).get(clean);
+    const used = Number(usedRow?.n || 0);
+    if (used >= promo.kuota) {
+      return { valid: false, message: `Kuota kode promo ${clean} telah habis.`, discount: 0, finalPrice: basePrice, promo: null };
+    }
+  }
+
+  let discount = 0;
+  if (promo.tipe === "persen") {
+    discount = Math.round((basePrice * promo.nilai) / 100);
+  } else {
+    discount = Number(promo.nilai) || 0;
+  }
+
+  discount = Math.max(0, Math.min(basePrice, discount));
+  const finalPrice = Math.max(0, basePrice - discount);
+
+  return {
+    valid: true,
+    code: clean,
+    name: promo.nama || clean,
+    tipe: promo.tipe,
+    nilai: promo.nilai,
+    discount,
+    finalPrice,
+    promo
   };
 }
 
@@ -627,22 +692,40 @@ function createCheckout(db, studentId, input = {}, options = {}) {
 
   const expiresOn = reportDeliveries.addDays(today, invoiceDays(env, options.invoiceDays));
 
+  // Hitung diskon promo jika ada kode promo yang diberikan
+  const promoInput = input.promoCode || input.promo || "";
+  const basePrice = Number(pkg.price);
+  let discount = 0;
+  let finalTotal = basePrice;
+  let appliedPromoCode = "";
+
+  if (promoInput) {
+    const promoRes = evaluatePromoCode(db, promoInput, basePrice, pkg.grade, today);
+    if (!promoRes.valid) {
+      throw invalid(promoRes.message || "Kode promo tidak valid.", "promoCode");
+    }
+    discount = promoRes.discount;
+    finalTotal = promoRes.finalPrice;
+    appliedPromoCode = promoRes.code;
+  }
+
   return db.transaction(() => {
     expirePending(db, { studentId, today });
 
     const existing = db.prepare(`SELECT * FROM subscription_payments
       WHERE student_user_id = ? AND package_id = ? AND status = 'pending' AND expires_on >= ?
       ORDER BY id DESC LIMIT 1`).get(studentId, pkg.id, today);
-    if (existing) {
+    if (existing && !promoInput) {
       return { item: paymentDto(existing), reused: true, instructions: instructionsFor(existing, env) };
     }
 
     const info = db.prepare(`INSERT INTO subscription_payments
       (student_user_id, package_id, path_key, path_name, grade, months, price, discount, total,
-       method, status, expires_on)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 'Transfer Bank', 'pending', ?)`).run(
+       promo_code, method, status, expires_on)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Transfer Bank', 'pending', ?)`).run(
       studentId, pkg.id, pkg.path_key, pkg.path_name, pkg.grade,
-      Number(pkg.months), Number(pkg.price), Number(pkg.price), expiresOn
+      Number(pkg.months), basePrice, discount, finalTotal,
+      appliedPromoCode, expiresOn
     );
     const id = Number(info.lastInsertRowid);
     const code = `SUB-${1000 + id}`;
@@ -652,10 +735,11 @@ function createCheckout(db, studentId, input = {}, options = {}) {
     // lunas (dari sini atau dari UI Finance), langganan aktif otomatis.
     const finance = db.prepare(`INSERT INTO finance_transactions
       (student_user_id, learning_path_key, learning_path_name, grade, price, discount, total,
-       method, status, note, created_by)
-      VALUES (?, ?, ?, ?, ?, 0, ?, 'Transfer Bank', 'pending', ?, ?)`).run(
+       promo_code, method, status, note, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Transfer Bank', 'pending', ?, ?)`).run(
       studentId, pkg.path_key, pkg.path_name, pkg.grade,
-      Number(pkg.price), Number(pkg.price), `Langganan ${pkg.months} bulan (${code})`, studentId
+      basePrice, discount, finalTotal,
+      appliedPromoCode, `Langganan ${pkg.months} bulan (${code})`, studentId
     );
     const financeId = Number(finance.lastInsertRowid);
     db.prepare("UPDATE finance_transactions SET code = ? WHERE id = ?").run(`TRX-${1000 + financeId}`, financeId);
@@ -669,13 +753,13 @@ function createCheckout(db, studentId, input = {}, options = {}) {
       action: "subscription_payment.create",
       targetType: "subscription_payment",
       targetId: id,
-      details: { code, packageId: pkg.id, months: Number(pkg.months), total: Number(pkg.price) }
+      details: { code, packageId: pkg.id, months: Number(pkg.months), price: basePrice, discount, total: finalTotal, promoCode: appliedPromoCode }
     });
 
     safeNotify(() => notifyStudent(db, studentId, {
       kind: "subscription.invoice",
       title: `Invoice langganan: ${pkg.path_name}`,
-      body: `${code} - ${pkg.months} bulan - Rp${rupiah(pkg.price)}. Bayar sebelum ${expiresOn}.`,
+      body: `${code} - ${pkg.months} bulan - Rp${rupiah(finalTotal)}. Bayar sebelum ${expiresOn}.`,
       view: "langganan",
       icon: "fa-solid fa-file-invoice-dollar",
       tone: "sky",
@@ -684,7 +768,7 @@ function createCheckout(db, studentId, input = {}, options = {}) {
     safeNotify(() => notifyAdmins(db, {
       kind: "subscription.checkout",
       title: `Pembayaran langganan baru: ${studentLabel({ student_name: student.full_name, student_username: student.username, student_user_id: studentId })}`,
-      body: `${code} - ${pkg.path_name} ${pkg.months} bulan - Rp${rupiah(pkg.price)}`,
+      body: `${code} - ${pkg.path_name} ${pkg.months} bulan - Rp${rupiah(finalTotal)}`,
       view: "langganan",
       icon: "fa-solid fa-money-check-dollar",
       tone: "amber",
@@ -1107,6 +1191,159 @@ function getAdminPayment(db, id) {
   })();
 }
 
+function getSubscriptionStats(db) {
+  // Status breakdown & omzet
+  const statsRows = db.prepare(`
+    SELECT status, COUNT(*) AS count, COALESCE(SUM(total), 0) AS total_amount
+    FROM subscription_payments
+    GROUP BY status
+  `).all();
+
+  const byStatus = {
+    pending: { count: 0, amount: 0 },
+    paid: { count: 0, amount: 0 },
+    failed: { count: 0, amount: 0 },
+    cancelled: { count: 0, amount: 0 },
+    expired: { count: 0, amount: 0 },
+    refunded: { count: 0, amount: 0 }
+  };
+
+  let totalRevenue = 0;
+  for (const row of statsRows) {
+    if (byStatus[row.status]) {
+      byStatus[row.status] = {
+        count: Number(row.count),
+        amount: Number(row.total_amount)
+      };
+    }
+    if (row.status === "paid") {
+      totalRevenue = Number(row.total_amount);
+    }
+  }
+
+  // Distribusi per jenjang (khusus yang paid)
+  const byGrade = db.prepare(`
+    SELECT grade, COUNT(*) AS count, COALESCE(SUM(total), 0) AS amount
+    FROM subscription_payments
+    WHERE status = 'paid'
+    GROUP BY grade
+  `).all().map(r => ({ grade: r.grade || "UNSPECIFIED", count: Number(r.count), amount: Number(r.amount) }));
+
+  // Top paket terlaris
+  const topPackages = db.prepare(`
+    SELECT path_name AS name, grade, months, COUNT(*) AS sales_count, COALESCE(SUM(total), 0) AS total_amount
+    FROM subscription_payments
+    WHERE status = 'paid'
+    GROUP BY path_name, grade, months
+    ORDER BY sales_count DESC, total_amount DESC
+    LIMIT 5
+  `).all().map(r => ({
+    name: r.name,
+    grade: r.grade,
+    months: Number(r.months),
+    salesCount: Number(r.sales_count),
+    totalAmount: Number(r.total_amount)
+  }));
+
+  // Distribusi tipe akun siswa
+  const userTypes = db.prepare(`
+    SELECT account_type, COUNT(*) AS count
+    FROM users
+    WHERE role = 'student'
+    GROUP BY account_type
+  `).all();
+
+  const studentAccounts = {
+    free: 0,
+    trial: 0,
+    paidSubscription: 0
+  };
+
+  for (const ut of userTypes) {
+    if (ut.account_type === "paid_subscription") studentAccounts.paidSubscription = Number(ut.count);
+    else if (ut.account_type === "trial") studentAccounts.trial = Number(ut.count);
+    else studentAccounts.free += Number(ut.count);
+  }
+
+  return {
+    totalRevenue,
+    byStatus,
+    byGrade,
+    topPackages,
+    studentAccounts
+  };
+}
+
+function refundPayment(db, id, options = {}) {
+  return db.transaction(() => {
+    const payment = findPayment(db, id);
+    if (!payment) throw notFound("Pembayaran langganan tidak ditemukan.");
+    if (payment.status !== "paid") {
+      throw conflict(`Hanya pembayaran berstatus 'paid' yang dapat direfund/dibatalkan (status saat ini: ${payment.status}).`);
+    }
+
+    const nowIso = new Date().toISOString();
+    const reason = text(options.reason || "Pembatalan / Refund oleh admin", "reason", 200);
+
+    // Update status invoice menjadi refunded
+    db.prepare(`UPDATE subscription_payments
+      SET status = 'refunded', note = CASE WHEN note = '' THEN ? ELSE note || ' | ' || ? END, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`).run(reason, reason, payment.id);
+
+    // Update transaksi finance tertaut
+    if (payment.finance_transaction_id) {
+      db.prepare(`UPDATE finance_transactions
+        SET status = 'refunded', note = note || ' [REFUNDED: ' || ? || ']', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?`).run(reason, payment.finance_transaction_id);
+    }
+
+    // Koreksi durasi langganan murid di tabel users
+    const student = findStudent(db, payment.student_user_id);
+    let newMonths = 0;
+    if (student) {
+      const currentMonths = Number(student.subscription_months) || 0;
+      newMonths = Math.max(0, currentMonths - Number(payment.months));
+      const newAccountType = newMonths > 0 ? "paid_subscription" : "free";
+
+      db.prepare(`UPDATE users
+        SET subscription_months = ?, account_type = ?
+        WHERE id = ?`).run(newMonths, newAccountType, student.id);
+    }
+
+    writeAudit(db, {
+      actorId: options.actorId || null,
+      actorUsername: options.actorUsername || "admin",
+      ip: options.ip || null,
+      action: "subscription_payment.refund",
+      targetType: "subscription_payment",
+      targetId: payment.id,
+      details: {
+        code: payment.code,
+        studentId: payment.student_user_id,
+        refundedMonths: Number(payment.months),
+        remainingMonths: newMonths,
+        reason
+      }
+    });
+
+    safeNotify(() => notifyStudent(db, payment.student_user_id, {
+      kind: "subscription.refunded",
+      title: "Langganan dibatalkan / di-refund",
+      body: `Pembayaran ${payment.code} telah dibatalkan oleh admin. Alasan: ${reason}`,
+      view: "langganan",
+      icon: "fa-solid fa-rotate-left",
+      tone: "amber",
+      dedupeKey: `subscription.refunded:${payment.id}`
+    }));
+
+    return {
+      refunded: true,
+      item: paymentDto(findPayment(db, payment.id), { admin: true }),
+      remainingMonths: newMonths
+    };
+  })();
+}
+
 function writeAudit(db, entry) {
   try {
     db.prepare(`INSERT INTO admin_audit
@@ -1142,6 +1379,9 @@ module.exports = {
   findPayment,
   findPaymentByCode,
   getPublicInvoiceStatus,
+  evaluatePromoCode,
+  getSubscriptionStats,
+  refundPayment,
   proofDataUrl,
   createCheckout,
   createManualPayment,

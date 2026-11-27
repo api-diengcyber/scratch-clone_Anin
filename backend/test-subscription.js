@@ -611,6 +611,72 @@ async function main() {
     eq(res.r.status, 404, "invoice tidak ditemukan -> 404");
   });
 
+  await t("langganan: validasi kode promo dan pemotongan harga saat checkout", async () => {
+    // Siapkan promo diskon 10%
+    db.prepare(`INSERT OR REPLACE INTO finance_promos
+      (kode, nama, tipe, nilai, jenjang, mulai, selesai, kuota, aktif)
+      VALUES ('DISKON10', 'Diskon 10%', 'persen', 10, 'SMP', '2026-01-01', '2027-12-31', 100, 1)`).run();
+
+    // Validasi via endpoint promo
+    let valRes = await api("GET", "/api/subscription/promos/validate?code=DISKON10&grade=SMP&price=500000", { token: studentToken });
+    eq(valRes.r.status, 200, "promo valid");
+    eq(valRes.d.discount, 50000, "diskon 10%");
+    eq(valRes.d.finalPrice, 450000, "harga akhir");
+
+    // Validasi promo jenjang beda -> 400
+    valRes = await api("GET", "/api/subscription/promos/validate?code=DISKON10&grade=SD&price=500000", { token: studentToken });
+    eq(valRes.r.status, 400, "promo jenjang beda ditolak");
+
+    // Checkout dengan promo code
+    const checkoutRes = await checkout(studentToken, { packageId: pkg3.id, promoCode: "DISKON10" });
+    eq(checkoutRes.r.status, 201, "checkout dengan promo berhasil");
+    eq(checkoutRes.d.item.discount, 65000, "diskon promo 10% dari 650.000");
+    eq(checkoutRes.d.item.total, 585000, "total setelah diskon");
+    eq(checkoutRes.d.item.promoCode, "DISKON10", "kode promo tercatat di invoice");
+
+    // Transaksi finance ikut mencatat promo
+    const finTrx = financeFor(studentId, checkoutRes.d.item.code);
+    ok(finTrx, "finance transaksi tercatat");
+    eq(finTrx.promo_code, "DISKON10", "promo tercatat di finance");
+    eq(finTrx.discount, 65000, "diskon tercatat di finance");
+    eq(finTrx.total, 585000, "total tercatat di finance");
+  });
+
+  await t("langganan: admin melihat stats langganan dan melakukan refund", async () => {
+    // Buat invoice baru dan konfirmasi
+    const invRes = await checkout(otherToken, { packageId: pkg3.id });
+    eq(invRes.r.status, 201, "checkout invoice lain");
+    const confirmRes = await confirm(invRes.d.item.id, { paidAt: today });
+    eq(confirmRes.r.status, 200, "lunas");
+
+    // Cek stats
+    const statsRes = await api("GET", "/api/admin/subscription/stats", { token: adminToken });
+    eq(statsRes.r.status, 200, "baca stats");
+    ok(statsRes.d.stats.totalRevenue > 0, "ada revenue");
+    ok(statsRes.d.stats.byStatus.paid.count > 0, "ada count paid");
+    ok(Array.isArray(statsRes.d.stats.topPackages), "top packages array");
+
+    // Admin refund invoice tersebut
+    const refundRes = await api("POST", `/api/admin/subscription/payments/${invRes.d.item.id}/refund`, {
+      token: adminToken,
+      body: { reason: "Salah transfer oleh orang tua murid" }
+    });
+    eq(refundRes.r.status, 200, "refund berhasil");
+    eq(refundRes.d.refunded, true, "status refunded");
+    eq(refundRes.d.item.status, "refunded", "status item refunded");
+
+    // Cek finance transaction ikut refunded
+    const finTrx = financeFor(otherId, invRes.d.item.code);
+    eq(finTrx.status, "refunded", "finance ikut refunded");
+
+    // Refund ulang ditolak
+    const repeatRefund = await api("POST", `/api/admin/subscription/payments/${invRes.d.item.id}/refund`, {
+      token: adminToken,
+      body: { reason: "Coba lagi" }
+    });
+    eq(repeatRefund.r.status, 409, "refund ulang ditolak (conflict)");
+  });
+
   const passed = results.filter((r) => r[0] === "PASS").length;
   for (const [status, name] of results) console.log(`${status}  ${name}`);
   console.log(`\n${passed}/${results.length} lolos`);
