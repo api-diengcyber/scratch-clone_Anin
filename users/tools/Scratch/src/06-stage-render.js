@@ -217,17 +217,21 @@ function drawCat(
   const costume =
     state.sprite.costume;
 
-  // Sprite dari pustaka (gambar SVG)
-  if (!forceCat) {
-    const artDef =
-      COSTUME_DEFINITIONS.find(c => c.name === costume) ||
-      COSTUME_DEFINITIONS[0];
+  const artDef =
+    COSTUME_DEFINITIONS.find(c => c.name === costume) ||
+    COSTUME_DEFINITIONS[0];
 
-    if (artDef && artDef.svg) {
-      const img = getArtImage(artDef.svg);
-      if (img.complete && img.naturalWidth) {
-        targetCtx.drawImage(img, -42, -42, 84, 84);
-      }
+  if (artDef && artDef.canvas) {
+    try {
+      targetCtx.drawImage(artDef.canvas, -42, -42, 84, 84);
+      return;
+    } catch (e) {}
+  }
+
+  if (artDef && artDef.svg) {
+    const img = typeof getArtImage === "function" ? getArtImage(artDef.svg) : null;
+    if (img && img.complete && img.naturalWidth) {
+      targetCtx.drawImage(img, -42, -42, 84, 84);
       return;
     }
   }

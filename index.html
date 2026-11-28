@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Master Stylesheet (External + Inlined for Zero-Fail Rendering) -->
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261127-modal">
   <style>
 /* ============================================================
    RUANG KKA • DIENG CYBER CODING ACADEMY
@@ -900,6 +900,49 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
   font-size: 0.8rem;
 }
 
+/* Tombol Aksi di Kartu Jenjang (Elegan, Proporsional & Modern) */
+.grade-card .btn {
+  border-radius: var(--radius-md) !important;
+  padding: 13px 20px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  letter-spacing: 0.01em;
+  margin-top: auto;
+}
+
+.grade-card .btn-outline {
+  background: var(--bg-surface-soft);
+  color: var(--text-main);
+  border: 1.5px solid var(--border-light);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.grade-card .btn-outline:hover {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.3);
+  transform: translateY(-2px);
+}
+
+.grade-card .btn-primary {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);
+}
+
+.grade-card .btn-primary:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  box-shadow: 0 8px 22px rgba(5, 150, 105, 0.4);
+  transform: translateY(-2px);
+}
+
 /* ============================================================
    INTERACTIVE PLAYGROUND TABS
    ============================================================ */
@@ -1066,6 +1109,147 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
   grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
   gap: 28px;
   margin-bottom: 50px;
+}
+
+/* Age Level Overview Cards (Tampilan Awal Jenjang Usia & Range Biaya) */
+.age-level-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.age-level-card {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 32px 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.age-level-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--primary) !important;
+  box-shadow: 0 16px 36px -4px rgba(5, 150, 105, 0.22);
+}
+
+.age-level-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.age-level-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  flex-shrink: 0;
+}
+
+.age-level-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.age-level-subtitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.age-level-desc {
+  font-size: 0.88rem;
+  color: var(--text-body);
+  line-height: 1.55;
+  margin-bottom: 22px;
+}
+
+.age-level-price-box {
+  background: var(--bg-surface-soft);
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.age-level-price-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.age-level-price-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.age-level-price-val span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.age-level-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 12px 20px;
+}
+
+.package-detail-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: var(--bg-surface-soft);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 14px 22px;
+  margin-bottom: 28px;
+}
+
+.btn-back-overview {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back-overview:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateX(-2px);
 }
 
 .pricing-card {
@@ -1240,6 +1424,72 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
   font-size: 0.9rem;
   margin-top: 3px;
   flex-shrink: 0;
+}
+
+/* Redesain Tombol Pilih Paket (Modern, Elegan & Nyaman Dilihat) */
+.select-package-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.01em;
+  margin-top: auto;
+}
+
+.select-package-btn i {
+  transition: transform 0.25s ease;
+  font-size: 0.88rem;
+}
+
+.select-package-btn:hover i {
+  transform: translateX(4px);
+}
+
+.select-package-btn.btn-primary {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);
+}
+
+.select-package-btn.btn-primary:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+  transform: translateY(-2px);
+}
+
+.select-package-btn.btn-outline {
+  background: var(--bg-surface-soft);
+  color: var(--text-main);
+  border: 1.5px solid var(--border-light);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.select-package-btn.btn-outline:hover {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.3);
+  transform: translateY(-2px);
+}
+
+.pricing-card:hover .select-package-btn.btn-outline {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.3);
+}
+
+.pricing-card:hover .select-package-btn.btn-primary {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.45);
 }
 
 /* ============================================================
@@ -1547,6 +1797,50 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
   justify-content: center;
 }
 
+/* Modal Primary Action Button */
+.btn-modal-checkout {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 52px !important;
+  padding: 14px 24px !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2px !important;
+  border-radius: 12px !important;
+  text-decoration: none !important;
+  box-shadow: 0 8px 22px rgba(5, 150, 105, 0.32) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer !important;
+}
+
+.btn-modal-checkout:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.42) !important;
+  color: #ffffff !important;
+}
+
+.btn-modal-checkout:active {
+  transform: scale(0.98) !important;
+}
+
+.btn-modal-checkout i {
+  font-size: 1.05rem !important;
+  color: #ffffff !important;
+  transition: transform 0.2s ease !important;
+}
+
+.btn-modal-checkout:hover i {
+  transform: translateX(4px) !important;
+}
+
 /* ============================================================
    RESPONSIVE MEDIA QUERIES
    ============================================================ */
@@ -1674,6 +1968,7 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
         <a href="#tim-mentor" class="nav-link">Tim Pengajar</a>
         <a href="#kurikulum" class="nav-link">Kurikulum</a>
         <a href="#paket" class="nav-link">Paket & Biaya</a>
+        <a href="galeri-scratch.html" class="nav-link">Galeri Scratch</a>
         <a href="#faq" class="nav-link">FAQ</a>
       </nav>
 
@@ -2128,7 +2423,7 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
         </div>
 
         <!-- Filter & Switcher Controls -->
-        <div class="pricing-controls">
+        <div class="pricing-controls" id="pricingControlsWrap" style="display: none;">
           <!-- Billing Cycle Switcher (Durasi) -->
           <div class="billing-switcher" role="group" aria-label="Pilihan Durasi Berlangganan">
             <button type="button" class="billing-cycle-btn" data-cycle="1">
@@ -2150,15 +2445,36 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
 
           <!-- Grade Filter Group -->
           <div class="grade-filter-group" role="group" aria-label="Filter Jenjang">
-            <button type="button" class="grade-filter-btn active" data-grade="ALL">Semua Paket</button>
+            <button type="button" class="grade-filter-btn" data-grade="ALL">Semua Paket</button>
             <button type="button" class="grade-filter-btn" data-grade="SD">Jenjang SD</button>
             <button type="button" class="grade-filter-btn" data-grade="SMP">Jenjang SMP</button>
             <button type="button" class="grade-filter-btn" data-grade="SMK">Jenjang SMK/SMA</button>
           </div>
         </div>
 
-        <!-- Dynamic Pricing Cards Container -->
-        <div class="pricing-cards-grid" id="pricingCardsGrid">
+        <!-- 1. Tampilan Awal: Pilihan Jenjang Usia & Range Biaya -->
+        <div class="age-level-overview-grid" id="ageLevelOverviewGrid">
+          <!-- Injected dynamically by script.js -->
+        </div>
+
+        <!-- Bar Navigasi Kembali ke Overview Jenjang (Tampil saat jenjang dipilih) -->
+        <div id="packageDetailBar" class="package-detail-bar" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" id="btnBackToOverview" class="btn-back-overview">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Pilih Jenjang Lain</span>
+            </button>
+            <span id="packageDetailHeading" style="font-weight: 800; font-size: 1.05rem; color: var(--text-main);">
+              Paket Belajar Jenjang SD
+            </span>
+          </div>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">
+            Klik durasi langganan di atas untuk melihat diskon s/d 25%
+          </span>
+        </div>
+
+        <!-- 2. Dynamic Pricing Cards Container (Pilihan Lengkap) -->
+        <div class="pricing-cards-grid" id="pricingCardsGrid" style="display: none;">
           <!-- Injected dynamically by script.js -->
         </div>
 
@@ -2349,7 +2665,7 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
               <i class="fa-solid fa-calendar-check"></i>
               <span>Daftar Trial Gratis</span>
             </a>
-            <a href="https://wa.me/6281222334455?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20ingin%20konsultasi%20paket%20koding%20anak" target="_blank" rel="noopener" class="btn btn-lg btn-whatsapp">
+            <a href="javascript:void(0)" onclick="alert('Layanan konsultasi WhatsApp sedang disiapkan. Silakan gunakan tombol Daftar Trial Gratis atau langsung memilih paket di website.')" class="btn btn-lg btn-whatsapp" style="cursor: pointer;">
               <i class="fa-brands fa-whatsapp"></i>
               <span>Konsultasi WhatsApp</span>
             </a>
@@ -2399,8 +2715,9 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
 
         <!-- Col 3: Akses Portal -->
         <div class="footer-col">
-          <h5>Akses Portal</h5>
+          <h5>Akses Portal & Karya</h5>
           <div class="footer-links">
+            <a href="galeri-scratch.html" style="color: #059669; font-weight: 700;">🎮 Galeri Karya Scratch Siswa</a>
             <a href="users/index.html">Masuk ke Akun (Login)</a>
             <a href="users/register.html">Pendaftaran Siswa Baru</a>
             <a href="users/orangtua/laporan.html">Cek Laporan Belajar Siswa</a>
@@ -2454,15 +2771,20 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
         <small style="color: var(--text-subtle); display: block; margin-top: 6px;">Sudah termasuk fasilitas kelas live, akses semua modul & AI tutor, serta laporan berkala wali.</small>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="#" class="btn btn-whatsapp btn-block" id="modalWaBtn" target="_blank" rel="noopener">
-          <i class="fa-brands fa-whatsapp"></i>
-          <span>Konsultasi & Konfirmasi via WhatsApp</span>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <a
+          href="users/checkout.html"
+          class="btn btn-primary btn-block btn-modal-checkout"
+          id="modalRegisterBtn"
+          style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 52px; padding: 14px 24px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff !important; font-size: 1rem; font-weight: 800; border-radius: 12px; text-decoration: none; box-shadow: 0 8px 20px rgba(5, 150, 105, 0.32); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s ease; cursor: pointer;"
+        >
+          <span style="color: #ffffff; font-weight: 800;">Lanjutkan ke Pembayaran & Buat Akun</span>
+          <i class="fa-solid fa-arrow-right" style="color: #ffffff;"></i>
         </a>
-        <a href="users/checkout.html" class="btn btn-primary btn-block" id="modalRegisterBtn">
-          <i class="fa-solid fa-credit-card"></i>
-          <span>Lanjutkan ke Pembayaran & Buat Akun</span>
-        </a>
+        <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <i class="fa-solid fa-shield-halved" style="color: #059669;"></i>
+          <span>Transaksi aman, terverifikasi otomatis & akses langsung aktif</span>
+        </div>
       </div>
     </div>
   </div>

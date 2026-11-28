@@ -259,6 +259,124 @@
       color: var(--text-muted);
     }
 
+    /* Track Option Cards */
+    .track-option-card {
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #ffffff;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .track-option-card:hover {
+      border-color: var(--primary);
+      background: #f0fdf4;
+    }
+    .track-option-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+    .track-option-card input[type="radio"] {
+      accent-color: var(--primary);
+      width: 17px;
+      height: 17px;
+    }
+
+    /* QRIS Card Styles */
+    .qris-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px 18px;
+      margin: 18px 0;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    .qris-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .qris-logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: #dc2626;
+      line-height: 1;
+      letter-spacing: -0.5px;
+    }
+    .qris-logo-text span {
+      color: #0f172a;
+    }
+    .qris-tag-gpn {
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 5px;
+      letter-spacing: 0.5px;
+    }
+    .qris-merchant-box {
+      margin-bottom: 10px;
+    }
+    .qris-merchant-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.3px;
+    }
+    .qris-merchant-nmid {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      margin-top: 2px;
+    }
+    .qris-qr-wrap {
+      background: #ffffff;
+      border: 2px solid #0f172a;
+      border-radius: 12px;
+      padding: 12px;
+      display: inline-block;
+      margin: 10px auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .qris-qr-img {
+      width: 220px;
+      height: 220px;
+      display: block;
+      object-fit: contain;
+    }
+    .qris-apps-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .qris-app-badge {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #475569;
+    }
+
     /* Right Column: Order Summary */
     .order-summary-card {
       position: sticky;
@@ -391,6 +509,31 @@
       transform: none;
       box-shadow: none;
     }
+    .btn-pay-now.btn-age-mismatch {
+      background: #dc2626 !important;
+      opacity: 0.88;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .btn-switch-pkg {
+      background: #059669;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      transition: background 0.15s ease;
+    }
+    .btn-switch-pkg:hover {
+      background: #047857;
+    }
 
     /* Alert Message */
     .checkout-alert {
@@ -468,19 +611,6 @@
       cursor: pointer;
       color: var(--text-body);
     }
-    .upload-proof-box {
-      border: 2px dashed #cbd5e1;
-      border-radius: var(--radius-md);
-      padding: 24px 16px;
-      margin-top: 20px;
-      background: #fcfcfd;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .upload-proof-box:hover {
-      border-color: var(--primary);
-      background: var(--primary-subtle);
-    }
 
     @media (max-width: 860px) {
       .checkout-grid {
@@ -532,6 +662,16 @@
           <button type="button" id="btnSwitchAccount" class="btn-switch-account">Ganti Akun</button>
         </div>
 
+        <!-- Konfirmasi Usia Siswa untuk User yang Sudah Login -->
+        <div id="sessionAgeGroup" class="form-group" style="display: none; margin-top: 14px; background: #ffffff; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+          <label class="form-label" for="sessionChildAge" style="margin-bottom: 6px;">
+            <i class="fa-solid fa-cake-candles" style="color: var(--primary);"></i>
+            <span>Konfirmasi Usia Siswa / Anak *</span>
+          </label>
+          <input type="number" id="sessionChildAge" class="form-input" placeholder="contoh: 10 (antara 6 - 18 tahun)" min="6" max="20" required>
+          <div id="sessionAgeFeedback" style="font-size: 0.82rem; margin-top: 6px; display: none;"></div>
+        </div>
+
         <!-- If user is new (Register Form) -->
         <div id="registerSection">
           <div class="section-title">
@@ -542,6 +682,15 @@
           <div class="form-group">
             <label class="form-label" for="childFullName">Nama Lengkap Siswa / Anak *</label>
             <input type="text" id="childFullName" class="form-input" placeholder="contoh: Muhammad Rizky" required>
+          </div>
+
+          <!-- Field Usia Siswa / Anak -->
+          <div class="form-group" id="registerAgeGroup">
+            <label class="form-label" for="childAge">
+              <span>Usia Siswa / Anak *</span>
+            </label>
+            <input type="number" id="childAge" class="form-input" placeholder="contoh: 10 (antara 6 - 18 tahun)" min="6" max="20" required>
+            <div id="ageValidationFeedback" style="font-size: 0.82rem; margin-top: 6px; display: none;"></div>
           </div>
 
           <div class="form-group">
@@ -570,18 +719,18 @@
 
           <div class="payment-options-grid">
             <label class="payment-option-card selected">
-              <input type="radio" name="payMethod" value="transfer" checked>
+              <input type="radio" name="payMethod" value="qris" checked>
               <div>
-                <div class="payment-opt-title"><i class="fa-solid fa-building-columns" style="color: var(--primary);"></i> Transfer Bank</div>
-                <div class="payment-opt-desc">BCA, Mandiri, BRI, BNI</div>
+                <div class="payment-opt-title"><i class="fa-solid fa-qrcode" style="color: #dc2626;"></i> QRIS (Semua Bank & E-Wallet) <span style="background: #fee2e2; color: #dc2626; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">OTOMATIS</span></div>
+                <div class="payment-opt-desc">GoPay, OVO, DANA, Shopee, BCA, Mandiri, BRImo</div>
               </div>
             </label>
 
             <label class="payment-option-card">
-              <input type="radio" name="payMethod" value="qris">
+              <input type="radio" name="payMethod" value="transfer">
               <div>
-                <div class="payment-opt-title"><i class="fa-solid fa-qrcode" style="color: var(--indigo);"></i> QRIS Interaktif</div>
-                <div class="payment-opt-desc">GoPay, OVO, Dana, Shopee</div>
+                <div class="payment-opt-title"><i class="fa-solid fa-building-columns" style="color: var(--primary);"></i> Transfer Bank BCA</div>
+                <div class="payment-opt-desc">Rekening Resmi Ruang KKA Dieng Cyber</div>
               </div>
             </label>
           </div>
@@ -609,6 +758,15 @@
         <span class="plan-header-badge" id="summaryGradeBadge">JENJANG SD</span>
         <h3 class="plan-header-title" id="summaryPlanTitle">SD Explore (Game Dev)</h3>
         <p class="plan-header-desc" id="summaryPlanDesc">Bebas memilih fokus peminatan favorit: Game Dev, 3D Roblox, atau Web Dev.</p>
+
+        <!-- Track Choice Selector (Muncul jika paket memiliki pilihan peminatan seperti SD Explore) -->
+        <div id="trackChoiceWrapper" style="display: none; background: #f8fafc; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 14px; margin: 14px 0;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-compass" style="color: var(--primary);"></i>
+            <span>Pilih Fokus Peminatan Siswa:</span>
+          </div>
+          <div id="trackChoiceList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
 
         <!-- Billing Duration Switcher -->
         <label class="form-label">Pilih Durasi Belajar:</label>
@@ -648,6 +806,9 @@
           </div>
         </div>
 
+        <!-- Age Warning Alert on Summary Column -->
+        <div id="summaryAgeWarning" style="display: none; margin-bottom: 12px; padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.83rem; line-height: 1.45;"></div>
+
         <!-- Action Button -->
         <button type="button" id="btnSubmitCheckout" class="btn-pay-now">
           <span>Lanjutkan ke Pembayaran</span>
@@ -672,11 +833,61 @@
           Pesanan Berhasil Dibuat!
         </h2>
         <p style="color: var(--text-muted); font-size: 0.92rem;">
-          Silakan selesaikan pembayaran sebelum batas waktu berakhir. Sistem akan otomatis memverifikasi transaksi Anda:
+          Silakan selesaikan pembayaran. Sistem otomatis memverifikasi transaksi dan mengarahkan Anda ke akun koding:
         </p>
 
-        <!-- Invoice Details Box -->
-        <div class="bank-box">
+        <!-- 1. QRIS Payment Card View -->
+        <div id="qrisInvoiceBox" class="qris-card">
+          <div class="qris-header-row">
+            <div>
+              <div class="qris-logo-text">QRIS<span>.id</span></div>
+              <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-align: left;">PEMBAYARAN DIGITAL</div>
+            </div>
+            <div class="qris-tag-gpn">GPN</div>
+          </div>
+
+          <div class="qris-merchant-box">
+            <div class="qris-merchant-name">RUANG KKA - DIENG CYBER</div>
+            <div class="qris-merchant-nmid">NMID: ID1020261126789</div>
+            <div style="font-weight: 900; font-size: 1.4rem; color: #dc2626; margin-top: 6px;" id="qrisInvTotal">Rp 0</div>
+          </div>
+
+          <div class="qris-qr-wrap">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=00020101021226590014ID.LINKAJA.WWW01189360091100202611265204581253033605802ID5922RUANG%20KKA%20DIENG%20CYBER6013KOTA%20SEMARANG61055013562070703A016304" alt="QRIS Ruang KKA Dieng Cyber" class="qris-qr-img" id="qrisQrImage">
+          </div>
+
+          <p style="font-size: 0.8rem; color: #475569; max-width: 320px; margin: 0 auto; line-height: 1.4;">
+            Scan QRIS menggunakan <strong>GoPay, OVO, DANA, ShopeePay, BCA, Mandiri, BRImo</strong>, atau semua m-Banking berstandar QRIS.
+          </p>
+
+          <div class="qris-apps-footer">
+            <span class="qris-app-badge">GoPay</span>
+            <span class="qris-app-badge">OVO</span>
+            <span class="qris-app-badge">DANA</span>
+            <span class="qris-app-badge">ShopeePay</span>
+            <span class="qris-app-badge">BCA Mobile</span>
+            <span class="qris-app-badge">Livin' Mandiri</span>
+            <span class="qris-app-badge">BRImo</span>
+            <span class="qris-app-badge">LinkAja</span>
+          </div>
+
+          <!-- Expiry Timestamp & Live Countdown in QRIS box -->
+          <div style="border-top: 1px dashed #cbd5e1; margin-top: 16px; padding-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Batas Waktu Bayar:</span>
+              <span style="font-size: 0.82rem; font-weight: 800; color: #dc2626;" class="invExpiryDateText">-</span>
+            </div>
+            <div style="background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.8rem; font-weight: 700; color: #9f1239;">
+                <i class="fa-solid fa-hourglass-half"></i> Sisa Waktu QRIS:
+              </span>
+              <span style="font-family: monospace; font-size: 0.95rem; font-weight: 900; color: #e11d48;" class="invCountdownText">23:59:59</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Bank Transfer Box View -->
+        <div id="bankInvoiceBox" class="bank-box" style="display: none;">
           <div class="bank-row">
             <span style="font-size: 0.85rem; color: var(--text-muted);">Nomor Invoice:</span>
             <span style="font-weight: 800; font-family: monospace; font-size: 0.95rem; color: var(--primary);" id="invCode">SUB-...</span>
@@ -696,63 +907,33 @@
               <button type="button" class="copy-btn" id="btnCopyAcc">Salin</button>
             </div>
           </div>
-          <!-- Expiry Timestamp & Live Countdown (24 Jam / 1 Hari) -->
+          <!-- Expiry Timestamp & Live Countdown in Bank box -->
           <div class="bank-row" style="flex-direction: column; align-items: stretch; gap: 8px; padding-top: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
               <span style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Batas Waktu Bayar (1 Hari):</span>
-              <span style="font-size: 0.85rem; font-weight: 800; color: #dc2626;" id="invExpiryDate">Memuat jadwal...</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #dc2626;" class="invExpiryDateText">-</span>
             </div>
             <!-- Live Countdown Box -->
             <div style="background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.82rem; font-weight: 700; color: #9f1239;">
                 <i class="fa-solid fa-hourglass-half"></i> Sisa Waktu Pembayaran:
               </span>
-              <span style="font-family: monospace; font-size: 1.02rem; font-weight: 900; color: #e11d48;" id="invCountdown">23:59:59</span>
+              <span style="font-family: monospace; font-size: 1.02rem; font-weight: 900; color: #e11d48;" class="invCountdownText">23:59:59</span>
             </div>
           </div>
         </div>
 
-        <!-- Auto Check Payment Status -->
-        <div style="margin: 20px 0 16px;">
-          <button type="button" id="btnCheckStatus" class="btn-pay-now" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
-            <i class="fa-solid fa-arrows-rotate" id="checkStatusIcon"></i>
-            <span>Saya Sudah Bayar (Cek Otomatis)</span>
-          </button>
-          <div id="checkStatusMsg" style="font-size: 0.86rem; margin-top: 10px; text-align: center; display: none;"></div>
-        </div>
-
-        <!-- Optional Proof Upload Box (Collapsible) -->
-        <details style="text-align: left; margin-bottom: 22px; background: #f8fafc; border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
-          <summary style="font-size: 0.85rem; font-weight: 700; color: #475569; cursor: pointer;">
-            <i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Ingin melampirkan foto bukti transfer? (Opsional)
-          </summary>
-          <div style="margin-top: 14px;">
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
-              Sistem akan memverifikasi pembayaran Anda secara otomatis. Anda juga dapat melampirkan bukti struk di sini jika diperlukan:
-            </p>
-            <input type="file" id="proofFileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
-            <div class="upload-proof-box" id="dropProofBox">
-              <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 6px;"></i>
-              <div style="font-weight: 700; font-size: 0.88rem;" id="proofLabel">Klik untuk memilih foto struk / bukti transfer</div>
-              <div style="font-size: 0.72rem; color: var(--text-muted);">Mendukung format JPG, PNG (Maks 5MB)</div>
-            </div>
-
-            <button type="button" id="btnUploadProof" class="btn-pay-now" style="margin-top: 12px; height: 44px; font-size: 0.88rem;" disabled>
-              <i class="fa-solid fa-upload"></i>
-              <span>Kirim Bukti Pembayaran</span>
-            </button>
-            <div id="proofUploadMsg" style="font-size: 0.82rem; margin-top: 6px; text-align: center; display: none;"></div>
+        <!-- Real-Time Auto Detection Live Box (Automatic Redirect to Login) -->
+        <div id="liveListeningBox" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 14px 18px; margin: 18px 0; display: flex; align-items: center; gap: 14px; text-align: left;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #dcfce7; display: grid; place-items: center; flex-shrink: 0;">
+            <i class="fa-solid fa-arrows-rotate fa-spin" style="color: #16a34a; font-size: 1.15rem;"></i>
           </div>
-        </details>
-
-        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-          <a href="#" id="btnWaConfirmation" target="_blank" rel="noopener" class="btn-pay-now" style="background: #25d366; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);">
-            <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i>
-            <span>Konfirmasi Cepat via WhatsApp</span>
-          </a>
-          <a href="dashboard/dashboard.html" class="cycle-btn" style="padding: 12px; border-radius: var(--radius-md); text-decoration: none;">
-            Masuk ke Dashboard Belajar Siswa
-          </a>
+          <div>
+            <div style="font-size: 0.9rem; font-weight: 800; color: #14532d;">Menunggu Pembayaran Diterima...</div>
+            <div style="font-size: 0.78rem; color: #166534; line-height: 1.45; margin-top: 2px;">
+              Sistem memverifikasi pembayaran secara otomatis. Begitu transfer atau scan QRIS berhasil, Anda akan <strong>langsung diarahkan ke halaman login</strong>.
+            </div>
+          </div>
         </div>
 
       </div>
@@ -767,17 +948,109 @@
 
       // 1. Data Paket Fallback Frontend (Sinkron dengan script.js)
       const PACKAGES = [
-        { id: 'sd_basic', name: 'SD Basic', grade: 'SD', monthlyPrice: 350000, desc: 'Fondasi logika komputasi visual, Scratch block coding, dan animasi ceria.' },
-        { id: 'sd_explore', name: 'SD Explore', grade: 'SD', monthlyPrice: 450000, desc: 'Fokus peminatan favorit: Game Dev 2D, 3D Roblox, atau Website Development.' },
-        { id: 'sd_all', name: 'SD All-in-One', grade: 'SD', monthlyPrice: 600000, desc: 'Semua materi koding jenjang SD (Basic, Game, 3D, dan Web).' },
-        { id: 'smp_python', name: 'Python Start (SMP)', grade: 'SMP', monthlyPrice: 550000, desc: 'Pemrograman teks nyata Python, sintaks modern, dan logika algoritma.' },
-        { id: 'smp_ai', name: 'AI & Creative Tech (SMP)', grade: 'SMP', monthlyPrice: 650000, desc: 'Kecerdasan Buatan, prompt engineering, generative AI, dan aset kreatif.' },
-        { id: 'smp_gamedev3d', name: 'Game Dev 3D Lanjutan (SMP)', grade: 'SMP', monthlyPrice: 700000, desc: 'Pembuatan game 3D interaktif, fisika game, dan aset 3D WebGL.' },
-        { id: 'smp_all', name: 'Semua Learning Path (SMP)', grade: 'SMP', monthlyPrice: 950000, desc: 'Paket terlengkap SMP: Python, AI, dan Game Dev 3D.' },
-        { id: 'smk_algo', name: 'Python Lanjutan (SMA/K)', grade: 'SMK', monthlyPrice: 750000, desc: 'Struktur data advance, algoritma komputasi, dan OOP terapan.' },
-        { id: 'smk_webdev', name: 'Web Development (SMA/K)', grade: 'SMK', monthlyPrice: 800000, desc: 'Fullstack Web: Frontend, REST API, Database SQLite/MySQL.' },
-        { id: 'smk_data_ai', name: 'Data & AI Terapan (SMA/K)', grade: 'SMK', monthlyPrice: 850000, desc: 'Data science dengan Pandas, visualisasi data, dan Machine Learning.' },
-        { id: 'smk_all', name: 'Semua Learning Path (SMA/K)', grade: 'SMK', monthlyPrice: 1150000, desc: 'Jalur karir terlengkap: Python, Web Dev, dan Data/AI.' }
+        {
+          id: 'sd_basic',
+          name: 'SD Basic',
+          grade: 'SD',
+          monthlyPrice: 350000,
+          desc: 'Fondasi logika komputasi visual, Scratch block coding, dan animasi ceria.',
+          trackId: 'sd_basic',
+          trackName: 'SD Basic (Scratch & Logika Visual)'
+        },
+        {
+          id: 'sd_explore',
+          name: 'SD Explore',
+          grade: 'SD',
+          monthlyPrice: 450000,
+          desc: 'Fokus peminatan favorit: Game Dev 2D, 3D Roblox, atau Website Development.',
+          hasTrackChoice: true,
+          tracks: [
+            { id: 'sd_explore_game', name: 'Game Development (2D Arcade)', icon: 'fa-gamepad' },
+            { id: 'sd_explore_3d', name: '3D Design & Roblox World', icon: 'fa-cube' },
+            { id: 'sd_explore_web', name: 'Website Development (Web Kreatif)', icon: 'fa-globe' }
+          ]
+        },
+        {
+          id: 'sd_all',
+          name: 'SD All-in-One',
+          grade: 'SD',
+          monthlyPrice: 600000,
+          desc: 'Semua materi koding jenjang SD (Basic, Game, 3D, dan Web).',
+          trackId: 'all_sd',
+          trackName: 'Semua Learning Path SD'
+        },
+        {
+          id: 'smp_python',
+          name: 'Python Start (SMP)',
+          grade: 'SMP',
+          monthlyPrice: 550000,
+          desc: 'Pemrograman teks nyata Python, sintaks modern, dan logika algoritma.',
+          trackId: 'smp_python',
+          trackName: 'Python Start (Dasar Python & Logika)'
+        },
+        {
+          id: 'smp_ai',
+          name: 'AI & Creative Tech (SMP)',
+          grade: 'SMP',
+          monthlyPrice: 650000,
+          desc: 'Kecerdasan Buatan, prompt engineering, generative AI, dan aset kreatif.',
+          trackId: 'smp_ai',
+          trackName: 'AI & Creative Tech (Kecerdasan Buatan)'
+        },
+        {
+          id: 'smp_gamedev3d',
+          name: 'Game Dev 3D Lanjutan (SMP)',
+          grade: 'SMP',
+          monthlyPrice: 700000,
+          desc: 'Pembuatan game 3D interaktif, fisika game, dan aset 3D WebGL.',
+          trackId: 'smp_gamedev3d',
+          trackName: 'Game Dev 3D Lanjutan (3D Engine & Fisika)'
+        },
+        {
+          id: 'smp_all',
+          name: 'Semua Learning Path (SMP)',
+          grade: 'SMP',
+          monthlyPrice: 950000,
+          desc: 'Paket terlengkap SMP: Python, AI, dan Game Dev 3D.',
+          trackId: 'all_smp',
+          trackName: 'Semua Learning Path SMP'
+        },
+        {
+          id: 'smk_algo',
+          name: 'Python Lanjutan (SMA/K)',
+          grade: 'SMK',
+          monthlyPrice: 750000,
+          desc: 'Struktur data advance, algoritma komputasi, dan OOP terapan.',
+          trackId: 'smk_algo',
+          trackName: 'Python Lanjutan & Algoritma (SMA/K)'
+        },
+        {
+          id: 'smk_webdev',
+          name: 'Web Development (SMA/K)',
+          grade: 'SMK',
+          monthlyPrice: 800000,
+          desc: 'Fullstack Web: Frontend, REST API, Database SQLite/MySQL.',
+          trackId: 'smk_web',
+          trackName: 'Web Development Fullstack (SMA/K)'
+        },
+        {
+          id: 'smk_data_ai',
+          name: 'Data & AI Terapan (SMA/K)',
+          grade: 'SMK',
+          monthlyPrice: 850000,
+          desc: 'Data science dengan Pandas, visualisasi data, dan Machine Learning.',
+          trackId: 'smk_data',
+          trackName: 'Data & AI Terapan (SMA/K)'
+        },
+        {
+          id: 'smk_all',
+          name: 'Semua Learning Path (SMA/K)',
+          grade: 'SMK',
+          monthlyPrice: 1150000,
+          desc: 'Jalur karir terlengkap: Python, Web Dev, dan Data/AI.',
+          trackId: 'all_smak',
+          trackName: 'Semua Learning Path SMA/SMK'
+        }
       ];
 
       const DISCOUNTS = {
@@ -797,11 +1070,26 @@
       // URL Query Params
       const params = new URLSearchParams(window.location.search);
       const initialPkgId = params.get('package') || 'sd_explore';
+      const initialTrackParam = params.get('track');
       let selectedDuration = parseInt(params.get('duration'), 10) || 3;
       let selectedPackage = PACKAGES.find(p => p.id === initialPkgId) || PACKAGES[1];
+      let selectedTrack = null;
+
+      if (selectedPackage.hasTrackChoice && selectedPackage.tracks) {
+        if (initialTrackParam) {
+          selectedTrack = selectedPackage.tracks.find(t => 
+            t.name.toLowerCase().includes(initialTrackParam.toLowerCase()) || 
+            t.id.toLowerCase() === initialTrackParam.toLowerCase()
+          ) || selectedPackage.tracks[0];
+        } else {
+          selectedTrack = selectedPackage.tracks[0];
+        }
+      } else {
+        selectedTrack = { id: selectedPackage.trackId, name: selectedPackage.trackName || selectedPackage.name };
+      }
+
       let activePromo = null;
       let currentPaymentId = null;
-      let selectedProofBase64 = null;
 
       // Hapus status trial lama agar akun tidak dianggap akun trial gratis
       localStorage.removeItem('trial_active');
@@ -813,9 +1101,17 @@
       const checkoutAlert = document.getElementById('checkoutAlert');
       const userSessionCard = document.getElementById('userSessionCard');
       const registerSection = document.getElementById('registerSection');
+      const childAgeInput = document.getElementById('childAge');
+      const sessionChildAgeInput = document.getElementById('sessionChildAge');
+      const ageValidationFeedback = document.getElementById('ageValidationFeedback');
+      const sessionAgeFeedback = document.getElementById('sessionAgeFeedback');
+      const sessionAgeGroup = document.getElementById('sessionAgeGroup');
+      const summaryAgeWarning = document.getElementById('summaryAgeWarning');
       const summaryGradeBadge = document.getElementById('summaryGradeBadge');
       const summaryPlanTitle = document.getElementById('summaryPlanTitle');
       const summaryPlanDesc = document.getElementById('summaryPlanDesc');
+      const trackChoiceWrapper = document.getElementById('trackChoiceWrapper');
+      const trackChoiceList = document.getElementById('trackChoiceList');
       const calcDurationText = document.getElementById('calcDurationText');
       const calcSubtotal = document.getElementById('calcSubtotal');
       const rowDurationDiscount = document.getElementById('rowDurationDiscount');
@@ -828,6 +1124,231 @@
       const promoCodeInput = document.getElementById('promoCode');
       const btnApplyPromo = document.getElementById('btnApplyPromo');
       const promoMessage = document.getElementById('promoMessage');
+
+      // Pre-fill Usia Siswa dari parameter URL atau localStorage jika ada
+      const initialAgeParam = params.get('age') || localStorage.getItem('trial_child_age') || localStorage.getItem('student_age') || '';
+      if (initialAgeParam) {
+        if (childAgeInput) childAgeInput.value = initialAgeParam;
+        if (sessionChildAgeInput) sessionChildAgeInput.value = initialAgeParam;
+      }
+
+      function getActiveAgeInput() {
+        const isLogged = authToken && (currentUsername || currentEmail);
+        return isLogged ? sessionChildAgeInput : childAgeInput;
+      }
+
+      function getActiveAgeFeedback() {
+        const isLogged = authToken && (currentUsername || currentEmail);
+        return isLogged ? sessionAgeFeedback : ageValidationFeedback;
+      }
+
+      // Validasi Kecocokan Usia dengan Jenjang Paket
+      function checkAgeMatch(age, pkg) {
+        if (!age || isNaN(age)) {
+          return {
+            valid: false,
+            status: 'empty',
+            message: 'Silakan isi usia siswa / anak terlebih dahulu untuk memverifikasi kesesuaian materi belajar.'
+          };
+        }
+
+        if (age < 6) {
+          return {
+            valid: false,
+            status: 'too_young',
+            message: `Usia anak (${age} tahun) belum mencukupi. Program kurikulum Dieng Cyber ditujukan untuk anak usia minimal 6 tahun.`
+          };
+        }
+
+        if (age > 20) {
+          return {
+            valid: false,
+            status: 'too_old',
+            message: `Usia anak (${age} tahun) melebihi batas usia siswa program Dieng Cyber (maksimal 20 tahun).`
+          };
+        }
+
+        const grade = (pkg.grade || '').toUpperCase();
+
+        if (grade === 'SD') {
+          if (age >= 6 && age <= 12) {
+            return {
+              valid: true,
+              status: 'match',
+              message: `Usia ${age} tahun sesuai dengan paket ${pkg.name} (Jenjang SD: 6 – 12 Tahun).`
+            };
+          } else if (age >= 13 && age <= 15) {
+            return {
+              valid: false,
+              status: 'mismatch',
+              suggestPkgId: 'smp_python',
+              suggestPkgName: 'Python Start (SMP)',
+              suggestGrade: 'SMP',
+              message: `Usia siswa (${age} tahun) tidak sesuai untuk paket jenjang SD (usia 6 – 12 tahun). Untuk usia ${age} tahun, disarankan memilih paket jenjang SMP (13 – 15 tahun).`
+            };
+          } else {
+            return {
+              valid: false,
+              status: 'mismatch',
+              suggestPkgId: 'smk_algo',
+              suggestPkgName: 'Python Lanjutan (SMA/K)',
+              suggestGrade: 'SMA/K',
+              message: `Usia siswa (${age} tahun) tidak sesuai untuk paket jenjang SD (usia 6 – 12 tahun). Untuk usia ${age} tahun, disarankan memilih paket jenjang SMA/K (16 – 18+ tahun).`
+            };
+          }
+        }
+
+        if (grade === 'SMP') {
+          if (age >= 13 && age <= 15) {
+            return {
+              valid: true,
+              status: 'match',
+              message: `Usia ${age} tahun sesuai dengan paket ${pkg.name} (Jenjang SMP: 13 – 15 Tahun).`
+            };
+          } else if (age <= 12) {
+            return {
+              valid: false,
+              status: 'mismatch',
+              suggestPkgId: 'sd_explore',
+              suggestPkgName: 'SD Explore (SD)',
+              suggestGrade: 'SD',
+              message: `Usia siswa (${age} tahun) tidak sesuai untuk paket jenjang SMP (usia 13 – 15 tahun). Materi SMP menggunakan pemrograman teks Python. Untuk usia ${age} tahun, disarankan memilih paket jenjang SD (6 – 12 tahun).`
+            };
+          } else {
+            return {
+              valid: false,
+              status: 'mismatch',
+              suggestPkgId: 'smk_algo',
+              suggestPkgName: 'Python Lanjutan (SMA/K)',
+              suggestGrade: 'SMA/K',
+              message: `Usia siswa (${age} tahun) tidak sesuai untuk paket jenjang SMP (usia 13 – 15 tahun). Untuk usia ${age} tahun, disarankan memilih paket jenjang SMA/K (16 – 18+ tahun).`
+            };
+          }
+        }
+
+        if (grade === 'SMK' || grade === 'SMA') {
+          if (age >= 16 && age <= 20) {
+            return {
+              valid: true,
+              status: 'match',
+              message: `Usia ${age} tahun sesuai dengan paket ${pkg.name} (Jenjang SMA/K: 16 – 18+ Tahun).`
+            };
+          } else if (age <= 12) {
+            return {
+              valid: false,
+              status: 'mismatch',
+              suggestPkgId: 'sd_explore',
+              suggestPkgName: 'SD Explore (SD)',
+              suggestGrade: 'SD',
+              message: `Usia siswa (${age} tahun) tidak sesuai untuk paket jenjang SMA/K (usia 16 – 18+ tahun). Untuk usia ${age} tahun, disarankan memilih paket jenjang SD (6 – 12 tahun).`
+            };
+          } else {
+            return {
+              valid: false,
+              status: 'mismatch',
+              suggestPkgId: 'smp_python',
+              suggestPkgName: 'Python Start (SMP)',
+              suggestGrade: 'SMP',
+              message: `Usia siswa (${age} tahun) tidak sesuai untuk paket jenjang SMA/K (usia 16 – 18+ tahun). Untuk usia ${age} tahun, disarankan memilih paket jenjang SMP (13 – 15 tahun).`
+            };
+          }
+        }
+
+        return { valid: true, status: 'match', message: 'Usia sesuai.' };
+      }
+
+      function validateAgeAndUI() {
+        const inputEl = getActiveAgeInput();
+        const feedbackEl = getActiveAgeFeedback();
+        const ageVal = inputEl ? inputEl.value.trim() : '';
+        const age = parseInt(ageVal, 10);
+
+        if (!inputEl) return true;
+
+        if (!ageVal) {
+          if (feedbackEl) {
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.background = '#f8fafc';
+            feedbackEl.style.border = '1px solid #cbd5e1';
+            feedbackEl.style.color = '#64748b';
+            feedbackEl.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #059669;"></i> Masukkan usia anak untuk memastikan kesesuaian materi paket.';
+          }
+          if (summaryAgeWarning) {
+            summaryAgeWarning.style.display = 'none';
+          }
+          btnSubmitCheckout.disabled = false;
+          btnSubmitCheckout.classList.remove('btn-age-mismatch');
+          btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+          return false;
+        }
+
+        const res = checkAgeMatch(age, selectedPackage);
+
+        if (!res.valid) {
+          let switchBtnHtml = '';
+          if (res.suggestPkgId) {
+            switchBtnHtml = `
+              <div style="margin-top: 6px;">
+                <button type="button" class="btn-switch-pkg" onclick="window.switchPackageTo('${res.suggestPkgId}')">
+                  <i class="fa-solid fa-arrow-right-arrow-left"></i> Beralih ke ${res.suggestPkgName}
+                </button>
+              </div>`;
+          }
+
+          if (feedbackEl) {
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.background = '#fef2f2';
+            feedbackEl.style.border = '1.5px solid #fecaca';
+            feedbackEl.style.color = '#991b1b';
+            feedbackEl.innerHTML = `<div><i class="fa-solid fa-triangle-exclamation"></i> ${res.message}</div>${switchBtnHtml}`;
+          }
+
+          if (summaryAgeWarning) {
+            summaryAgeWarning.style.display = 'block';
+            summaryAgeWarning.style.background = '#fef2f2';
+            summaryAgeWarning.style.border = '1.5px solid #fecaca';
+            summaryAgeWarning.style.color = '#991b1b';
+            summaryAgeWarning.innerHTML = `<div><i class="fa-solid fa-triangle-exclamation"></i> <strong>Usia belum sesuai:</strong> ${res.message}</div>${switchBtnHtml}`;
+          }
+
+          btnSubmitCheckout.disabled = true;
+          btnSubmitCheckout.classList.add('btn-age-mismatch');
+          btnSubmitCheckout.innerHTML = '<i class="fa-solid fa-lock"></i><span>Usia Belum Sesuai dengan Paket</span>';
+          return false;
+        } else {
+          if (feedbackEl) {
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.background = '#ecfdf5';
+            feedbackEl.style.border = '1.5px solid #a7f3d0';
+            feedbackEl.style.color = '#065f46';
+            feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${res.message}`;
+          }
+
+          if (summaryAgeWarning) {
+            summaryAgeWarning.style.display = 'none';
+          }
+
+          btnSubmitCheckout.disabled = false;
+          btnSubmitCheckout.classList.remove('btn-age-mismatch');
+          btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+          return true;
+        }
+      }
+
+      window.switchPackageTo = function (pkgId) {
+        const found = PACKAGES.find(p => p.id === pkgId);
+        if (found) {
+          selectedPackage = found;
+          if (selectedPackage.hasTrackChoice && selectedPackage.tracks) {
+            selectedTrack = selectedPackage.tracks[0];
+          } else {
+            selectedTrack = { id: selectedPackage.trackId, name: selectedPackage.trackName || selectedPackage.name };
+          }
+          updateCalculations();
+          validateAgeAndUI();
+          showAlert('success', `Paket berhasil dialihkan ke <strong>${selectedPackage.name}</strong>.`);
+        }
+      };
 
       function formatRupiah(num) {
         return 'Rp ' + Math.round(num).toLocaleString('id-ID');
@@ -844,6 +1365,43 @@
         checkoutAlert.style.display = 'none';
       }
 
+      // Render Pilihan Fokus Peminatan (jika paket seperti SD Explore)
+      function renderTrackChoices() {
+        if (!selectedPackage.hasTrackChoice || !selectedPackage.tracks) {
+          if (trackChoiceWrapper) trackChoiceWrapper.style.display = 'none';
+          return;
+        }
+
+        if (trackChoiceWrapper) trackChoiceWrapper.style.display = 'block';
+        if (trackChoiceList) {
+          trackChoiceList.innerHTML = selectedPackage.tracks.map((tr) => `
+            <label class="track-option-card ${selectedTrack && selectedTrack.id === tr.id ? 'selected' : ''}">
+              <input type="radio" name="optTrack" value="${tr.id}" ${selectedTrack && selectedTrack.id === tr.id ? 'checked' : ''}>
+              <i class="fa-solid ${tr.icon || 'fa-code'}" style="color: var(--primary); font-size: 1.05rem;"></i>
+              <div style="flex: 1;">
+                <div style="font-weight: 700; color: var(--text-main); font-size: 0.88rem;">${tr.name}</div>
+              </div>
+            </label>
+          `).join('');
+
+          trackChoiceList.querySelectorAll('.track-option-card').forEach(card => {
+            card.addEventListener('click', () => {
+              trackChoiceList.querySelectorAll('.track-option-card').forEach(c => c.classList.remove('selected'));
+              card.classList.add('selected');
+              const radio = card.querySelector('input[type="radio"]');
+              if (radio) {
+                radio.checked = true;
+                const found = selectedPackage.tracks.find(t => t.id === radio.value);
+                if (found) {
+                  selectedTrack = found;
+                  updateCalculations();
+                }
+              }
+            });
+          });
+        }
+      }
+
       // Check User Session
       const authToken = localStorage.getItem('authToken');
       const currentUsername = localStorage.getItem('username');
@@ -852,9 +1410,36 @@
       if (authToken && (currentUsername || currentEmail)) {
         userSessionCard.style.display = 'flex';
         registerSection.style.display = 'none';
+        if (sessionAgeGroup) sessionAgeGroup.style.display = 'block';
         document.getElementById('sessionUserName').textContent = currentUsername || 'Siswa Terdaftar';
         document.getElementById('sessionUserEmail').textContent = currentEmail || 'Akun Aktif';
         document.getElementById('sessionAvatarInitial').textContent = (currentUsername || 'S').charAt(0).toUpperCase();
+      } else {
+        if (sessionAgeGroup) sessionAgeGroup.style.display = 'none';
+        if (registerSection) registerSection.style.display = 'block';
+      }
+
+      // Event listener input usia siswa
+      if (childAgeInput) {
+        childAgeInput.addEventListener('input', () => {
+          if (sessionChildAgeInput) sessionChildAgeInput.value = childAgeInput.value;
+          validateAgeAndUI();
+        });
+        childAgeInput.addEventListener('change', () => {
+          if (sessionChildAgeInput) sessionChildAgeInput.value = childAgeInput.value;
+          validateAgeAndUI();
+        });
+      }
+
+      if (sessionChildAgeInput) {
+        sessionChildAgeInput.addEventListener('input', () => {
+          if (childAgeInput) childAgeInput.value = sessionChildAgeInput.value;
+          validateAgeAndUI();
+        });
+        sessionChildAgeInput.addEventListener('change', () => {
+          if (childAgeInput) childAgeInput.value = sessionChildAgeInput.value;
+          validateAgeAndUI();
+        });
       }
 
       document.getElementById('btnSwitchAccount').addEventListener('click', () => {
@@ -875,11 +1460,25 @@
         });
       });
 
+      // Payment option selector (Step 1)
+      const payOptionCards = document.querySelectorAll('.payment-option-card');
+      payOptionCards.forEach(card => {
+        card.addEventListener('click', () => {
+          payOptionCards.forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          const radio = card.querySelector('input[type="radio"]');
+          if (radio) radio.checked = true;
+        });
+      });
+
       // Update Order Calculation
       function updateCalculations() {
         summaryGradeBadge.textContent = `JENJANG ${selectedPackage.grade}`;
-        summaryPlanTitle.textContent = selectedPackage.name;
+        const trackTitleSuffix = (selectedTrack && selectedPackage.hasTrackChoice) ? ` (${selectedTrack.name.split(' (')[0]})` : '';
+        summaryPlanTitle.textContent = selectedPackage.name + trackTitleSuffix;
         summaryPlanDesc.textContent = selectedPackage.desc;
+
+        renderTrackChoices();
 
         const baseMonthly = selectedPackage.monthlyPrice;
         const subtotal = baseMonthly * selectedDuration;
@@ -919,6 +1518,7 @@
       }
 
       updateCalculations();
+      validateAgeAndUI();
 
       // Apply Promo
       btnApplyPromo.addEventListener('click', () => {
@@ -943,6 +1543,39 @@
       // Submit Checkout Process
       btnSubmitCheckout.addEventListener('click', async () => {
         hideAlert();
+
+        // 1. Validasi Wajib Usia Anak Terhadap Paket yang Dipilih
+        const activeAgeInput = getActiveAgeInput();
+        const ageVal = activeAgeInput ? activeAgeInput.value.trim() : '';
+        const ageNum = parseInt(ageVal, 10);
+
+        if (!ageVal || isNaN(ageNum)) {
+          showAlert('error', 'Mohon isi kolom <strong>Usia Siswa / Anak</strong> terlebih dahulu sebelum melanjutkan ke pembayaran.');
+          if (activeAgeInput) {
+            activeAgeInput.focus();
+            activeAgeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          validateAgeAndUI();
+          btnSubmitCheckout.disabled = false;
+          btnSubmitCheckout.innerHTML = '<span>Lanjutkan ke Pembayaran</span><i class="fa-solid fa-arrow-right"></i>';
+          return;
+        }
+
+        const ageCheck = checkAgeMatch(ageNum, selectedPackage);
+        if (!ageCheck.valid) {
+          showAlert('error', `<strong>Pembayaran Terkunci:</strong> ${ageCheck.message}`);
+          if (activeAgeInput) {
+            activeAgeInput.focus();
+            activeAgeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          validateAgeAndUI();
+          return;
+        }
+
+        // Simpan data usia siswa yang telah divalidasi
+        localStorage.setItem('student_age', ageNum);
+        localStorage.setItem('trial_child_age', ageNum);
+
         btnSubmitCheckout.disabled = true;
         btnSubmitCheckout.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses Pesanan...</span>';
 
@@ -979,7 +1612,8 @@
                 password,
                 fullName,
                 phone,
-                role: 'student'
+                role: 'student',
+                age: ageNum
               })
             });
 
@@ -1002,12 +1636,36 @@
             localStorage.setItem('email', regData.email || email);
             localStorage.setItem('role', 'student');
 
+            const gradeCode = selectedPackage.grade.toLowerCase() === 'smk' ? 'smak' : selectedPackage.grade.toLowerCase();
+            const activeTrackId = selectedTrack ? selectedTrack.id : (selectedPackage.trackId || '');
+            const activeTrackName = selectedTrack ? selectedTrack.name : (selectedPackage.trackName || selectedPackage.name);
+
             // Set akun sebagai pembeli paket berbayar resmi
             localStorage.setItem('account_type', 'paid_subscription');
             localStorage.setItem('purchased_package', selectedPackage.name);
             localStorage.setItem('purchased_package_id', selectedPackage.id);
-            localStorage.setItem('purchased_package_grade', selectedPackage.grade);
+            localStorage.setItem('purchased_package_grade', gradeCode);
+            localStorage.setItem('purchased_track_id', activeTrackId);
+            localStorage.setItem('purchased_track_name', activeTrackName);
+            localStorage.setItem('lastGrade', gradeCode);
             localStorage.setItem('payment_pending', 'true');
+
+            const activeUname = regData.username || email.split('@')[0];
+            try {
+              localStorage.setItem('allowedGrades_' + activeUname, JSON.stringify([gradeCode]));
+            } catch (_) {}
+
+            // Sinkronkan ke database server agar allowed_grades user langsung terbatas di server
+            try {
+              await fetch('/api/user/allowed-grades', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ grades: [selectedPackage.grade] })
+              });
+            } catch (_) {}
 
           } catch (err) {
             showAlert('error', 'Koneksi ke server terganggu saat membuat akun. Periksa internet Anda.');
@@ -1065,6 +1723,7 @@
       });
 
       let countdownInterval = null;
+      let autoDetectorInterval = null;
 
       function formatIndoDateTime(dateObj) {
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -1081,18 +1740,20 @@
       function startExpiryCountdown(expiryTs) {
         if (countdownInterval) clearInterval(countdownInterval);
 
-        const elCountdown = document.getElementById('invCountdown');
-        const elDate = document.getElementById('invExpiryDate');
-        if (!elCountdown || !elDate) return;
+        const elCountdowns = document.querySelectorAll('.invCountdownText');
+        const elDates = document.querySelectorAll('.invExpiryDateText');
+        const formattedDate = formatIndoDateTime(new Date(expiryTs));
 
-        elDate.textContent = formatIndoDateTime(new Date(expiryTs));
+        elDates.forEach(el => { el.textContent = formattedDate; });
 
         function tick() {
           const now = Date.now();
           const diff = expiryTs - now;
 
           if (diff <= 0) {
-            elCountdown.innerHTML = '<span style="color: #64748b;">Kedaluwarsa (00:00:00)</span>';
+            elCountdowns.forEach(el => {
+              el.innerHTML = '<span style="color: #64748b;">Kedaluwarsa (00:00:00)</span>';
+            });
             clearInterval(countdownInterval);
             return;
           }
@@ -1105,11 +1766,88 @@
           const mStr = String(mins).padStart(2, '0');
           const sStr = String(secs).padStart(2, '0');
 
-          elCountdown.innerHTML = `<span style="letter-spacing: 1px;">${hStr}:${mStr}:${sStr}</span> <span style="font-size: 0.8rem; font-weight: 700; color: #9f1239;">(kurang ${hours} jam ${mins} mnt)</span>`;
+          elCountdowns.forEach(el => {
+            el.innerHTML = `<span style="letter-spacing: 1px;">${hStr}:${mStr}:${sStr}</span> <span style="font-size: 0.78rem; font-weight: 700; color: #9f1239;">(kurang ${hours} jam ${mins} mnt)</span>`;
+          });
         }
 
         tick();
         countdownInterval = setInterval(tick, 1000);
+      }
+
+      const qrisInvoiceBox = document.getElementById('qrisInvoiceBox');
+      const bankInvoiceBox = document.getElementById('bankInvoiceBox');
+
+      // Redirect otomatis ke login setelah pembayaran berhasil
+      function proceedToLoginSuccess(targetEmail) {
+        if (autoDetectorInterval) clearInterval(autoDetectorInterval);
+        localStorage.removeItem('payment_pending');
+        localStorage.setItem('account_type', 'paid_subscription');
+
+        const liveBox = document.getElementById('liveListeningBox');
+        if (liveBox) {
+          liveBox.style.background = '#dcfce7';
+          liveBox.style.borderColor = '#22c55e';
+          liveBox.innerHTML = `
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: #ffffff; display: grid; place-items: center; flex-shrink: 0;">
+              <i class="fa-solid fa-check" style="font-size: 1.25rem;"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.95rem; font-weight: 800; color: #14532d;">🎉 Pembayaran Berhasil Dikonfirmasi!</div>
+              <div style="font-size: 0.8rem; color: #15803d; line-height: 1.4; margin-top: 2px;">
+                Akun belajar anak Anda telah aktif. Mengalihkan Anda langsung ke halaman login...
+              </div>
+            </div>
+          `;
+        }
+
+        setTimeout(() => {
+          const emailParam = encodeURIComponent(targetEmail || localStorage.getItem('email') || '');
+          window.location.href = `index.html?payment=success&email=${emailParam}`;
+        }, 1300);
+      }
+
+      // Detektor Pembayaran Otomatis di Background (Polling)
+      function startAutoPaymentDetector(paymentId, userEmail) {
+        if (autoDetectorInterval) clearInterval(autoDetectorInterval);
+
+        async function probe() {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+
+          try {
+            let isPaid = false;
+
+            if (paymentId) {
+              const res = await fetch(`/api/subscription/payments/${paymentId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+              });
+              const data = await res.json().catch(() => ({}));
+              const status = data.data?.item?.status || data.item?.status;
+              if (status === 'confirmed' || status === 'active') {
+                isPaid = true;
+              }
+            }
+
+            if (!isPaid) {
+              const resSub = await fetch('/api/subscription', {
+                headers: { 'Authorization': 'Bearer ' + token }
+              });
+              const dataSub = await resSub.json().catch(() => ({}));
+              const subObj = dataSub.data?.subscription || dataSub.subscription;
+              if (subObj?.active) {
+                isPaid = true;
+              }
+            }
+
+            if (isPaid) {
+              proceedToLoginSuccess(userEmail);
+            }
+          } catch (_) {}
+        }
+
+        // Cek secara berkala tanpa tombol
+        autoDetectorInterval = setInterval(probe, 3000);
       }
 
       // Tampilkan Screen Invoice
@@ -1119,32 +1857,68 @@
         document.getElementById('invoiceScreen').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        document.getElementById('invCode').textContent = payment?.code || 'SUB-2026';
-        document.getElementById('invTotal').textContent = typeof payment?.total === 'number' ? formatRupiah(payment.total) : payment?.total || calcFinalTotal.textContent;
-        document.getElementById('invBank').textContent = instructions?.bankName || 'Bank BCA (Ruang KKA Dieng Cyber)';
-        document.getElementById('invAccount').textContent = instructions?.accountNumber || '8210-9988-77';
+        // Prioritaskan harga kalkulasi checkout (yang sudah dipotong durasi & voucher promo)
+        let totalFormatted = (calcFinalTotal && calcFinalTotal.textContent && calcFinalTotal.textContent !== 'Rp 0')
+          ? calcFinalTotal.textContent
+          : (typeof payment?.total === 'number' ? formatRupiah(payment.total) : payment?.total || 'Rp 149.000');
+        const totalClean = parseInt(totalFormatted.replace(/[^0-9]/g, ''), 10) || 149000;
+        const paymentCode = payment?.code || ('SUB-' + Math.floor(100000 + Math.random() * 900000));
+        const currentUserEmail = localStorage.getItem('email') || '';
+
+        // Ambil konfigurasi pembayaran dari Admin Setting jika ada
+        let paySettings = {};
+        try { paySettings = JSON.parse(localStorage.getItem('dc_payment_settings')) || {}; } catch (_) {}
+
+        const bankNameDisplay = instructions?.bankName || paySettings.bankName || 'Bank BCA (Ruang KKA Dieng Cyber)';
+        const bankAccDisplay = instructions?.accountNumber || paySettings.bankAccount || '8210-9988-77';
+
+        document.getElementById('invCode').textContent = paymentCode;
+        document.getElementById('invTotal').textContent = totalFormatted;
+        document.getElementById('qrisInvTotal').textContent = totalFormatted;
+        document.getElementById('invBank').textContent = bankNameDisplay;
+        document.getElementById('invAccount').textContent = bankAccDisplay;
+
+        // Bangun QRIS Dinamis Asli (Mengikuti setting Admin bila ada)
+        const merchantName = (paySettings.qrisMerchantName || 'RUANG KKA DIENG CYBER').toUpperCase();
+        const basePayload = paySettings.qrisPayload || '00020101021226590014ID.LINKAJA.WWW0118936009110020261126520458125303360540';
+        const qrisData = `${basePayload}${String(totalClean).length}${totalClean}5802ID5922${merchantName}6013KOTA SEMARANG61055013562070703${paymentCode}6304`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(qrisData)}`;
+        const elQrImg = document.getElementById('qrisQrImage');
+        if (elQrImg) elQrImg.src = qrUrl;
+
+        // Tampilkan HANYA kartu metode pembayaran yang dipilih saat mengisi data di Step 1
+        const chosenMethod = document.querySelector('input[name="payMethod"]:checked')?.value || 'qris';
+        if (chosenMethod === 'transfer') {
+          if (qrisInvoiceBox) qrisInvoiceBox.style.display = 'none';
+          if (bankInvoiceBox) bankInvoiceBox.style.display = 'block';
+        } else {
+          if (qrisInvoiceBox) qrisInvoiceBox.style.display = 'block';
+          if (bankInvoiceBox) bankInvoiceBox.style.display = 'none';
+        }
 
         // Hitung tenggat waktu 24 jam (1 Hari)
         const expiryTs = Date.now() + 24 * 60 * 60 * 1000;
         startExpiryCountdown(expiryTs);
 
         // Simpan data invoice untuk status dashboard
+        const gradeCode = selectedPackage.grade.toLowerCase() === 'smk' ? 'smak' : selectedPackage.grade.toLowerCase();
+        const activeTrackId = selectedTrack ? selectedTrack.id : (selectedPackage.trackId || '');
+        const activeTrackName = selectedTrack ? selectedTrack.name : (selectedPackage.trackName || selectedPackage.name);
+
         localStorage.setItem('account_type', 'paid_subscription');
         localStorage.setItem('purchased_package', selectedPackage.name);
+        localStorage.setItem('purchased_package_id', selectedPackage.id);
+        localStorage.setItem('purchased_package_grade', gradeCode);
+        localStorage.setItem('purchased_track_id', activeTrackId);
+        localStorage.setItem('purchased_track_name', activeTrackName);
+        localStorage.setItem('lastGrade', gradeCode);
         localStorage.setItem('payment_pending', 'true');
-        localStorage.setItem('pending_invoice_code', payment?.code || 'SUB-2026');
-        localStorage.setItem('pending_invoice_total', document.getElementById('invTotal').textContent);
+        localStorage.setItem('pending_invoice_code', paymentCode);
+        localStorage.setItem('pending_invoice_total', totalFormatted);
         localStorage.setItem('pending_invoice_expiry_ts', String(expiryTs));
 
-        // WhatsApp confirmation button
-        const textWa = encodeURIComponent(
-          `Halo Admin Dieng Cyber! Saya telah membuat pesanan paket:\n` +
-          `• Invoice: ${payment?.code || '-'}\n` +
-          `• Paket: ${selectedPackage.name} (${selectedDuration} Bulan)\n` +
-          `• Total: ${document.getElementById('invTotal').textContent}\n\n` +
-          `Mohon info rekening dan konfirmasi pembayarannya. Terima kasih!`
-        );
-        document.getElementById('btnWaConfirmation').href = `https://wa.me/6281222334455?text=${textWa}`;
+        // Mulai deteksi pembayaran otomatis tanpa tombol
+        startAutoPaymentDetector(currentPaymentId, currentUserEmail);
       }
 
       // Copy Account Number
@@ -1155,135 +1929,6 @@
           setTimeout(() => { document.getElementById('btnCopyAcc').textContent = 'Salin'; }, 2000);
         });
       });
-
-      // File Upload Proof
-      const dropProofBox = document.getElementById('dropProofBox');
-      const proofFileInput = document.getElementById('proofFileInput');
-      const btnUploadProof = document.getElementById('btnUploadProof');
-      const proofLabel = document.getElementById('proofLabel');
-      const proofUploadMsg = document.getElementById('proofUploadMsg');
-
-      dropProofBox.addEventListener('click', () => proofFileInput.click());
-
-      proofFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-          alert('Ukuran file maksimal 5MB.');
-          return;
-        }
-
-        proofLabel.textContent = `File terpilih: ${file.name}`;
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-          selectedProofBase64 = evt.target.result;
-          btnUploadProof.disabled = false;
-        };
-        reader.readAsDataURL(file);
-      });
-
-      btnUploadProof.addEventListener('click', async () => {
-        if (!selectedProofBase64 || !currentPaymentId) return;
-
-        btnUploadProof.disabled = true;
-        btnUploadProof.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Mengunggah Bukti...</span>';
-
-        const token = localStorage.getItem('authToken');
-
-        try {
-          const res = await fetch(`/api/subscription/payments/${currentPaymentId}/proof`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify({ image: selectedProofBase64 })
-          });
-
-          if (res.ok) {
-            proofUploadMsg.style.color = '#059669';
-            proofUploadMsg.innerHTML = '✓ <strong>Bukti pembayaran berhasil dikirim!</strong> Tim Dieng Cyber akan segera memverifikasi dan mengaktifkan akun anak.';
-            proofUploadMsg.style.display = 'block';
-            btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
-          } else {
-            proofUploadMsg.style.color = '#059669';
-            proofUploadMsg.innerHTML = '✓ Bukti telah diterima. Silakan konfirmasi juga via WhatsApp ke Admin.';
-            proofUploadMsg.style.display = 'block';
-            btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
-          }
-        } catch (e) {
-          proofUploadMsg.style.color = '#059669';
-          proofUploadMsg.innerHTML = '✓ Bukti tersimpan. Hubungi admin via WhatsApp untuk aktivasi kilat.';
-          proofUploadMsg.style.display = 'block';
-          btnUploadProof.innerHTML = '<i class="fa-solid fa-check"></i><span>Terkirim</span>';
-        }
-      });
-
-      // Cek Status Pembayaran Otomatis Tanpa Upload Bukti
-      const btnCheckStatus = document.getElementById('btnCheckStatus');
-      const checkStatusIcon = document.getElementById('checkStatusIcon');
-      const checkStatusMsg = document.getElementById('checkStatusMsg');
-
-      if (btnCheckStatus) {
-        btnCheckStatus.addEventListener('click', async () => {
-          checkStatusIcon.classList.add('fa-spin');
-          btnCheckStatus.disabled = true;
-          checkStatusMsg.style.display = 'block';
-          checkStatusMsg.style.color = '#2563eb';
-          checkStatusMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa mutasi & status pembayaran gateway...';
-
-          const token = localStorage.getItem('authToken');
-
-          try {
-            let isConfirmed = false;
-
-            if (currentPaymentId && token) {
-              const res = await fetch(`/api/subscription/payments/${currentPaymentId}`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-              });
-              const data = await res.json().catch(() => ({}));
-              const status = data.data?.item?.status || data.item?.status;
-              if (status === 'confirmed' || status === 'active') {
-                isConfirmed = true;
-              }
-            }
-
-            // Cek juga status subscription siswa secara umum
-            if (!isConfirmed && token) {
-              const resSub = await fetch('/api/subscription', {
-                headers: { 'Authorization': 'Bearer ' + token }
-              });
-              const dataSub = await resSub.json().catch(() => ({}));
-              const subObj = dataSub.data?.subscription || dataSub.subscription;
-              if (subObj?.active) {
-                isConfirmed = true;
-              }
-            }
-
-            if (isConfirmed) {
-              checkStatusMsg.style.color = '#059669';
-              checkStatusMsg.innerHTML = '🎉 <strong>Pembayaran Berhasil Terkonfirmasi!</strong> Akun belajar Anda telah aktif. Mengalihkan ke dashboard...';
-              localStorage.removeItem('payment_pending');
-              localStorage.setItem('account_type', 'paid_subscription');
-              setTimeout(() => {
-                window.location.href = 'dashboard/dashboard.html';
-              }, 1600);
-            } else {
-              checkStatusMsg.style.color = '#b45309';
-              checkStatusMsg.innerHTML = '⏳ <strong>Menunggu Notifikasi Masuk</strong>. Pembayaran Anda sedang diproses oleh sistem gateway. Jika baru saja transfer, mohon tunggu 1-2 menit lalu klik cek kembali.';
-              btnCheckStatus.disabled = false;
-              checkStatusIcon.classList.remove('fa-spin');
-            }
-
-          } catch (e) {
-            checkStatusMsg.style.color = '#b45309';
-            checkStatusMsg.innerHTML = '⏳ Menunggu konfirmasi gateway. Silakan klik cek kembali atau konfirmasi via WhatsApp.';
-            btnCheckStatus.disabled = false;
-            checkStatusIcon.classList.remove('fa-spin');
-          }
-        });
-      }
 
     })();
   </script>

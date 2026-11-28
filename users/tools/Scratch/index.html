@@ -8,6 +8,7 @@
   >
   <title>Scratch Studio • Ruang KKA</title>
   <meta name="description" content="Editor blok ala Scratch di Ruang KKA: susun blok, jalankan skrip, dan buat animasi atau game sederhana langsung di browser.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css?v=20261019">
 </head>
 
@@ -63,52 +64,173 @@
 
 
   <!-- =====================================================
-       NAVBAR
+       NAVBAR (ALA SCRATCH 3.0 RESMI DENGAN LOGO RUANG KKA)
        ===================================================== -->
   <header class="navbar">
 
     <div class="nav-left">
 
-      <h1 class="logo">
-        Scratch Web
-      </h1>
+      <!-- Logo Studio Ruang KKA (Klik Tetap di Halaman Scratch) -->
+      <a href="javascript:void(0)" class="scratch-brand-link" id="brand-logo-btn" title="Ruang KKA Scratch Studio">
+        <img
+          src="../../Assets/logo.webp"
+          onerror="this.onerror=null; this.src='../../../assets/logo.webp'; if(!this.complete||this.naturalWidth===0) this.src='/Assets/logo.webp';"
+          alt="Logo Ruang KKA"
+          class="scratch-brand-img"
+        />
+        <div class="scratch-brand-text">
+          <span class="brand-title">RUANG KKA</span>
+          <span class="brand-tag">Scratch</span>
+        </div>
+      </a>
 
-      <div class="nav-controls">
+    </div>
 
-        <button
-          id="green-flag-btn"
-          class="btn-icon btn-green"
-          title="Jalankan Skrip"
-          aria-label="Jalankan Skrip"
-          type="button"
-        >
-          🚩
+    <!-- Nav Center (Pengaturan, Berkas, Edit, Tutorial, Judul Proyek) -->
+    <div class="nav-center">
+
+      <!-- Menu Pengaturan (Settings ▾): Ubah Bahasa, Color Mode, Theme -->
+      <div class="nav-dropdown-wrap" id="menu-settings-wrap">
+        <button type="button" class="nav-menu-btn" id="menu-settings-btn" aria-haspopup="true" title="Settings / Bahasa / Tema">
+          <i class="fa-solid fa-gear"></i>
+          <span data-i18n="settings">Settings</span>
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4z"/></svg>
         </button>
+        <div class="nav-dropdown-menu settings-dropdown-menu" id="menu-settings-dropdown">
+          <div class="settings-subhead">
+            <i class="fa-solid fa-globe"></i>
+            <span data-i18n="language">Language (Bahasa)</span>
+          </div>
+          <div class="lang-search-wrap">
+            <input type="text" id="lang-search-input" class="lang-search-input" placeholder="Cari bahasa / Search language..." />
+          </div>
+          <div class="settings-lang-grid" id="settings-lang-list">
+            <button type="button" class="lang-opt-btn active" data-lang="id">🇮🇩 Bahasa Indonesia</button>
+            <button type="button" class="lang-opt-btn" data-lang="en">🇺🇸 English</button>
+            <button type="button" class="lang-opt-btn" data-lang="ms">🇲🇾 Bahasa Melayu</button>
+            <button type="button" class="lang-opt-btn" data-lang="es">🇪🇸 Español</button>
+            <button type="button" class="lang-opt-btn" data-lang="fr">🇫🇷 Français</button>
+            <button type="button" class="lang-opt-btn" data-lang="de">🇩🇪 Deutsch</button>
+            <button type="button" class="lang-opt-btn" data-lang="ja">🇯🇵 日本語</button>
+            <button type="button" class="lang-opt-btn" data-lang="ko">🇰🇷 한국어</button>
+            <button type="button" class="lang-opt-btn" data-lang="zh">🇨🇳 简体中文</button>
+            <button type="button" class="lang-opt-btn" data-lang="zht">🇹🇼 繁體中文</button>
+            <button type="button" class="lang-opt-btn" data-lang="ar">🇸🇦 العربية</button>
+            <button type="button" class="lang-opt-btn" data-lang="ru">🇷🇺 Русский</button>
+            <button type="button" class="lang-opt-btn" data-lang="pt">🇧🇷 Português</button>
+            <button type="button" class="lang-opt-btn" data-lang="it">🇮🇹 Italiano</button>
+            <button type="button" class="lang-opt-btn" data-lang="nl">🇳🇱 Nederlands</button>
+            <button type="button" class="lang-opt-btn" data-lang="tr">🇹🇷 Türkçe</button>
+            <button type="button" class="lang-opt-btn" data-lang="pl">🇵🇱 Polski</button>
+            <button type="button" class="lang-opt-btn" data-lang="vi">🇻🇳 Tiếng Việt</button>
+            <button type="button" class="lang-opt-btn" data-lang="hi">🇮🇳 हिन्दी</button>
+            <button type="button" class="lang-opt-btn" data-lang="th">🇹🇭 ไทย</button>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="settings-subhead">
+            <i class="fa-solid fa-palette"></i>
+            <span data-i18n="color_mode">Color Mode (Warna Blok)</span>
+          </div>
+          <button type="button" class="nav-dropdown-item active-check" data-color-mode="original" id="opt-color-original">
+            <i class="fa-solid fa-check check-indicator"></i>
+            <span data-i18n="color_original">Original (Bawaan)</span>
+          </button>
+          <button type="button" class="nav-dropdown-item" data-color-mode="high-contrast" id="opt-color-high-contrast">
+            <i class="fa-solid fa-check check-indicator"></i>
+            <span data-i18n="color_contrast">High Contrast (Kontras Tinggi)</span>
+          </button>
+        </div>
+      </div>
 
-        <button
-          id="stop-btn"
-          class="btn-icon btn-red"
-          title="Hentikan Skrip"
-          aria-label="Hentikan Skrip"
-          type="button"
-        >
-          🛑
+      <!-- Menu Berkas (File ▾): Baru, Muat (Import), Simpan (Export) -->
+      <div class="nav-dropdown-wrap" id="menu-file-wrap">
+        <button type="button" class="nav-menu-btn" id="menu-file-btn" aria-haspopup="true">
+          <i class="fa-solid fa-file"></i>
+          <span data-i18n="file">File</span>
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4z"/></svg>
         </button>
+        <div class="nav-dropdown-menu" id="menu-file-dropdown">
+          <button type="button" class="nav-dropdown-item" id="menu-item-new">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            <span data-i18n="new_project">New</span>
+          </button>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="nav-dropdown-item" id="menu-item-load">
+            <i class="fa-solid fa-folder-open"></i>
+            <span data-i18n="load_project">Load from your computer</span>
+          </button>
+          <button type="button" class="nav-dropdown-item" id="menu-item-save">
+            <i class="fa-solid fa-download"></i>
+            <span data-i18n="save_project">Save to your computer</span>
+          </button>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="nav-dropdown-item" id="menu-item-export-html">
+            <i class="fa-solid fa-file-code"></i>
+            <span data-i18n="export_html">Export to HTML (HTML Player)</span>
+          </button>
+          <button type="button" class="nav-dropdown-item" id="menu-item-convert-html">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            <span data-i18n="convert_html">Konversi File ke HTML...</span>
+          </button>
+        </div>
+      </div>
 
-        <button
-          id="clear-ws-btn"
-          class="btn-secondary"
-          type="button"
-        >
-          Bersihkan Area Kerja
+      <!-- Input File Tersembunyi untuk Muat Projek -->
+      <input type="file" id="project-file-input" accept=".json,.kka" style="display:none;" />
+      <!-- Input File Tersembunyi untuk Konversi File ke HTML -->
+      <input type="file" id="convert-file-input" accept=".json,.kka" style="display:none;" />
+
+      <!-- Menu Edit ▾: Pulihkan & Mode Turbo -->
+      <div class="nav-dropdown-wrap" id="menu-edit-wrap">
+        <button type="button" class="nav-menu-btn" id="menu-edit-btn" aria-haspopup="true">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span data-i18n="edit">Edit</span>
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4z"/></svg>
         </button>
+        <div class="nav-dropdown-menu" id="menu-edit-dropdown">
+          <button type="button" class="nav-dropdown-item" id="menu-item-restore">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span data-i18n="restore">Restore</span>
+          </button>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="nav-dropdown-item" id="menu-item-turbo">
+            <i class="fa-solid fa-bolt"></i>
+            <span id="menu-turbo-text" data-i18n="turbo_on">Turn on Turbo Mode</span>
+          </button>
+        </div>
+      </div>
 
+      <!-- Tombol Tutorials (Ide Panduan Ala Scratch) -->
+      <button type="button" class="nav-menu-btn" id="btn-tutorials" title="Ide & Tutorial Belajar Scratch">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span data-i18n="tutorials">Tutorials</span>
+      </button>
+
+      <!-- Input Nama Projek Ala Scratch (Bisa Diedit Langsung) -->
+      <div class="project-title-box" title="Klik untuk mengubah nama proyek">
+        <input
+          type="text"
+          id="project-title-input"
+          class="project-title-input"
+          value="Untitled"
+          placeholder="Nama Proyek..."
+        />
       </div>
 
     </div>
 
 
     <div class="nav-right">
+
+      <!-- Tombol Bersihkan Cepat (Fallback Tersembunyi) -->
+      <button
+        id="clear-ws-btn"
+        class="btn-secondary"
+        type="button"
+        style="display:none;"
+      >
+        Bersihkan Area Kerja
+      </button>
 
       <div
         id="user-badge"
@@ -129,6 +251,11 @@
         </button>
       </div>
 
+      <!-- Tombol Sign in / Masuk (Tanpa Gabung Scratch) -->
+      <div id="guest-nav-actions" class="guest-nav-actions">
+        <a href="../../index.html" class="nav-signin-btn" data-i18n="sign_in">Sign in</a>
+      </div>
+
     </div>
 
   </header>
@@ -139,168 +266,557 @@
        ===================================================== -->
   <main class="app-container">
 
-
     <!-- ===================================================
-         SIDEBAR KATEGORI
+         AREA EDITOR UTAMA ALA SCRATCH 3.0 (KIRI & TENGAH)
          =================================================== -->
-    <aside
-      class="sidebar-categories"
-      aria-label="Kategori blok"
-    >
+    <div class="editor-main-panel">
 
-      <div
-        class="cat-item active"
-        data-cat="motion"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-motion"></span>
-        <span>Motion</span>
+      <!-- TAB EDITOR ALA SCRATCH 3.0 (CODE, COSTUMES, SOUNDS DI KIRI ATAS) -->
+      <div class="workspace-tabs-bar" role="tablist" aria-label="Tab editor">
+        <button id="tab-code" class="ws-tab active" type="button" role="tab" aria-selected="true">
+          <i class="fa-solid fa-code tab-icon tab-icon-code"></i>
+          <span data-i18n="code">Code</span>
+        </button>
+        <button id="tab-costumes" class="ws-tab" type="button" role="tab" aria-selected="false">
+          <i class="fa-solid fa-paintbrush tab-icon tab-icon-costumes"></i>
+          <span data-i18n="costumes">Costumes</span>
+        </button>
+        <button id="tab-sounds" class="ws-tab" type="button" role="tab" aria-selected="false">
+          <i class="fa-solid fa-volume-high tab-icon tab-icon-sounds"></i>
+          <span data-i18n="sounds">Sounds</span>
+        </button>
       </div>
 
-      <div
-        class="cat-item"
-        data-cat="looks"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-looks"></span>
-        <span>Looks</span>
-      </div>
+      <!-- KONTEN TAB EDITOR -->
+      <div class="editor-tabs-content">
 
-      <div
-        class="cat-item"
-        data-cat="sound"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-sound"></span>
-        <span>Sound</span>
-      </div>
+        <!-- KONTEN TAB 1: CODE (Kategori + Palet Blok + Canvas Skrip) -->
+        <div id="code-tab-content" class="code-tab-content">
 
-      <div
-        class="cat-item"
-        data-cat="events"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-events"></span>
-        <span>Events</span>
-      </div>
+          <!-- SIDEBAR KATEGORI (ALA SCRATCH 3.0) -->
+          <aside
+            class="sidebar-categories"
+            aria-label="Kategori blok"
+          >
 
-      <div
-        class="cat-item"
-        data-cat="control"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-control"></span>
-        <span>Control</span>
-      </div>
+            <div
+              class="cat-item active"
+              data-cat="motion"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-motion"></span>
+              <span class="cat-name" data-i18n-cat="motion">Motion</span>
+            </div>
 
-      <div
-        class="cat-item"
-        data-cat="sensing"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-sensing"></span>
-        <span>Sensing</span>
-      </div>
+            <div
+              class="cat-item"
+              data-cat="looks"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-looks"></span>
+              <span class="cat-name" data-i18n-cat="looks">Looks</span>
+            </div>
 
-      <div
-        class="cat-item"
-        data-cat="operators"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-operators"></span>
-        <span>Operators</span>
-      </div>
+            <div
+              class="cat-item"
+              data-cat="sound"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-sound"></span>
+              <span class="cat-name" data-i18n-cat="sound">Sound</span>
+            </div>
 
-      <div
-        class="cat-item"
-        data-cat="variables"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-variables"></span>
-        <span>Variables</span>
-      </div>
+            <div
+              class="cat-item"
+              data-cat="events"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-events"></span>
+              <span class="cat-name" data-i18n-cat="events">Events</span>
+            </div>
 
-      <div
-        class="cat-item"
-        data-cat="myblocks"
-        role="button"
-        tabindex="0"
-      >
-        <span class="dot dot-myblocks"></span>
-        <span>My Blocks</span>
-      </div>
+            <div
+              class="cat-item"
+              data-cat="control"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-control"></span>
+              <span class="cat-name" data-i18n-cat="control">Control</span>
+            </div>
 
-    </aside>
+            <div
+              class="cat-item"
+              data-cat="sensing"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-sensing"></span>
+              <span class="cat-name" data-i18n-cat="sensing">Sensing</span>
+            </div>
+
+            <div
+              class="cat-item"
+              data-cat="operators"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-operators"></span>
+              <span class="cat-name" data-i18n-cat="operators">Operators</span>
+            </div>
+
+            <div
+              class="cat-item"
+              data-cat="variables"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-variables"></span>
+              <span class="cat-name" data-i18n-cat="variables">Variables</span>
+            </div>
+
+            <div
+              class="cat-item"
+              data-cat="myblocks"
+              role="button"
+              tabindex="0"
+            >
+              <span class="dot dot-myblocks"></span>
+              <span class="cat-name" data-i18n-cat="myblocks">My Blocks</span>
+            </div>
+
+            <!-- Tombol Tambah Ekstensi Ala Scratch 3.0 -->
+            <button class="add-extension-btn" id="add-extension-btn" title="Add Extension (Tambah Ekstensi)" type="button">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+
+          </aside>
 
 
-    <!-- ===================================================
-         PALETTE BLOK
-         =================================================== -->
-    <section
-      class="palette-panel"
-      id="palette-scroll"
-      aria-label="Daftar blok"
-    >
-      <!--
-        Blok akan dibuat otomatis oleh script (src/ → script.bundle.js)
-      -->
-    </section>
+          <!-- PALETTE BLOK -->
+          <section
+            class="palette-panel"
+            id="palette-scroll"
+            aria-label="Daftar blok"
+          >
+            <!-- Blok akan dibuat otomatis oleh script -->
+          </section>
 
 
-    <!-- ===================================================
-         WORKSPACE / SCRIPT AREA
-         =================================================== -->
-    <section class="workspace-panel">
+          <!-- WORKSPACE / SCRIPT AREA -->
+          <section class="workspace-panel" id="workspace-panel">
+            <div
+              id="script-area"
+              class="script-area"
+            >
+              <div class="workspace-cat-watermark" aria-hidden="true">
+                <svg width="78" height="78" viewBox="0 0 100 100" fill="none">
+                  <ellipse cx="50" cy="56" rx="30" ry="26" stroke="#ffab19" stroke-width="2.5" stroke-dasharray="3 3"/>
+                  <polygon points="26,35 34,14 44,28" stroke="#ffab19" stroke-width="2.5" fill="none"/>
+                  <polygon points="74,35 66,14 56,28" stroke="#ffab19" stroke-width="2.5" fill="none"/>
+                  <circle cx="39" cy="49" r="3.5" fill="#ffab19"/>
+                  <circle cx="61" cy="49" r="3.5" fill="#ffab19"/>
+                  <path d="M45 61 Q50 67 55 61" stroke="#ffab19" stroke-width="2.5" fill="none"/>
+                  <path d="M24 53 L35 55 M22 59 L35 58 M76 53 L65 55 M78 59 L65 58" stroke="#ffab19" stroke-width="2"/>
+                </svg>
+              </div>
 
-      <div class="workspace-header workspace-tabs" role="tablist" aria-label="Tab area kerja">
-        <button id="tab-code" class="ws-tab active" type="button" role="tab" aria-selected="true">Kode</button>
-        <button id="tab-sounds" class="ws-tab" type="button" role="tab" aria-selected="false">🔊 Suara</button>
-        <span class="workspace-hint">Seret &amp; tempatkan blok di tab Kode</span>
-      </div>
+              <div
+                id="workspace-canvas"
+                class="workspace-canvas"
+              ></div>
 
-      <div
-        id="script-area"
-        class="script-area"
-      >
-        <div
-          id="workspace-canvas"
-          class="workspace-canvas"
-        ></div>
+              <div
+                class="workspace-zoom-controls"
+                aria-label="Kontrol zoom area kerja"
+              >
+                <button id="workspace-zoom-in" class="workspace-zoom-btn" type="button" title="Zoom In" aria-label="Zoom In">+</button>
+                <button id="workspace-zoom-out" class="workspace-zoom-btn" type="button" title="Zoom Out" aria-label="Zoom Out">−</button>
+                <button id="workspace-zoom-reset" class="workspace-zoom-btn" type="button" title="Reset Zoom" aria-label="Reset Zoom">=</button>
+              </div>
 
-        <div
-          class="workspace-zoom-controls"
-          aria-label="Kontrol zoom area kerja"
-        >
-          <button id="workspace-zoom-in" class="workspace-zoom-btn" type="button" title="Zoom In" aria-label="Zoom In">+</button>
-          <button id="workspace-zoom-out" class="workspace-zoom-btn" type="button" title="Zoom Out" aria-label="Zoom Out">−</button>
-          <button id="workspace-zoom-reset" class="workspace-zoom-btn" type="button" title="Reset Zoom" aria-label="Reset Zoom">=</button>
+              <!-- TUTORIAL DOCK / CARD ALA SCRATCH 3.0 (GETTING STARTED) -->
+              <div id="scratch-tutorial-card" class="scratch-tutorial-card" style="display: none;">
+                <div class="tutorial-card-head">
+                  <div class="tutorial-head-title">
+                    <span class="tutorial-bulb-badge">💡</span>
+                    <span id="tutorial-title-text" data-i18n="tutorial_getstarted_title">Memulai dengan Scratch (Getting Started)</span>
+                  </div>
+                  <div class="tutorial-head-actions">
+                    <button type="button" id="tutorial-btn-minimize" class="tutorial-action-btn" title="Kecilkan/Perbesar">−</button>
+                    <button type="button" id="tutorial-btn-close" class="tutorial-action-btn" title="Tutup Tutorial">✕</button>
+                  </div>
+                </div>
+                <div class="tutorial-card-body" id="tutorial-card-body">
+                  <div class="tutorial-step-slide active" data-step="1">
+                    <div class="tutorial-step-badge">Langkah 1 / 5</div>
+                    <div class="tutorial-step-title">1. Seret Blok Gerakan</div>
+                    <div class="tutorial-step-desc">Tarik blok biru <strong>"gerak 10 langkah"</strong> dari palet blok di sebelah kiri ke area kerja ini.</div>
+                    <div class="tutorial-preview-box">
+                      <div class="mock-scratch-block block-motion">gerak (10) langkah</div>
+                    </div>
+                  </div>
+                  <div class="tutorial-step-slide" data-step="2">
+                    <div class="tutorial-step-badge">Langkah 2 / 5</div>
+                    <div class="tutorial-step-title">2. Tambahkan Suara</div>
+                    <div class="tutorial-step-desc">Buka kategori <strong>Suara</strong>, lalu pasang blok <strong>"mainkan suara Meow"</strong> di bawah blok gerak.</div>
+                    <div class="tutorial-preview-box">
+                      <div class="mock-scratch-block block-sound">mainkan suara (Meow ▾) sampai selesai</div>
+                    </div>
+                  </div>
+                  <div class="tutorial-step-slide" data-step="3">
+                    <div class="tutorial-step-badge">Langkah 3 / 5</div>
+                    <div class="tutorial-step-title">3. Mulai dengan Bendera Hijau</div>
+                    <div class="tutorial-step-desc">Buka kategori <strong>Kejadian</strong>, lalu pasang blok <strong>"ketika 🟢 diklik"</strong> di paling atas!</div>
+                    <div class="tutorial-preview-box">
+                      <div class="mock-scratch-block block-events block-hat">ketika 🟢 diklik</div>
+                    </div>
+                  </div>
+                  <div class="tutorial-step-slide" data-step="4">
+                    <div class="tutorial-step-badge">Langkah 4 / 5</div>
+                    <div class="tutorial-step-title">4. Ubah Efek Tampilan</div>
+                    <div class="tutorial-step-desc">Buka kategori <strong>Tampilan</strong>, pasang blok <strong>"ubah efek warna sebesar 25"</strong> agar kucing berubah warna!</div>
+                    <div class="tutorial-preview-box">
+                      <div class="mock-scratch-block block-looks">ubah efek (warna ▾) sebesar (25)</div>
+                    </div>
+                  </div>
+                  <div class="tutorial-step-slide" data-step="5">
+                    <div class="tutorial-step-badge">Langkah 5 / 5</div>
+                    <div class="tutorial-step-title">5. Klik Bendera Hijau!</div>
+                    <div class="tutorial-step-desc">Klik tombol <strong>Bendera Hijau 🟢</strong> di atas panggung untuk melihat aksinya! Kamu juga bisa mencoba blok seru lainnya.</div>
+                    <div class="tutorial-preview-box celebration">
+                      🎉 🐱 🚀
+                    </div>
+                  </div>
+                </div>
+                <div class="tutorial-card-footer">
+                  <button type="button" id="tutorial-prev-btn" class="tutorial-nav-btn" disabled>◀ Sebelumnya</button>
+                  <div class="tutorial-dots" id="tutorial-dots">
+                    <span class="t-dot active"></span>
+                    <span class="t-dot"></span>
+                    <span class="t-dot"></span>
+                    <span class="t-dot"></span>
+                    <span class="t-dot"></span>
+                  </div>
+                  <button type="button" id="tutorial-next-btn" class="tutorial-nav-btn">Lanjut ▶</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
         </div>
-      </div>
 
-      <!-- TAB SUARA: daftar suara, ganti nama, trim, hapus, rekam -->
-      <div id="sounds-panel" class="sounds-panel" hidden>
-        <div class="sounds-list-col">
-          <div id="sounds-list" class="sounds-list" aria-label="Daftar suara"></div>
-          <button id="sounds-record-btn" class="sounds-record-btn" type="button">🎤 Rekam</button>
+        <!-- KONTEN TAB 2: KOSTUM (SCRATCH 3.0 PAINT EDITOR) -->
+        <div id="costumes-panel" class="costumes-panel" style="display:none;">
+          <!-- SIDEBAR KIRI: DAFTAR KOSTUM -->
+          <div class="costumes-list-col">
+            <div id="costumes-list" class="costumes-list" aria-label="Daftar kostum"></div>
+            <div class="costumes-fab-wrapper">
+              <button id="add-costume-btn" class="costume-fab-btn" type="button" title="Pilih Kostum">
+                <i class="fa-solid fa-paintbrush"></i>
+                <span class="costume-fab-plus"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div id="costume-add-popover" class="costume-add-popover">
+                <button type="button" id="btn-costume-from-lib" class="popover-btn" title="Pilih Kostum dari Pustaka">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <span>Pilih Kostum</span>
+                </button>
+                <button type="button" id="btn-costume-paint" class="popover-btn" title="Lukis Kostum Baru">
+                  <i class="fa-solid fa-paintbrush"></i>
+                  <span>Lukis Baru</span>
+                </button>
+                <button type="button" id="btn-costume-duplicate" class="popover-btn" title="Duplikasi Kostum Aktif">
+                  <i class="fa-regular fa-copy"></i>
+                  <span>Duplikat</span>
+                </button>
+                <button type="button" id="btn-costume-upload" class="popover-btn" title="Unggah Berkas Gambar">
+                  <i class="fa-solid fa-upload"></i>
+                  <span>Unggah Kostum</span>
+                </button>
+                <input type="file" id="costume-file-input" accept="image/*" style="display:none;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- AREA EDITOR KOSTUM UTAMA (KANAN) -->
+          <div id="costumes-editor" class="costumes-editor">
+            <!-- TOP TOOLBAR: DUA BARIS ALA SCRATCH 3.0 -->
+            <div class="paint-top-bar">
+              <!-- Baris 1: Costume Name, Undo/Redo, Group/Ungroup, Forward/Back -->
+              <div class="paint-bar-row paint-bar-row-1">
+                <div class="paint-group paint-costume-name-group">
+                  <label for="costume-name-input">Costume</label>
+                  <input type="text" id="costume-name-input" class="paint-costume-input" value="costume1" spellcheck="false" />
+                </div>
+
+                <div class="paint-group paint-history-group">
+                  <button type="button" id="paint-btn-undo" class="paint-icon-btn" title="Undo (Urungkan)">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                  <button type="button" id="paint-btn-redo" class="paint-icon-btn" title="Redo (Ulangi)">
+                    <i class="fa-solid fa-rotate-right"></i>
+                  </button>
+                </div>
+
+                <div class="paint-divider"></div>
+
+                <div class="paint-group paint-btn-group">
+                  <button type="button" id="paint-btn-group" class="paint-text-btn" title="Group (Kelompokkan)">
+                    <i class="fa-solid fa-object-group"></i> <span>Group</span>
+                  </button>
+                  <button type="button" id="paint-btn-ungroup" class="paint-text-btn" title="Ungroup (Pisahkan)">
+                    <i class="fa-solid fa-object-ungroup"></i> <span>Ungroup</span>
+                  </button>
+                </div>
+
+                <div class="paint-divider"></div>
+
+                <div class="paint-group paint-btn-group">
+                  <button type="button" id="paint-btn-forward" class="paint-text-btn" title="Maju Satu Lapisan">
+                    <i class="fa-solid fa-arrow-up"></i> <span>Forward</span>
+                  </button>
+                  <button type="button" id="paint-btn-backward" class="paint-text-btn" title="Mundur Satu Lapisan">
+                    <i class="fa-solid fa-arrow-down"></i> <span>Backward</span>
+                  </button>
+                </div>
+
+                <div class="paint-group paint-btn-group">
+                  <button type="button" id="paint-btn-front" class="paint-text-btn" title="Pindah ke Paling Depan">
+                    <i class="fa-solid fa-angles-up"></i> <span>Front</span>
+                  </button>
+                  <button type="button" id="paint-btn-back" class="paint-text-btn" title="Pindah ke Paling Belakang">
+                    <i class="fa-solid fa-angles-down"></i> <span>Back</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Baris 2: Fill, Outline & Thickness, Copy/Paste/Delete, Flip H/V -->
+              <div class="paint-bar-row paint-bar-row-2">
+                <!-- Fill Color Picker -->
+                <div class="paint-group paint-picker-group">
+                  <span class="paint-picker-label">Fill</span>
+                  <div class="paint-color-swatch-box" id="paint-fill-box" title="Pilih Warna Isi (Fill)">
+                    <span class="paint-color-swatch" id="paint-fill-swatch" style="background-color: #855cd6;"></span>
+                    <i class="fa-solid fa-chevron-down swatch-arrow"></i>
+                    <input type="color" id="paint-fill-color-input" value="#855cd6" class="paint-native-color-picker" />
+                  </div>
+                </div>
+
+                <!-- Outline Color & Stroke Width -->
+                <div class="paint-group paint-picker-group">
+                  <span class="paint-picker-label">Outline</span>
+                  <div class="paint-color-swatch-box" id="paint-outline-box" title="Pilih Warna Garis Luar (Outline)">
+                    <span class="paint-color-swatch" id="paint-outline-swatch" style="background-color: #000000;"></span>
+                    <i class="fa-solid fa-chevron-down swatch-arrow"></i>
+                    <input type="color" id="paint-outline-color-input" value="#000000" class="paint-native-color-picker" />
+                  </div>
+                  <div class="paint-stroke-input-wrap" title="Ketebalan Garis">
+                    <input type="number" id="paint-stroke-width" min="1" max="60" value="4" class="paint-stroke-input" />
+                  </div>
+                </div>
+
+                <div class="paint-divider"></div>
+
+                <!-- Copy / Paste / Delete -->
+                <div class="paint-group paint-btn-group">
+                  <button type="button" id="paint-btn-copy" class="paint-text-btn" title="Salin Objek">
+                    <i class="fa-regular fa-copy"></i> <span>Copy</span>
+                  </button>
+                  <button type="button" id="paint-btn-paste" class="paint-text-btn" title="Tempel Objek">
+                    <i class="fa-regular fa-paste"></i> <span>Paste</span>
+                  </button>
+                  <button type="button" id="paint-btn-delete" class="paint-text-btn text-danger" title="Hapus Objek Terpilih">
+                    <i class="fa-solid fa-trash-can"></i> <span>Delete</span>
+                  </button>
+                </div>
+
+                <div class="paint-divider"></div>
+
+                <!-- Flip Horizontal & Vertical -->
+                <div class="paint-group paint-btn-group">
+                  <button type="button" id="paint-btn-fliph" class="paint-text-btn" title="Balik Horizontal">
+                    <i class="fa-solid fa-arrows-left-right"></i> <span>Flip Horizontal</span>
+                  </button>
+                  <button type="button" id="paint-btn-flipv" class="paint-text-btn" title="Balik Vertikal">
+                    <i class="fa-solid fa-arrows-up-down"></i> <span>Flip Vertical</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- WORKSPACE UTAMA: TOOLBOX KIRI + KANVAS EDITOR -->
+            <div class="paint-workspace-body">
+              <!-- TOOLBOX VERTICAL DI SISI KIRI CANVAS -->
+              <div class="paint-tools-sidebar" role="toolbar" aria-label="Alat Gambar Kostum">
+                <button type="button" class="paint-tool-btn active" data-tool="select" title="Select (Pilih Objek)">
+                  <i class="fa-solid fa-arrow-pointer"></i>
+                  <span>Select</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="reshape" title="Reshape (Ubah Bentuk)">
+                  <i class="fa-solid fa-bezier-curve"></i>
+                  <span>Reshape</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="brush" title="Brush (Kuas Menggambar)">
+                  <i class="fa-solid fa-paintbrush"></i>
+                  <span>Brush</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="eraser" title="Eraser (Penghapus)">
+                  <i class="fa-solid fa-eraser"></i>
+                  <span>Eraser</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="fill" title="Fill (Ember Cat)">
+                  <i class="fa-solid fa-fill-drip"></i>
+                  <span>Fill</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="text" title="Text (Tulis Teks)">
+                  <i class="fa-solid fa-font"></i>
+                  <span>Text</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="line" title="Line (Garis Lurus)">
+                  <i class="fa-solid fa-slash"></i>
+                  <span>Line</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="circle" title="Circle (Lingkaran / Elips)">
+                  <i class="fa-regular fa-circle"></i>
+                  <span>Circle</span>
+                </button>
+                <button type="button" class="paint-tool-btn" data-tool="rectangle" title="Rectangle (Kotak / Persegi)">
+                  <i class="fa-regular fa-square"></i>
+                  <span>Rectangle</span>
+                </button>
+              </div>
+
+              <!-- VIEWPORT KANVAS TENGAH DENGAN CHECKERBOARD & CROSSHAIR -->
+              <div class="paint-canvas-viewport" id="paint-canvas-viewport">
+                <div class="paint-canvas-stage" id="paint-canvas-stage">
+                  <canvas id="paint-main-canvas" width="480" height="360"></canvas>
+                  <canvas id="paint-overlay-canvas" width="480" height="360"></canvas>
+
+                  <!-- Pusat Titik Rotasi Kostum (+) khas Scratch -->
+                  <div class="paint-center-crosshair" aria-hidden="true" title="Titik Tengah Kostum (Center Point)">
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="5" fill="none" stroke="#4C97FF" stroke-width="1.6" />
+                      <line x1="12" y1="2" x2="12" y2="22" stroke="#4C97FF" stroke-width="1.6" />
+                      <line x1="2" y1="12" x2="22" y2="12" stroke="#4C97FF" stroke-width="1.6" />
+                    </svg>
+                  </div>
+
+                  <!-- Bounding Box Seleksi dengan Handle Resize -->
+                  <div class="paint-selection-box" id="paint-selection-box" style="display:none;">
+                    <div class="paint-sel-handle handle-tl"></div>
+                    <div class="paint-sel-handle handle-tm"></div>
+                    <div class="paint-sel-handle handle-tr"></div>
+                    <div class="paint-sel-handle handle-mr"></div>
+                    <div class="paint-sel-handle handle-br"></div>
+                    <div class="paint-sel-handle handle-bm"></div>
+                    <div class="paint-sel-handle handle-bl"></div>
+                    <div class="paint-sel-handle handle-ml"></div>
+                    <div class="paint-sel-rotator"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM BAR: CONVERT TO BITMAP / VECTOR & ZOOM CONTROLS -->
+            <div class="paint-bottom-bar">
+              <div class="paint-bottom-left">
+                <button type="button" id="paint-btn-convert" class="paint-pill-btn">
+                  <span>Convert to Bitmap</span>
+                </button>
+              </div>
+
+              <div class="paint-zoom-controls">
+                <button type="button" id="paint-zoom-out" class="paint-zoom-btn" title="Perkecil Kanvas">
+                  <i class="fa-solid fa-magnifying-glass-minus"></i>
+                </button>
+                <button type="button" id="paint-zoom-reset" class="paint-zoom-btn" title="Ukuran Semula (100%)">
+                  <i class="fa-solid fa-equals"></i>
+                </button>
+                <button type="button" id="paint-zoom-in" class="paint-zoom-btn" title="Perbesar Kanvas">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="sounds-editor" class="sounds-editor"></div>
+
+        <!-- KONTEN TAB 3: SUARA (DAFTAR SUARA + EDITOR SUARA) -->
+        <div id="sounds-panel" class="sounds-panel" hidden>
+          <div class="sounds-list-col">
+            <div id="sounds-list" class="sounds-list" aria-label="Daftar suara"></div>
+            <button id="sounds-record-btn" class="sounds-record-btn" type="button">🎤 Rekam</button>
+          </div>
+          <div id="sounds-editor" class="sounds-editor"></div>
+        </div>
+
       </div>
 
-    </section>
+    </div>
 
 
     <!-- ===================================================
          STAGE PANEL
          =================================================== -->
     <section class="stage-panel">
+
+      <!-- STAGE HEADER ALA SCRATCH: Bendera Hijau, Tombol Stop, Turbo Badge, dan Layout Switcher -->
+      <div class="stage-header">
+        <div class="stage-controls-left">
+          <button
+            id="green-flag-btn"
+            class="stage-btn-flag"
+            title="Jalankan Skrip (Bendera Hijau)"
+            aria-label="Jalankan Skrip"
+            type="button"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M4 3v18M4 4h12l-2 5 2 5H4" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="#10b981"/>
+            </svg>
+          </button>
+
+          <button
+            id="stop-btn"
+            class="stage-btn-stop"
+            title="Hentikan Semua Skrip"
+            aria-label="Hentikan Skrip"
+            type="button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2z" stroke="#dc2626" stroke-width="2" stroke-linejoin="round" fill="#ef4444"/>
+            </svg>
+          </button>
+
+          <div id="turbo-badge" class="turbo-badge" style="display:none;" title="Mode Turbo aktif! Eksekusi berjalan tanpa jeda.">
+            <span>⚡ Turbo Mode</span>
+          </div>
+        </div>
+
+        <div class="stage-controls-right">
+          <button id="stage-size-small" class="stage-layout-btn" title="Panggung Kecil" type="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="5" width="8" height="14" rx="2" fill="currentColor" opacity="0.4"/>
+              <rect x="12" y="5" width="10" height="14" rx="2"/>
+            </svg>
+          </button>
+          <button id="stage-size-normal" class="stage-layout-btn active" title="Panggung Normal" type="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="5" width="18" height="14" rx="2" fill="currentColor" opacity="0.2"/>
+            </svg>
+          </button>
+          <button id="stage-size-full" class="stage-layout-btn" title="Layar Penuh" type="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
 
       <div class="stage-wrapper">
 

@@ -302,6 +302,20 @@
       margin-bottom: 18px;
       animation: fadeIn 0.25s ease;
     }
+    /* Alert Success */
+    .alert-success {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 11px;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      color: #166534;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+      margin-bottom: 18px;
+      animation: fadeIn 0.25s ease;
+    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-4px); }
       to { opacity: 1; transform: translateY(0); }
@@ -614,7 +628,8 @@
             </div>
           </div>
 
-          <!-- Alert Error -->
+          <!-- Alert Error & Success -->
+          <div id="loginSuccess" class="alert-success" role="alert"></div>
           <div id="loginError" class="alert-error" role="alert"></div>
 
           <!-- Remember Me Checkbox -->
@@ -697,6 +712,38 @@
     const forgotBtn = document.getElementById("forgotBtn");
     const forgotModal = document.getElementById("forgotModal");
     const closeModalBtn = document.getElementById("closeModalBtn");
+
+    // Cek parameter notifikasi pembayaran dari checkout
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPaySuccess = urlParams.get("payment") === "success";
+      const regSuccess = urlParams.get("registered") === "true";
+      const qEmail = urlParams.get("email");
+
+      if (isPaySuccess) {
+        localStorage.removeItem("payment_pending");
+        localStorage.removeItem("pending_invoice_code");
+        localStorage.removeItem("pending_invoice_total");
+        localStorage.removeItem("pending_invoice_expiry_ts");
+        localStorage.setItem("account_type", "paid_subscription");
+
+        const loginSuccess = document.getElementById("loginSuccess");
+        if (loginSuccess) {
+          loginSuccess.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-circle-check" style="font-size:1.2rem;color:#16a34a;"></i><div><strong>Pembayaran Berhasil Dikonfirmasi!</strong><br><span style="font-size:12px;font-weight:500;">Akun belajar anak Anda telah aktif. Silakan masuk menggunakan email dan password yang didaftarkan.</span></div></div>';
+          loginSuccess.style.display = "block";
+        }
+      } else if (regSuccess) {
+        const loginSuccess = document.getElementById("loginSuccess");
+        if (loginSuccess) {
+          loginSuccess.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-circle-check" style="font-size:1.2rem;color:#16a34a;"></i><div><strong>Akun Berhasil Terdaftar!</strong><br><span style="font-size:12px;font-weight:500;">Silakan masuk menggunakan password akun Anda.</span></div></div>';
+          loginSuccess.style.display = "block";
+        }
+      }
+
+      if (qEmail && emailInput) {
+        emailInput.value = qEmail;
+      }
+    } catch (_) {}
 
     // Muat remembered email bila ada
     try {
@@ -795,6 +842,26 @@
         localStorage.setItem("email", data.email || email);
         localStorage.setItem("scratch_user", username);
         localStorage.setItem("authToken", data.token);
+
+        // Jika akun merupakan pembeli paket berbayar, sinkronkan allowed-grades ke server dan localStorage
+        const pGrade = localStorage.getItem("purchased_package_grade");
+        if (pGrade) {
+          localStorage.setItem("lastGrade", pGrade);
+          try {
+            localStorage.setItem("allowedGrades_" + username, JSON.stringify([pGrade]));
+          } catch (_) {}
+          try {
+            const gradeHeader = pGrade.toUpperCase() === "SMAK" ? "SMK" : pGrade.toUpperCase();
+            await fetch("/api/user/allowed-grades", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + data.token
+              },
+              body: JSON.stringify({ grades: [gradeHeader] })
+            });
+          } catch (_) {}
+        }
 
         // Jika akun baru yang wajib ganti password
         if (data.mustChangePassword) {

@@ -301,8 +301,144 @@
   }
 
   // ============================================================
-  // 3. RENDER PRICING CARDS
+  // 3. RENDER PRICING CARDS & AGE LEVEL OVERVIEW
   // ============================================================
+  const GRADE_OVERVIEWS = [
+    {
+      grade: 'SD',
+      title: 'Jenjang SD (Visual & Cerita)',
+      age: 'Usia 6 – 12 Tahun',
+      icon: '🎒',
+      bgColor: '#ecfdf5',
+      desc: 'Pengenalan koding visual blok Scratch, animasi dongeng, logika game 2D, pemodelan 3D Roblox, dan website kreatif mini.',
+      minMonthly: 350000,
+      totalPackages: '3 Paket Pilihan'
+    },
+    {
+      grade: 'SMP',
+      title: 'Jenjang SMP (Game & Logika)',
+      age: 'Usia 12 – 15 Tahun',
+      icon: '🎮',
+      bgColor: '#eff6ff',
+      desc: 'Transisi pemrograman teks nyata Python, logika algoritma, kecerdasan buatan (AI) terapan, dan perancangan game 3D.',
+      minMonthly: 550000,
+      totalPackages: '4 Paket Pilihan'
+    },
+    {
+      grade: 'SMK',
+      title: 'Jenjang SMA/SMK (Karier & Industri)',
+      age: 'Usia 15 – 18+ Tahun',
+      icon: '💻',
+      bgColor: '#faf5ff',
+      desc: 'Fullstack web development, struktur data & algoritma kompetisi, analisis data & AI prediktif, serta portofolio profesional.',
+      minMonthly: 750000,
+      totalPackages: '4 Paket Pilihan'
+    }
+  ];
+
+  // Render Tampilan Awal: Jenjang Usia & Rentang Biaya
+  function renderAgeLevelOverview() {
+    const overviewGrid = document.getElementById('ageLevelOverviewGrid');
+    if (!overviewGrid) return;
+
+    overviewGrid.innerHTML = GRADE_OVERVIEWS.map(item => `
+      <div class="age-level-card" data-select-grade="${item.grade}">
+        <div>
+          <div class="age-level-header">
+            <div class="age-level-icon" style="background: ${item.bgColor};">
+              <span>${item.icon}</span>
+            </div>
+            <div>
+              <h3 class="age-level-title">${item.title}</h3>
+              <div class="age-level-subtitle">👶 ${item.age} • ${item.totalPackages}</div>
+            </div>
+          </div>
+          <p class="age-level-desc">${item.desc}</p>
+        </div>
+
+        <div>
+          <div class="age-level-price-box">
+            <div class="age-level-price-label">Biaya Langganan Belajar:</div>
+            <div class="age-level-price-val">
+              Mulai dari ${formatRupiah(item.minMonthly)} <span>/ bulan</span>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary age-level-btn">
+            <span>Buka Pilihan Paket ${item.grade}</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    overviewGrid.querySelectorAll('[data-select-grade]').forEach(card => {
+      card.addEventListener('click', () => {
+        const grade = card.getAttribute('data-select-grade');
+        openGradePackages(grade);
+      });
+    });
+  }
+
+  // Tampilkan pilihan lengkap paket setelah jenjang ditekan
+  function openGradePackages(grade) {
+    currentGradeFilter = grade;
+
+    const overviewGrid = document.getElementById('ageLevelOverviewGrid');
+    const controlsWrap = document.getElementById('pricingControlsWrap');
+    const detailBar = document.getElementById('packageDetailBar');
+    const cardsGrid = document.getElementById('pricingCardsGrid');
+    const heading = document.getElementById('packageDetailHeading');
+
+    if (overviewGrid) overviewGrid.style.display = 'none';
+    if (controlsWrap) controlsWrap.style.display = 'flex';
+    if (detailBar) detailBar.style.display = 'flex';
+    if (cardsGrid) cardsGrid.style.display = 'grid';
+
+    const gradeNames = { SD: 'Jenjang SD (Usia 6–12 Thn)', SMP: 'Jenjang SMP (Usia 12–15 Thn)', SMK: 'Jenjang SMA/SMK (Usia 15–18+ Thn)', ALL: 'Semua Jenjang' };
+    if (heading) heading.textContent = `Pilihan Paket Belajar ${gradeNames[grade] || grade}`;
+
+    // Update tombol filter aktif
+    const gradeBtns = document.querySelectorAll('.grade-filter-btn');
+    gradeBtns.forEach(b => {
+      if (b.getAttribute('data-grade') === grade) {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+
+    renderPricingCards();
+
+    // Scroll mulus ke daftar paket
+    const paketSection = document.getElementById('paket');
+    if (paketSection) {
+      const topOffset = paketSection.offsetTop - 80;
+      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+    }
+  }
+
+  // Kembali ke tampilan awal overview jenjang usia
+  function backToAgeOverview() {
+    currentGradeFilter = 'ALL';
+
+    const overviewGrid = document.getElementById('ageLevelOverviewGrid');
+    const controlsWrap = document.getElementById('pricingControlsWrap');
+    const detailBar = document.getElementById('packageDetailBar');
+    const cardsGrid = document.getElementById('pricingCardsGrid');
+
+    if (overviewGrid) overviewGrid.style.display = 'grid';
+    if (controlsWrap) controlsWrap.style.display = 'none';
+    if (detailBar) detailBar.style.display = 'none';
+    if (cardsGrid) cardsGrid.style.display = 'none';
+
+    const paketSection = document.getElementById('paket');
+    if (paketSection) {
+      const topOffset = paketSection.offsetTop - 80;
+      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+    }
+  }
+
   function renderPricingCards() {
     const container = document.getElementById('pricingCardsGrid');
     if (!container) return;
@@ -415,6 +551,29 @@
   // 4. BILLING & GRADE FILTER CONTROLS
   // ============================================================
   function initPricingControls() {
+    // Tombol Kembali ke Overview Jenjang
+    const btnBack = document.getElementById('btnBackToOverview');
+    if (btnBack) {
+      btnBack.addEventListener('click', backToAgeOverview);
+    }
+
+    // Tombol pintasan di card jenjang di section atas (#jenjang)
+    document.querySelectorAll('a[href="#paket"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const text = (link.textContent || '').toUpperCase();
+        if (text.includes('SD')) {
+          e.preventDefault();
+          openGradePackages('SD');
+        } else if (text.includes('SMP')) {
+          e.preventDefault();
+          openGradePackages('SMP');
+        } else if (text.includes('SMK') || text.includes('SMA')) {
+          e.preventDefault();
+          openGradePackages('SMK');
+        }
+      });
+    });
+
     // Billing Switcher Buttons
     const cycleBtns = document.querySelectorAll('.billing-cycle-btn');
     cycleBtns.forEach(btn => {
@@ -430,10 +589,8 @@
     const gradeBtns = document.querySelectorAll('.grade-filter-btn');
     gradeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        gradeBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentGradeFilter = btn.getAttribute('data-grade') || 'ALL';
-        renderPricingCards();
+        const grade = btn.getAttribute('data-grade') || 'ALL';
+        openGradePackages(grade);
       });
     });
   }
@@ -570,28 +727,15 @@
     if (modalGrade) {
       modalGrade.textContent = `Jenjang: ${pkg.grade} (${pkg.age})` + (chosenTrack ? ` • Peminatan: ${chosenTrack}` : '');
     }
-    if (modalDuration) modalDuration.textContent = `Durasi: ${cycle.label} (${months} Bulan)`;
-    if (modalTotal) modalTotal.textContent = formatRupiah(finalTotal);
-
-    // WhatsApp Direct Link
-    const waText = encodeURIComponent(
-      `Halo Tim Dieng Cyber Coding Academy!\n\n` +
-      `Saya tertarik untuk mendaftarkan anak saya di:\n` +
-      `• Paket: ${pkg.name} (${pkg.grade})\n` +
-      (chosenTrack ? `• Pilihan Peminatan: ${chosenTrack}\n` : '') +
-      `• Durasi: ${cycle.label}\n` +
-      (promo ? `• Kupon Promo: ${promoCodeOverride || activePromo.code}\n` : '') +
-      `• Estimasi Biaya: ${formatRupiah(finalTotal)}\n\n` +
-      `Mohon info ketersediaan jadwal mentoring dan cara pendaftaran selanjutnya. Terima kasih!`
-    );
-
-    if (modalWaBtn) {
-      modalWaBtn.href = `https://wa.me/6281222334455?text=${waText}`;
+    if (modalDuration) {
+      const discountNotice = cycle.discount > 0 ? ` (Hemat ${Math.round(cycle.discount * 100)}%)` : '';
+      modalDuration.textContent = `Durasi Belajar: ${cycle.label}${discountNotice}`;
     }
+    if (modalTotal) modalTotal.textContent = formatRupiah(finalTotal);
 
     if (modalRegisterBtn) {
       const trackParam = chosenTrack ? `&track=${encodeURIComponent(chosenTrack)}` : '';
-      modalRegisterBtn.href = `users/register.html?package=${pkg.id}&duration=${months}${trackParam}`;
+      modalRegisterBtn.href = `users/checkout.html?package=${pkg.id}&duration=${months}${trackParam}`;
     }
 
     modal.classList.add('open');
@@ -718,7 +862,7 @@
   // ============================================================
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    renderPricingCards();
+    renderAgeLevelOverview();
     initPricingControls();
     initPlaygroundTabs();
     initFaq();

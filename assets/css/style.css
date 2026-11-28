@@ -1529,6 +1529,49 @@ html[data-theme="dark"] .theme-icon-moon { display: none; }
   justify-content: center;
 }
 
+/* Modal Primary Action Button */
+.btn-modal-checkout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff !important;
+  font-family: inherit;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  border-radius: 12px;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(5, 150, 105, 0.32);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+.btn-modal-checkout:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.42);
+  color: #ffffff !important;
+}
+
+.btn-modal-checkout:active {
+  transform: scale(0.98);
+}
+
+.btn-modal-checkout i {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.btn-modal-checkout:hover i {
+  transform: translateX(4px);
+}
+
 /* ============================================================
    RESPONSIVE MEDIA QUERIES
    ============================================================ */

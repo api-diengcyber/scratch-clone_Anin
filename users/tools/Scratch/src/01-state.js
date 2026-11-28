@@ -6,21 +6,97 @@ document.addEventListener("pointerdown", () => window.mouseDown = true);
 document.addEventListener("pointerup", () => window.mouseDown = false);
 
 
+function getScratchCatSvg(costumeName) {
+  const isWalk = costumeName === "costume2";
+  if (isWalk) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="101" viewBox="0 0 96 101">
+      <g id="costume2">
+        <path d="M22 62 C15 50, 5 45, 2 52 C-1 59, 10 70, 18 72 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M28 72 L16 88 C14 91, 10 92, 7 89 C4 86, 6 82, 10 80 L22 68 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5" stroke-linejoin="round"/>
+        <ellipse cx="9" cy="87" rx="7" ry="4" fill="#FFFFFF" stroke="#231F20" stroke-width="1.2" transform="rotate(-15 9 87)"/>
+        <path d="M30 45 C24 55, 25 72, 38 76 C52 80, 58 65, 56 50 C55 42, 42 40, 30 45 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+        <path d="M36 52 C32 60, 34 71, 44 73 C49 74, 52 68, 51 58 C50 51, 42 49, 36 52 Z" fill="#FFF2CA"/>
+        <path d="M46 70 L62 86 C65 89, 70 88, 72 85 C74 82, 72 78, 67 76 L52 65 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5" stroke-linejoin="round"/>
+        <ellipse cx="68" cy="84" rx="7" ry="4" fill="#FFFFFF" stroke="#231F20" stroke-width="1.2" transform="rotate(20 68 84)"/>
+        <path d="M34 50 L20 60 C18 62, 16 65, 18 68 C20 70, 23 70, 26 67 L38 56 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+        <path d="M50 50 L64 58 C67 60, 70 59, 72 56 C73 53, 71 50, 67 48 L52 44 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+        <path d="M46 8 C32 8, 22 18, 22 30 C22 43, 34 52, 48 52 C62 52, 72 42, 72 29 C72 16, 60 8, 46 8 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+        <path d="M28 14 L20 1 C19 -1, 16 0, 16 2 L19 22 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+        <path d="M23 14 L19 5 L20 18 Z" fill="#FFFFFF"/>
+        <path d="M60 14 L68 1 C69 -1, 72 0, 72 2 L69 22 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+        <path d="M63 14 L67 5 L66 18 Z" fill="#FFFFFF"/>
+        <ellipse cx="44" cy="38" rx="14" ry="10" fill="#FFF2CA" stroke="#231F20" stroke-width="1.2"/>
+        <ellipse cx="56" cy="38" rx="12" ry="9" fill="#FFF2CA" stroke="#231F20" stroke-width="1.2"/>
+        <ellipse cx="38" cy="24" rx="7" ry="10" fill="#FFFFFF" stroke="#231F20" stroke-width="1.5"/>
+        <ellipse cx="40" cy="24" rx="3.5" ry="6" fill="#231F20"/>
+        <ellipse cx="41" cy="22" rx="1.5" ry="2.5" fill="#FFFFFF"/>
+        <ellipse cx="58" cy="24" rx="7" ry="10" fill="#FFFFFF" stroke="#231F20" stroke-width="1.5"/>
+        <ellipse cx="56" cy="24" rx="3.5" ry="6" fill="#231F20"/>
+        <ellipse cx="55" cy="22" rx="1.5" ry="2.5" fill="#FFFFFF"/>
+        <polygon points="48,32 52,32 50,35" fill="#231F20"/>
+        <path d="M46 36 Q50 39 54 36" fill="none" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="32" x2="32" y2="34" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="18" y1="38" x2="31" y2="38" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="44" x2="33" y2="42" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="64" y1="34" x2="76" y2="32" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="65" y1="38" x2="78" y2="38" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="63" y1="42" x2="74" y2="44" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+    </svg>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="95" height="101" viewBox="0 0 95 101">
+    <g id="costume1">
+      <path d="M22 62 C14 52, 4 48, 2 55 C0 62, 10 72, 18 73 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M28 70 L26 88 C26 92, 22 94, 18 92 C14 90, 15 85, 18 82 L24 68 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5" stroke-linejoin="round"/>
+      <ellipse cx="20" cy="89" rx="8" ry="4" fill="#FFFFFF" stroke="#231F20" stroke-width="1.2"/>
+      <path d="M46 70 L50 88 C51 92, 55 94, 59 92 C63 90, 62 85, 59 82 L52 68 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5" stroke-linejoin="round"/>
+      <ellipse cx="57" cy="89" rx="8" ry="4" fill="#FFFFFF" stroke="#231F20" stroke-width="1.2"/>
+      <path d="M30 45 C24 55, 25 72, 38 76 C52 79, 58 66, 56 50 C55 42, 42 40, 30 45 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+      <path d="M36 52 C32 60, 34 71, 44 73 C49 74, 52 68, 51 58 C50 51, 42 49, 36 52 Z" fill="#FFF2CA"/>
+      <path d="M32 50 L22 62 C20 65, 18 68, 21 70 C24 72, 27 70, 29 66 L38 55 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+      <path d="M48 50 L56 62 C58 65, 61 67, 64 65 C67 63, 67 60, 64 56 L54 48 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+      <path d="M46 8 C32 8, 22 18, 22 30 C22 43, 34 52, 48 52 C62 52, 72 42, 72 29 C72 16, 60 8, 46 8 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+      <path d="M28 14 L20 1 C19 -1, 16 0, 16 2 L19 22 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+      <path d="M23 14 L19 5 L20 18 Z" fill="#FFFFFF"/>
+      <path d="M60 14 L68 1 C69 -1, 72 0, 72 2 L69 22 Z" fill="#FFAB19" stroke="#231F20" stroke-width="1.5"/>
+      <path d="M63 14 L67 5 L66 18 Z" fill="#FFFFFF"/>
+      <ellipse cx="44" cy="38" rx="14" ry="10" fill="#FFF2CA" stroke="#231F20" stroke-width="1.2"/>
+      <ellipse cx="56" cy="38" rx="12" ry="9" fill="#FFF2CA" stroke="#231F20" stroke-width="1.2"/>
+      <ellipse cx="38" cy="24" rx="7" ry="10" fill="#FFFFFF" stroke="#231F20" stroke-width="1.5"/>
+      <ellipse cx="40" cy="24" rx="3.5" ry="6" fill="#231F20"/>
+      <ellipse cx="41" cy="22" rx="1.5" ry="2.5" fill="#FFFFFF"/>
+      <ellipse cx="58" cy="24" rx="7" ry="10" fill="#FFFFFF" stroke="#231F20" stroke-width="1.5"/>
+      <ellipse cx="56" cy="24" rx="3.5" ry="6" fill="#231F20"/>
+      <ellipse cx="55" cy="22" rx="1.5" ry="2.5" fill="#FFFFFF"/>
+      <polygon points="48,32 52,32 50,35" fill="#231F20"/>
+      <path d="M46 36 Q50 39 54 36" fill="none" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="20" y1="32" x2="32" y2="34" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="18" y1="38" x2="31" y2="38" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="22" y1="44" x2="33" y2="42" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="64" y1="34" x2="76" y2="32" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="65" y1="38" x2="78" y2="38" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="63" y1="42" x2="74" y2="44" stroke="#231F20" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+
 const COSTUME_DEFINITIONS = [
   {
     name: "costume1",
     color: "#FFAB19",
-    detail: "none"
+    detail: "none",
+    width: 95,
+    height: 101,
+    svg: getScratchCatSvg("costume1")
   },
   {
     name: "costume2",
-    color: "#FF4C4C",
-    detail: "white"
-  },
-  {
-    name: "costume3",
-    color: "#4C97FF",
-    detail: "none"
+    color: "#FFAB19",
+    detail: "walk",
+    width: 96,
+    height: 101,
+    svg: getScratchCatSvg("costume2")
   }
 ];
 

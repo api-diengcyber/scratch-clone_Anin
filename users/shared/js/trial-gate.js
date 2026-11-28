@@ -296,119 +296,151 @@
 
   // 2. Definisi Modul TrialGate
   const TrialGate = {
+    // Cek apakah akun adalah paket berbayar resmi
+    isPaid: function () {
+      const accType = localStorage.getItem("account_type");
+      return accType === "paid_subscription" || !!localStorage.getItem("purchased_package_id") || !!localStorage.getItem("purchased_package");
+    },
+
     // Cek apakah user saat ini berstatus siswa Trial Gratis
     isActive: function () {
-      // Jika akun terdaftar sebagai pembeli paket / berlangganan, BUKAN trial
-      const accType = localStorage.getItem("account_type");
-      if (accType === "paid_subscription" || accType === "paid_pending") {
-        return false;
-      }
+      if (this.isPaid()) return false;
       return localStorage.getItem("trial_active") === "true";
     },
 
+    // Cek apakah akun memiliki pembatasan jalur (Trial ATAU Paid single track)
+    isRestricted: function () {
+      return this.isPaid() || this.isActive();
+    },
+
     getCourse: function () {
+      if (this.isPaid()) {
+        return localStorage.getItem("purchased_track_name") || localStorage.getItem("purchased_package") || "Paket Belajar Siswa";
+      }
       return localStorage.getItem("trial_course") || "Kelas Trial Gratis";
     },
 
     getTrackId: function () {
-      return localStorage.getItem("trial_track_id") || "";
+      if (this.isPaid()) {
+        return (localStorage.getItem("purchased_track_id") || localStorage.getItem("purchased_package_id") || "").toLowerCase();
+      }
+      return (localStorage.getItem("trial_track_id") || "").toLowerCase();
     },
 
     getGrade: function () {
-      return localStorage.getItem("trial_grade") || "";
+      let g = "";
+      if (this.isPaid()) {
+        g = localStorage.getItem("purchased_package_grade") || "";
+      } else {
+        g = localStorage.getItem("trial_grade") || "";
+      }
+      g = String(g).trim().toLowerCase();
+      if (g === "smk" || g === "sma" || g === "sma/smk") return "smak";
+      return g;
     },
 
-    // Evaluasi apakah jalur / tahap tertentu boleh diakses siswa trial
+    // Evaluasi apakah jalur / tahap tertentu boleh diakses siswa
     isPathAllowed: function (grade, pathOrTahapId) {
-      if (!this.isActive()) return true; // Siswa reguler bebas membuka semua jalur
+      if (!this.isRestricted()) return true; // Akun tanpa restriksi
+
+      let currentGrade = String(grade || "").toLowerCase();
+      if (currentGrade === "smk") currentGrade = "smak";
 
       const myGrade = this.getGrade();
       const myTrack = this.getTrackId();
 
-      // Jika jenjang berbeda dari jenjang trial yang didaftarkan -> Terkunci
-      if (grade && myGrade && grade !== myGrade) {
+      // Jika jenjang berbeda dari jenjang yang didaftarkan / dibeli -> Terkunci
+      if (currentGrade && myGrade && currentGrade !== myGrade) {
         return false;
+      }
+
+      // Jika paket All-in-One (seluruh jalur pada jenjang terbuka)
+      if (["all_sd", "sd_all", "all_smp", "smp_all", "all_smak", "smk_all"].includes(myTrack)) {
+        return true;
       }
 
       if (!myTrack) return true;
 
+      const pId = String(pathOrTahapId || "").toLowerCase();
+
       // 🎒 Jenjang SD
       if (myTrack === "sd_basic") {
         // Hanya boleh Tahap 1 Basic (p1 sampai p5)
-        return pathOrTahapId === "basic" || ["p1", "p2", "p3", "p4", "p5"].includes(pathOrTahapId);
+        return pId === "basic" || ["p1", "p2", "p3", "p4", "p5"].includes(pId);
       }
       if (myTrack === "sd_explore_game") {
-        // Hanya boleh game 2D di Tahap 2 (p6, p7)
-        return ["p6", "p7"].includes(pathOrTahapId) || pathOrTahapId === "explore";
+        // Hanya boleh game 2D di Tahap 2 (g1, p6, p7)
+        return pId === "g1" || pId === "explore" || ["p6", "p7"].includes(pId);
       }
       if (myTrack === "sd_explore_3d") {
-        // Hanya boleh 3D Roblox (p8)
-        return pathOrTahapId === "p8" || pathOrTahapId === "explore";
+        // Hanya boleh 3D Roblox (g2, p8)
+        return pId === "g2" || pId === "explore" || pId === "p8";
       }
       if (myTrack === "sd_explore_web") {
-        // Hanya boleh Web Dev (p9)
-        return pathOrTahapId === "p9" || pathOrTahapId === "explore";
+        // Hanya boleh Web Dev (g3, p9)
+        return pId === "g3" || pId === "explore" || pId === "p9";
       }
 
       // 🎮 Jenjang SMP
       if (myTrack === "smp_python") {
         // Hanya boleh jalur python
-        return pathOrTahapId === "python" || String(pathOrTahapId).startsWith("py");
+        return pId === "python" || pId.startsWith("py");
       }
       if (myTrack === "smp_ai") {
         // Hanya boleh jalur AI & Creative Tech
-        return pathOrTahapId === "ai" || String(pathOrTahapId).startsWith("ai");
+        return pId === "ai" || pId.startsWith("ai");
       }
       if (myTrack === "smp_gamedev3d") {
         // Hanya boleh Game Dev 3D (d3)
-        return pathOrTahapId === "d3" || String(pathOrTahapId).startsWith("d");
+        return pId === "d3" || pId.startsWith("d");
       }
 
       // 💻 Jenjang SMA / SMK
       if (myTrack === "smk_algo") {
-        return pathOrTahapId === "pl" || String(pathOrTahapId).startsWith("pl");
+        return pId === "pl" || pId.startsWith("pl");
       }
-      if (myTrack === "smk_web") {
-        return pathOrTahapId === "wb" || String(pathOrTahapId).startsWith("wb");
+      if (myTrack === "smk_web" || myTrack === "smk_webdev") {
+        return pId === "wb" || pId.startsWith("wb");
       }
-      if (myTrack === "smk_data") {
-        return pathOrTahapId === "da" || String(pathOrTahapId).startsWith("da");
+      if (myTrack === "smk_data" || myTrack === "smk_data_ai") {
+        return pId === "da" || pId.startsWith("da");
       }
 
       return true;
     },
 
-    // Tampilkan Popup Modal Ajakan Upgrade
+    // Tampilkan Popup Modal Ajakan Upgrade / Buka Jalur
     showLockModal: function (lockedName) {
       const existing = document.querySelector(".trial-modal-overlay");
       if (existing) existing.remove();
 
       const currentCourse = this.getCourse();
+      const isPaidUser = this.isPaid();
       const modal = document.createElement("div");
       modal.className = "trial-modal-overlay";
       modal.innerHTML = `
         <div class="trial-modal-box">
           <button type="button" class="trial-modal-close-x" id="btnTrialX" title="Tutup">×</button>
           <div class="tmb-icon">🔒</div>
-          <h3 class="tmb-title">Jalur Belajar Terkunci</h3>
+          <h3 class="tmb-title">${isPaidUser ? 'Jalur di Luar Paket Langganan' : 'Jalur Belajar Terkunci'}</h3>
           <p class="tmb-text">
-            Saat ini kamu terdaftar di <strong>Kelas Trial Gratis</strong> untuk:
+            Saat ini kamu terdaftar pada paket:
           </p>
           <div class="tmb-highlight">
             ⭐ ${currentCourse}
           </div>
           <p class="tmb-text" style="font-size: 0.88rem; margin-top: 6px;">
-            Jalur <strong>${lockedName || "ini"}</strong> dan puluhan materi proyek lainnya dapat kamu buka lengkap dengan berlangganan Paket Belajar Resmi Dieng Cyber.
+            Jalur <strong>${lockedName || "ini"}</strong> dapat kamu buka dengan menambahkan paket belajar atau beralih ke paket All-in-One Dieng Cyber.
           </p>
           <div class="tmb-actions">
-            <a href="/index.html#paket" class="tmb-btn-upgrade">
-              <span>Buka Semua Jalur Belajar</span>
+            <a href="/users/checkout.html" class="tmb-btn-upgrade">
+              <span>Buka Jalur Ini Sekarang</span>
               <span>→</span>
             </a>
-            <a href="https://wa.me/6281222334455?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20tertarik%20upgrade%20dari%20kelas%20trial%20ke%20paket%20belajar%20lengkap" target="_blank" rel="noopener noreferrer" class="tmb-btn-wa">
-              <span>💬 Konsultasi via WhatsApp</span>
+            <a href="javascript:void(0)" onclick="alert('Layanan chat WhatsApp resmi Dieng Cyber sedang dipersiapkan.')" class="tmb-btn-wa">
+              <span>💬 Hubungi Admin via WhatsApp</span>
             </a>
-            <button type="button" class="tmb-btn-close" id="btnTrialClose">Lanjutkan Belajar Jalur Trial</button>
+            <button type="button" class="tmb-btn-close" id="btnTrialClose">Kembali Belajar di Jalur Pilihan</button>
           </div>
         </div>
       `;
@@ -456,30 +488,57 @@
         return; // Jangan kunci modul atau anggap sebagai akun trial
       }
 
-      if (!this.isActive()) return;
-
-      // 1. Tampilkan Banner Trial di atas daftar tahap jika belum ada
-      let banner = document.getElementById("trialDashboardBanner");
-      if (!banner) {
-        banner = document.createElement("div");
-        banner.id = "trialDashboardBanner";
-        banner.className = "trial-dashboard-banner";
-        banner.innerHTML = `
-          <div class="tdb-left">
-            <div class="tdb-icon">🎓</div>
-            <div>
-              <div class="tdb-title">⭐ Akun Kelas Trial Gratis: <b>${this.getCourse()}</b></div>
-              <div class="tdb-desc">Kamu memiliki akses penuh ke 1 jalur belajar ini. Jalur lainnya terkunci selama masa trial.</div>
+      // Tampilkan Banner Paket Aktif untuk Siswa Berbayar Lunas
+      if (this.isPaid() && localStorage.getItem("payment_pending") !== "true") {
+        let activeBanner = document.getElementById("paidActiveBanner");
+        if (!activeBanner) {
+          activeBanner = document.createElement("div");
+          activeBanner.id = "paidActiveBanner";
+          activeBanner.className = "trial-dashboard-banner";
+          activeBanner.style.background = "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)";
+          activeBanner.style.borderColor = "#86efac";
+          activeBanner.innerHTML = `
+            <div class="tdb-left">
+              <div class="tdb-icon" style="background: #dcfce7; color: #16a34a;">🌟</div>
+              <div>
+                <div class="tdb-title" style="color: #14532d;">⭐ Paket Belajar Aktif: <b>${this.getCourse()}</b></div>
+                <div class="tdb-desc" style="color: #166534;">Selamat belajar! Kamu memiliki akses penuh ke seluruh modul pada jalur pilihanmu.</div>
+              </div>
             </div>
-          </div>
-          <div class="tdb-right">
-            <a href="/index.html#paket" class="tdb-btn">Buka Semua Jalur Belajar 🚀</a>
-          </div>
-        `;
-        gradeArea.parentNode.insertBefore(banner, gradeArea);
+            <div class="tdb-right">
+              <a href="/users/checkout.html" class="tdb-btn" style="background: #16a34a; color: #ffffff;">Tambah Jalur Belajar 🚀</a>
+            </div>
+          `;
+          gradeArea.parentNode.insertBefore(activeBanner, gradeArea);
+        }
       }
 
-      // 2. Periksa semua kartu jalur di dalam tahapArea
+      // Tampilkan Banner Trial untuk Siswa Akun Trial
+      if (this.isActive()) {
+        let banner = document.getElementById("trialDashboardBanner");
+        if (!banner) {
+          banner = document.createElement("div");
+          banner.id = "trialDashboardBanner";
+          banner.className = "trial-dashboard-banner";
+          banner.innerHTML = `
+            <div class="tdb-left">
+              <div class="tdb-icon">🎓</div>
+              <div>
+                <div class="tdb-title">⭐ Akun Kelas Trial Gratis: <b>${this.getCourse()}</b></div>
+                <div class="tdb-desc">Kamu memiliki akses penuh ke 1 jalur belajar ini. Jalur lainnya terkunci selama masa trial.</div>
+              </div>
+            </div>
+            <div class="tdb-right">
+              <a href="/index.html#paket" class="tdb-btn">Buka Semua Jalur Belajar 🚀</a>
+            </div>
+          `;
+          gradeArea.parentNode.insertBefore(banner, gradeArea);
+        }
+      }
+
+      if (!this.isRestricted()) return;
+
+      // Periksa semua kartu jalur di dalam tahapArea
       const cards = gradeArea.querySelectorAll(".tg-card, .jcard, .pcard");
       cards.forEach((card) => {
         let pathId = "";
@@ -492,7 +551,6 @@
         const cardTitle = card.querySelector("h3") ? card.querySelector("h3").textContent : "Jalur ini";
 
         if (isAllowed) {
-          // Beri badge khusus jalur trial aktif jika belum ada
           if (!card.querySelector(".tg-trial-active-badge")) {
             const badge = document.createElement("span");
             badge.className = "tg-trial-active-badge";
@@ -519,7 +577,7 @@
         }
       });
 
-      // 3. Periksa tombol banner tahap (misal: "Mulai Petualangan →" di Tahap 2 SD)
+      // Periksa tombol banner tahap (misal: "Mulai Petualangan →")
       const bannerBtns = gradeArea.querySelectorAll(".tb-btn");
       bannerBtns.forEach((btn) => {
         const href = btn.getAttribute("href") || "";
@@ -530,7 +588,7 @@
           const isAllowed = this.isPathAllowed(currentGrade, tahapId);
           if (!isAllowed) {
             btn.classList.add("trial-locked-banner-btn");
-            btn.innerHTML = "🔒 Terkunci (Akun Trial)";
+            btn.innerHTML = "🔒 Terkunci";
             btn.addEventListener("click", (e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -543,41 +601,100 @@
 
     // Guard untuk halaman belajar (SD/belajar.html, SMP/belajar-smp.html, SMK/belajar-smk.html)
     guardStudyPage: function (pageGrade) {
-      if (!this.isActive()) return;
+      if (!this.isRestricted()) return;
+
+      let normalizedPageGrade = String(pageGrade || "").toLowerCase();
+      if (normalizedPageGrade === "smk") normalizedPageGrade = "smak";
 
       const myGrade = this.getGrade();
+      const myTrack = this.getTrackId();
       const params = new URLSearchParams(window.location.search);
       const pathParam = params.get("p") || "";
       const tahapParam = params.get("t") || "";
       const queryId = pathParam || tahapParam;
 
-      // Cek apakah halaman ini atau path ini boleh diakses
-      const isAllowed = (pageGrade === myGrade) && (!queryId || this.isPathAllowed(pageGrade, queryId));
+      // 1. Cek kesesuaian jenjang
+      if (myGrade && normalizedPageGrade !== myGrade) {
+        this.renderBlockedScreen(`Jenjang Belajar Tidak Sesuai`, `Paket belajar Anda terdaftar untuk <strong>Jenjang ${myGrade.toUpperCase()}</strong>.`);
+        return false;
+      }
 
-      if (!isAllowed) {
-        // Tampilkan pesan & alihkan siswa kembali ke jalur trial yang valid
-        const myCourse = this.getCourse();
-        document.body.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; font-family: sans-serif; padding: 24px;">
-            <div style="background: #ffffff; border-radius: 18px; max-width: 480px; width: 100%; padding: 36px 28px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
-              <div style="font-size: 3rem; margin-bottom: 14px;">🔒</div>
-              <h2 style="font-size: 1.35rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">Jalur Ini Terkunci untuk Akun Trial</h2>
-              <p style="font-size: 0.92rem; color: #64748b; line-height: 1.6; margin-bottom: 22px;">
-                Akun trial Anda terdaftar untuk: <br>
-                <strong style="color: #059669; font-size: 1rem;">${myCourse}</strong>
-              </p>
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                <a href="/dashboard.html" style="background: #059669; color: #ffffff; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.92rem;">
-                  ← Kembali ke Ruang Belajar Trial
-                </a>
-                <a href="/index.html#paket" style="background: #f1f5f9; color: #334155; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.92rem;">
-                  Lihat Paket Belajar Lengkap
-                </a>
-              </div>
+      // 2. Jika ada query path / tahap, evaluasi izin aksesnya
+      if (queryId) {
+        // Khusus Tahap 2 Explore SD
+        if (normalizedPageGrade === "sd" && queryId === "explore" && ["sd_explore_game", "sd_explore_3d", "sd_explore_web"].includes(myTrack)) {
+          // Arahkan otomatis ke jalur peminatannya agar langsung belajar
+          const targetP = myTrack === "sd_explore_game" ? "g1" : myTrack === "sd_explore_3d" ? "g2" : "g3";
+          window.location.replace(`/belajar.html?p=${targetP}`);
+          return false;
+        }
+
+        const isAllowed = this.isPathAllowed(normalizedPageGrade, queryId);
+        if (!isAllowed) {
+          this.renderBlockedScreen(`Jalur Belajar di Luar Paket`, `Materi ini berada di luar paket belajar aktif Anda: <br><strong style="color: #059669; font-size: 1rem;">${this.getCourse()}</strong>`);
+          return false;
+        }
+      } else {
+        // 3. Jika membuka halaman belajar tanpa parameter query (misal langsung /belajar.html)
+        if (normalizedPageGrade === "sd") {
+          if (myTrack === "sd_explore_game") {
+            window.location.replace("/belajar.html?p=g1");
+            return false;
+          } else if (myTrack === "sd_explore_3d") {
+            window.location.replace("/belajar.html?p=g2");
+            return false;
+          } else if (myTrack === "sd_explore_web") {
+            window.location.replace("/belajar.html?p=g3");
+            return false;
+          }
+        } else if (normalizedPageGrade === "smp") {
+          if (myTrack === "smp_python") {
+            window.location.replace("/belajar-smp.html?t=python");
+            return false;
+          } else if (myTrack === "smp_ai") {
+            window.location.replace("/belajar-smp.html?t=ai");
+            return false;
+          } else if (myTrack === "smp_gamedev3d") {
+            window.location.replace("/belajar-smp.html?t=d3");
+            return false;
+          }
+        } else if (normalizedPageGrade === "smak") {
+          if (myTrack === "smk_algo") {
+            window.location.replace("/belajar-smk.html?t=pl");
+            return false;
+          } else if (myTrack === "smk_web" || myTrack === "smk_webdev") {
+            window.location.replace("/belajar-smk.html?t=wb");
+            return false;
+          } else if (myTrack === "smk_data" || myTrack === "smk_data_ai") {
+            window.location.replace("/belajar-smk.html?t=da");
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+
+    // Render layar penolakan akses (Blocking Screen)
+    renderBlockedScreen: function (title, reasonHtml) {
+      document.body.innerHTML = `
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; font-family: sans-serif; padding: 24px;">
+          <div style="background: #ffffff; border-radius: 18px; max-width: 480px; width: 100%; padding: 36px 28px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <div style="font-size: 3rem; margin-bottom: 14px;">🔒</div>
+            <h2 style="font-size: 1.35rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">${title}</h2>
+            <p style="font-size: 0.92rem; color: #64748b; line-height: 1.6; margin-bottom: 22px;">
+              ${reasonHtml}
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <a href="/dashboard.html" style="background: #059669; color: #ffffff; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.92rem;">
+                ← Kembali ke Ruang Belajar Saya
+              </a>
+              <a href="/users/checkout.html" style="background: #f1f5f9; color: #334155; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.92rem;">
+                Buka Paket Belajar Lainnya
+              </a>
             </div>
           </div>
-        `;
-      }
+        </div>
+      `;
     }
   };
 
