@@ -1861,6 +1861,119 @@ function registerFinanceApi(app, deps) {
       return sendApiError(res, 500, "Gagal mengekspor data transaksi.", "INTERNAL_ERROR");
     }
   });
+
+  // ------------------------------------------------------------
+  // PENGATURAN METODE PEMBAYARAN & PAYMENT GATEWAY (SERVER-SIDE)
+  // ------------------------------------------------------------
+  const DEFAULT_PAYMENT_SETTINGS = {
+    bankActive: true,
+    bankName: "Bank BCA",
+    bankAccount: "8210-9988-77",
+    bankHolder: "PT Ruang KKA Dieng Cyber",
+    bankNote: "Sertakan kode invoice unik saat melakukan transfer agar otomatis terverifikasi.",
+    qrisActive: true,
+    qrisMode: "gateway",
+    qrisMerchantName: "RUANG KKA DIENG CYBER",
+    qrisNmid: "ID1020261126520",
+    qrisPayload: "00020101021226590014ID.LINKAJA.WWW0118936009110020261126520458125303360540",
+    qrisImageUrl: "",
+    gatewayProvider: "midtrans",
+    gatewayEnvironment: "sandbox",
+    gatewayServerKey: "",
+    gatewayClientKey: "",
+    gatewayMerchantId: "",
+    gatewayWebhookSecret: "",
+    autoConfirmPaid: true
+  };
+
+  function readPaymentSettingsFromDb() {
+    const row = db.prepare("SELECT payload_json FROM admin_settings WHERE id = 1").get();
+    if (!row || !row.payload_json) return { ...DEFAULT_PAYMENT_SETTINGS };
+    try {
+      const parsed = JSON.parse(row.payload_json);
+      return Object.assign({}, DEFAULT_PAYMENT_SETTINGS, parsed.payment_settings || {});
+    } catch {
+      return { ...DEFAULT_PAYMENT_SETTINGS };
+    }
+  }
+
+  // GET konfigurasi pembayaran untuk Admin (memuat semua kredensial)
+  app.get("/api/admin/finance/payment-settings", guard, (req, res) => {
+    const settings = readPaymentSettingsFromDb();
+    return sendApiSuccess(res, { settings });
+  });
+
+  // PUT simpan konfigurasi pembayaran Admin
+  app.put("/api/admin/finance/payment-settings", guard, (req, res) => {
+    const body = req.body || {};
+    const input = body.settings || body;
+    const currentSettings = readPaymentSettingsFromDb();
+    const updated = Object.assign({}, currentSettings, {
+      bankActive: input.bankActive !== undefined ? Boolean(input.bankActive) : currentSettings.bankActive,
+      bankName: String(input.bankName || currentSettings.bankName).slice(0, 80),
+      bankAccount: String(input.bankAccount || currentSettings.bankAccount).slice(0, 60),
+      bankHolder: String(input.bankHolder || currentSettings.bankHolder).slice(0, 100),
+      bankNote: String(input.bankNote || currentSettings.bankNote).slice(0, 300),
+      qrisActive: input.qrisActive !== undefined ? Boolean(input.qrisActive) : currentSettings.qrisActive,
+      qrisMode: ["gateway", "static"].includes(input.qrisMode) ? input.qrisMode : currentSettings.qrisMode,
+      qrisMerchantName: String(input.qrisMerchantName || currentSettings.qrisMerchantName).slice(0, 100),
+      qrisNmid: String(input.qrisNmid || currentSettings.qrisNmid).slice(0, 60),
+      qrisPayload: String(input.qrisPayload || currentSettings.qrisPayload).slice(0, 500),
+      qrisImageUrl: String(input.qrisImageUrl || currentSettings.qrisImageUrl).slice(0, 500),
+      gatewayProvider: ["midtrans", "xendit", "tripay", "manual"].includes(input.gatewayProvider) ? input.gatewayProvider : currentSettings.gatewayProvider,
+      gatewayEnvironment: ["sandbox", "production"].includes(input.gatewayEnvironment) ? input.gatewayEnvironment : currentSettings.gatewayEnvironment,
+      gatewayServerKey: String(input.gatewayServerKey ?? currentSettings.gatewayServerKey).slice(0, 200),
+      gatewayClientKey: String(input.gatewayClientKey ?? currentSettings.gatewayClientKey).slice(0, 200),
+      gatewayMerchantId: String(input.gatewayMerchantId ?? currentSettings.gatewayMerchantId).slice(0, 100),
+      gatewayWebhookSecret: String(input.gatewayWebhookSecret ?? currentSettings.gatewayWebhookSecret).slice(0, 200),
+      autoConfirmPaid: input.autoConfirmPaid !== undefined ? Boolean(input.autoConfirmPaid) : currentSettings.autoConfirmPaid
+    });
+
+    const row = db.prepare("SELECT payload_json FROM admin_settings WHERE id = 1").get();
+    let rootSettings = {};
+    if (row && row.payload_json) {
+      try { rootSettings = JSON.parse(row.payload_json); } catch { rootSettings = {}; }
+    }
+    rootSettings.payment_settings = updated;
+
+    db.prepare(`
+      INSERT INTO admin_settings (id, payload_json, updated_by) VALUES (1, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET payload_json = excluded.payload_json,
+        updated_by = excluded.updated_by, updated_at = CURRENT_TIMESTAMP
+    `).run(JSON.stringify(rootSettings), req.userId);
+
+    audit(req, "settings.update_payment", 1, { provider: updated.gatewayProvider, env: updated.gatewayEnvironment });
+    return sendApiSuccess(res, { settings: updated }, "Pengaturan metode pembayaran berhasil disimpan.");
+  });
+
+  // GET Publik metode pembayaran aktif (aman untuk frontend siswa checkout / portal umum)
+  app.get("/api/payment/methods", (req, res) => {
+    const s = readPaymentSettingsFromDb();
+    const publicMethods = {
+      bank: {
+        active: s.bankActive,
+        name: s.bankName,
+        account: s.bankAccount,
+        holder: s.bankHolder,
+        note: s.bankNote
+      },
+      qris: {
+        active: s.qrisActive,
+        mode: s.qrisMode,
+        merchantName: s.qrisMerchantName,
+        nmid: s.qrisNmid,
+        payload: s.qrisPayload,
+        imageUrl: s.qrisImageUrl
+      },
+      gateway: {
+        active: s.gatewayProvider !== "manual",
+        provider: s.gatewayProvider,
+        environment: s.gatewayEnvironment,
+        clientKey: s.gatewayClientKey
+      }
+    };
+    return sendApiSuccess(res, { methods: publicMethods });
+  });
 }
 
 module.exports = {

@@ -160,6 +160,29 @@ async function main() {
     eq(clearRes.r.status, 200, "clear read 200");
   });
 
+  await t("payment-settings: admin dapat membaca dan menyimpan konfigurasi pembayaran", async () => {
+    const getRes = await api("GET", "/api/admin/finance/payment-settings", { token: adminToken });
+    eq(getRes.r.status, 200, "get settings status");
+    eq(getRes.d.settings.bankName, "Bank BCA", "default bankName");
+
+    const putRes = await api("PUT", "/api/admin/finance/payment-settings", {
+      token: adminToken,
+      body: {
+        bankName: "Bank Mandiri",
+        bankAccount: "13700-112233-4",
+        gatewayProvider: "midtrans",
+        gatewayEnvironment: "production"
+      }
+    });
+    eq(putRes.r.status, 200, "put settings status");
+    eq(putRes.d.settings.bankName, "Bank Mandiri", "updated bankName");
+
+    const pubRes = await api("GET", "/api/payment/methods");
+    eq(pubRes.r.status, 200, "public methods status");
+    eq(pubRes.d.methods.bank.name, "Bank Mandiri", "public bank name cocok");
+    eq(pubRes.d.methods.gateway.provider, "midtrans", "public gateway cocok");
+  });
+
   const passed = results.filter((r) => r[0] === "PASS").length;
   for (const [status, name] of results) console.log(`${status}  ${name}`);
   console.log(`\n${passed}/${results.length} lolos`);
