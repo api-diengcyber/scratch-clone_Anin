@@ -28,6 +28,7 @@ module.exports = [
   "finance-pengeluaran",
   "finance-payroll",
   "finance-anggaran",
+  "finance-setting",
   // Legacy: URL lama /admin/jadwal tetap membuka SPA (tidak ada view khusus).
   "jadwal"
 ];
