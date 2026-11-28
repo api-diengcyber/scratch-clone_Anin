@@ -680,14 +680,17 @@
           <!-- Field 4: Usia Anak -->
           <div class="form-group">
             <label for="childAge" class="form-label">Usia Anak *</label>
-            <input type="number" id="childAge" class="form-input" placeholder="contoh: 10 (antara 6-18 tahun)" min="6" max="20" required>
+            <input type="number" id="childAge" class="form-input" placeholder="contoh: 10 (antara 6 - 18 tahun)" min="6" max="20" required>
+            <div id="ageHelper" class="form-helper" style="color: #64748b; margin-top: 4px;">
+              <i class="fa-solid fa-circle-info" style="color: #059669;"></i> Isi usia anak terlebih dahulu agar pilihan kursus terbuka sesuai jenjangnya.
+            </div>
           </div>
 
-          <!-- Field 5: Pilih Kursus (Disesuaikan dengan Paket Belajar SD, SMP, SMA/K - Kecuali Paket All) -->
+          <!-- Field 5: Pilih Kursus (Disesuaikan dengan Usia Anak) -->
           <div class="form-group">
             <label for="courseTrack" class="form-label">Pilih Kursus *</label>
-            <select id="courseTrack" class="form-select" required>
-              <option value="" disabled selected>Pilih salah satu program kursus</option>
+            <select id="courseTrack" class="form-select" required disabled>
+              <option value="" disabled selected>— Masukkan usia anak di atas terlebih dahulu —</option>
               
               <!-- Jenjang SD -->
               <optgroup label="🎒 Jenjang SD (Usia 6 – 12 Tahun)">
@@ -698,19 +701,20 @@
               </optgroup>
 
               <!-- Jenjang SMP -->
-              <optgroup label="🎮 Jenjang SMP (Usia 12 – 15 Tahun)">
+              <optgroup label="🎮 Jenjang SMP (Usia 13 – 15 Tahun)">
                 <option value="Python Start (Dasar Python & Logika)" data-grade="smp" data-track="smp_python">Python Start (SMP – Dasar Python & Logika)</option>
                 <option value="AI & Creative Tech (Kecerdasan Buatan)" data-grade="smp" data-track="smp_ai">AI & Creative Tech (SMP – Kecerdasan Buatan)</option>
                 <option value="Game Dev 3D Lanjutan (3D Studio & WebGL)" data-grade="smp" data-track="smp_gamedev3d">Game Dev 3D Lanjutan (SMP – 3D Engine & Fisika)</option>
               </optgroup>
 
               <!-- Jenjang SMA / SMK -->
-              <optgroup label="💻 Jenjang SMA / SMK (Usia 15 – 18+ Tahun)">
+              <optgroup label="💻 Jenjang SMA / SMK (Usia 16 – 18+ Tahun)">
                 <option value="Python Lanjutan & Algoritma (SMA/K)" data-grade="smak" data-track="smk_algo">Python Lanjutan & Algoritma (SMA/K)</option>
                 <option value="Web Development Fullstack (SMA/K)" data-grade="smak" data-track="smk_web">Web Development Fullstack (SMA/K)</option>
                 <option value="Data & AI Terapan (SMA/K)" data-grade="smak" data-track="smk_data">Data & AI Terapan (SMA/K – Data Science & ML)</option>
               </optgroup>
             </select>
+            <div id="courseTrackFeedback" style="font-size: 0.8rem; margin-top: 6px; display: none;"></div>
           </div>
 
           <!-- Field 6: Kota Domisili -->
@@ -770,7 +774,7 @@
       <span>Ada yang bisa kami bantu?</span>
       <span class="wa-bubble-close" id="closeWaBubble" title="Tutup">×</span>
     </div>
-    <a href="https://wa.me/6281222334455?text=Halo%20Admin%20Dieng%20Cyber,%20saya%20tertarik%20dengan%20Kelas%20Trial%20Gratis%20untuk%20anak%20saya" target="_blank" rel="noopener noreferrer" class="wa-icon-circle" title="Chat via WhatsApp">
+    <a href="javascript:void(0)" onclick="alert('Layanan chat WhatsApp resmi Dieng Cyber sedang dipersiapkan.')" class="wa-icon-circle" title="Chat via WhatsApp">
       <i class="fa-brands fa-whatsapp"></i>
       <span class="wa-badge-notif">1</span>
     </a>
@@ -791,6 +795,7 @@
       const closeWaBubble = document.getElementById('closeWaBubble');
       const childAgeInput = document.getElementById('childAge');
       const courseTrackSelect = document.getElementById('courseTrack');
+      const courseTrackFeedback = document.getElementById('courseTrackFeedback');
 
       // WhatsApp bubble close
       if (closeWaBubble && waBubbleHint) {
@@ -822,6 +827,110 @@
         return digits;
       }
 
+      // Data Kursus per Jenjang Usia
+      const COURSE_DATA = {
+        sd: {
+          label: '🎒 Jenjang SD (Usia 6 – 12 Tahun)',
+          minAge: 6,
+          maxAge: 12,
+          courses: [
+            { value: 'SD Basic (Scratch & Logika Visual)', grade: 'sd', track: 'sd_basic', text: 'SD Basic (Scratch & Logika Visual)' },
+            { value: 'SD Explore - Game Development (2D Arcade)', grade: 'sd', track: 'sd_explore_game', text: 'SD Explore – Game Development (2D Arcade)' },
+            { value: 'SD Explore - 3D & Roblox World', grade: 'sd', track: 'sd_explore_3d', text: 'SD Explore – 3D & Roblox World' },
+            { value: 'SD Explore - Website Development', grade: 'sd', track: 'sd_explore_web', text: 'SD Explore – Website Development' }
+          ]
+        },
+        smp: {
+          label: '🎮 Jenjang SMP (Usia 13 – 15 Tahun)',
+          minAge: 13,
+          maxAge: 15,
+          courses: [
+            { value: 'Python Start (Dasar Python & Logika)', grade: 'smp', track: 'smp_python', text: 'Python Start (SMP – Dasar Python & Logika)' },
+            { value: 'AI & Creative Tech (Kecerdasan Buatan)', grade: 'smp', track: 'smp_ai', text: 'AI & Creative Tech (SMP – Kecerdasan Buatan)' },
+            { value: 'Game Dev 3D Lanjutan (3D Studio & WebGL)', grade: 'smp', track: 'smp_gamedev3d', text: 'Game Dev 3D Lanjutan (SMP – 3D Engine & Fisika)' }
+          ]
+        },
+        smak: {
+          label: '💻 Jenjang SMA / SMK (Usia 16 – 18+ Tahun)',
+          minAge: 16,
+          maxAge: 20,
+          courses: [
+            { value: 'Python Lanjutan & Algoritma (SMA/K)', grade: 'smak', track: 'smk_algo', text: 'Python Lanjutan & Algoritma (SMA/K)' },
+            { value: 'Web Development Fullstack (SMA/K)', grade: 'smak', track: 'smk_web', text: 'Web Development Fullstack (SMA/K)' },
+            { value: 'Data & AI Terapan (SMA/K)', grade: 'smak', track: 'smk_data', text: 'Data & AI Terapan (SMA/K – Data Science & ML)' }
+          ]
+        }
+      };
+
+      // Filter pilihan kursus dinamis berdasarkan usia anak
+      function updateCourseOptionsByAge(age) {
+        if (!age || isNaN(age)) {
+          courseTrackSelect.disabled = true;
+          courseTrackSelect.innerHTML = '<option value="" disabled selected>— Masukkan usia anak di atas terlebih dahulu —</option>';
+          if (courseTrackFeedback) {
+            courseTrackFeedback.style.display = 'none';
+          }
+          return;
+        }
+
+        if (age < 6) {
+          courseTrackSelect.disabled = true;
+          courseTrackSelect.innerHTML = '<option value="" disabled selected>Usia anak minimal 6 tahun</option>';
+          if (courseTrackFeedback) {
+            courseTrackFeedback.style.display = 'block';
+            courseTrackFeedback.style.color = '#dc2626';
+            courseTrackFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Usia anak minimal 6 tahun untuk mengikuti program koding Dieng Cyber.';
+          }
+          return;
+        }
+
+        if (age > 20) {
+          courseTrackSelect.disabled = true;
+          courseTrackSelect.innerHTML = '<option value="" disabled selected>Usia melebihi batas program (maks. 20 tahun)</option>';
+          if (courseTrackFeedback) {
+            courseTrackFeedback.style.display = 'block';
+            courseTrackFeedback.style.color = '#dc2626';
+            courseTrackFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Program kursus ini dikhususkan untuk usia 6 hingga 18 (maksimal 20) tahun.';
+          }
+          return;
+        }
+
+        let targetGradeKey = 'sd';
+        if (age >= 6 && age <= 12) {
+          targetGradeKey = 'sd';
+        } else if (age >= 13 && age <= 15) {
+          targetGradeKey = 'smp';
+        } else {
+          targetGradeKey = 'smak';
+        }
+
+        const group = COURSE_DATA[targetGradeKey];
+        courseTrackSelect.disabled = false;
+
+        let optionsHtml = `<option value="" disabled>Pilih program kursus (${group.label})</option>`;
+        group.courses.forEach((c, idx) => {
+          optionsHtml += `<option value="${c.value}" data-grade="${c.grade}" data-track="${c.track}" ${idx === 0 ? 'selected' : ''}>${c.text}</option>`;
+        });
+
+        courseTrackSelect.innerHTML = optionsHtml;
+
+        if (courseTrackFeedback) {
+          courseTrackFeedback.style.display = 'block';
+          courseTrackFeedback.style.color = '#059669';
+          courseTrackFeedback.innerHTML = `<i class="fa-solid fa-circle-check"></i> Kursus disesuaikan untuk usia ${age} tahun (<strong>${group.label}</strong>).`;
+        }
+      }
+
+      childAgeInput.addEventListener('input', function () {
+        const age = parseInt(this.value, 10);
+        updateCourseOptionsByAge(age);
+      });
+
+      childAgeInput.addEventListener('change', function () {
+        const age = parseInt(this.value, 10);
+        updateCourseOptionsByAge(age);
+      });
+
       // Pre-fill dari URL query parameter jika datang dari landing page
       const urlParams = new URLSearchParams(window.location.search);
       const pkgParam = urlParams.get('package') || '';
@@ -832,20 +941,6 @@
         window.location.replace(`checkout.html${window.location.search}`);
         return;
       }
-
-      // Auto-suggest kursus saat usia anak diisi (jika kursus belum dipilih)
-      childAgeInput.addEventListener('change', function () {
-        const age = parseInt(this.value, 10);
-        if (!isNaN(age) && !courseTrackSelect.value) {
-          if (age <= 11) {
-            courseTrackSelect.value = "SD Basic (Scratch & Logika Visual)";
-          } else if (age <= 15) {
-            courseTrackSelect.value = "Python Start (Dasar Python & Logika)";
-          } else {
-            courseTrackSelect.value = "Python Lanjutan & Algoritma (SMA/K)";
-          }
-        }
-      });
 
       // Simpan session ke localStorage agar langsung login tanpa prompt ulang
       function establishDirectAccess(userPayload, extra) {
@@ -921,8 +1016,45 @@
         const referral = document.getElementById('referralSource').value;
 
         // Validasi
-        if (!parentName || !parentEmail || !parentPhoneRaw || !childAge || !course || !city || !referral) {
+        if (!parentName || !parentEmail || !parentPhoneRaw || !childAge || !city || !referral) {
           showAlert('error', 'Mohon lengkapi semua kolom bertanda * terlebih dahulu.');
+          return;
+        }
+
+        const ageNum = parseInt(childAge, 10);
+        if (!ageNum || isNaN(ageNum)) {
+          showAlert('error', 'Mohon masukkan usia anak terlebih dahulu.');
+          childAgeInput.focus();
+          return;
+        }
+
+        if (ageNum < 6 || ageNum > 20) {
+          showAlert('error', 'Usia anak harus antara 6 hingga 18 (maksimal 20) tahun.');
+          childAgeInput.focus();
+          return;
+        }
+
+        if (!course || courseTrackSelect.disabled) {
+          showAlert('error', 'Mohon pilih kursus yang tersedia sesuai usia anak.');
+          courseTrackSelect.focus();
+          return;
+        }
+
+        const selectedOpt = courseTrackSelect.selectedOptions[0];
+        const trackId = selectedOpt ? selectedOpt.getAttribute('data-track') : '';
+        const grade = selectedOpt ? selectedOpt.getAttribute('data-grade') : '';
+
+        // Validasi silang usia dengan jenjang kursus
+        if (grade === 'sd' && (ageNum < 6 || ageNum > 12)) {
+          showAlert('error', `Program Jenjang SD hanya ditujukan untuk usia 6 – 12 tahun (Usia saat ini: ${ageNum} tahun).`);
+          return;
+        }
+        if (grade === 'smp' && (ageNum < 13 || ageNum > 15)) {
+          showAlert('error', `Program Jenjang SMP hanya ditujukan untuk usia 13 – 15 tahun (Usia saat ini: ${ageNum} tahun).`);
+          return;
+        }
+        if (grade === 'smak' && (ageNum < 16 || ageNum > 20)) {
+          showAlert('error', `Program Jenjang SMA/K hanya ditujukan untuk usia 16 – 18+ tahun (Usia saat ini: ${ageNum} tahun).`);
           return;
         }
 
@@ -931,10 +1063,6 @@
           showAlert('error', 'Nomor WhatsApp tidak valid. Pastikan nomor aktif.');
           return;
         }
-
-        const selectedOpt = courseTrackSelect.selectedOptions[0];
-        const trackId = selectedOpt ? selectedOpt.getAttribute('data-track') : '';
-        const grade = selectedOpt ? selectedOpt.getAttribute('data-grade') : '';
 
         const extraData = {
           parentName,

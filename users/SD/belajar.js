@@ -41,9 +41,11 @@
     return;
   }
 
-  // Proteksi akun trial gratis agar hanya mengakses jalurnya
+  // Proteksi akun agar hanya mengakses jalur sesuai paket / trial aktif
   if (window.TrialGate && typeof window.TrialGate.guardStudyPage === "function") {
-    window.TrialGate.guardStudyPage("sd");
+    if (window.TrialGate.guardStudyPage("sd") === false) {
+      return;
+    }
   }
 
   const app = document.getElementById("app");
