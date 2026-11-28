@@ -183,6 +183,42 @@ async function main() {
     eq(pubRes.d.methods.gateway.provider, "midtrans", "public gateway cocok");
   });
 
+  await t("webhook: simulasi callback payment gateway menyelesaikan invoice & aktivasi langganan", async () => {
+    // Siapkan paket langganan di database
+    const pkgInfo = db.prepare(`
+      INSERT INTO subscription_packages (grade, path_key, path_name, months, price, aktif)
+      VALUES ('SD', 'sd_basic', 'SD Basic', 1, 150000, 1)
+    `).run();
+    const pkgId = Number(pkgInfo.lastInsertRowid);
+
+    // Siapkan invoice pending untuk siswa trial
+    const checkoutRes = await api("POST", "/api/subscription/checkout", {
+      token: trialToken,
+      body: {
+        packageId: pkgId,
+        method: "QRIS"
+      }
+    });
+    eq(checkoutRes.r.status, 201, "checkout status 201");
+    const orderCode = checkoutRes.d.item.code;
+
+    // Panggil webhook simulator dengan payload settlement
+    const webhookRes = await api("POST", "/api/subscription/payments/webhook", {
+      body: {
+        order_id: orderCode,
+        transaction_status: "settlement",
+        fraud_status: "accept",
+        provider: "midtrans"
+      }
+    });
+    eq(webhookRes.r.status, 200, "webhook status 200");
+    eq(webhookRes.d.status, "paid", "webhook status paid");
+
+    // Periksa status invoice setelah webhook
+    const checkInvoice = db.prepare("SELECT status FROM subscription_payments WHERE code = ?").get(orderCode);
+    eq(checkInvoice.status, "paid", "invoice database lunas");
+  });
+
   const passed = results.filter((r) => r[0] === "PASS").length;
   for (const [status, name] of results) console.log(`${status}  ${name}`);
   console.log(`\n${passed}/${results.length} lolos`);

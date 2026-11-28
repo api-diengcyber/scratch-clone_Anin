@@ -292,6 +292,63 @@ function registerSubscriptionApi(app, deps) {
       return sendApiError(res, 500, "Gagal mengekspor data langganan.", "INTERNAL_ERROR");
     }
   });
+
+  // ------------------------------------------------------------
+  // WEBHOOK GATEWAY PEMBAYARAN (Midtrans, Xendit, Tripay, Simulator)
+  // ------------------------------------------------------------
+  app.post("/api/subscription/payments/webhook", publicLimit, (req, res) => dataResponse(res, () => {
+    const body = req.body || {};
+
+    // 1. Ekstrak kode invoice / order_id
+    const orderId = body.order_id || body.external_id || body.merchant_ref || body.code;
+    if (!orderId) {
+      return sendApiError(res, 400, "Kode order / invoice tidak ditemukan di payload webhook.", "INVALID_PAYLOAD");
+    }
+
+    // 2. Cari data pembayaran berdasarkan kode SUB-...
+    const payment = db.prepare("SELECT * FROM subscription_payments WHERE code = ?").get(orderId);
+    if (!payment) {
+      return sendApiError(res, 404, `Invoice ${orderId} tidak ditemukan.`, "NOT_FOUND");
+    }
+
+    // 3. Tentukan status transaksi dari provider
+    const statusRaw = String(body.transaction_status || body.status || "").toLowerCase();
+    const isPaid = [
+      "settlement", "capture", "paid", "completed", "success"
+    ].includes(statusRaw) && (!body.fraud_status || body.fraud_status === "accept");
+
+    const isFailed = [
+      "deny", "cancel", "expire", "failed"
+    ].includes(statusRaw);
+
+    if (isPaid) {
+      const result = service.confirmPayment(db, payment.id, {
+        actorId: null,
+        actorUsername: `webhook:${body.provider || "gateway"}`,
+        ip: req.ip || null,
+        source: "gateway.webhook"
+      });
+      return sendApiSuccess(res, {
+        orderId,
+        status: "paid",
+        result
+      }, "Webhook berhasil diproses: pembayaran lunas.");
+    }
+
+    if (isFailed) {
+      db.prepare("UPDATE subscription_payments SET status = 'failed', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'pending'").run(payment.id);
+      return sendApiSuccess(res, {
+        orderId,
+        status: "failed"
+      }, "Webhook diproses: transaksi ditolak atau kedaluwarsa.");
+    }
+
+    return sendApiSuccess(res, {
+      orderId,
+      status: "pending_or_ignored",
+      receivedStatus: statusRaw
+    }, "Webhook diterima.");
+  }));
 }
 
 module.exports = { registerSubscriptionApi };
