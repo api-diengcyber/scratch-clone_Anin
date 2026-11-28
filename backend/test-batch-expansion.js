@@ -219,6 +219,40 @@ async function main() {
     eq(checkInvoice.status, "paid", "invoice database lunas");
   });
 
+  await t("gallery: siswa dapat mempublikasikan karya Scratch, melihat daftar, detail, dan like", async () => {
+    // 1. Siswa upload/publish karya ke galeri
+    const pubRes = await api("POST", "/api/gallery/projects", {
+      token: trialToken,
+      body: {
+        title: "Kucing Menari di Pantai",
+        category: "Animations",
+        description: "Animasi kucing menari di pantai Dieng",
+        instructions: "Klik bendera hijau untuk mulai",
+        projectData: { targets: [{ name: "Stage" }, { name: "Sprite1" }] }
+      }
+    });
+    eq(pubRes.r.status, 200, "publish project 200");
+    const projId = pubRes.d.id;
+    ok(projId > 0, "id proyek valid");
+
+    // 2. Publik list galeri
+    const listRes = await api("GET", "/api/gallery/projects?category=Animations");
+    eq(listRes.r.status, 200, "gallery list 200");
+    ok(listRes.d.items.some(p => p.id === projId), "proyek ada di list");
+
+    // 3. Detail proyek
+    const detailRes = await api("GET", `/api/gallery/projects/${projId}`);
+    eq(detailRes.r.status, 200, "detail project 200");
+    eq(detailRes.d.item.title, "Kucing Menari di Pantai", "judul cocok");
+    eq(detailRes.d.item.views_count, 1, "view bertambah 1");
+
+    // 4. Like proyek
+    const likeRes = await api("POST", `/api/gallery/projects/${projId}/like`, { token: trialToken });
+    eq(likeRes.r.status, 200, "like status 200");
+    eq(likeRes.d.liked, true, "status liked true");
+    eq(likeRes.d.likesCount, 1, "jumlah like 1");
+  });
+
   const passed = results.filter((r) => r[0] === "PASS").length;
   for (const [status, name] of results) console.log(`${status}  ${name}`);
   console.log(`\n${passed}/${results.length} lolos`);

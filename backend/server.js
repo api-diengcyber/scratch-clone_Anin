@@ -1692,6 +1692,9 @@ require("./learning-api").registerLearningApi(app, {
 require("./student-notifications").registerStudentNotificationApi(app, {
     db, auth, sendApiError, sendApiSuccess
 });
+require("./gallery-api").registerGalleryApi(app, {
+    db, auth, sendApiError, sendApiSuccess, sanitizeString
+});
 
 // ------------------------------------------------------------
 // SERTIFIKAT & KELULUSAN
