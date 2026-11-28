@@ -253,6 +253,24 @@ async function main() {
     eq(likeRes.d.likesCount, 1, "jumlah like 1");
   });
 
+  await t("qris-dynamic: checkout dengan metode QRIS menghasilkan string EMVCo dan URL barcode dinamis", async () => {
+    // Siapkan paket jenjang SD
+    const pkgRow = db.prepare("SELECT id FROM subscription_packages WHERE grade = 'SD' AND path_key = 'sd_basic'").get();
+    const qrisCheckout = await api("POST", "/api/subscription/checkout", {
+      token: trialToken,
+      body: {
+        packageId: pkgRow.id,
+        method: "QRIS"
+      }
+    });
+    eq(qrisCheckout.r.status, 201, "checkout qris status 201");
+    const inst = qrisCheckout.d.instructions;
+    eq(inst.method, "QRIS", "metode instruksi QRIS");
+    ok(inst.qrisPayload && inst.qrisPayload.length > 20, "payload QRIS dinamis terbentuk");
+    ok(inst.qrImageUrl && inst.qrImageUrl.includes("api.qrserver.com"), "URL gambar barcode QRIS tersedia");
+    ok(inst.paymentUrl && inst.paymentUrl.includes("simulator"), "URL pembayaran simulator gateway tersedia");
+  });
+
   const passed = results.filter((r) => r[0] === "PASS").length;
   for (const [status, name] of results) console.log(`${status}  ${name}`);
   console.log(`\n${passed}/${results.length} lolos`);

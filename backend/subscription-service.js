@@ -577,8 +577,11 @@ function resolvePackage(db, input) {
   return findPackageByKey(db, parsed.key, months);
 }
 
-function instructionsFor(payment, env) {
-  return paymentGateway.instructionsFor(payment, env);
+function instructionsFor(payment, env, db) {
+  if (env && env.prepare && !db) {
+    return paymentGateway.instructionsFor(payment, { db: env });
+  }
+  return paymentGateway.instructionsFor(payment, { env, db });
 }
 
 // ------------------------------------------------------------
@@ -716,16 +719,18 @@ function createCheckout(db, studentId, input = {}, options = {}) {
       WHERE student_user_id = ? AND package_id = ? AND status = 'pending' AND expires_on >= ?
       ORDER BY id DESC LIMIT 1`).get(studentId, pkg.id, today);
     if (existing && !promoInput) {
-      return { item: paymentDto(existing), reused: true, instructions: instructionsFor(existing, env) };
+      return { item: paymentDto(existing), reused: true, instructions: instructionsFor(existing, env, db) };
     }
+
+    const paymentMethod = String(input.method || "Transfer Bank").trim();
 
     const info = db.prepare(`INSERT INTO subscription_payments
       (student_user_id, package_id, path_key, path_name, grade, months, price, discount, total,
        promo_code, method, status, expires_on)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Transfer Bank', 'pending', ?)`).run(
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`).run(
       studentId, pkg.id, pkg.path_key, pkg.path_name, pkg.grade,
       Number(pkg.months), basePrice, discount, finalTotal,
-      appliedPromoCode, expiresOn
+      appliedPromoCode, paymentMethod, expiresOn
     );
     const id = Number(info.lastInsertRowid);
     const code = `SUB-${1000 + id}`;
@@ -736,10 +741,10 @@ function createCheckout(db, studentId, input = {}, options = {}) {
     const finance = db.prepare(`INSERT INTO finance_transactions
       (student_user_id, learning_path_key, learning_path_name, grade, price, discount, total,
        promo_code, method, status, note, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Transfer Bank', 'pending', ?, ?)`).run(
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`).run(
       studentId, pkg.path_key, pkg.path_name, pkg.grade,
       basePrice, discount, finalTotal,
-      appliedPromoCode, `Langganan ${pkg.months} bulan (${code})`, studentId
+      appliedPromoCode, paymentMethod, `Langganan ${pkg.months} bulan (${code})`, studentId
     );
     const financeId = Number(finance.lastInsertRowid);
     db.prepare("UPDATE finance_transactions SET code = ? WHERE id = ?").run(`TRX-${1000 + financeId}`, financeId);
@@ -775,7 +780,7 @@ function createCheckout(db, studentId, input = {}, options = {}) {
       dedupeKey: `subscription.checkout:${id}`
     }));
 
-    return { item: paymentDto(row), reused: false, instructions: instructionsFor(row, env) };
+    return { item: paymentDto(row), reused: false, instructions: instructionsFor(row, env, db) };
   })();
 }
 
@@ -1135,7 +1140,7 @@ function getStudentOverview(db, studentId, options = {}) {
   return {
     subscription: subscriptionState(db, studentId, options),
     pendingPayment: pending,
-    instructions: pending ? instructionsFor(pending, options.env || process.env) : null,
+    instructions: pending ? instructionsFor(pending, options.env || process.env, db) : null,
     payments
   };
 }
